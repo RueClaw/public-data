@@ -14,9 +14,9 @@ GREEN='\033[32m'
 YELLOW='\033[33m'
 RESET='\033[0m'
 
-echo -e "${CYAN}${BOLD}═══════════════════════════════════════${RESET}"
-echo -e "${CYAN}${BOLD}  Discord Bot Setup${RESET}"
-echo -e "${CYAN}${BOLD}═══════════════════════════════════════${RESET}"
+printf "${CYAN}${BOLD}═══════════════════════════════════════${RESET}\n"
+printf "${CYAN}${BOLD}  Discord Bot Setup${RESET}\n"
+printf "${CYAN}${BOLD}═══════════════════════════════════════${RESET}\n"
 echo
 
 # Step 1: Name
@@ -26,42 +26,42 @@ BOT_DIR="$HOME/.openclaw/bots/$BOT_NAME"
 mkdir -p "$BOT_DIR"
 
 echo
-echo -e "${BOLD}Step 1: Create the Application${RESET}"
-echo -e "${DIM}Opening Discord Developer Portal...${RESET}"
+printf "${BOLD}Step 1: Create the Application${RESET}\n"
+printf "${DIM}Opening Discord Developer Portal...${RESET}\n"
 echo
-echo "  1. Click ${BOLD}New Application${RESET}"
-echo "  2. Name it: ${BOLD}$BOT_NAME${RESET}"
+printf "  1. Click ${BOLD}New Application${RESET}\n"
+printf "  2. Name it: ${BOLD}$BOT_NAME${RESET}\n"
 echo "  3. Accept the ToS and click Create"
 echo
 open "https://discord.com/developers/applications" 2>/dev/null || echo "  → Go to: https://discord.com/developers/applications"
 read -rp "Press Enter when the application is created..."
 
 echo
-echo -e "${BOLD}Step 2: Get the Application ID${RESET}"
+printf "${BOLD}Step 2: Get the Application ID${RESET}\n"
 echo
-echo "  On the ${BOLD}General Information${RESET} page, copy the ${BOLD}Application ID${RESET}"
+printf "  On the ${BOLD}General Information${RESET} page, copy the ${BOLD}Application ID${RESET}\n"
 echo
 read -rp "Paste Application ID: " APP_ID
 
 echo
-echo -e "${BOLD}Step 3: Create the Bot${RESET}"
+printf "${BOLD}Step 3: Create the Bot${RESET}\n"
 echo
-echo "  1. Click ${BOLD}Bot${RESET} in the left sidebar"
-echo "  2. Under ${BOLD}Privileged Gateway Intents${RESET}, enable:"
-echo "     ✅ ${BOLD}Presence Intent${RESET}"
-echo "     ✅ ${BOLD}Server Members Intent${RESET}"
-echo "     ✅ ${BOLD}Message Content Intent${RESET}"
-echo "  3. Click ${BOLD}Save Changes${RESET}"
-echo "  4. Click ${BOLD}Reset Token${RESET} and copy the token"
+printf "  1. Click ${BOLD}Bot${RESET} in the left sidebar\n"
+printf "  2. Under ${BOLD}Privileged Gateway Intents${RESET}, enable:\n"
+printf "     ✅ ${BOLD}Presence Intent${RESET}\n"
+printf "     ✅ ${BOLD}Server Members Intent${RESET}\n"
+printf "     ✅ ${BOLD}Message Content Intent${RESET}\n"
+printf "  3. Click ${BOLD}Save Changes${RESET}\n"
+printf "  4. Click ${BOLD}Reset Token${RESET} and copy the token\n"
 echo
-echo -e "${YELLOW}⚠  The token is only shown once! Copy it now.${RESET}"
+printf "${YELLOW}⚠  The token is only shown once! Copy it now.${RESET}\n"
 echo
 read -rp "Paste Bot Token: " BOT_TOKEN
 
 echo
-echo -e "${BOLD}Step 4: Set Bot Permissions${RESET}"
+printf "${BOLD}Step 4: Set Bot Permissions${RESET}\n"
 echo
-echo "  Click ${BOLD}OAuth2${RESET} in the left sidebar."
+printf "  Click ${BOLD}OAuth2${RESET} in the left sidebar.\n"
 echo
 
 # Permissions bitfield:
@@ -72,13 +72,13 @@ PERMISSIONS=311385038912
 
 INVITE_URL="https://discord.com/oauth2/authorize?client_id=${APP_ID}&permissions=${PERMISSIONS}&scope=bot%20applications.commands"
 
-echo -e "${BOLD}Step 5: Invite to Server${RESET}"
+printf "${BOLD}Step 5: Invite to Server${RESET}\n"
 echo
-echo -e "  Opening invite link..."
-echo -e "  ${DIM}${INVITE_URL}${RESET}"
+printf "  Opening invite link...\n"
+printf "  ${DIM}${INVITE_URL}${RESET}\n"
 echo
 echo "  1. Select the server to add the bot to"
-echo "  2. Click ${BOLD}Authorize${RESET}"
+printf "  2. Click ${BOLD}Authorize${RESET}\n"
 echo
 open "$INVITE_URL" 2>/dev/null || true
 read -rp "Press Enter when the bot is in your server..."
@@ -94,12 +94,12 @@ EOF
 chmod 600 "$BOT_DIR/discord.env"
 
 echo
-echo -e "${GREEN}${BOLD}✅ Discord bot '$BOT_NAME' is set up!${RESET}"
+printf "${GREEN}${BOLD}✅ Discord bot '$BOT_NAME' is set up!${RESET}\n"
 echo
-echo -e "  Config saved: ${DIM}$BOT_DIR/discord.env${RESET}"
+printf "  Config saved: ${DIM}$BOT_DIR/discord.env${RESET}\n"
 echo
-echo -e "  ${BOLD}To use in OpenClaw config:${RESET}"
-echo -e "  channels.discord.token = \"$BOT_TOKEN\""
+printf "  ${BOLD}To use in OpenClaw config:${RESET}\n"
+printf "  channels.discord.token = \"$BOT_TOKEN\"\n"
 echo
-echo -e "${DIM}Tip: To add to more servers, use this invite URL:${RESET}"
-echo -e "${DIM}$INVITE_URL${RESET}"
+printf "${DIM}Tip: To add to more servers, use this invite URL:${RESET}\n"
+printf "${DIM}$INVITE_URL${RESET}\n"
