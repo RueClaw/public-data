@@ -45,6 +45,7 @@ Full write-ups of repos reviewed, with architecture summaries, key patterns, cod
 | [flash-moe.md](reviews/flash-moe.md) | danveloper/flash-moe | **no license** | 🔥🔥🔥🔥🔥 | Pure C/Metal inference for 397B MoE on a 48GB MacBook |
 | [claude-chromium-native-messaging.md](reviews/claude-chromium-native-messaging.md) | stolot0mt0m/claude-chromium-native-messaging | MIT | 🔥🔥 | Claude extension for non-Chrome Chromium browsers |
 | [openalice.md](reviews/openalice.md) | TraderAlice/OpenAlice | AGPL-3.0 | 🔥🔥🔥🔥 | File-driven AI trading agent engine — UTA pattern, Trading-as-Git, guard pipeline, evolution mode |
+| [the-library.md](reviews/the-library.md) | disler/the-library | MIT | 🔥🔥🔥🔥 | Meta-skill for private-first distribution of skills/agents/prompts across devices and teams |
 
 ---
 
