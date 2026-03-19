@@ -1,17 +1,53 @@
 # public-data
 
-Curated patterns, prompts, and architectural ideas extracted from open-source AI assistant projects.
+Curated patterns, prompts, architectural ideas, and repo reviews extracted from publicly available AI projects.
+
+## Publishing Policy
+
+**What we share:**
+- Summaries and useful parts of any publicly available code repository
+- Full write-ups in `reviews/` for every repo reviewed
+- Extracted patterns, prompts, and tools in their respective directories
+
+**Attribution:**
+- Every file includes source repo, author, and license
+- Files with no license are marked clearly: "no license specified — educational/personal use only"
+- We respect that authors chose to share publicly. We honor that by sharing our analysis publicly too, with attribution.
+
+**License handling:**
+- Apache-2.0, MIT, BSD, CC-BY → extract freely, include attribution
+- AGPL/GPL → summarize and document patterns; do not embed in proprietary code
+- No license → note explicitly; treat as educational/personal use only; do not redistribute code itself
+- Always attribute: source repo, author, and license in each file
+
+---
 
 ## Structure
 
+- `reviews/` — Full write-ups of every repo reviewed (published with attribution)
 - `prompts/` — System prompts, prompt templates, personality definitions
 - `agents/` — Agent definitions, orchestration configs, loop architectures
 - `patterns/` — Architectural patterns, best practices, reusable designs
 - `tools/` — Useful scripts and utilities
+- `notes/` — Research notes and analysis
 
-## Contents
+---
 
-### Agents
+## Reviews
+
+Full write-ups of repos reviewed, with architecture summaries, key patterns, code examples, and relevance notes.
+
+| File | Source | License | Rating | Description |
+|------|--------|---------|--------|-------------|
+| [gait.md](reviews/gait.md) | Clyra-AI/gait | Apache-2.0 | 🔥🔥🔥 | Policy-as-code enforcement at the AI agent tool boundary |
+| [sage.md](reviews/sage.md) | l33tdawg/sage | Apache-2.0 | 🔥🔥🔥 | BFT consensus-validated persistent memory for AI agents |
+| [crucix.md](reviews/crucix.md) | calesthio/Crucix | AGPL-3.0 | 🔥🔥🔥🔥 | Self-hosted OSINT intelligence terminal, 27 sources |
+| [flash-moe.md](reviews/flash-moe.md) | danveloper/flash-moe | **no license** | 🔥🔥🔥🔥🔥 | Pure C/Metal inference for 397B MoE on a 48GB MacBook |
+| [claude-chromium-native-messaging.md](reviews/claude-chromium-native-messaging.md) | stolot0mt0m/claude-chromium-native-messaging | MIT | 🔥🔥 | Claude extension for non-Chrome Chromium browsers |
+
+---
+
+## Agents
 
 | File | Source | Description |
 |------|--------|-------------|
@@ -22,8 +58,9 @@ Curated patterns, prompts, and architectural ideas extracted from open-source AI
 | [claude-code-controller-orchestration.md](agents/claude-code-controller-orchestration.md) | pacholoamit/claude-code-controller | Orchestrate real Claude Code processes via REST/SDK |
 | [koda-architecture.md](agents/koda-architecture.md) | koda | Subagent spawning architecture |
 | [monty-sandboxed-interpreter.md](agents/monty-sandboxed-interpreter.md) | monty | Sandboxed Python interpreter pattern |
+| [ecc-patterns/](agents/ecc-patterns/) | affaan-m/everything-claude-code (MIT) | ECC instincts, hooks, orchestration patterns |
 
-### Patterns
+## Patterns
 
 | File | Source | Description |
 |------|--------|-------------|
@@ -42,7 +79,7 @@ Curated patterns, prompts, and architectural ideas extracted from open-source AI
 | [vouch-web-of-trust.md](patterns/vouch-web-of-trust.md) | vouch | Web of trust verification |
 | [mcp-template-server/](patterns/mcp-template-server/) | coding-standards-mcp | MCP server template |
 
-### Prompts
+## Prompts
 
 | File | Source | Description |
 |------|--------|-------------|
@@ -53,7 +90,7 @@ Curated patterns, prompts, and architectural ideas extracted from open-source AI
 | [koda-conversation-summarizer.md](prompts/koda-conversation-summarizer.md) | koda | Conversation summarization |
 | [koda-subagent-prompt.md](prompts/koda-subagent-prompt.md) | koda | Subagent task prompts |
 
-### Tools
+## Tools
 
 | File | Source | Description |
 |------|--------|-------------|
@@ -63,18 +100,10 @@ Curated patterns, prompts, and architectural ideas extracted from open-source AI
 | [md-browse-turndown-config.md](tools/md-browse-turndown-config.md) | md-browse | HTML to Markdown conversion |
 | [witr-process-causality.md](tools/witr-process-causality.md) | witr | Process causality tracking |
 
+---
+
 ## Sources
 
 All content includes attribution to its source repo, author, and license.
 
-**Repos mined:**
-- autoforge, shannon, antfarm, raptor, claude-code-controller
-- security-check-skill, skill-audit, knowledge-work-plugins
-- claudio, chatgpt-prompts, explain-openclaw
-- graphiti, inconvo, x-research-skill
-- tinyfish-cookbook, ai-stack
-- koda, md-browse, vouch, witr, coding-standards-mcp, monty, langextract
-
-## License
-
-Each extracted file notes its source license. Files marked "no explicit license" are for educational/non-commercial use only.
+**Policy:** public repos → review published; license noted (including "none"); code only extracted under permissive licenses; AGPL/GPL summaries only; unlicensed → educational use only.
