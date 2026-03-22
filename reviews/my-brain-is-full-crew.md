@@ -118,4 +118,4 @@ MIT license. Worth reading the agent definitions for patterns even if you never 
 
 ---
 
-*Source: https://github.com/gnekt/My-Brain-Is-Full-Crew | License: MIT | Author: Christian Di Maio (@gnekt) | Reviewed: 2026-03-21*
+*Source: https://github.com/gnekt/My-Brain-Is-Full-Crew | License: MIT | Author: Christian Di Maio (@gnekt) | Reviewed: 2026-03-21 | Note: repo went private 2026-03-22 — clone retained at ~/src/My-Brain-Is-Full-Crew*
