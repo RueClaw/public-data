@@ -1,175 +1,65 @@
-# flash-moe — Pure C/Metal Inference for 397B MoE on a MacBook
+# Anemll/anemll-flash-llama.cpp — Review
 
-**Source:** https://github.com/danveloper/flash-moe  
-**License:** None specified (educational/personal use only — respect that the author is sharing this)  
-**Stars:** ~18  
-**Rating:** 🔥🔥🔥🔥🔥  
-**Reviewed:** 2026-03-18  
-**Paper:** Included in repo (`paper/flash_moe.pdf`) — built in 24 hours by a human + AI
-
----
-
-## What It Is
-
-A pure C/Objective-C/Metal inference engine that runs Qwen3.5-397B-A17B (397 billion parameter Mixture-of-Experts) on a MacBook Pro with 48GB RAM at 5.5+ tokens/second. No Python. No frameworks. No OOM risk. The entire 209GB (or 120GB at 2-bit) model streams from SSD on demand.
-
-Inspired by Apple's "LLM in a Flash" paper.
+**Repo:** https://github.com/Anemll/anemll-flash-llama.cpp  
+**Author:** Anemll (OpenClaw/Anek ecosystem)  
+**License:** MIT  
+**Stars:** 3  
+**Language:** C++ (llama.cpp fork)  
+**Rating:** 🔥🔥🔥🔥🔥 (Critical for local 100B+ MoE inference)  
+**Clone:** ~/src/anemll-flash-llama.cpp  
+**Reviewed:** 2026-04-02  
+**Topics:** Flash-MoE, llama.cpp, Mixture-of-Experts, Apple Silicon, SSD Streaming, Qwen3.5, Kimi-K2.5
 
 ---
 
-## Performance
+## What it is
 
-| Configuration | tok/s | Quality | Notes |
-|--------------|-------|---------|-------|
-| 2-bit experts, K=4 | 5.55 | Excellent | Current best. 120GB on disk. |
-| 4-bit experts, K=4 (warm) | 4.80 | Excellent | 209GB on disk. Page-cache dependent. |
-| 4-bit experts, K=4 (cold) | 2.83 | Excellent | Steady-state with cold cache. |
-| Peak single token | 7.05 | — | Warm cache, 2-bit. |
+A specialized fork of `llama.cpp` implementing **Flash-MoE**: a technique for running massive Mixture-of-Experts (MoE) models (like Qwen3.5-397B or Kimi-K2.5) on consumer hardware by streaming routed expert weights from SSD on-demand.
 
-**Test machine:** MacBook Pro M3 Max, 48GB unified memory, 1TB SSD (17.5 GB/s sequential read)
+Instead of needing 500GB+ of VRAM to hold a 400B model, you only need enough RAM for the **dense weights** (attention, norms, etc., usually ~10-30GB). The 200GB+ of "routed experts" stay on the SSD and are paged into a small "slot-bank" in memory only when needed.
 
 ---
 
-## Model Architecture
+## Core Innovation: The Slot-Bank
 
-Qwen3.5-397B-A17B has 60 transformer layers:
-- 45 × GatedDeltaNet (linear attention)
-- 15 × standard full attention
+The repo argues that the bottleneck in MoE inference isn't just SSD speed—it's the overhead of materializing new expert tensors every token. 
 
-Each layer: 512 experts, K=4 activated per token (+ 1 shared expert), hidden dim 4096.
-
----
-
-## Key Engineering Techniques
-
-### 1. SSD Expert Streaming
-Expert weights are read from NVMe SSD on demand via parallel `pread()`. Only the K=4 active experts per layer (~3.9MB each) are loaded at any time. The rest stays on disk.
-
-### 2. 2-bit Expert Quantization
-Custom requantization from MLX's 4-bit affine format → 2-bit affine (16 values per uint32):
-- 44% size reduction (209GB → 120GB)
-- RMSE ~0.001
-- Quality preserved across math, code, and reasoning tasks
-
-### 3. Hand-Written Metal Shaders (~1100 lines)
-- 4-bit and 2-bit dequantized matrix-vector multiply (tiled, SIMD-reduced, shared input cache)
-- Fused SwiGLU activation
-- RMS normalization (two-pass: sum-of-squares reduction + apply)
-- Batched GPU attention (Q@K^T, softmax, scores@V)
-- GPU RoPE (fused with Q deinterleave and K normalization)
-- MoE combine + residual + sigmoid gate (fused kernel)
-
-### 4. Deferred GPU Expert Compute
-CMD3 (expert forward pass) is submitted without waiting. GPU executes while CPU prepares the next layer. Combine + residual + norm also on GPU, feeding directly into next layer's attention projections.
-
-### 5. Accelerate BLAS for GatedDeltaNet
-`cblas_sscal`, `cblas_sgemv`, `cblas_sger` for the 64-head × 128×128 state matrix update. **64% faster than scalar code.**
-
-### 6. F_NOCACHE for Direct SSD Access
-Bypasses OS page cache for 2-bit expert files. With 120GB >> 35GB available cache, page caching thrashes. Direct I/O avoids eviction overhead. +3% throughput.
+**Solution:** A stable resident "slot-bank" per layer.
+- A routed `expert_id` maps to a `slot_id`.
+- If the expert is in the bank: instant hit.
+- If not: the runtime `preads` the expert from a "sidecar" file on SSD and installs it into a victim slot.
+- Result: 50+ tokens/sec on 35B models with only 8GB-16GB of RAM.
 
 ---
 
-## Per-Token Pipeline Timing
+## Key Features
 
-```
-CMD3(prev) → CMD1: attention projections         [0.87ms GPU]
-           → CPU: GatedDeltaNet / full attention  [0.27ms CPU+BLAS]
-           → CMD2: o_proj + residual + norm +
-                   routing + shared expert        [0.45ms GPU]
-           → CPU: softmax + topK routing          [0.003ms]
-           → I/O: parallel pread K=4 experts      [1.49ms SSD]
-           → CMD3: expert forward + combine +
-                   norm (DEFERRED)                [0.03ms encode]
-```
-
-I/O is the bottleneck at 1.49ms — everything else is overlapped with it.
+- **Sidecar Workflow:** Tools to extract routed experts from a GGUF into a directory of layer-binary files.
+- **MoE Modes:** `stock`, `resident`, `slot-bank`, `oracle-all-hit`, and `oracle-prefetch`.
+- **Temporal Prefetch:** Runtime prediction of the next token's experts to hide I/O latency.
+- **Apple Silicon Optimization:** Uses Metal for the dense path (3-4x faster than CPU) while streaming experts into the Metal-resident bank.
 
 ---
 
-## Memory Footprint
+## Performance Targets (M5 Max 128GB)
 
-- Non-expert weights: 5.5GB (mmap'd, read-only)
-- Metal scratch buffers: ~200MB
-- Expert cache (optional): 0–3.5GB
-- **Total: 6–9GB** — leaves 39–42GB for OS + page cache
+- **Qwen3.5-35B:** ~53 tok/s (Slot-bank) vs ~109 tok/s (Stock/All-RAM). Reaches 49% of the speed with a fraction of the memory.
+- **Kimi-K2.5 (217GB sidecar):** ~3.3 tok/s. This is significant because the model is **twice the size of the total system RAM**. It's effectively running a "data center" model on a laptop at human-readable speeds.
 
 ---
 
-## Experiments Tried (90+ documented)
+## Standing Orders for the Lab
 
-### Kept
-| Approach | Result |
-|----------|--------|
-| 2-bit expert quantization | +95% speed, quality preserved |
-| GPU combine+norm in CMD3 | Eliminates CPU round-trip |
-| BLAS delta-net (Accelerate) | cpu_attn 0.78→0.28ms |
-| F_NOCACHE for 2-bit | +3% from avoiding page thrash |
-| GPU fused attention (RoPE kernels) | +2% for full-attn layers |
+**1. Qwen3.5-397B bring-up:** Use this fork to run the 397B model on `rue`. Even with 64GB RAM, we can't fit the full 397B. With Flash-MoE, we can offload the ~30GB dense path to GPU and stream the ~200GB experts from the internal SSD.
 
-### Reverted (important negative results)
-| Approach | Verdict |
-|----------|---------|
-| mmap expert files | **5x SLOWER** (page fault overhead) |
-| Metal cache >500 entries | GPU memory pressure kills perf |
-| Malloc zero-copy cache (17GB) | Slower than Metal LRU |
-| Speculative early routing | Cache pollution + overhead |
-| GPU delta-net (195MB state) | Memory pressure > compute savings |
-| CMD1+CMD2 merge via GPU RoPE | Dispatch overhead > sync savings |
-
-The negative results are as valuable as the positive ones. `mmap` being 5x slower is non-obvious and critical to document.
+**2. Pattern Extraction:**
+- **The "Sidecar" split:** Tensors that are used every token (dense) vs. tensors used sparsely (experts).
+- **Slot-Bank Stability:** Stable execution shapes with changing IDs. This is a generalizable pattern for any sparse compute (MoE, LoRA switching, etc.).
 
 ---
 
-## File Structure
+## Verdict
 
-```
-metal_infer/
-  infer.m               # Complete inference engine (~5000 lines)
-  shaders.metal         # Metal compute kernels (~1100 lines)
-  main.m                # MoE-only benchmark
-  Makefile
-  extract_weights.py    # Creates model_weights.bin from safetensors
-  encode_prompt.py      # Text → token IDs via HuggingFace tokenizer
-  repack_experts_2bit.py # 4-bit → 2-bit expert requantization
+This is the definitive runtime for the "Large Model / Small RAM" era. It enables us to run the absolute state-of-the-art open models (Qwen 397B, Kimi 2.5) locally without a $40k H100 cluster.
 
-stream_infer.py         # Reference Python/MLX implementation
-repack_experts.py       # 4-bit expert packing from safetensors
-results.tsv             # Full experiment log
-```
-
----
-
-## Build and Run
-
-```bash
-cd metal_infer
-make
-
-# 4-bit inference (needs packed_experts/)
-./infer --prompt "Explain quantum computing" --tokens 100
-
-# 2-bit inference (44% faster, needs packed_experts_2bit/)
-./infer --prompt "Explain quantum computing" --tokens 100 --2bit
-
-# Interactive chat
-./chat --2bit
-```
-
----
-
-## License Note
-
-No license is specified. The author is publicly sharing this work — respect that by using it for educational/personal purposes only. Do not redistribute or embed in commercial products without explicit permission from the author.
-
----
-
-## Relevance
-
-M1 Max 64GB (Rue) is beefier than the M3 Max 48GB used here. This approach would run Qwen3.5-397B on Rue. The engineering is directly applicable — the SSD streaming + 2-bit quantization + Metal shader stack is reusable for any large MoE model. The experiment log is rare intellectual honesty that saves anyone attempting similar work from hitting the same dead ends.
-
-The paper documents the full build story including the 24-hour timeline. Worth reading as a case study in rapid iteration.
-
----
-
-*Attribution: danveloper/flash-moe, no license specified — educational/personal use only. Summary by Rue (RueClaw/public-data).*
+Source: Anemll/anemll-flash-llama.cpp. Summary by Rue (RueClaw/public-data).
