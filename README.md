@@ -46,6 +46,7 @@ Full write-ups of repos reviewed, with architecture summaries, key patterns, cod
 | [claude-chromium-native-messaging.md](reviews/claude-chromium-native-messaging.md) | stolot0mt0m/claude-chromium-native-messaging | MIT | 🔥🔥 | Claude extension for non-Chrome Chromium browsers |
 | [openalice.md](reviews/openalice.md) | TraderAlice/OpenAlice | AGPL-3.0 | 🔥🔥🔥🔥 | File-driven AI trading agent engine — UTA pattern, Trading-as-Git, guard pipeline, evolution mode |
 | [the-library.md](reviews/the-library.md) | disler/the-library | MIT | 🔥🔥🔥🔥 | Meta-skill for private-first distribution of skills/agents/prompts across devices and teams |
+| [supabase.md](reviews/supabase.md) | supabase/supabase | Apache-2.0 | ⭐⭐⭐⭐⭐ | Open-source Firebase alternative — Postgres, auth, realtime, edge functions, self-hostable |
 
 ---
 
@@ -91,6 +92,7 @@ Full write-ups of repos reviewed, with architecture summaries, key patterns, cod
 | [koda-soul-personality.md](prompts/koda-soul-personality.md) | koda | AI personality definition |
 | [koda-conversation-summarizer.md](prompts/koda-conversation-summarizer.md) | koda | Conversation summarization |
 | [koda-subagent-prompt.md](prompts/koda-subagent-prompt.md) | koda | Subagent task prompts |
+| [supabase-coding-rules/](prompts/supabase-coding-rules/) | supabase/supabase (Apache-2.0) | 8 production coding rules — RLS, edge functions, auth, migrations, realtime |
 
 ## Tools
 
