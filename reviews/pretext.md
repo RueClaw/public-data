@@ -1,170 +1,189 @@
-# pretext (@chenglou/pretext)
+# pretext
 
-*Review #282 | Source: https://github.com/chenglou/pretext | License: MIT | Author: chenglou (Cheng Lou, ex-React core team, creator of React Motion) | Reviewed: 2026-03-28 | Stars: 1,604*
+- **Repo:** <https://github.com/chenglou/pretext>
+- **License:** MIT
+- **Commit reviewed:** `7aacd78` (2026-04-15)
 
-## Rating: 🔥🔥🔥🔥🔥
+## What it is
 
----
+Pretext is a **pure JS/TS multiline text measurement and layout library** that tries to answer a deceptively annoying question:
 
-## What It Is
+> how tall will this paragraph be, or how will it wrap, without touching the DOM?
 
-A browser-accurate, DOM-free multiline text layout engine for JavaScript/TypeScript. Created three weeks ago (2026-03-07), initial npm release 2026-03-26 — two days ago. By Cheng Lou, who was on the React core team and created React Motion (the spring animation library that influenced Framer Motion). The related project note: `../text-layout/` — Sebastian Markbage's original prototype. Markbage is the current React architecture lead. This is serious React infrastructure work.
+Its core move is to split the problem into two phases:
+- `prepare()` does the expensive one-time text analysis and canvas measurement work
+- `layout()` does the hot-path reflow math with no DOM reads and no new text measurement
 
-The problem it solves: measuring how many lines a text block will wrap to (for dynamic layout) requires reading from the DOM, which forces synchronous layout reflow. With 500 text blocks independently measuring themselves, each read/write interleave costs 30ms+ per frame. pretext replaces DOM measurement with canvas `measureText()` + cached arithmetic.
+That alone is useful. What makes the repo interesting is that it is not just a canvas-measurement toy. It is a **browser-oracle-driven, multilingual text layout engine** with a lot of empirical validation behind it.
 
-7680/7680 accuracy against Chrome, Safari, and Firefox. 0.09ms per `layout()` call on Chrome.
+## Core architecture
 
----
+### 1. Two-phase pipeline
+This is the heart of the project.
 
-## The Core Problem
+- `prepare(text, font, options)`
+  - normalize whitespace
+  - segment text
+  - merge or glue specific punctuation/script patterns
+  - measure segments via canvas
+  - build cached segment data
+- `layout(prepared, maxWidth, lineHeight)`
+  - pure arithmetic over cached widths
+  - no DOM reads
+  - no canvas calls
+  - designed for resize hot paths
 
-When you need to know "how tall will this text block be at 320px wide?" in a browser, the naive approach is:
-1. Set element width to 320px
-2. Read `element.offsetHeight`
+That separation is clean and absolutely the right design center for the problem.
 
-In a React/virtual DOM context with many such elements, this pattern creates forced synchronous layouts (layout thrashing). Each DOM read forces the browser to flush all pending style/layout computations, which is O(document-size) work. At scale, this destroys frame rates.
+### 2. Text analysis as a first-class subsystem
+A lot of libraries hand-wave this part. Pretext does not.
 
-pretext's answer: measure text width per-word using `canvas.measureText()` (which does NOT trigger reflow), cache those widths, then use pure arithmetic in a line-walk loop to compute line count and height. The DOM is only touched once per font to calibrate emoji correction (a constant per font size), then never again.
+`src/analysis.ts` is full of explicit modeling for:
+- whitespace modes (`normal`, `pre-wrap`)
+- `word-break: normal` and `keep-all`
+- break kinds like text, space, preserved-space, tab, glue, zero-width-break, soft-hyphen, hard-break
+- CJK detection and kinsoku-style punctuation rules
+- Arabic-script handling
+- script- and punctuation-specific glue policies
 
----
+That is where much of the real value lives.
 
-## API
+### 3. Measurement engine with browser-profile shims
+`src/measurement.ts` keeps cached segment metrics and just enough engine profiling to be practical:
+- browser-specific line-fit epsilon
+- Safari vs Chromium handling differences
+- emoji correction when canvas and DOM disagree
+- fallback modes for breakable-run fit calculations
 
-```typescript
-import { prepare, layout, layoutWithLines, walkLineRanges } from '@chenglou/pretext'
+That is pragmatic engineering, not purity theater.
 
-// Phase 1: analyze text + measure word widths (do once per text string)
-const prepared = prepare('Hello world, this is some text', '16px Inter')
+### 4. Rich manual layout escape hatch
+The core API is paragraph-oriented, but the repo also exposes richer layout primitives:
+- `prepareWithSegments`
+- `layoutWithLines`
+- `walkLineRanges`
+- `layoutNextLineRange`
+- `materializeLineRange`
+- rich inline helper at `@chenglou/pretext/rich-inline`
 
-// Phase 2: compute line count + height at any width (pure arithmetic, ~0.09ms)
-const { lineCount, height } = layout(prepared, 320 /* maxWidth */, 24 /* lineHeight */)
+That makes it more than just “height prediction.” It becomes a userland layout substrate for custom rendering paths.
 
-// Rich API: get actual line text + widths
-const lines = layoutWithLines(prepared, 320, 24)
-// lines = [{ text: 'Hello world,', width: 300.5 }, { text: 'this is some text', width: 298.2 }]
+## What is technically interesting
 
-// Streaming API: one line at a time, for variable-width layout
-const cursor = { segmentIndex: 0, graphemeIndex: 0 }
-const line1 = layoutNextLine(prepared, 320, cursor) // advances cursor in place
+### 1. It treats browsers as the oracle, not as the enemy
+This is the repo’s best quality.
 
-// Non-materializing batch geometry: line ranges without string allocation
-walkLineRanges(prepared, 320, 24, (start, end, width) => { /* ... */ })
-```
+A lot of text-layout projects drift into fantasy-land where they quietly become their own rendering model. Pretext stays grounded in browser behavior and keeps asking:
+- what do Chrome, Safari, and Firefox actually do?
+- where does canvas match DOM?
+- where does it drift?
+- which mismatches are source-text issues vs engine issues vs extractor issues?
 
-The split between `prepare()` and `layout()` is the key performance architecture:
-- `prepare()` is expensive (~12-20ms for typical paragraphs, ~63ms for long Arabic prose) — called once when text appears
-- `layout()` is nearly free (~0.09ms Chrome, ~0.12ms Safari) — called on every resize
+That discipline shows up everywhere.
 
----
+### 2. The repo has real multilingual ambition
+Not “supports Unicode” as a checkbox, but actual work around:
+- CJK and kinsoku-like behavior
+- Thai
+- Khmer
+- Myanmar
+- Arabic
+- Urdu
+- mixed app text with URLs, emoji, quotes, query strings, soft hyphens
 
-## Implementation: What Makes it Hard
+The corpora and research notes are doing real labor here.
 
-**Segment model (8 break kinds):** The library distinguishes normal text, collapsible spaces, preserved spaces, tabs, non-breaking glue (NBSP/NNBSP/WJ-like runs), zero-width break opportunities (ZWSP), soft hyphens, and hard breaks. Each has different layout behavior.
+### 3. The research log is unusually valuable
+`RESEARCH.md` is not fluff. It documents:
+- what was tried
+- what failed
+- what was kept
+- which classes of mismatch are real
+- which fixes were rejected
 
-**`Intl.Segmenter` for i18n:** Word and grapheme boundaries use the browser's own `Intl.Segmenter`. CJK text breaks at every character. Thai/Khmer have no visible word boundaries — the segmenter handles this. Arabic has right-to-left direction and complex shaping rules.
+That matters a lot. You can see the repo resisting bad abstractions instead of accumulating them.
 
-**Canvas measurement as oracle:** Each segment is measured via `ctx.measureText(segment).width`. The result is cached by `Map<font, Map<segment, width>>`. The cache is shared across all `prepare()` calls for the same font.
+### 4. The taxonomy work is smart
+`corpora/TAXONOMY.md` gives names to mismatch classes like:
+- `corpus-dirty`
+- `normalization`
+- `boundary-discovery`
+- `glue-policy`
+- `edge-fit`
+- `shaping-context`
+- `font-mismatch`
+- `diagnostic-sensitivity`
 
-**Engine profile (browser-specific shims):** Safari and Chrome/Firefox have different line-fitting behavior for edge cases. The library detects the browser at runtime (via `navigator.userAgent`) and applies per-browser tolerances:
-- Chromium/Gecko: `lineFitEpsilon = 0.005`
-- Safari/WebKit: `lineFitEpsilon = 1/64`
-- Browser-specific booleans: `carryCJKAfterClosingQuote`, `preferPrefixWidthsForBreakableRuns`, `preferEarlySoftHyphenBreak`
+That is the sort of meta-tooling that keeps a gnarly research codebase from dissolving into vibes.
 
-**Emoji correction:** Chrome and Firefox canvas measure emoji wider than DOM at font sizes <24px on macOS (Apple Color Emoji). The inflation is constant per emoji grapheme at a given size, font-independent. Auto-detected by comparing canvas vs actual DOM emoji width — one DOM read per font, cached forever.
+### 5. The narrowness of the public API is disciplined
+This repo could easily have overexposed internals. Instead, it keeps the main handle opaque and treats richer structures as explicit escape hatches.
 
-**Kinsoku shunking (Japanese line breaking rules):** Certain punctuation characters cannot appear at the start or end of a line. The library implements kinsoku start/end character sets and merges prohibited punctuation into adjacent graphemes.
+That is good restraint.
 
-**`overflow-wrap: break-word`:** When a word is wider than the container, it must break at grapheme boundaries. This requires pre-measuring individual grapheme widths within the word — cached as `graphemeWidths[]` and cumulative `graphemePrefixWidths[]` on the segment.
+## What is strong
 
-**Soft hyphens:** `\u00AD` is invisible when unbroken but should display as `-` if chosen as the break point. The rich `layoutWithLines()` handles this in the returned line text.
+### The design target is clear
+Fast resize-path layout without DOM reflow. No confusion there.
 
-**Bidi (RTL text):** Simplified bidi metadata on the `prepareWithSegments()` path only. The fast `prepare()` + `layout()` path doesn't compute bidi — paying for metadata that line breaking doesn't need.
+### The validation culture is excellent
+Browser sweeps, corpora, benchmarks, snapshots, status dashboards, focused checkers. This repo keeps receipts.
 
----
+### It understands that preprocessing beats runtime cleverness
+One repeated lesson in the research notes is that semantic preprocessing and narrow glue rules beat fancy runtime correction models. That feels hard-won and probably correct.
 
-## Accuracy Methodology
+### Rich inline helper is a nice productization move
+The separate `rich-inline` helper is a good example of not bloating the core API while still serving a very real UI need.
 
-The accuracy suite is the most rigorous part of the project. It sweeps:
-- 4 fonts × 8 font sizes × 8 container widths × 30 text samples = 7,680 combinations per browser
-- Against real browsers via headless automation (separate browser-specific runners)
-- Results checked into `accuracy/chrome.json`, `accuracy/safari.json`, `accuracy/firefox.json`
-- 7680/7680 on Chrome, Safari, and Firefox (as of 2026-03-27)
+### The permanent unit suite stays intentionally small
+That is smart. The repo uses browser-oracle tooling for the hairy stuff and keeps the durable test suite focused on stable invariants.
 
-Long-form corpora (prose texts in 12 scripts):
+## Where I get skeptical
 
-| Language | `prepare()` | `layout()` | Lines @ 300px |
-|----------|------------|------------|---------------|
-| Japanese | 12.6ms | 0.03ms | 380 |
-| Korean | 11.4ms | 0.04ms | 428 |
-| Chinese | 19.2ms | 0.05ms | 626 |
-| Thai | 13.5ms | 0.05ms | 1,024 |
-| Arabic | 63.5ms | 0.17ms | 2,643 |
-| Hindi | 11.1ms | 0.04ms | 653 |
-| Khmer | 10.4ms | 0.05ms | 591 |
-| Urdu | 5.5ms | 0.03ms | 351 |
+### 1. This is still fundamentally browser-shadowing
+Even done well, this is a hard problem because browser text engines are not simple and not static. The repo knows this, but the maintenance cost is real.
 
-Arabic is the expensive case (complex shaping + 37,603 segments). But `layout()` is still only 0.17ms — the resize hot path is always fast.
+### 2. “Pure JS/TS” still depends on browser font behavior as truth
+That is not a contradiction, just a practical limitation. The model is browser-grounded rather than independently authoritative.
 
-**Miss taxonomy** (from `corpora/TAXONOMY.md`): The project has a formal classification system for accuracy failures:
-- `corpus-dirty` — source text has artifacts (wrapped print lines, navigation scaffolding)
-- `normalization` — wrong whitespace/NBSP/ZWSP handling
-- `boundary-discovery` — wrong segmentation merge units
-- `glue-policy` — right boundaries, wrong attachment rules
-- `edge-fit` — browser keeps/drops a phrase by <1px at line edge
-- `shaping-context` — break position changes shaping/glyph metrics (Arabic cursive connection)
-- `font-mismatch` — canvas and DOM resolved different fonts
-- `diagnostic-sensitivity` — mismatch may be in the probe, not the engine
+### 3. Some unresolved classes look like they want a richer shaping model
+The repo is careful not to prematurely overbuild there, which I respect. But Arabic/Urdu/Myanmar-style edge cases are a reminder that segment-sum layout has limits.
 
-This taxonomy is the sign of a serious research project, not a quick library.
+### 4. The project’s honesty about `system-ui` is good, but also a warning
+If your app depends on slippery real-world font stacks, this library is only as good as the font assumptions you keep honest.
 
----
+## Why it matters
 
-## Benchmark (Chrome)
+Because this is one of the more credible attempts I’ve seen to create a **userland text layout engine for web apps that is fast, practical, and empirically grounded**.
 
-| Operation | Time | Notes |
-|-----------|------|-------|
-| `prepare()` short text | ~18.85ms | Measured once per text; parallelizable |
-| `layout()` | ~0.09ms | Called on every resize; pure arithmetic |
-| DOM batch (no interleave) | ~4.05ms | Baseline for comparison |
-| DOM interleaved | ~43.50ms | What naive measurement costs |
-| `layoutWithLines()` | ~0.05ms | Rich line API |
-| `walkLineRanges()` | ~0.03ms | Non-materializing geometry |
+The immediate use cases are obvious:
+- virtualization without DOM measurement loops
+- custom layout systems
+- canvas/SVG/WebGL text rendering helpers
+- browser-free UI verification for label overflow
+- tighter control over paragraph wrapping behavior in complex UIs
 
-The 10× DOM advantage only applies at scale (many text blocks). For a single measurement, DOM is fine. The library targets React/virtual-DOM contexts where many components measure independently.
+But the deeper value is methodological. The repo shows how to build this kind of engine without just hallucinating typography rules.
 
----
+## Verdict
 
-## Corpora
+Excellent nerd work.
 
-The project ships actual literary texts for testing:
-- Japanese: Rashomon (Ryūnosuke Akutagawa), Kumo no Ito
-- Chinese: Guxiang, Zhufu (Lu Xun)
-- Korean: Unseul Joh-eun Nal
-- Arabic: Al-Bukhala (Al-Jahiz), Risalat al-Ghufran
-- Hebrew: Masa'ot Binyamin Me-Tudela
-- Hindi: Eidgah (Munshi Premchand)
-- Thai, Khmer, Myanmar, Urdu prose
-- Mixed app text (URLs, emoji ZWJ sequences, mixed-script punctuation)
+Pretext is the rare text-layout project that feels both ambitious and disciplined. The central two-phase architecture is sound, the multilingual handling is serious, and the browser-oracle validation culture gives the claims real weight. The repo does not pretend the problem is solved in the abstract; it keeps a running account of where the model holds, where it drifts, and which fixes were not worth keeping.
 
----
+That honesty makes it much more convincing.
 
-## Who Made This
+If you need exact browser-independent typography truth, this is not magic. But if you want a fast, pragmatic, browser-grounded layout engine for real UI work, this is very compelling.
 
-**Cheng Lou** (chenglou) is one of the more influential people in the React ecosystem. He created [React Motion](https://github.com/chenglou/react-motion) (the spring physics animation library, ~22K stars), was on the React core team at Facebook, and gave the [Taming the Meta Language](https://www.youtube.com/watch?v=_0T5OSSzxms) talk at React Conf 2017. The `CLAUDE.md` and `AGENTS.md` are identical (full internal notes for AI collaborators), which is notable — this is being actively developed with AI coding assistance as a first-class workflow.
+**Rating:** 5/5
 
-**Sebastian Markbage** (`../text-layout/` referenced as the original prototype) is the current React architecture lead who designed React's concurrent mode, Server Components, and the streaming architecture. Two React core team members is meaningful signal for a 3-week-old library.
+## Patterns worth stealing
 
----
-
-## Relevance
-
-🔥🔥🔥🔥🔥 — Niche problem, but if you're building a React-based UI that needs to dynamically size text containers (chat bubbles, editorial layout, variable-height virtualized lists), this is the right tool. The canvas measurement approach is the standard solution; pretext makes it accurate across all browsers and scripts.
-
-**Direct use cases:**
-- The VOS frontend does text-heavy document review — if it needs any dynamic text sizing, this is the right primitive
-- Any virtualizing list that shows text content (infinite scroll, chat history) where DOM measurement at scale causes frame drops
-- The `walkLineRanges()` non-materializing API is particularly useful for "shrinkwrap to text" bubble layouts
-
-**Extractable insight:** The two-phase measurement pattern (`prepare()` once, `layout()` on every resize) is the core insight. The same pattern applies to any case where you need to compute layout-dependent values at high frequency: measure the expensive parts once, cache, then compute from cache.
-
-MIT. `npm install @chenglou/pretext` / `bun add @chenglou/pretext`. Cloned to `~/src/pretext`.
+- Split expensive text analysis from hot-path layout arithmetic
+- Keep the main prepared handle opaque
+- Use browsers as an empirical oracle, not just as a rendering target
+- Build a mismatch taxonomy so debugging does not collapse into folklore
+- Prefer narrow semantic preprocessing over increasingly clever runtime correction
+- Maintain separate compact status docs and long-form research logs
+- Use corpora and product-shaped canaries, not only synthetic test strings
+- Keep public API narrow while offering explicit rich-layout escape hatches
