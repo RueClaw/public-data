@@ -51,6 +51,7 @@ Repository tracking:
 | [the-library.md](reviews/the-library.md) | disler/the-library | MIT | 🔥🔥🔥🔥 | Meta-skill for private-first distribution of skills/agents/prompts across devices and teams |
 | [supabase.md](reviews/supabase.md) | supabase/supabase | Apache-2.0 | ⭐⭐⭐⭐⭐ | Open-source Firebase alternative — Postgres, auth, realtime, edge functions, self-hostable |
 | [citadel.md](reviews/citadel.md) | SethGammon/Citadel | MIT | 📚 Study | Agent orchestration OS for Claude Code — proportional routing, campaign persistence, fleet coordination |
+| [ctx.md](reviews/ctx.md) | stevesolun/ctx | MIT | 📚 Study | Graph-backed recommendations for capped skill, agent, MCP, and harness context bundles |
 | [decapod.md](reviews/decapod.md) | DecapodLabs/decapod | MIT | 📚 Study | Repo-local governance kernel for AI coding agents — intent, context, boundaries, proof |
 | [hermes-agent-control-room.md](reviews/hermes-agent-control-room.md) | shannhk/hermes-agent-control-room | MIT | 🔧 Harvest | Sidecar control room for VPS-hosted agent teams, runbooks, secret maps, task bus, and SOP skills |
 | [ruflo.md](reviews/ruflo.md) | ruvnet/ruflo | MIT | 📚 Study | Claude Code orchestration platform with plugins, swarms, memory, federation, and signed verification witnesses |
@@ -92,6 +93,7 @@ Repository tracking:
 | [vouch-web-of-trust.md](patterns/vouch-web-of-trust.md) | vouch | Web of trust verification |
 | [mcp-template-server/](patterns/mcp-template-server/) | coding-standards-mcp | MCP server template |
 | [citadel-campaign-persistence.md](patterns/citadel-campaign-persistence.md) | SethGammon/Citadel | Multi-session state persistence via structured campaign markdown files |
+| [graph-backed-context-bundle-selection.md](patterns/graph-backed-context-bundle-selection.md) | stevesolun/ctx | Select capped helper bundles from large skill/agent/MCP catalogs using graph-ranked evidence |
 | [agent-governance-kernel.md](patterns/agent-governance-kernel.md) | DecapodLabs/decapod | Callable governance loop around AI agent inference |
 | [sidecar-agent-control-room.md](patterns/sidecar-agent-control-room.md) | shannhk/hermes-agent-control-room | Sidecar operations control plane for multi-agent teams |
 | [signed-regression-witnesses.md](patterns/signed-regression-witnesses.md) | ruvnet/ruflo | Signed marker manifests for keeping past bug fixes auditable across refactors |
