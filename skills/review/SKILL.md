@@ -5,7 +5,8 @@ description: >
   article URL, or document is shared for review — even with zero additional context. If the user pastes a GitHub repo
   URL with no other instructions, run this skill immediately. Also triggers on phrases like "review this", "check this
   out", "what do you think of this repo/article/project", "take a look at", or any shared link to a codebase or
-  technical article. Covers repos, blog posts, research papers, technical writeups, and tools. Three outputs every time:
+  technical article. Also triggers on requests to check in on, refresh, re-review, or update an existing review after
+  upstream changes. Covers repos, blog posts, research papers, technical writeups, and tools. Three outputs every time:
   chat summary, public review (pushed to public-data), and internal vault review with project relevance.
 ---
 
@@ -19,6 +20,8 @@ Autonomous review pipeline. No clarifying questions. No "what do you want me to 
 - An article, blog post, or technical document URL is shared
 - A document or file is shared for review
 - The user says "review this", "check this out", "take a look at", etc.
+- The user asks to "check in", "refresh", "re-review", "update the review", "see what's changed", or "check for updates"
+  on something previously reviewed
 - Any unreviewed URL appears in conversation
 
 If a GitHub repo URL is shared with no additional context, that IS the instruction. Run the full pipeline.
@@ -31,6 +34,13 @@ Determine whether the input is a **code repository** or a **document/article**. 
 
 - **Code repository**: GitHub/GitLab URL, local repo path, or anything with a codebase
 - **Document/article**: Blog post, research paper, technical writeup, news article, PDF
+
+Also determine whether this is a **new review** or a **review check-in**:
+
+- **New review**: no prior public/internal review exists, or the user asks for a fresh review
+- **Review check-in**: prior review exists and the user asks to check for updates, refresh, re-review, or update it
+
+For check-ins, do not blindly rewrite the review. First compare the current source against the prior reviewed state and decide whether the change is material.
 
 ### Step 1: Acquire the Source
 
@@ -45,6 +55,59 @@ Determine whether the input is a **code repository** or a **document/article**. 
 1. Fetch the URL content (use WebFetch or read the provided file)
 2. Extract: title, author, publication date, key claims, methodology
 3. Note the source credibility and any obvious biases
+
+### Step 1.5: Review Check-In Delta
+
+Use this step only for review check-ins.
+
+**Find prior artifacts:**
+- Public review: Zob-notes-1/public-data/reviews/<name>.md
+- Internal review: Zob-notes-1/Research/repo-reviews/<name>.md
+- Ingest log: Zob-notes-1/Research/log.md
+
+**For repos:**
+1. Read the prior review date, version/tag/commit if present, stars/forks, and stated verdict.
+2. Use GitHub metadata and local git data to compare current state against the prior review:
+   - latest commit SHA and date
+   - release/tag/version changes
+   - changelog entries since the prior review date
+   - changed top-level modules or major dependencies
+   - README or architecture changes
+   - CI/test posture changes
+3. Prefer targeted diffs over full re-analysis when the prior review is recent:
+   - git log --since=<prior-date> --oneline
+   - git diff --stat <prior-ref>..HEAD when a prior ref is known
+   - changelog sections since the prior reviewed version/date
+
+**For articles/documents:**
+1. Check publication date, updated date, canonical URL, and content hash if available.
+2. Compare changed sections or claims against the prior review.
+
+**Material-change threshold:**
+Update the review when at least one is true:
+- new major/minor release or meaningful version bump
+- architectural change, new subsystem, or removed subsystem
+- license, hosting, install, or operational model changed
+- security posture changed
+- verdict/rating should change
+- extracted public-data patterns/prompts/tools should be added, removed, or revised
+- prior review contains stale facts that would mislead a reader
+
+If there are no material changes:
+- Post a chat summary saying the review was checked and remains current
+- Do not rewrite public/internal reviews
+- Append a check-in row to Research/log.md with verdict ↔️ and files written as none
+
+If there are material changes:
+- Update the existing public and internal review files in place
+- Add a short **Update Notes** section near the top of each updated review:
+  - date checked
+  - prior reviewed date/version/ref if known
+  - current version/ref
+  - concise list of material changes
+- Update public-data README rows only if rating, description, license, or filename changed
+- Update extracted patterns only when the extracted pattern itself changed
+- Append a check-in row to Research/log.md with files written
 
 ### Step 2: Analyze
 
@@ -152,6 +215,7 @@ Use these verdict classifications:
 | 📚 | Study | Learn from the patterns, don't deploy directly |
 | 🔧 | Harvest | Specific components worth extracting |
 | ❌ | Pass | Not worth further investment |
+| ↔️ | Current | Check-in found no material change since the prior review |
 
 For articles, adapt: ✅ = act on this, ⚠️ = interesting but verify, 📚 = good reference, ❌ = skip.
 
