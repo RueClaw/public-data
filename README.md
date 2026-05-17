@@ -49,6 +49,7 @@ Full write-ups of repos reviewed, with architecture summaries, key patterns, cod
 | [supabase.md](reviews/supabase.md) | supabase/supabase | Apache-2.0 | ⭐⭐⭐⭐⭐ | Open-source Firebase alternative — Postgres, auth, realtime, edge functions, self-hostable |
 | [citadel.md](reviews/citadel.md) | SethGammon/Citadel | MIT | 📚 Study | Agent orchestration OS for Claude Code — proportional routing, campaign persistence, fleet coordination |
 | [decapod.md](reviews/decapod.md) | DecapodLabs/decapod | MIT | 📚 Study | Repo-local governance kernel for AI coding agents — intent, context, boundaries, proof |
+| [ruflo.md](reviews/ruflo.md) | ruvnet/ruflo | MIT | 📚 Study | Claude Code orchestration platform with plugins, swarms, memory, federation, and signed verification witnesses |
 
 ---
 
@@ -85,6 +86,7 @@ Full write-ups of repos reviewed, with architecture summaries, key patterns, cod
 | [mcp-template-server/](patterns/mcp-template-server/) | coding-standards-mcp | MCP server template |
 | [citadel-campaign-persistence.md](patterns/citadel-campaign-persistence.md) | SethGammon/Citadel | Multi-session state persistence via structured campaign markdown files |
 | [agent-governance-kernel.md](patterns/agent-governance-kernel.md) | DecapodLabs/decapod | Callable governance loop around AI agent inference |
+| [signed-regression-witnesses.md](patterns/signed-regression-witnesses.md) | ruvnet/ruflo | Signed marker manifests for keeping past bug fixes auditable across refactors |
 
 ## Prompts
 
