@@ -52,6 +52,7 @@ Repository tracking:
 | [supabase.md](reviews/supabase.md) | supabase/supabase | Apache-2.0 | ⭐⭐⭐⭐⭐ | Open-source Firebase alternative — Postgres, auth, realtime, edge functions, self-hostable |
 | [citadel.md](reviews/citadel.md) | SethGammon/Citadel | MIT | 📚 Study | Agent orchestration OS for Claude Code — proportional routing, campaign persistence, fleet coordination |
 | [decapod.md](reviews/decapod.md) | DecapodLabs/decapod | MIT | 📚 Study | Repo-local governance kernel for AI coding agents — intent, context, boundaries, proof |
+| [hermes-agent-control-room.md](reviews/hermes-agent-control-room.md) | shannhk/hermes-agent-control-room | MIT | 🔧 Harvest | Sidecar control room for VPS-hosted agent teams, runbooks, secret maps, task bus, and SOP skills |
 | [ruflo.md](reviews/ruflo.md) | ruvnet/ruflo | MIT | 📚 Study | Claude Code orchestration platform with plugins, swarms, memory, federation, and signed verification witnesses |
 | [vibe-coding.md](reviews/vibe-coding.md) | wanderloots-tutorials/vibe-coding | **no license** | 📚 Study | Tutorial notes with an agent-buildable Raw/Wiki/Schema knowledge workflow |
 | [motus.md](reviews/motus.md) | lithos-ai/motus | Apache-2.0 | ⚠️ Interesting | Python agent serving/runtime framework with session APIs, task graph workflows, MCP/tools, and cloud deploy |
@@ -92,6 +93,7 @@ Repository tracking:
 | [mcp-template-server/](patterns/mcp-template-server/) | coding-standards-mcp | MCP server template |
 | [citadel-campaign-persistence.md](patterns/citadel-campaign-persistence.md) | SethGammon/Citadel | Multi-session state persistence via structured campaign markdown files |
 | [agent-governance-kernel.md](patterns/agent-governance-kernel.md) | DecapodLabs/decapod | Callable governance loop around AI agent inference |
+| [sidecar-agent-control-room.md](patterns/sidecar-agent-control-room.md) | shannhk/hermes-agent-control-room | Sidecar operations control plane for multi-agent teams |
 | [signed-regression-witnesses.md](patterns/signed-regression-witnesses.md) | ruvnet/ruflo | Signed marker manifests for keeping past bug fixes auditable across refactors |
 | [source-to-compiled-wiki-gates.md](patterns/source-to-compiled-wiki-gates.md) | wanderloots-tutorials/vibe-coding | Raw source layer, compiled wiki notes, JSONL catalog, source coverage, and lint gates |
 
