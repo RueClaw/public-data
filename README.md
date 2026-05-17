@@ -37,6 +37,9 @@ Curated patterns, prompts, architectural ideas, and repo reviews extracted from 
 
 Full write-ups of repos reviewed, with architecture summaries, key patterns, code examples, and relevance notes.
 
+Repository tracking:
+- [research-channel-repositories.md](reviews/research-channel-repositories.md) — GitHub repositories shared in the #research Discord channel, with review status and last review date.
+
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
 | [gait.md](reviews/gait.md) | Clyra-AI/gait | Apache-2.0 | 🔥🔥🔥 | Policy-as-code enforcement at the AI agent tool boundary |
