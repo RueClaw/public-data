@@ -54,6 +54,7 @@ Repository tracking:
 | [ctx.md](reviews/ctx.md) | stevesolun/ctx | MIT | 📚 Study | Graph-backed recommendations for capped skill, agent, MCP, and harness context bundles |
 | [decapod.md](reviews/decapod.md) | DecapodLabs/decapod | MIT | 📚 Study | Repo-local governance kernel for AI coding agents — intent, context, boundaries, proof |
 | [nobulex.md](reviews/nobulex.md) | arian-gogani/nobulex | MIT | 📚 Study | Proof-of-behavior protocol for earned agent autonomy and Trust Capital |
+| [photogimp.md](reviews/photogimp.md) | Diolinux/PhotoGIMP | GPL-3.0 | ✅ Deploy candidate | GIMP 3.0 profile patch that gives Photoshop users familiar shortcuts, layout, icons, and splash assets |
 | [hermes-agent-control-room.md](reviews/hermes-agent-control-room.md) | shannhk/hermes-agent-control-room | MIT | 🔧 Harvest | Sidecar control room for VPS-hosted agent teams, runbooks, secret maps, task bus, and SOP skills |
 | [ruflo.md](reviews/ruflo.md) | ruvnet/ruflo | MIT | 📚 Study | Claude Code orchestration platform with plugins, swarms, memory, federation, and signed verification witnesses |
 | [vibe-coding.md](reviews/vibe-coding.md) | wanderloots-tutorials/vibe-coding | **no license** | 📚 Study | Tutorial notes with an agent-buildable Raw/Wiki/Schema knowledge workflow |
@@ -97,6 +98,7 @@ Repository tracking:
 | [graph-backed-context-bundle-selection.md](patterns/graph-backed-context-bundle-selection.md) | stevesolun/ctx | Select capped helper bundles from large skill/agent/MCP catalogs using graph-ranked evidence |
 | [agent-governance-kernel.md](patterns/agent-governance-kernel.md) | DecapodLabs/decapod | Callable governance loop around AI agent inference |
 | [earned-autonomy-gates.md](patterns/earned-autonomy-gates.md) | arian-gogani/nobulex | Graduated agent permissions based on verifiable compliant behavior history |
+| [profile-overlay-distribution.md](patterns/profile-overlay-distribution.md) | Diolinux/PhotoGIMP | Ship curated app defaults as inspectable profile files instead of forking the host app |
 | [sidecar-agent-control-room.md](patterns/sidecar-agent-control-room.md) | shannhk/hermes-agent-control-room | Sidecar operations control plane for multi-agent teams |
 | [signed-regression-witnesses.md](patterns/signed-regression-witnesses.md) | ruvnet/ruflo | Signed marker manifests for keeping past bug fixes auditable across refactors |
 | [source-to-compiled-wiki-gates.md](patterns/source-to-compiled-wiki-gates.md) | wanderloots-tutorials/vibe-coding | Raw source layer, compiled wiki notes, JSONL catalog, source coverage, and lint gates |
