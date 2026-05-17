@@ -8,7 +8,7 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 472 public/included repositories, 97 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 473 public/included repositories, 98 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
@@ -484,3 +484,4 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [codejunkie99/agentic-harness](https://github.com/codejunkie99/agentic-harness) | 2026-05-15 | 2026-05-15 | 1 | no |  |  |
 | [cosmicstack-labs/mercury-agent](https://github.com/cosmicstack-labs/mercury-agent) | 2026-05-16 | 2026-05-16 | 1 | no |  |  |
 | [unclebob/fitnesse](https://github.com/unclebob/fitnesse) | 2026-05-17 | 2026-05-17 | 1 | no |  |  |
+| [lithos-ai/motus](https://github.com/lithos-ai/motus) | 2026-05-17 | 2026-05-17 | 1 | yes | 2026-05-17 | [reviews/motus.md](reviews/motus.md) |
