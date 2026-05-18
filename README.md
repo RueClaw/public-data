@@ -60,6 +60,7 @@ Repository tracking:
 | [vibe-coding.md](reviews/vibe-coding.md) | wanderloots-tutorials/vibe-coding | **no license** | 📚 Study | Tutorial notes with an agent-buildable Raw/Wiki/Schema knowledge workflow |
 | [motus.md](reviews/motus.md) | lithos-ai/motus | Apache-2.0 | ⚠️ Interesting | Python agent serving/runtime framework with session APIs, task graph workflows, MCP/tools, and cloud deploy |
 | [local-notebooklm.md](reviews/local-notebooklm.md) | Goekdeniz-Guelmez/Local-NotebookLM | Apache-2.0 | ⚠️ Interesting | Local NotebookLM-style PDF-to-audio app with CLI, FastAPI, Gradio, and Docker surfaces |
+| [insforge.md](reviews/insforge.md) | [InsForge/InsForge](https://github.com/InsForge/InsForge) | Apache-2.0 | ⚠️ Interesting | Agent-native backend platform with Postgres, auth, storage, functions, MCP/CLI surfaces, and typed control-plane APIs |
 
 ---
 
@@ -102,6 +103,7 @@ Repository tracking:
 | [sidecar-agent-control-room.md](patterns/sidecar-agent-control-room.md) | shannhk/hermes-agent-control-room | Sidecar operations control plane for multi-agent teams |
 | [signed-regression-witnesses.md](patterns/signed-regression-witnesses.md) | ruvnet/ruflo | Signed marker manifests for keeping past bug fixes auditable across refactors |
 | [source-to-compiled-wiki-gates.md](patterns/source-to-compiled-wiki-gates.md) | wanderloots-tutorials/vibe-coding | Raw source layer, compiled wiki notes, JSONL catalog, source coverage, and lint gates |
+| [agent-operated-backend-control-plane.md](patterns/agent-operated-backend-control-plane.md) | InsForge/InsForge | Typed backend control plane for AI coding agents |
 
 ## Prompts
 
