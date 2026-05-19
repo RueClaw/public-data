@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 475 public/included repositories, 100 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 476 public/included repositories, 101 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [santinic/audiblez](https://github.com/santinic/audiblez) | 2026-05-18 | 2026-05-18 | 1 | yes | 2026-05-18 | [reviews/audiblez.md](reviews/audiblez.md) |
 | [InsForge/InsForge](https://github.com/InsForge/InsForge) | 2026-05-18 | 2026-05-18 | 1 | yes | 2026-05-18 | [reviews/insforge.md](reviews/insforge.md) |
 | [jlondrejcka/supaswarm](https://github.com/jlondrejcka/supaswarm) | 2026-02-17 | 2026-02-17 | 1 | no |  |  |
 | [ViktorAxelsen/MemSkill](https://github.com/ViktorAxelsen/MemSkill) | 2026-02-18 | 2026-02-18 | 1 | no |  |  |

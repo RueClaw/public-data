@@ -61,6 +61,7 @@ Repository tracking:
 | [motus.md](reviews/motus.md) | lithos-ai/motus | Apache-2.0 | ⚠️ Interesting | Python agent serving/runtime framework with session APIs, task graph workflows, MCP/tools, and cloud deploy |
 | [local-notebooklm.md](reviews/local-notebooklm.md) | Goekdeniz-Guelmez/Local-NotebookLM | Apache-2.0 | ⚠️ Interesting | Local NotebookLM-style PDF-to-audio app with CLI, FastAPI, Gradio, and Docker surfaces |
 | [insforge.md](reviews/insforge.md) | [InsForge/InsForge](https://github.com/InsForge/InsForge) | Apache-2.0 | ⚠️ Interesting | Agent-native backend platform with Postgres, auth, storage, functions, MCP/CLI surfaces, and typed control-plane APIs |
+| [audiblez.md](reviews/audiblez.md) | [santinic/audiblez](https://github.com/santinic/audiblez) | MIT | ⚠️ Interesting | Local EPUB-to-M4B audiobook generator using Kokoro TTS, chapter WAV intermediates, and ffmpeg packaging |
 
 ---
 
@@ -104,6 +105,7 @@ Repository tracking:
 | [signed-regression-witnesses.md](patterns/signed-regression-witnesses.md) | ruvnet/ruflo | Signed marker manifests for keeping past bug fixes auditable across refactors |
 | [source-to-compiled-wiki-gates.md](patterns/source-to-compiled-wiki-gates.md) | wanderloots-tutorials/vibe-coding | Raw source layer, compiled wiki notes, JSONL catalog, source coverage, and lint gates |
 | [agent-operated-backend-control-plane.md](patterns/agent-operated-backend-control-plane.md) | InsForge/InsForge | Typed backend control plane for AI coding agents |
+| [local-tts-audiobook-pipeline.md](patterns/local-tts-audiobook-pipeline.md) | santinic/audiblez | Resumable local TTS audiobook pipeline with chapter-level intermediates |
 
 ## Prompts
 
