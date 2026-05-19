@@ -63,6 +63,7 @@ Repository tracking:
 | [insforge.md](reviews/insforge.md) | [InsForge/InsForge](https://github.com/InsForge/InsForge) | Apache-2.0 | ⚠️ Interesting | Agent-native backend platform with Postgres, auth, storage, functions, MCP/CLI surfaces, and typed control-plane APIs |
 | [audiblez.md](reviews/audiblez.md) | [santinic/audiblez](https://github.com/santinic/audiblez) | MIT | ⚠️ Interesting | Local EPUB-to-M4B audiobook generator using Kokoro TTS, chapter WAV intermediates, and ffmpeg packaging |
 | [stainful.md](reviews/stainful.md) | [stainlu/stainful](https://github.com/stainlu/stainful) | MIT | 📚 Study | Local Stainless-compatible Python SDK generator with an IR-first pipeline and conformance-gated output |
+| [deepsec.md](reviews/deepsec.md) | [vercel-labs/deepsec](https://github.com/vercel-labs/deepsec) | Apache-2.0 | ✅ Deploy candidate | Agent-powered vulnerability scanner with resumable per-file records, PR mode, revalidation, plugins, and sandbox workers |
 
 ---
 
@@ -108,6 +109,7 @@ Repository tracking:
 | [agent-operated-backend-control-plane.md](patterns/agent-operated-backend-control-plane.md) | InsForge/InsForge | Typed backend control plane for AI coding agents |
 | [local-tts-audiobook-pipeline.md](patterns/local-tts-audiobook-pipeline.md) | santinic/audiblez | Resumable local TTS audiobook pipeline with chapter-level intermediates |
 | [conformance-gated-sdk-codegen.md](patterns/conformance-gated-sdk-codegen.md) | stainlu/stainful | Test generated SDKs with committed output, regeneration stability, and oracle public-surface comparison |
+| [sandbox-credential-brokering.md](patterns/sandbox-credential-brokering.md) | vercel-labs/deepsec | Keep real provider tokens on the orchestrator while sandboxed agent workers use egress-layer credential injection |
 
 ## Prompts
 
