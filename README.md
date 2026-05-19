@@ -62,6 +62,7 @@ Repository tracking:
 | [local-notebooklm.md](reviews/local-notebooklm.md) | Goekdeniz-Guelmez/Local-NotebookLM | Apache-2.0 | ⚠️ Interesting | Local NotebookLM-style PDF-to-audio app with CLI, FastAPI, Gradio, and Docker surfaces |
 | [insforge.md](reviews/insforge.md) | [InsForge/InsForge](https://github.com/InsForge/InsForge) | Apache-2.0 | ⚠️ Interesting | Agent-native backend platform with Postgres, auth, storage, functions, MCP/CLI surfaces, and typed control-plane APIs |
 | [audiblez.md](reviews/audiblez.md) | [santinic/audiblez](https://github.com/santinic/audiblez) | MIT | ⚠️ Interesting | Local EPUB-to-M4B audiobook generator using Kokoro TTS, chapter WAV intermediates, and ffmpeg packaging |
+| [stainful.md](reviews/stainful.md) | [stainlu/stainful](https://github.com/stainlu/stainful) | MIT | 📚 Study | Local Stainless-compatible Python SDK generator with an IR-first pipeline and conformance-gated output |
 
 ---
 
@@ -106,6 +107,7 @@ Repository tracking:
 | [source-to-compiled-wiki-gates.md](patterns/source-to-compiled-wiki-gates.md) | wanderloots-tutorials/vibe-coding | Raw source layer, compiled wiki notes, JSONL catalog, source coverage, and lint gates |
 | [agent-operated-backend-control-plane.md](patterns/agent-operated-backend-control-plane.md) | InsForge/InsForge | Typed backend control plane for AI coding agents |
 | [local-tts-audiobook-pipeline.md](patterns/local-tts-audiobook-pipeline.md) | santinic/audiblez | Resumable local TTS audiobook pipeline with chapter-level intermediates |
+| [conformance-gated-sdk-codegen.md](patterns/conformance-gated-sdk-codegen.md) | stainlu/stainful | Test generated SDKs with committed output, regeneration stability, and oracle public-surface comparison |
 
 ## Prompts
 
