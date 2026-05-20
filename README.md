@@ -64,6 +64,7 @@ Repository tracking:
 | [audiblez.md](reviews/audiblez.md) | [santinic/audiblez](https://github.com/santinic/audiblez) | MIT | ⚠️ Interesting | Local EPUB-to-M4B audiobook generator using Kokoro TTS, chapter WAV intermediates, and ffmpeg packaging |
 | [stainful.md](reviews/stainful.md) | [stainlu/stainful](https://github.com/stainlu/stainful) | MIT | 📚 Study | Local Stainless-compatible Python SDK generator with an IR-first pipeline and conformance-gated output |
 | [deepsec.md](reviews/deepsec.md) | [vercel-labs/deepsec](https://github.com/vercel-labs/deepsec) | Apache-2.0 | ✅ Deploy candidate | Agent-powered vulnerability scanner with resumable per-file records, PR mode, revalidation, plugins, and sandbox workers |
+| [codebase-reasoning-topology-gist.md](reviews/codebase-reasoning-topology-gist.md) | [acidgreenservers gist](https://gist.github.com/acidgreenservers/001185d63e5cd65f9fbe6f7a1c70a200) | **no license** | 📚 Good reference | Coding-agent prompt bundle for topology-first codebase reasoning and read-only reconnaissance |
 
 ---
 
@@ -110,6 +111,7 @@ Repository tracking:
 | [local-tts-audiobook-pipeline.md](patterns/local-tts-audiobook-pipeline.md) | santinic/audiblez | Resumable local TTS audiobook pipeline with chapter-level intermediates |
 | [conformance-gated-sdk-codegen.md](patterns/conformance-gated-sdk-codegen.md) | stainlu/stainful | Test generated SDKs with committed output, regeneration stability, and oracle public-surface comparison |
 | [sandbox-credential-brokering.md](patterns/sandbox-credential-brokering.md) | vercel-labs/deepsec | Keep real provider tokens on the orchestrator while sandboxed agent workers use egress-layer credential injection |
+| [topology-first-codebase-reasoning.md](patterns/topology-first-codebase-reasoning.md) | acidgreenservers gist | Map state, feedback, blast radius, timing, and trust boundaries before non-trivial code changes |
 
 ## Prompts
 
