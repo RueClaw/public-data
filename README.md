@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [freellmapi.md](reviews/freellmapi.md) | [tashfeenahmed/freellmapi](https://github.com/tashfeenahmed/freellmapi) | MIT | ⚠️ Interesting | Local OpenAI-compatible proxy that aggregates free-tier LLM providers with key-aware fallback routing |
 | [gait.md](reviews/gait.md) | Clyra-AI/gait | Apache-2.0 | 🔥🔥🔥 | Policy-as-code enforcement at the AI agent tool boundary |
 | [sage.md](reviews/sage.md) | l33tdawg/sage | Apache-2.0 | 🔥🔥🔥 | BFT consensus-validated persistent memory for AI agents |
 | [crucix.md](reviews/crucix.md) | calesthio/Crucix | AGPL-3.0 | 🔥🔥🔥🔥 | Self-hosted OSINT intelligence terminal, 27 sources |
