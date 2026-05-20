@@ -65,6 +65,7 @@ Repository tracking:
 | [stainful.md](reviews/stainful.md) | [stainlu/stainful](https://github.com/stainlu/stainful) | MIT | 📚 Study | Local Stainless-compatible Python SDK generator with an IR-first pipeline and conformance-gated output |
 | [deepsec.md](reviews/deepsec.md) | [vercel-labs/deepsec](https://github.com/vercel-labs/deepsec) | Apache-2.0 | ✅ Deploy candidate | Agent-powered vulnerability scanner with resumable per-file records, PR mode, revalidation, plugins, and sandbox workers |
 | [codebase-reasoning-topology-gist.md](reviews/codebase-reasoning-topology-gist.md) | [acidgreenservers gist](https://gist.github.com/acidgreenservers/001185d63e5cd65f9fbe6f7a1c70a200) | **no license** | 📚 Good reference | Coding-agent prompt bundle for topology-first codebase reasoning and read-only reconnaissance |
+| [9router.md](reviews/9router.md) | [decolua/9router](https://github.com/decolua/9router) | MIT | ⚠️ Interesting | Local AI router/dashboard for coding tools with provider fallback, quota tracking, translation, MITM/tunnel helpers, and RTK token compression |
 
 ---
 
@@ -112,6 +113,7 @@ Repository tracking:
 | [conformance-gated-sdk-codegen.md](patterns/conformance-gated-sdk-codegen.md) | stainlu/stainful | Test generated SDKs with committed output, regeneration stability, and oracle public-surface comparison |
 | [sandbox-credential-brokering.md](patterns/sandbox-credential-brokering.md) | vercel-labs/deepsec | Keep real provider tokens on the orchestrator while sandboxed agent workers use egress-layer credential injection |
 | [topology-first-codebase-reasoning.md](patterns/topology-first-codebase-reasoning.md) | acidgreenservers gist | Map state, feedback, blast radius, timing, and trust boundaries before non-trivial code changes |
+| [rtk-tool-result-compression.md](patterns/rtk-tool-result-compression.md) | decolua/9router | Compress noisy coding-tool outputs before LLM routing while preserving errors and fallback safety |
 
 ## Prompts
 
