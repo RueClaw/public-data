@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [activegraph.md](reviews/activegraph.md) | [yoheinakajima/activegraph](https://github.com/yoheinakajima/activegraph) | Apache-2.0 | ⚠️ Interesting | Event-sourced reactive graph runtime for auditable, replayable, forkable agent systems |
 | [text-to-cad.md](reviews/text-to-cad.md) | [earthtojake/text-to-cad](https://github.com/earthtojake/text-to-cad) | MIT | ✅ Deploy candidate | Agent skill bundle for source-first CAD, robotics descriptions, geometry inspection, render review, and CAD project harnessing |
 | [cal-diy.md](reviews/cal-diy.md) | [calcom/cal.diy](https://github.com/calcom/cal.diy) | MIT | ⚠️ Interesting | MIT-only self-hosted Cal.com fork for personal/non-production scheduling infrastructure |
 | [noah-zender-ideas.md](reviews/noah-zender-ideas.md) | [Noah Zender Ideas](https://www.noahzender.com/ideas) | N/A | 📚 Good reference | Large index of short mental-model notes for product, AI, writing, markets, psychology, and leadership |
@@ -93,6 +94,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [forkable-event-sourced-agent-runs.md](patterns/forkable-event-sourced-agent-runs.md) | yoheinakajima/activegraph | Persist agent work as an event-sourced graph so runs can be audited, replayed, forked, and structurally diffed |
 | [agentic-cad-skill-workbench.md](patterns/agentic-cad-skill-workbench.md) | earthtojake/text-to-cad | Constrain agentic CAD with source-first generation, explicit targets, deterministic inspection, render handoff, and repair loops |
 | [pre-execution-agent-policy-gate.md](patterns/pre-execution-agent-policy-gate.md) | microsoft/agent-governance-toolkit | Deterministic allow/deny/audit policy checks before agent tool calls, resource access, messages, or workflow steps execute |
 | [skill-security-audit.md](patterns/skill-security-audit.md) | gadievron/security-check-skill | Security auditing pattern for AI skills |
