@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [text-to-cad.md](reviews/text-to-cad.md) | [earthtojake/text-to-cad](https://github.com/earthtojake/text-to-cad) | MIT | ✅ Deploy candidate | Agent skill bundle for source-first CAD, robotics descriptions, geometry inspection, render review, and CAD project harnessing |
 | [cal-diy.md](reviews/cal-diy.md) | [calcom/cal.diy](https://github.com/calcom/cal.diy) | MIT | ⚠️ Interesting | MIT-only self-hosted Cal.com fork for personal/non-production scheduling infrastructure |
 | [noah-zender-ideas.md](reviews/noah-zender-ideas.md) | [Noah Zender Ideas](https://www.noahzender.com/ideas) | N/A | 📚 Good reference | Large index of short mental-model notes for product, AI, writing, markets, psychology, and leadership |
 | [agent-governance-toolkit.md](reviews/agent-governance-toolkit.md) | [microsoft/agent-governance-toolkit](https://github.com/microsoft/agent-governance-toolkit) | MIT | 📚 Study | Microsoft public-preview runtime governance stack for AI agents: policy, identity, MCP security, audit, SRE, and compliance |
@@ -92,6 +93,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [agentic-cad-skill-workbench.md](patterns/agentic-cad-skill-workbench.md) | earthtojake/text-to-cad | Constrain agentic CAD with source-first generation, explicit targets, deterministic inspection, render handoff, and repair loops |
 | [pre-execution-agent-policy-gate.md](patterns/pre-execution-agent-policy-gate.md) | microsoft/agent-governance-toolkit | Deterministic allow/deny/audit policy checks before agent tool calls, resource access, messages, or workflow steps execute |
 | [skill-security-audit.md](patterns/skill-security-audit.md) | gadievron/security-check-skill | Security auditing pattern for AI skills |
 | [knowledge-work-plugins.md](patterns/knowledge-work-plugins.md) | anthropics/knowledge-work-plugins | Role-specific plugin architecture |
