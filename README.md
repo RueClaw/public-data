@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [cal-diy.md](reviews/cal-diy.md) | [calcom/cal.diy](https://github.com/calcom/cal.diy) | MIT | ⚠️ Interesting | MIT-only self-hosted Cal.com fork for personal/non-production scheduling infrastructure |
 | [noah-zender-ideas.md](reviews/noah-zender-ideas.md) | [Noah Zender Ideas](https://www.noahzender.com/ideas) | N/A | 📚 Good reference | Large index of short mental-model notes for product, AI, writing, markets, psychology, and leadership |
 | [agent-governance-toolkit.md](reviews/agent-governance-toolkit.md) | [microsoft/agent-governance-toolkit](https://github.com/microsoft/agent-governance-toolkit) | MIT | 📚 Study | Microsoft public-preview runtime governance stack for AI agents: policy, identity, MCP security, audit, SRE, and compliance |
 | [freellmapi.md](reviews/freellmapi.md) | [tashfeenahmed/freellmapi](https://github.com/tashfeenahmed/freellmapi) | MIT | ⚠️ Interesting | Local OpenAI-compatible proxy that aggregates free-tier LLM providers with key-aware fallback routing |
