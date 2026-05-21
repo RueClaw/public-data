@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [agent-governance-toolkit.md](reviews/agent-governance-toolkit.md) | [microsoft/agent-governance-toolkit](https://github.com/microsoft/agent-governance-toolkit) | MIT | 📚 Study | Microsoft public-preview runtime governance stack for AI agents: policy, identity, MCP security, audit, SRE, and compliance |
 | [freellmapi.md](reviews/freellmapi.md) | [tashfeenahmed/freellmapi](https://github.com/tashfeenahmed/freellmapi) | MIT | ⚠️ Interesting | Local OpenAI-compatible proxy that aggregates free-tier LLM providers with key-aware fallback routing |
 | [gait.md](reviews/gait.md) | Clyra-AI/gait | Apache-2.0 | 🔥🔥🔥 | Policy-as-code enforcement at the AI agent tool boundary |
 | [sage.md](reviews/sage.md) | l33tdawg/sage | Apache-2.0 | 🔥🔥🔥 | BFT consensus-validated persistent memory for AI agents |
@@ -89,6 +90,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [pre-execution-agent-policy-gate.md](patterns/pre-execution-agent-policy-gate.md) | microsoft/agent-governance-toolkit | Deterministic allow/deny/audit policy checks before agent tool calls, resource access, messages, or workflow steps execute |
 | [skill-security-audit.md](patterns/skill-security-audit.md) | gadievron/security-check-skill | Security auditing pattern for AI skills |
 | [knowledge-work-plugins.md](patterns/knowledge-work-plugins.md) | anthropics/knowledge-work-plugins | Role-specific plugin architecture |
 | [graphiti-knowledge-graph.md](patterns/graphiti-knowledge-graph.md) | getzep/graphiti | Real-time knowledge graphs for agents |
