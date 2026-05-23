@@ -406,7 +406,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [pipecat-ai/gradient-bang](https://github.com/pipecat-ai/gradient-bang) | 2026-04-15 | 2026-04-15 | 1 | no |  |  |
 | [asakin/llm-context-base](https://github.com/asakin/llm-context-base) | 2026-04-15 | 2026-04-15 | 1 | no |  |  |
 | [z-lab/dflash](https://github.com/z-lab/dflash) | 2026-04-15 | 2026-04-15 | 1 | no |  |  |
-| [multica-ai/multica](https://github.com/multica-ai/multica) | 2026-04-15 | 2026-04-15 | 1 | no |  |  |
+| [multica-ai/multica](https://github.com/multica-ai/multica) | 2026-04-15 | 2026-05-23 | 2 | yes | 2026-05-23 | [reviews/multica.md](reviews/multica.md) |
 | [mohi-devhub/antivibe](https://github.com/mohi-devhub/antivibe) | 2026-04-15 | 2026-04-15 | 1 | no |  |  |
 | [czlonkowski/n8n-mcp](https://github.com/czlonkowski/n8n-mcp) | 2026-04-16 | 2026-05-02 | 2 | no |  |  |
 | [HKUDS/LightRAG](https://github.com/HKUDS/LightRAG) | 2026-04-16 | 2026-04-16 | 1 | no |  |  |
