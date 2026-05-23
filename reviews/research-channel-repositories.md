@@ -1,17 +1,18 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-05-17
-**Generated:** 2026-05-17
+**Message range:** 2026-02-17 to 2026-05-23
+**Generated:** 2026-05-23
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 476 public/included repositories, 101 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 477 public/included repositories, 102 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [AgriciDaniel/claude-ads](https://github.com/AgriciDaniel/claude-ads) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/claude-ads.md](reviews/claude-ads.md) |
 | [santinic/audiblez](https://github.com/santinic/audiblez) | 2026-05-18 | 2026-05-18 | 1 | yes | 2026-05-18 | [reviews/audiblez.md](reviews/audiblez.md) |
 | [InsForge/InsForge](https://github.com/InsForge/InsForge) | 2026-05-18 | 2026-05-18 | 1 | yes | 2026-05-18 | [reviews/insforge.md](reviews/insforge.md) |
 | [jlondrejcka/supaswarm](https://github.com/jlondrejcka/supaswarm) | 2026-02-17 | 2026-02-17 | 1 | no |  |  |

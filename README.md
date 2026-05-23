@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [claude-ads.md](reviews/claude-ads.md) | [AgriciDaniel/claude-ads](https://github.com/AgriciDaniel/claude-ads) | MIT | ✅ Deploy candidate | Multi-platform paid-advertising audit skill pack with platform playbooks, helper agents, local scripts, PDF/report tooling, and a pytest eval harness |
 | [multica.md](reviews/multica.md) | [multica-ai/multica](https://github.com/multica-ai/multica) | source-available Apache-2.0-derived | ✅ Deploy candidate | Managed coding-agent workspace with web, desktop, mobile, daemon, cloud/local runtimes, squads, autopilots, and task lifecycle control |
 | [activegraph.md](reviews/activegraph.md) | [yoheinakajima/activegraph](https://github.com/yoheinakajima/activegraph) | Apache-2.0 | ⚠️ Interesting | Event-sourced reactive graph runtime for auditable, replayable, forkable agent systems |
 | [text-to-cad.md](reviews/text-to-cad.md) | [earthtojake/text-to-cad](https://github.com/earthtojake/text-to-cad) | MIT | ✅ Deploy candidate | Agent skill bundle for source-first CAD, robotics descriptions, geometry inspection, render review, and CAD project harnessing |
@@ -95,6 +96,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [domain-skill-eval-harness.md](patterns/domain-skill-eval-harness.md) | AgriciDaniel/claude-ads | Test large agent skills with routing snapshots, check catalog coverage, deterministic scoring, and helper-script security regressions |
 | [managed-agent-runtime-control-plane.md](patterns/managed-agent-runtime-control-plane.md) | multica-ai/multica | Separate agent work management from local/cloud runtime execution with capability reporting, task claiming, provider adapters, and realtime progress |
 | [forkable-event-sourced-agent-runs.md](patterns/forkable-event-sourced-agent-runs.md) | yoheinakajima/activegraph | Persist agent work as an event-sourced graph so runs can be audited, replayed, forked, and structurally diffed |
 | [agentic-cad-skill-workbench.md](patterns/agentic-cad-skill-workbench.md) | earthtojake/text-to-cad | Constrain agentic CAD with source-first generation, explicit targets, deterministic inspection, render handoff, and repair loops |
