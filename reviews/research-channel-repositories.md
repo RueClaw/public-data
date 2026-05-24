@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 486 public/included repositories, 111 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 487 public/included repositories, 112 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [supertone-inc/supertonic](https://github.com/supertone-inc/supertonic) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/supertonic.md](reviews/supertonic.md) |
 | [ruvnet/RuView](https://github.com/ruvnet/RuView) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/ruview.md](reviews/ruview.md) |
 | [tinyhumansai/openhuman](https://github.com/tinyhumansai/openhuman) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/openhuman.md](reviews/openhuman.md) |
 | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/codegraph.md](reviews/codegraph.md) |
