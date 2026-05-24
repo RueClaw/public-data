@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 477 public/included repositories, 102 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 478 public/included repositories, 103 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [perplexityai/bumblebee](https://github.com/perplexityai/bumblebee) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/bumblebee.md](reviews/bumblebee.md) |
 | [AgriciDaniel/claude-ads](https://github.com/AgriciDaniel/claude-ads) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/claude-ads.md](reviews/claude-ads.md) |
 | [santinic/audiblez](https://github.com/santinic/audiblez) | 2026-05-18 | 2026-05-18 | 1 | yes | 2026-05-18 | [reviews/audiblez.md](reviews/audiblez.md) |
 | [InsForge/InsForge](https://github.com/InsForge/InsForge) | 2026-05-18 | 2026-05-18 | 1 | yes | 2026-05-18 | [reviews/insforge.md](reviews/insforge.md) |
