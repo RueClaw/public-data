@@ -4,7 +4,11 @@
 - **Author:** Rohit Ghumare and contributors
 - **License:** Apache-2.0
 - **Extracted from:** `src/hooks/`, `src/functions/`, `src/mcp/`
-- **Reviewed:** 2026-05-19
+- **Reviewed:** 2026-05-23
+
+## Update Notes
+
+The 2026-05-23 check-in strengthened this pattern with three additions: commit-to-session provenance, lessons returned alongside compact smart-search results, and explicit benchmark harnesses for coding-agent memory quality. The core pattern remains the same, but a production memory service should now be expected to explain what work produced a memory, not just store and retrieve the memory itself.
 
 ## Pattern
 
@@ -21,9 +25,10 @@ The service observes session events, normalizes them into memories, indexes them
 5. **Observation write:** store normalized observations under the session.
 6. **Compression:** summarize or compress large observations into denser memory candidates.
 7. **Consolidation:** promote repeated or important observations into semantic memories and lessons.
-8. **Indexing:** update keyword, vector, graph, and recency structures.
-9. **Recall:** return compact matches first, then expand full observations only when requested.
-10. **Governance:** support delete, retention, export, audit, and access tracking.
+8. **Provenance:** link memories and sessions to code changes, files, commits, or other work products when available.
+9. **Indexing:** update keyword, vector, graph, and recency structures.
+10. **Recall:** return compact matches first, then expand full observations only when requested.
+11. **Governance:** support delete, retention, export, audit, and access tracking.
 
 ## Why Hooks Matter
 
@@ -46,6 +51,7 @@ Use progressive disclosure:
 - Return compact hits first: IDs, titles, types, timestamps, and scores.
 - Let the agent expand specific IDs into full observations.
 - Include curated lessons separately from raw observations.
+- Include provenance signals such as session IDs, file paths, and commits when they help the agent verify why a memory exists.
 - Apply a token budget to context injection.
 - Track access so high-value memories can be reinforced.
 
@@ -72,6 +78,7 @@ Useful modules to keep separate:
 - **Memory store:** durable semantic memories with version/supersession metadata.
 - **Search indexes:** BM25, vector, graph, and recency/rerank layers.
 - **Context builder:** token-budgeted recall formatter.
+- **Provenance mapper:** links sessions, observations, files, and commits so memory can be traced back to work.
 - **Governance layer:** delete, retention, audit, privacy, and export.
 - **Viewer:** local observability for what the memory system captured.
 
