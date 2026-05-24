@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [codegraph.md](reviews/codegraph.md) | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | MIT | ✅ Deploy candidate | Local pre-indexed code graph and MCP server for coding agents, with SQLite/FTS5, tree-sitter extraction, broad language/framework coverage, installer targets, and strong tests |
 | [cloudsail.md](reviews/cloudsail.md) | [nkzw-tech/cloudsail](https://github.com/nkzw-tech/cloudsail) | MIT | ✅ Deploy candidate | Self-hosted Cloudflare coding-agent sandboxes with Worker-owned credential injection, controlled egress, terminal/dev-server previews, git helpers, and clean alpha verification |
 | [inbox-zero.md](reviews/inbox-zero.md) | [elie222/inbox-zero](https://github.com/elie222/inbox-zero) | AGPL-3.0 + commercial/enterprise restrictions | ⚠️ Interesting | Full AI email assistant with Gmail/Outlook automation, confirmed action gates, encrypted provider tokens, self-hosting docs, and dependency/license caveats |
 | [tldraw.md](reviews/tldraw.md) | [tldraw/tldraw](https://github.com/tldraw/tldraw) | tldraw source-available + MIT templates | ✅ Deploy candidate | Infinite-canvas React SDK and whiteboard platform with multiplayer sync, AI starter kits, MCP app, and strong canvas-agent action patterns |
@@ -102,6 +103,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [preindexed-code-intelligence-mcp.md](patterns/preindexed-code-intelligence-mcp.md) | colbymchenry/codegraph | Keep a local code graph beside a repository and expose compact MCP tools for search, context, callers/callees, impact analysis, and index status |
 | [edge-brokered-coding-sandboxes.md](patterns/edge-brokered-coding-sandboxes.md) | nkzw-tech/cloudsail | Run agents in remote coding containers while an edge control plane owns credentials, egress policy, previews, lifecycle, checkpoints, and cost limits |
 | [private-email-assistant-action-gates.md](patterns/private-email-assistant-action-gates.md) | elie222/inbox-zero | Constrain private mailbox agents with untrusted-content hardening, template-only generated fields, pending confirmations, account-bound execution, encrypted secrets, and audit context |
 | [local-first-encrypted-object-graph-client.md](patterns/local-first-encrypted-object-graph-client.md) | anyproto/anytype-ts | Split a local-first knowledge app into a rich Electron/React object-graph client backed by encrypted/syncing middleware and event streams |
