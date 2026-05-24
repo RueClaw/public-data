@@ -85,6 +85,7 @@ Repository tracking:
 | [9router.md](reviews/9router.md) | [decolua/9router](https://github.com/decolua/9router) | MIT | ⚠️ Interesting | Local AI router/dashboard for coding tools with provider fallback, quota tracking, translation, MITM/tunnel helpers, and RTK token compression |
 | [agentmemory.md](reviews/agentmemory.md) | [rohitg00/agentmemory](https://github.com/rohitg00/agentmemory) | Apache-2.0 | ⚠️ Interesting | Persistent memory server for AI coding agents with hook capture, MCP/REST, hybrid retrieval, graph/lessons, commit provenance, privacy, audit, and retention |
 | [supertonic.md](reviews/supertonic.md) | [supertone-inc/supertonic](https://github.com/supertone-inc/supertonic) | MIT code / OpenRAIL-M model | ✅ Deploy candidate | On-device multilingual TTS reference kit with ONNX Runtime examples across Python, browser/WebGPU, Node, Rust, Swift, Go, Java, C++, C#, Flutter, and iOS |
+| [cloakbrowser.md](reviews/cloakbrowser.md) | [CloakHQ/CloakBrowser](https://github.com/CloakHQ/CloakBrowser) | MIT wrapper / proprietary binary | ⚠️ Interesting | Security-sensitive Playwright/Puppeteer wrapper around a patched Chromium binary, with strong wrapper tests, binary provenance docs, and anti-detection risk |
 | [html-anything.md](reviews/html-anything.md) | [nexu-io/html-anything](https://github.com/nexu-io/html-anything) | Apache-2.0 | ⚠️ Interesting | Local-first agentic HTML editor that drives coding-agent CLIs through skill templates, streaming preview, and platform-specific exports |
 
 ---
@@ -148,6 +149,7 @@ Repository tracking:
 | [rtk-tool-result-compression.md](patterns/rtk-tool-result-compression.md) | decolua/9router | Compress noisy coding-tool outputs before LLM routing while preserving errors and fallback safety |
 | [hook-captured-agent-memory.md](patterns/hook-captured-agent-memory.md) | rohitg00/agentmemory | Build agent memory as a local service fed by lifecycle hooks, with privacy, progressive recall, provenance, audit, and retention |
 | [on-device-onnx-tts-adapter.md](patterns/on-device-onnx-tts-adapter.md) | supertone-inc/supertonic | Wrap local ONNX TTS behind a small HTTP/OpenAI-compatible adapter so agents and apps can share one private speech runtime |
+| [policy-gated-browser-automation-runtime.md](patterns/policy-gated-browser-automation-runtime.md) | CloakHQ/CloakBrowser | Put browser automation behind URL, launch-argument, network, binary-provenance, and audit policy gates |
 | [agentic-html-surface-pipeline.md](patterns/agentic-html-surface-pipeline.md) | nexu-io/html-anything | Use local agent CLIs plus constrained skill templates, streaming iframe preview, and export adapters to generate finished HTML artifacts |
 
 ## Prompts
