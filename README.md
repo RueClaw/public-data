@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [hermes-vault.md](reviews/hermes-vault.md) | [asimons81/hermes-vault](https://github.com/asimons81/hermes-vault) | MIT | ✅ Deploy candidate | Local-first encrypted credential broker for AI agents with policy-gated ephemeral env access, MCP tools/resources, OAuth lifecycle support, verifier plugins, and a localhost operator dashboard |
 | [12-factor-agents.md](reviews/12-factor-agents.md) | [humanlayer/12-factor-agents](https://github.com/humanlayer/12-factor-agents) | Apache-2.0 code / CC BY-SA 4.0 content | 📚 Study | Production-agent principles guide: owned prompts/context, structured tool outputs, unified state, pause/resume APIs, human tool calls, explicit control flow, compact errors, and reducer-style agents |
 | [vimax.md](reviews/vimax.md) | [HKUDS/ViMax](https://github.com/HKUDS/ViMax) | MIT | 📚 Study | Agentic video-generation orchestration pipeline that stages story, character, storyboard, frame, provider-backed video, and composition artifacts; useful pattern source, not deploy-ready as-is |
 | [ruview.md](reviews/ruview.md) | [ruvnet/RuView](https://github.com/ruvnet/RuView) | MIT | 📚 Study | Ambitious WiFi CSI spatial-sensing platform with Rust signal crates, ESP32 firmware, dashboards, Home Assistant/Matter docs, and MCP/CLI wrappers; useful pattern source but not a turnkey safety/health deployment |
@@ -155,6 +156,7 @@ Repository tracking:
 | [on-device-onnx-tts-adapter.md](patterns/on-device-onnx-tts-adapter.md) | supertone-inc/supertonic | Wrap local ONNX TTS behind a small HTTP/OpenAI-compatible adapter so agents and apps can share one private speech runtime |
 | [policy-gated-browser-automation-runtime.md](patterns/policy-gated-browser-automation-runtime.md) | CloakHQ/CloakBrowser | Put browser automation behind URL, launch-argument, network, binary-provenance, and audit policy gates |
 | [agentic-html-surface-pipeline.md](patterns/agentic-html-surface-pipeline.md) | nexu-io/html-anything | Use local agent CLIs plus constrained skill templates, streaming iframe preview, and export adapters to generate finished HTML artifacts |
+| [policy-gated-local-agent-credential-broker.md](patterns/policy-gated-local-agent-credential-broker.md) | asimons81/hermes-vault | Broker agent credential use through local encrypted storage, service/action policy, verification, TTL-limited env materialization, audit records, and raw-secret-safe operator surfaces |
 
 ## Prompts
 

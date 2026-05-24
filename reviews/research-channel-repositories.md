@@ -1,17 +1,18 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-05-23
-**Generated:** 2026-05-23
+**Message range:** 2026-02-17 to 2026-05-24
+**Generated:** 2026-05-24
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 490 public/included repositories, 115 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 491 public/included repositories, 116 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [asimons81/hermes-vault](https://github.com/asimons81/hermes-vault) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/hermes-vault.md](reviews/hermes-vault.md) |
 | [humanlayer/12-factor-agents](https://github.com/humanlayer/12-factor-agents) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/12-factor-agents.md](reviews/12-factor-agents.md) |
 | [HKUDS/ViMax](https://github.com/HKUDS/ViMax) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/vimax.md](reviews/vimax.md) |
 | [CloakHQ/CloakBrowser](https://github.com/CloakHQ/CloakBrowser) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/cloakbrowser.md](reviews/cloakbrowser.md) |
