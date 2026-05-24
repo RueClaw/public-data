@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [open-notebook.md](reviews/open-notebook.md) | [lfnovo/open-notebook](https://github.com/lfnovo/open-notebook) | MIT | ✅ Deploy candidate | Self-hosted NotebookLM alternative with FastAPI, Next.js, SurrealDB, multi-provider AI, local model support, explicit context controls, REST API, transformations, notes, search, and podcast generation |
 | [claude-bughunter.md](reviews/claude-bughunter.md) | [elementalsouls/Claude-BugHunter](https://github.com/elementalsouls/Claude-BugHunter) | MIT | ⚠️ Interesting | Claude Code skill bundle for authorized bug bounty and external red-team workflows with scope gates, validation discipline, evidence hygiene, reporting templates, slash commands, and a deterministic Python CLI |
 | [devils-advocate.md](reviews/devils-advocate.md) | [brandonsimpson/devils-advocate](https://github.com/brandonsimpson/devils-advocate) | MIT | ✅ Deploy candidate | Claude Code plugin for adversarial binary code/plan critique with file:line evidence, fix suggestions, context gates, standards discovery, session logs, and non-blocking commit/plan hooks |
 | [comfyui-ltxvideo.md](reviews/comfyui-ltxvideo.md) | [Lightricks/ComfyUI-LTXVideo](https://github.com/Lightricks/ComfyUI-LTXVideo) | LTX-2 Community License | ⚠️ Interesting | Official ComfyUI custom-node and workflow pack for LTX-2/LTX-2.3 video generation, with IC-LoRA, HDR, lipdub, motion tracking, low-VRAM loaders, and heavyweight license/runtime caveats |
@@ -162,6 +163,7 @@ Repository tracking:
 | [policy-gated-local-agent-credential-broker.md](patterns/policy-gated-local-agent-credential-broker.md) | asimons81/hermes-vault | Broker agent credential use through local encrypted storage, service/action policy, verification, TTL-limited env materialization, audit records, and raw-secret-safe operator surfaces |
 | [evidence-bound-binary-critique-gate.md](patterns/evidence-bound-binary-critique-gate.md) | brandonsimpson/devils-advocate | Turn LLM critique into binary pass/fail criteria with context gates, file:line evidence, fix suggestions, independent review for self-critiques, and logged results |
 | [scope-gated-security-skill-bundle.md](patterns/scope-gated-security-skill-bundle.md) | elementalsouls/Claude-BugHunter | Build high-risk domain skills around authorization gates, narrow routing, validation-before-action, evidence hygiene, and explicit operational stop-lines |
+| [user-controlled-rag-research-workspace.md](patterns/user-controlled-rag-research-workspace.md) | lfnovo/open-notebook | Build research assistants around explicit notebooks, sources, notes, insights, context-inclusion levels, token budgets, and separate provider credentials |
 
 ## Prompts
 
