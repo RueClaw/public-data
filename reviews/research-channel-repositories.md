@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 492 public/included repositories, 117 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 493 public/included repositories, 118 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [brandonsimpson/devils-advocate](https://github.com/brandonsimpson/devils-advocate) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/devils-advocate.md](reviews/devils-advocate.md) |
 | [Lightricks/ComfyUI-LTXVideo](https://github.com/Lightricks/ComfyUI-LTXVideo) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/comfyui-ltxvideo.md](reviews/comfyui-ltxvideo.md) |
 | [asimons81/hermes-vault](https://github.com/asimons81/hermes-vault) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/hermes-vault.md](reviews/hermes-vault.md) |
 | [humanlayer/12-factor-agents](https://github.com/humanlayer/12-factor-agents) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/12-factor-agents.md](reviews/12-factor-agents.md) |

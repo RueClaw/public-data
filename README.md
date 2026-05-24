@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [devils-advocate.md](reviews/devils-advocate.md) | [brandonsimpson/devils-advocate](https://github.com/brandonsimpson/devils-advocate) | MIT | ✅ Deploy candidate | Claude Code plugin for adversarial binary code/plan critique with file:line evidence, fix suggestions, context gates, standards discovery, session logs, and non-blocking commit/plan hooks |
 | [comfyui-ltxvideo.md](reviews/comfyui-ltxvideo.md) | [Lightricks/ComfyUI-LTXVideo](https://github.com/Lightricks/ComfyUI-LTXVideo) | LTX-2 Community License | ⚠️ Interesting | Official ComfyUI custom-node and workflow pack for LTX-2/LTX-2.3 video generation, with IC-LoRA, HDR, lipdub, motion tracking, low-VRAM loaders, and heavyweight license/runtime caveats |
 | [hermes-vault.md](reviews/hermes-vault.md) | [asimons81/hermes-vault](https://github.com/asimons81/hermes-vault) | MIT | ✅ Deploy candidate | Local-first encrypted credential broker for AI agents with policy-gated ephemeral env access, MCP tools/resources, OAuth lifecycle support, verifier plugins, and a localhost operator dashboard |
 | [12-factor-agents.md](reviews/12-factor-agents.md) | [humanlayer/12-factor-agents](https://github.com/humanlayer/12-factor-agents) | Apache-2.0 code / CC BY-SA 4.0 content | 📚 Study | Production-agent principles guide: owned prompts/context, structured tool outputs, unified state, pause/resume APIs, human tool calls, explicit control flow, compact errors, and reducer-style agents |
@@ -158,6 +159,7 @@ Repository tracking:
 | [policy-gated-browser-automation-runtime.md](patterns/policy-gated-browser-automation-runtime.md) | CloakHQ/CloakBrowser | Put browser automation behind URL, launch-argument, network, binary-provenance, and audit policy gates |
 | [agentic-html-surface-pipeline.md](patterns/agentic-html-surface-pipeline.md) | nexu-io/html-anything | Use local agent CLIs plus constrained skill templates, streaming iframe preview, and export adapters to generate finished HTML artifacts |
 | [policy-gated-local-agent-credential-broker.md](patterns/policy-gated-local-agent-credential-broker.md) | asimons81/hermes-vault | Broker agent credential use through local encrypted storage, service/action policy, verification, TTL-limited env materialization, audit records, and raw-secret-safe operator surfaces |
+| [evidence-bound-binary-critique-gate.md](patterns/evidence-bound-binary-critique-gate.md) | brandonsimpson/devils-advocate | Turn LLM critique into binary pass/fail criteria with context gates, file:line evidence, fix suggestions, independent review for self-critiques, and logged results |
 
 ## Prompts
 
