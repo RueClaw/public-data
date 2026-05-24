@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [xurl.md](reviews/xurl.md) | [xdevplatform/xurl](https://github.com/xdevplatform/xurl) | MIT | ✅ Deploy candidate | Official curl-like CLI for the X API with OAuth2/OAuth1/app auth, multi-app token storage, shortcut commands, media upload, streaming, webhook helpers, and an agent-safe Claude skill reference |
 | [open-notebook.md](reviews/open-notebook.md) | [lfnovo/open-notebook](https://github.com/lfnovo/open-notebook) | MIT | ✅ Deploy candidate | Self-hosted NotebookLM alternative with FastAPI, Next.js, SurrealDB, multi-provider AI, local model support, explicit context controls, REST API, transformations, notes, search, and podcast generation |
 | [claude-bughunter.md](reviews/claude-bughunter.md) | [elementalsouls/Claude-BugHunter](https://github.com/elementalsouls/Claude-BugHunter) | MIT | ⚠️ Interesting | Claude Code skill bundle for authorized bug bounty and external red-team workflows with scope gates, validation discipline, evidence hygiene, reporting templates, slash commands, and a deterministic Python CLI |
 | [devils-advocate.md](reviews/devils-advocate.md) | [brandonsimpson/devils-advocate](https://github.com/brandonsimpson/devils-advocate) | MIT | ✅ Deploy candidate | Claude Code plugin for adversarial binary code/plan critique with file:line evidence, fix suggestions, context gates, standards discovery, session logs, and non-blocking commit/plan hooks |
@@ -164,6 +165,7 @@ Repository tracking:
 | [evidence-bound-binary-critique-gate.md](patterns/evidence-bound-binary-critique-gate.md) | brandonsimpson/devils-advocate | Turn LLM critique into binary pass/fail criteria with context gates, file:line evidence, fix suggestions, independent review for self-critiques, and logged results |
 | [scope-gated-security-skill-bundle.md](patterns/scope-gated-security-skill-bundle.md) | elementalsouls/Claude-BugHunter | Build high-risk domain skills around authorization gates, narrow routing, validation-before-action, evidence hygiene, and explicit operational stop-lines |
 | [user-controlled-rag-research-workspace.md](patterns/user-controlled-rag-research-workspace.md) | lfnovo/open-notebook | Build research assistants around explicit notebooks, sources, notes, insights, context-inclusion levels, token budgets, and separate provider credentials |
+| [agent-safe-social-api-cli.md](patterns/agent-safe-social-api-cli.md) | xdevplatform/xurl | Expose social APIs to agents through a local CLI with secret-free status checks, JSON shortcuts, forbidden secret flags/files, and approval gates for mutations |
 
 ## Prompts
 

@@ -8,7 +8,7 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 495 public/included repositories, 120 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 495 public/included repositories, 121 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
@@ -62,7 +62,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [nicobailon/pi-messenger](https://github.com/nicobailon/pi-messenger) | 2026-02-22 | 2026-02-22 | 1 | no |  |  |
 | [CloudAI-X/threejs-skills](https://github.com/CloudAI-X/threejs-skills) | 2026-02-22 | 2026-02-22 | 1 | no |  |  |
 | [rowboatlabs/rowboat](https://github.com/rowboatlabs/rowboat) | 2026-02-22 | 2026-04-09 | 2 | no |  |  |
-| [xdevplatform/xurl](https://github.com/xdevplatform/xurl) | 2026-02-22 | 2026-02-22 | 1 | no |  |  |
+| [xdevplatform/xurl](https://github.com/xdevplatform/xurl) | 2026-02-22 | 2026-05-24 | 2 | yes | 2026-05-24 | [reviews/xurl.md](reviews/xurl.md) |
 | [VectifyAI/PageIndex](https://github.com/VectifyAI/PageIndex) | 2026-02-22 | 2026-02-22 | 1 | yes | 2026-02-24 | Research/repo-reviews/pageindex.md |
 | [github/awesome-copilot](https://github.com/github/awesome-copilot) | 2026-02-22 | 2026-02-22 | 1 | no |  |  |
 | [Timmoth/RackPeek](https://github.com/Timmoth/RackPeek) | 2026-02-22 | 2026-02-22 | 1 | no |  |  |
