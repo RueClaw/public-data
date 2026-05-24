@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [claude-bughunter.md](reviews/claude-bughunter.md) | [elementalsouls/Claude-BugHunter](https://github.com/elementalsouls/Claude-BugHunter) | MIT | ⚠️ Interesting | Claude Code skill bundle for authorized bug bounty and external red-team workflows with scope gates, validation discipline, evidence hygiene, reporting templates, slash commands, and a deterministic Python CLI |
 | [devils-advocate.md](reviews/devils-advocate.md) | [brandonsimpson/devils-advocate](https://github.com/brandonsimpson/devils-advocate) | MIT | ✅ Deploy candidate | Claude Code plugin for adversarial binary code/plan critique with file:line evidence, fix suggestions, context gates, standards discovery, session logs, and non-blocking commit/plan hooks |
 | [comfyui-ltxvideo.md](reviews/comfyui-ltxvideo.md) | [Lightricks/ComfyUI-LTXVideo](https://github.com/Lightricks/ComfyUI-LTXVideo) | LTX-2 Community License | ⚠️ Interesting | Official ComfyUI custom-node and workflow pack for LTX-2/LTX-2.3 video generation, with IC-LoRA, HDR, lipdub, motion tracking, low-VRAM loaders, and heavyweight license/runtime caveats |
 | [hermes-vault.md](reviews/hermes-vault.md) | [asimons81/hermes-vault](https://github.com/asimons81/hermes-vault) | MIT | ✅ Deploy candidate | Local-first encrypted credential broker for AI agents with policy-gated ephemeral env access, MCP tools/resources, OAuth lifecycle support, verifier plugins, and a localhost operator dashboard |
@@ -160,6 +161,7 @@ Repository tracking:
 | [agentic-html-surface-pipeline.md](patterns/agentic-html-surface-pipeline.md) | nexu-io/html-anything | Use local agent CLIs plus constrained skill templates, streaming iframe preview, and export adapters to generate finished HTML artifacts |
 | [policy-gated-local-agent-credential-broker.md](patterns/policy-gated-local-agent-credential-broker.md) | asimons81/hermes-vault | Broker agent credential use through local encrypted storage, service/action policy, verification, TTL-limited env materialization, audit records, and raw-secret-safe operator surfaces |
 | [evidence-bound-binary-critique-gate.md](patterns/evidence-bound-binary-critique-gate.md) | brandonsimpson/devils-advocate | Turn LLM critique into binary pass/fail criteria with context gates, file:line evidence, fix suggestions, independent review for self-critiques, and logged results |
+| [scope-gated-security-skill-bundle.md](patterns/scope-gated-security-skill-bundle.md) | elementalsouls/Claude-BugHunter | Build high-risk domain skills around authorization gates, narrow routing, validation-before-action, evidence hygiene, and explicit operational stop-lines |
 
 ## Prompts
 

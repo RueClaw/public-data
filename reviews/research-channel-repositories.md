@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 493 public/included repositories, 118 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 494 public/included repositories, 119 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [elementalsouls/Claude-BugHunter](https://github.com/elementalsouls/Claude-BugHunter) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/claude-bughunter.md](reviews/claude-bughunter.md) |
 | [brandonsimpson/devils-advocate](https://github.com/brandonsimpson/devils-advocate) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/devils-advocate.md](reviews/devils-advocate.md) |
 | [Lightricks/ComfyUI-LTXVideo](https://github.com/Lightricks/ComfyUI-LTXVideo) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/comfyui-ltxvideo.md](reviews/comfyui-ltxvideo.md) |
 | [asimons81/hermes-vault](https://github.com/asimons81/hermes-vault) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/hermes-vault.md](reviews/hermes-vault.md) |
