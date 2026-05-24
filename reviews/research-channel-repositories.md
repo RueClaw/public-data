@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 482 public/included repositories, 107 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 483 public/included repositories, 108 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [nkzw-tech/cloudsail](https://github.com/nkzw-tech/cloudsail) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/cloudsail.md](reviews/cloudsail.md) |
 | [elie222/inbox-zero](https://github.com/elie222/inbox-zero) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/inbox-zero.md](reviews/inbox-zero.md) |
 | [tldraw/tldraw](https://github.com/tldraw/tldraw) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/tldraw.md](reviews/tldraw.md) |
 | [twentyhq/twenty](https://github.com/twentyhq/twenty) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/twenty.md](reviews/twenty.md) |
