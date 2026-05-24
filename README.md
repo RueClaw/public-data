@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [anytype-ts.md](reviews/anytype-ts.md) | [anyproto/anytype-ts](https://github.com/anyproto/anytype-ts) | ASAL-1.0 source-available | 📚 Study | Official Anytype Electron/React desktop client for local-first encrypted object graphs, spaces, blocks, relations, sync middleware, and extension bridging |
 | [bumblebee.md](reviews/bumblebee.md) | [perplexityai/bumblebee](https://github.com/perplexityai/bumblebee) | Apache-2.0 | ✅ Deploy candidate | Read-only developer endpoint scanner for exact package/tool exposure checks across lockfiles, package metadata, extensions, MCP configs, and threat-intel catalogs |
 | [claude-ads.md](reviews/claude-ads.md) | [AgriciDaniel/claude-ads](https://github.com/AgriciDaniel/claude-ads) | MIT | ✅ Deploy candidate | Multi-platform paid-advertising audit skill pack with platform playbooks, helper agents, local scripts, PDF/report tooling, and a pytest eval harness |
 | [multica.md](reviews/multica.md) | [multica-ai/multica](https://github.com/multica-ai/multica) | source-available Apache-2.0-derived | ✅ Deploy candidate | Managed coding-agent workspace with web, desktop, mobile, daemon, cloud/local runtimes, squads, autopilots, and task lifecycle control |
@@ -97,6 +98,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [local-first-encrypted-object-graph-client.md](patterns/local-first-encrypted-object-graph-client.md) | anyproto/anytype-ts | Split a local-first knowledge app into a rich Electron/React object-graph client backed by encrypted/syncing middleware and event streams |
 | [read-only-endpoint-exposure-scanner.md](patterns/read-only-endpoint-exposure-scanner.md) | perplexityai/bumblebee | Read bounded local package/tool metadata, match exact exposure catalogs, and emit stable current-state records without executing packages |
 | [domain-skill-eval-harness.md](patterns/domain-skill-eval-harness.md) | AgriciDaniel/claude-ads | Test large agent skills with routing snapshots, check catalog coverage, deterministic scoring, and helper-script security regressions |
 | [managed-agent-runtime-control-plane.md](patterns/managed-agent-runtime-control-plane.md) | multica-ai/multica | Separate agent work management from local/cloud runtime execution with capability reporting, task claiming, provider adapters, and realtime progress |
