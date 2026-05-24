@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 480 public/included repositories, 105 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 481 public/included repositories, 106 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [tldraw/tldraw](https://github.com/tldraw/tldraw) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/tldraw.md](reviews/tldraw.md) |
 | [twentyhq/twenty](https://github.com/twentyhq/twenty) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/twenty.md](reviews/twenty.md) |
 | [anyproto/anytype-ts](https://github.com/anyproto/anytype-ts) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/anytype-ts.md](reviews/anytype-ts.md) |
 | [perplexityai/bumblebee](https://github.com/perplexityai/bumblebee) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/bumblebee.md](reviews/bumblebee.md) |
