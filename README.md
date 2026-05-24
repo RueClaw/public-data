@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ruview.md](reviews/ruview.md) | [ruvnet/RuView](https://github.com/ruvnet/RuView) | MIT | 📚 Study | Ambitious WiFi CSI spatial-sensing platform with Rust signal crates, ESP32 firmware, dashboards, Home Assistant/Matter docs, and MCP/CLI wrappers; useful pattern source but not a turnkey safety/health deployment |
 | [openhuman.md](reviews/openhuman.md) | [tinyhumansai/openhuman](https://github.com/tinyhumansai/openhuman) | GPL-3.0 | ⚠️ Interesting | Personal AI desktop harness with Rust/Tauri core, React app, local memory tree, Markdown vault, integrations, messaging channels, MCP surfaces, and significant privacy/security caveats |
 | [codegraph.md](reviews/codegraph.md) | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | MIT | ✅ Deploy candidate | Local pre-indexed code graph and MCP server for coding agents, with SQLite/FTS5, tree-sitter extraction, broad language/framework coverage, installer targets, and strong tests |
 | [cloudsail.md](reviews/cloudsail.md) | [nkzw-tech/cloudsail](https://github.com/nkzw-tech/cloudsail) | MIT | ✅ Deploy candidate | Self-hosted Cloudflare coding-agent sandboxes with Worker-owned credential injection, controlled egress, terminal/dev-server previews, git helpers, and clean alpha verification |
@@ -104,6 +105,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [wifi-csi-edge-sensing-pipeline.md](patterns/wifi-csi-edge-sensing-pipeline.md) | ruvnet/RuView | Build a local WiFi CSI sensing pipeline with calibration, quality flags, confidence scores, bounded semantic outputs, and privacy-aware home-automation integration |
 | [local-personal-ai-memory-harness.md](patterns/local-personal-ai-memory-harness.md) | tinyhumansai/openhuman | Build a local desktop assistant core around inspectable memory, Markdown vault export, credential isolation, prompt-injection gates, and explicit integration trust boundaries |
 | [preindexed-code-intelligence-mcp.md](patterns/preindexed-code-intelligence-mcp.md) | colbymchenry/codegraph | Keep a local code graph beside a repository and expose compact MCP tools for search, context, callers/callees, impact analysis, and index status |
 | [edge-brokered-coding-sandboxes.md](patterns/edge-brokered-coding-sandboxes.md) | nkzw-tech/cloudsail | Run agents in remote coding containers while an edge control plane owns credentials, egress policy, previews, lifecycle, checkpoints, and cost limits |
