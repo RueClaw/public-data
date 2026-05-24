@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [comfyui-ltxvideo.md](reviews/comfyui-ltxvideo.md) | [Lightricks/ComfyUI-LTXVideo](https://github.com/Lightricks/ComfyUI-LTXVideo) | LTX-2 Community License | ⚠️ Interesting | Official ComfyUI custom-node and workflow pack for LTX-2/LTX-2.3 video generation, with IC-LoRA, HDR, lipdub, motion tracking, low-VRAM loaders, and heavyweight license/runtime caveats |
 | [hermes-vault.md](reviews/hermes-vault.md) | [asimons81/hermes-vault](https://github.com/asimons81/hermes-vault) | MIT | ✅ Deploy candidate | Local-first encrypted credential broker for AI agents with policy-gated ephemeral env access, MCP tools/resources, OAuth lifecycle support, verifier plugins, and a localhost operator dashboard |
 | [12-factor-agents.md](reviews/12-factor-agents.md) | [humanlayer/12-factor-agents](https://github.com/humanlayer/12-factor-agents) | Apache-2.0 code / CC BY-SA 4.0 content | 📚 Study | Production-agent principles guide: owned prompts/context, structured tool outputs, unified state, pause/resume APIs, human tool calls, explicit control flow, compact errors, and reducer-style agents |
 | [vimax.md](reviews/vimax.md) | [HKUDS/ViMax](https://github.com/HKUDS/ViMax) | MIT | 📚 Study | Agentic video-generation orchestration pipeline that stages story, character, storyboard, frame, provider-backed video, and composition artifacts; useful pattern source, not deploy-ready as-is |
