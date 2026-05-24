@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 489 public/included repositories, 114 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 490 public/included repositories, 115 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [humanlayer/12-factor-agents](https://github.com/humanlayer/12-factor-agents) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/12-factor-agents.md](reviews/12-factor-agents.md) |
 | [HKUDS/ViMax](https://github.com/HKUDS/ViMax) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/vimax.md](reviews/vimax.md) |
 | [CloakHQ/CloakBrowser](https://github.com/CloakHQ/CloakBrowser) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/cloakbrowser.md](reviews/cloakbrowser.md) |
 | [supertone-inc/supertonic](https://github.com/supertone-inc/supertonic) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/supertonic.md](reviews/supertonic.md) |

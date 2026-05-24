@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [12-factor-agents.md](reviews/12-factor-agents.md) | [humanlayer/12-factor-agents](https://github.com/humanlayer/12-factor-agents) | Apache-2.0 code / CC BY-SA 4.0 content | 📚 Study | Production-agent principles guide: owned prompts/context, structured tool outputs, unified state, pause/resume APIs, human tool calls, explicit control flow, compact errors, and reducer-style agents |
 | [vimax.md](reviews/vimax.md) | [HKUDS/ViMax](https://github.com/HKUDS/ViMax) | MIT | 📚 Study | Agentic video-generation orchestration pipeline that stages story, character, storyboard, frame, provider-backed video, and composition artifacts; useful pattern source, not deploy-ready as-is |
 | [ruview.md](reviews/ruview.md) | [ruvnet/RuView](https://github.com/ruvnet/RuView) | MIT | 📚 Study | Ambitious WiFi CSI spatial-sensing platform with Rust signal crates, ESP32 firmware, dashboards, Home Assistant/Matter docs, and MCP/CLI wrappers; useful pattern source but not a turnkey safety/health deployment |
 | [openhuman.md](reviews/openhuman.md) | [tinyhumansai/openhuman](https://github.com/tinyhumansai/openhuman) | GPL-3.0 | ⚠️ Interesting | Personal AI desktop harness with Rust/Tauri core, React app, local memory tree, Markdown vault, integrations, messaging channels, MCP surfaces, and significant privacy/security caveats |
@@ -108,6 +109,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [12-factor-agent-architecture.md](patterns/12-factor-agent-architecture.md) | humanlayer/12-factor-agents | Design production agents as explicit software systems with owned prompts/context/state, structured outputs, human approval tools, compact errors, and reducer-style steps |
 | [agentic-video-production-pipeline.md](patterns/agentic-video-production-pipeline.md) | HKUDS/ViMax | Turn a loose creative brief into durable story, character, storyboard, frame, clip, and final-video artifacts with provider-isolated media generation |
 | [wifi-csi-edge-sensing-pipeline.md](patterns/wifi-csi-edge-sensing-pipeline.md) | ruvnet/RuView | Build a local WiFi CSI sensing pipeline with calibration, quality flags, confidence scores, bounded semantic outputs, and privacy-aware home-automation integration |
 | [local-personal-ai-memory-harness.md](patterns/local-personal-ai-memory-harness.md) | tinyhumansai/openhuman | Build a local desktop assistant core around inspectable memory, Markdown vault export, credential isolation, prompt-injection gates, and explicit integration trust boundaries |
