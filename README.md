@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [dreamserver.md](reviews/dreamserver.md) | [Light-Heart-Labs/DreamServer](https://github.com/Light-Heart-Labs/DreamServer) | Apache-2.0 | ✅ Deploy candidate | Hardware-aware local AI appliance installer/control plane for LLM inference, Open WebUI, voice, agents, workflows, RAG/search, ComfyUI, privacy tooling, observability, and generated-secret localhost-first deployment |
 | [xurl.md](reviews/xurl.md) | [xdevplatform/xurl](https://github.com/xdevplatform/xurl) | MIT | ✅ Deploy candidate | Official curl-like CLI for the X API with OAuth2/OAuth1/app auth, multi-app token storage, shortcut commands, media upload, streaming, webhook helpers, and an agent-safe Claude skill reference |
 | [open-notebook.md](reviews/open-notebook.md) | [lfnovo/open-notebook](https://github.com/lfnovo/open-notebook) | MIT | ✅ Deploy candidate | Self-hosted NotebookLM alternative with FastAPI, Next.js, SurrealDB, multi-provider AI, local model support, explicit context controls, REST API, transformations, notes, search, and podcast generation |
 | [claude-bughunter.md](reviews/claude-bughunter.md) | [elementalsouls/Claude-BugHunter](https://github.com/elementalsouls/Claude-BugHunter) | MIT | ⚠️ Interesting | Claude Code skill bundle for authorized bug bounty and external red-team workflows with scope gates, validation discipline, evidence hygiene, reporting templates, slash commands, and a deterministic Python CLI |
@@ -115,6 +116,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [hardware-aware-local-ai-appliance-installer.md](patterns/hardware-aware-local-ai-appliance-installer.md) | Light-Heart-Labs/DreamServer | Detect host capability, choose models from a versioned catalog, generate secrets/env state, compose services via overlays/manifests, and enforce network exposure policy with release-contract tests |
 | [12-factor-agent-architecture.md](patterns/12-factor-agent-architecture.md) | humanlayer/12-factor-agents | Design production agents as explicit software systems with owned prompts/context/state, structured outputs, human approval tools, compact errors, and reducer-style steps |
 | [agentic-video-production-pipeline.md](patterns/agentic-video-production-pipeline.md) | HKUDS/ViMax | Turn a loose creative brief into durable story, character, storyboard, frame, clip, and final-video artifacts with provider-isolated media generation |
 | [wifi-csi-edge-sensing-pipeline.md](patterns/wifi-csi-edge-sensing-pipeline.md) | ruvnet/RuView | Build a local WiFi CSI sensing pipeline with calibration, quality flags, confidence scores, bounded semantic outputs, and privacy-aware home-automation integration |
