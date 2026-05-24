@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 484 public/included repositories, 109 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 485 public/included repositories, 110 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [tinyhumansai/openhuman](https://github.com/tinyhumansai/openhuman) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/openhuman.md](reviews/openhuman.md) |
 | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/codegraph.md](reviews/codegraph.md) |
 | [nkzw-tech/cloudsail](https://github.com/nkzw-tech/cloudsail) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/cloudsail.md](reviews/cloudsail.md) |
 | [elie222/inbox-zero](https://github.com/elie222/inbox-zero) | 2026-05-23 | 2026-05-23 | 1 | yes | 2026-05-23 | [reviews/inbox-zero.md](reviews/inbox-zero.md) |
