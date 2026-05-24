@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [twenty.md](reviews/twenty.md) | [twentyhq/twenty](https://github.com/twentyhq/twenty) | AGPL-3.0 + Enterprise-marked files | ✅ Deploy candidate | Open-source CRM/product platform with self-hosted Docker/Kubernetes deployment, NestJS/React monorepo, SDK/app scaffolder, custom auth lint rules, and Claude skill direction |
 | [anytype-ts.md](reviews/anytype-ts.md) | [anyproto/anytype-ts](https://github.com/anyproto/anytype-ts) | ASAL-1.0 source-available | 📚 Study | Official Anytype Electron/React desktop client for local-first encrypted object graphs, spaces, blocks, relations, sync middleware, and extension bridging |
 | [bumblebee.md](reviews/bumblebee.md) | [perplexityai/bumblebee](https://github.com/perplexityai/bumblebee) | Apache-2.0 | ✅ Deploy candidate | Read-only developer endpoint scanner for exact package/tool exposure checks across lockfiles, package metadata, extensions, MCP configs, and threat-intel catalogs |
 | [claude-ads.md](reviews/claude-ads.md) | [AgriciDaniel/claude-ads](https://github.com/AgriciDaniel/claude-ads) | MIT | ✅ Deploy candidate | Multi-platform paid-advertising audit skill pack with platform playbooks, helper agents, local scripts, PDF/report tooling, and a pytest eval harness |
