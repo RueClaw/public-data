@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [vimax.md](reviews/vimax.md) | [HKUDS/ViMax](https://github.com/HKUDS/ViMax) | MIT | 📚 Study | Agentic video-generation orchestration pipeline that stages story, character, storyboard, frame, provider-backed video, and composition artifacts; useful pattern source, not deploy-ready as-is |
 | [ruview.md](reviews/ruview.md) | [ruvnet/RuView](https://github.com/ruvnet/RuView) | MIT | 📚 Study | Ambitious WiFi CSI spatial-sensing platform with Rust signal crates, ESP32 firmware, dashboards, Home Assistant/Matter docs, and MCP/CLI wrappers; useful pattern source but not a turnkey safety/health deployment |
 | [openhuman.md](reviews/openhuman.md) | [tinyhumansai/openhuman](https://github.com/tinyhumansai/openhuman) | GPL-3.0 | ⚠️ Interesting | Personal AI desktop harness with Rust/Tauri core, React app, local memory tree, Markdown vault, integrations, messaging channels, MCP surfaces, and significant privacy/security caveats |
 | [codegraph.md](reviews/codegraph.md) | [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) | MIT | ✅ Deploy candidate | Local pre-indexed code graph and MCP server for coding agents, with SQLite/FTS5, tree-sitter extraction, broad language/framework coverage, installer targets, and strong tests |
@@ -107,6 +108,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [agentic-video-production-pipeline.md](patterns/agentic-video-production-pipeline.md) | HKUDS/ViMax | Turn a loose creative brief into durable story, character, storyboard, frame, clip, and final-video artifacts with provider-isolated media generation |
 | [wifi-csi-edge-sensing-pipeline.md](patterns/wifi-csi-edge-sensing-pipeline.md) | ruvnet/RuView | Build a local WiFi CSI sensing pipeline with calibration, quality flags, confidence scores, bounded semantic outputs, and privacy-aware home-automation integration |
 | [local-personal-ai-memory-harness.md](patterns/local-personal-ai-memory-harness.md) | tinyhumansai/openhuman | Build a local desktop assistant core around inspectable memory, Markdown vault export, credential isolation, prompt-injection gates, and explicit integration trust boundaries |
 | [preindexed-code-intelligence-mcp.md](patterns/preindexed-code-intelligence-mcp.md) | colbymchenry/codegraph | Keep a local code graph beside a repository and expose compact MCP tools for search, context, callers/callees, impact analysis, and index status |
