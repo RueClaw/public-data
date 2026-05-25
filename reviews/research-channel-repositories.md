@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 496 public/included repositories, 122 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 497 public/included repositories, 123 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [modaic-ai/gepa-viz](https://github.com/modaic-ai/gepa-viz) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/gepa-viz.md](reviews/gepa-viz.md) |
 | [Light-Heart-Labs/DreamServer](https://github.com/Light-Heart-Labs/DreamServer) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/dreamserver.md](reviews/dreamserver.md) |
 | [lfnovo/open-notebook](https://github.com/lfnovo/open-notebook) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/open-notebook.md](reviews/open-notebook.md) |
 | [elementalsouls/Claude-BugHunter](https://github.com/elementalsouls/Claude-BugHunter) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/claude-bughunter.md](reviews/claude-bughunter.md) |
