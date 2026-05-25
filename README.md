@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [iii.md](reviews/iii.md) | [iii-hq/iii](https://github.com/iii-hq/iii) | Elastic-2.0 engine; Apache-2.0 SDKs/console/docs/skills | ✅ Deploy candidate | Live worker/function/trigger backend runtime with Rust engine, Node/Python/Rust SDKs, React console, RBAC-filtered discovery, queues, cron, state, streams, OpenTelemetry, Docker/release pipelines, and agent-readable skills |
 | [gepa-viz.md](reviews/gepa-viz.md) | [modaic-ai/gepa-viz](https://github.com/modaic-ai/gepa-viz) | MIT declared; no root LICENSE detected | ⚠️ Interesting | Live GEPA prompt-optimization visualizer with Python callback streaming, SSE/static run modes, React/D3 candidate tree, prompt diffs, minibatch feedback, Pareto grids, and durable run.json traces |
 | [dreamserver.md](reviews/dreamserver.md) | [Light-Heart-Labs/DreamServer](https://github.com/Light-Heart-Labs/DreamServer) | Apache-2.0 | ✅ Deploy candidate | Hardware-aware local AI appliance installer/control plane for LLM inference, Open WebUI, voice, agents, workflows, RAG/search, ComfyUI, privacy tooling, observability, and generated-secret localhost-first deployment |
 | [xurl.md](reviews/xurl.md) | [xdevplatform/xurl](https://github.com/xdevplatform/xurl) | MIT | ✅ Deploy candidate | Official curl-like CLI for the X API with OAuth2/OAuth1/app auth, multi-app token storage, shortcut commands, media upload, streaming, webhook helpers, and an agent-safe Claude skill reference |
@@ -117,6 +118,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [live-worker-catalog-runtime.md](patterns/live-worker-catalog-runtime.md) | iii-hq/iii | Model backend capabilities as live-discoverable workers, functions, and triggers with permission-shaped discovery, unified invocation, and shared telemetry |
 | [live-optimization-trace-viewer.md](patterns/live-optimization-trace-viewer.md) | modaic-ai/gepa-viz | Capture optimizer callbacks into replayable JSON traces, stream full snapshots to a live browser view, and inspect branch topology, prompt diffs, minibatch feedback, and per-example outcomes |
 | [hardware-aware-local-ai-appliance-installer.md](patterns/hardware-aware-local-ai-appliance-installer.md) | Light-Heart-Labs/DreamServer | Detect host capability, choose models from a versioned catalog, generate secrets/env state, compose services via overlays/manifests, and enforce network exposure policy with release-contract tests |
 | [12-factor-agent-architecture.md](patterns/12-factor-agent-architecture.md) | humanlayer/12-factor-agents | Design production agents as explicit software systems with owned prompts/context/state, structured outputs, human approval tools, compact errors, and reducer-style steps |
