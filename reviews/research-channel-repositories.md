@@ -1,17 +1,18 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-05-25
-**Generated:** 2026-05-25
+**Message range:** 2026-02-17 to 2026-05-26
+**Generated:** 2026-05-26
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 498 public/included repositories, 124 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 499 public/included repositories, 125 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [microsoft/Webwright](https://github.com/microsoft/Webwright) | 2026-05-26 | 2026-05-26 | 1 | yes | 2026-05-26 | [reviews/webwright.md](reviews/webwright.md) |
 | [iii-hq/iii](https://github.com/iii-hq/iii) | 2026-05-25 | 2026-05-25 | 1 | yes | 2026-05-25 | [reviews/iii.md](reviews/iii.md) |
 | [modaic-ai/gepa-viz](https://github.com/modaic-ai/gepa-viz) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/gepa-viz.md](reviews/gepa-viz.md) |
 | [Light-Heart-Labs/DreamServer](https://github.com/Light-Heart-Labs/DreamServer) | 2026-05-24 | 2026-05-24 | 1 | yes | 2026-05-24 | [reviews/dreamserver.md](reviews/dreamserver.md) |
