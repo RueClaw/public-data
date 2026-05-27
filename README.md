@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [flashlib.md](reviews/flashlib.md) | [FlashML-org/flashlib](https://github.com/FlashML-org/flashlib) | Apache-2.0 | ⚠️ Interesting | Alpha GPU library for classical ML operators with Triton/CuteDSL kernels, sklearn-style APIs, tolerance-driven precision routing, benchmark/cost models, and an agent-friendly planning surface with import-boundary caveats |
 | [kindle-ai-export.md](reviews/kindle-ai-export.md) | [transitive-bullshit/kindle-ai-export](https://github.com/transitive-bullshit/kindle-ai-export) | MIT code; exported content remains copyright/terms-bound | ⚠️ Interesting | Local Kindle Web Reader export pipeline using Patchright/Playwright rendered-page capture, OpenAI vision OCR, metadata-aware stitching, PDF/Markdown/EPUB export, and optional OpenAI/Unreal Speech audiobook generation |
 | [webwright.md](reviews/webwright.md) | [microsoft/Webwright](https://github.com/microsoft/Webwright) | MIT | ✅ Deploy candidate | Minimal Python/Playwright browser-agent harness that makes long-horizon web tasks produce rerunnable scripts, screenshots, logs, self-reflection outputs, and host-agent skill/plugin contracts |
 | [iii.md](reviews/iii.md) | [iii-hq/iii](https://github.com/iii-hq/iii) | Elastic-2.0 engine; Apache-2.0 SDKs/console/docs/skills | ✅ Deploy candidate | Live worker/function/trigger backend runtime with Rust engine, Node/Python/Rust SDKs, React console, RBAC-filtered discovery, queues, cron, state, streams, OpenTelemetry, Docker/release pipelines, and agent-readable skills |
@@ -120,6 +121,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [tolerance-routed-gpu-operator-dispatch.md](patterns/tolerance-routed-gpu-operator-dispatch.md) | FlashML-org/flashlib | Expose a numeric tolerance budget, route to the fastest acceptable GPU kernel/algorithm variant, and mirror runtime dispatch with a structured cost API for schedulers and agents |
 | [rendered-page-ocr-export-pipeline.md](patterns/rendered-page-ocr-export-pipeline.md) | transitive-bullshit/kindle-ai-export | Use an authorized rendered reader as the source of truth, capture per-page images, OCR them, preserve navigation metadata, and export private derived formats with provenance |
 | [code-as-action-browser-task-workspace.md](patterns/code-as-action-browser-task-workspace.md) | microsoft/Webwright | Make browser tasks produce a rerunnable script, per-run logs, screenshots, critical-point evidence, and verification gates instead of a hidden browser transcript |
 | [live-worker-catalog-runtime.md](patterns/live-worker-catalog-runtime.md) | iii-hq/iii | Model backend capabilities as live-discoverable workers, functions, and triggers with permission-shaped discovery, unified invocation, and shared telemetry |
