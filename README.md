@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [activegraph-gbrain-bridge.md](reviews/activegraph-gbrain-bridge.md) | [apprentice-labs/activegraph-gbrain-bridge](https://github.com/apprentice-labs/activegraph-gbrain-bridge) | MIT | ⚠️ Interesting | Proof-of-concept bridge that keeps durable knowledge/schema in GBrain and runtime provenance/replay/fork/writeback policy in ActiveGraph, with fixture-first demos, redaction, compatibility ledgers, and dry-run mutation discipline |
 | [flashlib.md](reviews/flashlib.md) | [FlashML-org/flashlib](https://github.com/FlashML-org/flashlib) | Apache-2.0 | ⚠️ Interesting | Alpha GPU library for classical ML operators with Triton/CuteDSL kernels, sklearn-style APIs, tolerance-driven precision routing, benchmark/cost models, and an agent-friendly planning surface with import-boundary caveats |
 | [kindle-ai-export.md](reviews/kindle-ai-export.md) | [transitive-bullshit/kindle-ai-export](https://github.com/transitive-bullshit/kindle-ai-export) | MIT code; exported content remains copyright/terms-bound | ⚠️ Interesting | Local Kindle Web Reader export pipeline using Patchright/Playwright rendered-page capture, OpenAI vision OCR, metadata-aware stitching, PDF/Markdown/EPUB export, and optional OpenAI/Unreal Speech audiobook generation |
 | [webwright.md](reviews/webwright.md) | [microsoft/Webwright](https://github.com/microsoft/Webwright) | MIT | ✅ Deploy candidate | Minimal Python/Playwright browser-agent harness that makes long-horizon web tasks produce rerunnable scripts, screenshots, logs, self-reflection outputs, and host-agent skill/plugin contracts |
@@ -121,6 +122,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [durable-knowledge-runtime-trace-bridge.md](patterns/durable-knowledge-runtime-trace-bridge.md) | apprentice-labs/activegraph-gbrain-bridge | Keep durable knowledge storage separate from runtime causality by bridging typed knowledge operations into redaction-aware events, evidence projections, context decisions, writeback proposals, forks, replay, and compatibility ledgers |
 | [tolerance-routed-gpu-operator-dispatch.md](patterns/tolerance-routed-gpu-operator-dispatch.md) | FlashML-org/flashlib | Expose a numeric tolerance budget, route to the fastest acceptable GPU kernel/algorithm variant, and mirror runtime dispatch with a structured cost API for schedulers and agents |
 | [rendered-page-ocr-export-pipeline.md](patterns/rendered-page-ocr-export-pipeline.md) | transitive-bullshit/kindle-ai-export | Use an authorized rendered reader as the source of truth, capture per-page images, OCR them, preserve navigation metadata, and export private derived formats with provenance |
 | [code-as-action-browser-task-workspace.md](patterns/code-as-action-browser-task-workspace.md) | microsoft/Webwright | Make browser tasks produce a rerunnable script, per-run logs, screenshots, critical-point evidence, and verification gates instead of a hidden browser transcript |
