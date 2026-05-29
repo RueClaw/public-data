@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [tracebase.md](reviews/tracebase.md) | [ssreeni1/tracebase](https://github.com/ssreeni1/tracebase) | MIT | ✅ Deploy candidate | Local-first trace capture and inspection for Codex/Claude sessions with encrypted raw blobs, redacted SQLite/FTS search, localhost dashboard/API, run intelligence, redacted exports, read-only MCP, and passing full test suite |
 | [muse-autoskill.md](reviews/muse-autoskill.md) | [MUSE-Autoskill](https://arxiv.org/abs/2605.27366) | N/A | 📚 Good reference | Research paper proposing lifecycle-managed, test-gated, memory-bearing agent skills with SkillsBench evidence for skill reuse and cross-agent transfer |
 | [activegraph-gbrain-bridge.md](reviews/activegraph-gbrain-bridge.md) | [apprentice-labs/activegraph-gbrain-bridge](https://github.com/apprentice-labs/activegraph-gbrain-bridge) | MIT | ⚠️ Interesting | Proof-of-concept bridge that keeps durable knowledge/schema in GBrain and runtime provenance/replay/fork/writeback policy in ActiveGraph, with fixture-first demos, redaction, compatibility ledgers, and dry-run mutation discipline |
 | [flashlib.md](reviews/flashlib.md) | [FlashML-org/flashlib](https://github.com/FlashML-org/flashlib) | Apache-2.0 | ⚠️ Interesting | Alpha GPU library for classical ML operators with Triton/CuteDSL kernels, sklearn-style APIs, tolerance-driven precision routing, benchmark/cost models, and an agent-friendly planning surface with import-boundary caveats |
@@ -123,6 +124,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [local-first-agent-trace-store.md](patterns/local-first-agent-trace-store.md) | ssreeni1/tracebase | Capture local agent runs as encrypted raw blobs plus redacted searchable metadata, rebuildable SQLite/FTS projections, bounded dashboard/API/MCP views, and explicit raw-export gates |
 | [lifecycle-managed-agent-skills.md](patterns/lifecycle-managed-agent-skills.md) | MUSE-Autoskill | Treat agent skills as versionable, testable, memory-bearing software assets with lifecycle operations for creation, validation, use, refinement, merge, and prune |
 | [durable-knowledge-runtime-trace-bridge.md](patterns/durable-knowledge-runtime-trace-bridge.md) | apprentice-labs/activegraph-gbrain-bridge | Keep durable knowledge storage separate from runtime causality by bridging typed knowledge operations into redaction-aware events, evidence projections, context decisions, writeback proposals, forks, replay, and compatibility ledgers |
 | [tolerance-routed-gpu-operator-dispatch.md](patterns/tolerance-routed-gpu-operator-dispatch.md) | FlashML-org/flashlib | Expose a numeric tolerance budget, route to the fastest acceptable GPU kernel/algorithm variant, and mirror runtime dispatch with a structured cost API for schedulers and agents |

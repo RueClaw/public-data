@@ -1,17 +1,18 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-05-26
-**Generated:** 2026-05-26
+**Message range:** 2026-02-17 to 2026-05-29
+**Generated:** 2026-05-29
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 500 public/included repositories, 126 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 501 public/included repositories, 127 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [ssreeni1/tracebase](https://github.com/ssreeni1/tracebase) | 2026-05-29 | 2026-05-29 | 1 | yes | 2026-05-29 | [reviews/tracebase.md](reviews/tracebase.md) |
 | [transitive-bullshit/kindle-ai-export](https://github.com/transitive-bullshit/kindle-ai-export) | 2026-05-26 | 2026-05-26 | 1 | yes | 2026-05-26 | [reviews/kindle-ai-export.md](reviews/kindle-ai-export.md) |
 | [microsoft/Webwright](https://github.com/microsoft/Webwright) | 2026-05-26 | 2026-05-26 | 1 | yes | 2026-05-26 | [reviews/webwright.md](reviews/webwright.md) |
 | [iii-hq/iii](https://github.com/iii-hq/iii) | 2026-05-25 | 2026-05-25 | 1 | yes | 2026-05-25 | [reviews/iii.md](reviews/iii.md) |
