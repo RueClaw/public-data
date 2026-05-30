@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ad-filter-list.md](reviews/ad-filter-list.md) | [luisfelipess/ad-filter-list](https://github.com/luisfelipess/ad-filter-list) | MIT | ⚠️ Interesting | Small Python blocklist compiler that fetches upstream DNS/ad-block sources, applies allow/block overrides, validates/dedupes domains, publishes tiered hosts/adblock/RPZ/dnsmasq/Unbound outputs, and commits provenance reports |
 | [stirling-pdf.md](reviews/stirling-pdf.md) | [Stirling-Tools/Stirling-PDF](https://github.com/Stirling-Tools/Stirling-PDF) | Mixed MIT / Stirling PDF User License | ✅ Deploy candidate | Self-hosted PDF platform with browser, desktop, API, workflow automation, OCR, redaction, signing, conversion, dependency-gated endpoints, Docker packaging, and mixed-license reuse caveats |
 | [tracebase.md](reviews/tracebase.md) | [ssreeni1/tracebase](https://github.com/ssreeni1/tracebase) | MIT | ✅ Deploy candidate | Local-first trace capture and inspection for Codex/Claude sessions with encrypted raw blobs, redacted SQLite/FTS search, localhost dashboard/API, run intelligence, redacted exports, read-only MCP, and passing full test suite |
 | [muse-autoskill.md](reviews/muse-autoskill.md) | [MUSE-Autoskill](https://arxiv.org/abs/2605.27366) | N/A | 📚 Good reference | Research paper proposing lifecycle-managed, test-gated, memory-bearing agent skills with SkillsBench evidence for skill reuse and cross-agent transfer |
@@ -125,6 +126,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [tiered-blocklist-compiler-pipeline.md](patterns/tiered-blocklist-compiler-pipeline.md) | luisfelipess/ad-filter-list | Compile upstream feeds into tiered deployment artifacts with format-aware readers/writers, local overrides, safety guards, generated outputs, and provenance reports |
 | [dependency-gated-tool-endpoints.md](patterns/dependency-gated-tool-endpoints.md) | Stirling-Tools/Stirling-PDF | Model optional local-tool capabilities as endpoint groups, dependency-backed tool groups, alternatives, disable reasons, startup probes, and central request enforcement |
 | [local-first-agent-trace-store.md](patterns/local-first-agent-trace-store.md) | ssreeni1/tracebase | Capture local agent runs as encrypted raw blobs plus redacted searchable metadata, rebuildable SQLite/FTS projections, bounded dashboard/API/MCP views, and explicit raw-export gates |
 | [lifecycle-managed-agent-skills.md](patterns/lifecycle-managed-agent-skills.md) | MUSE-Autoskill | Treat agent skills as versionable, testable, memory-bearing software assets with lifecycle operations for creation, validation, use, refinement, merge, and prune |
