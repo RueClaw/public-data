@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [surya.md](reviews/surya.md) | [datalab-to/surya](https://github.com/datalab-to/surya) | Apache-2.0 code; modified OpenRAIL-M model license | ✅ Deploy candidate | Document-intelligence toolkit for OCR, layout analysis, reading order, and table recognition with a shared 650M VLM, vLLM/llama.cpp backends, GGUF support, structured JSON/HTML outputs, and strong local-runtime caveats |
 | [minicpm5-1b.md](reviews/minicpm5-1b.md) | [openbmb/MiniCPM5-1B](https://huggingface.co/openbmb/MiniCPM5-1B) | Apache-2.0 | ⚠️ Interesting | Compact 1.08B local/on-device LLM with standard Llama architecture, 131k context, hybrid Think/No-Think chat template, XML-style tool calling, BF16/GGUF/MLX release variants, and deployment cookbooks |
 | [skillspector.md](reviews/skillspector.md) | [NVIDIA/SkillSpector](https://github.com/NVIDIA/SkillSpector) | Apache-2.0 | ✅ Deploy candidate | Security scanner for AI agent skills with LangGraph analyzer fan-out, static/AST/YARA/OSV checks, MCP least-privilege and tool-poisoning rules, optional LLM filtering, SARIF output, and strong Python 3.12 test coverage |
 | [supermemory.md](reviews/supermemory.md) | [supermemoryai/supermemory](https://github.com/supermemoryai/supermemory) | MIT | ✅ Deploy candidate | Memory/context platform for AI agents with hosted app/API, MCP server, SDK/tool wrappers, browser/Raycast extensions, memory graph visualization, docs, benchmarks, and enterprise self-hosting path |
@@ -130,6 +131,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [local-document-vlm-runtime.md](patterns/local-document-vlm-runtime.md) | datalab-to/surya | Run document OCR/layout/table recognition through task-specific predictors over a shared OpenAI-compatible local VLM server with health probes, locks, sentinels, backend spawn paths, and structured outputs |
 | [local-model-release-matrix.md](patterns/local-model-release-matrix.md) | openbmb/MiniCPM5-1B | Package local models as runtime-ready families with base/SFT/final checkpoints, GGUF/MLX variants, chat templates, deployment recipes, fine-tuning guides, and tool-call parser notes |
 | [pre-install-agent-skill-security-scanner.md](patterns/pre-install-agent-skill-security-scanner.md) | NVIDIA/SkillSpector | Scan agent skills before installation with file inventory, manifest parsing, deterministic analyzer fan-out, optional semantic filtering, SARIF/JSON reports, and explicit allow/caution/deny policy decisions |
 | [agent-memory-gateway.md](patterns/agent-memory-gateway.md) | supermemoryai/supermemory | Expose durable agent memory through scoped projects/container tags, MCP tools/resources/prompts, SDK wrappers, profile/search composition, and graph visualization while treating memory as an untrusted, privacy-sensitive tool surface |
