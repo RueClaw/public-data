@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [supermemory.md](reviews/supermemory.md) | [supermemoryai/supermemory](https://github.com/supermemoryai/supermemory) | MIT | ✅ Deploy candidate | Memory/context platform for AI agents with hosted app/API, MCP server, SDK/tool wrappers, browser/Raycast extensions, memory graph visualization, docs, benchmarks, and enterprise self-hosting path |
 | [zero-trust-for-ai-agents.md](reviews/zero-trust-for-ai-agents.md) | [Zero Trust for AI Agents](https://cdn.prod.website-files.com/6889473510b50328dbb70ae6/6a1611a04085d7cd3dadc924_Claude-eBook-Zero-Trust-for-AI-Agents-05182026.pdf) | N/A | ✅ Act on this | Anthropic/Claude enterprise guide translating Zero Trust into agent controls: cryptographic identity, least agency, tool allowlists, short-lived credentials, sandboxing, memory integrity, observability, and human-gated incident response |
 | [ad-filter-list.md](reviews/ad-filter-list.md) | [luisfelipess/ad-filter-list](https://github.com/luisfelipess/ad-filter-list) | MIT | ⚠️ Interesting | Small Python blocklist compiler that fetches upstream DNS/ad-block sources, applies allow/block overrides, validates/dedupes domains, publishes tiered hosts/adblock/RPZ/dnsmasq/Unbound outputs, and commits provenance reports |
 | [stirling-pdf.md](reviews/stirling-pdf.md) | [Stirling-Tools/Stirling-PDF](https://github.com/Stirling-Tools/Stirling-PDF) | Mixed MIT / Stirling PDF User License | ✅ Deploy candidate | Self-hosted PDF platform with browser, desktop, API, workflow automation, OCR, redaction, signing, conversion, dependency-gated endpoints, Docker packaging, and mixed-license reuse caveats |
@@ -127,6 +128,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [agent-memory-gateway.md](patterns/agent-memory-gateway.md) | supermemoryai/supermemory | Expose durable agent memory through scoped projects/container tags, MCP tools/resources/prompts, SDK wrappers, profile/search composition, and graph visualization while treating memory as an untrusted, privacy-sensitive tool surface |
 | [zero-trust-agent-control-stack.md](patterns/zero-trust-agent-control-stack.md) | Zero Trust for AI Agents | Build agent deployments around cryptographic identity, short-lived credentials, least agency, tool-side validation, identity-based isolation, sandboxing, memory integrity, config integrity, traceability, and human-gated response |
 | [tiered-blocklist-compiler-pipeline.md](patterns/tiered-blocklist-compiler-pipeline.md) | luisfelipess/ad-filter-list | Compile upstream feeds into tiered deployment artifacts with format-aware readers/writers, local overrides, safety guards, generated outputs, and provenance reports |
 | [dependency-gated-tool-endpoints.md](patterns/dependency-gated-tool-endpoints.md) | Stirling-Tools/Stirling-PDF | Model optional local-tool capabilities as endpoint groups, dependency-backed tool groups, alternatives, disable reasons, startup probes, and central request enforcement |
