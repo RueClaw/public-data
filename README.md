@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [agentic-inbox.md](reviews/agentic-inbox.md) | [cloudflare/agentic-inbox](https://github.com/cloudflare/agentic-inbox) | Apache-2.0 | ⚠️ Interesting | Cloudflare Workers email client and AI assistant with Email Routing inbound, Email Service outbound, Durable Object SQLite mailboxes, R2 attachments, Cloudflare Access auth, Workers AI draft agent, MCP tools, and mailbox-authorization caveats |
 | [financetoolkit.md](reviews/financetoolkit.md) | [JerBouma/FinanceToolkit](https://github.com/JerBouma/FinanceToolkit) | MIT | ✅ Deploy candidate | Python financial analysis toolkit with transparent formulas for statements, ratios, valuation models, options, performance, risk, technicals, fixed income, economics, discovery, and portfolios, with external-data and snapshot-test caveats |
 | [agentic-stack.md](reviews/agentic-stack.md) | [codejunkie99/agentic-stack](https://github.com/codejunkie99/agentic-stack) | Apache-2.0 | ⚠️ Interesting | Portable `.agent` memory/skills/protocols layer with manifest-driven adapters, local data-layer and flywheel exports, transfer bundles, safe install/remove/upgrade tooling, and a current Mission Control syntax regression in tests |
 | [surya.md](reviews/surya.md) | [datalab-to/surya](https://github.com/datalab-to/surya) | Apache-2.0 code; modified OpenRAIL-M model license | ✅ Deploy candidate | Document-intelligence toolkit for OCR, layout analysis, reading order, and table recognition with a shared 650M VLM, vLLM/llama.cpp backends, GGUF support, structured JSON/HTML outputs, and strong local-runtime caveats |
@@ -133,6 +134,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [edge-native-agentic-email-runtime.md](patterns/edge-native-agentic-email-runtime.md) | cloudflare/agentic-inbox | Build an AI email client at the edge with Email Routing inbound, Email Service outbound, per-mailbox Durable Objects, R2 attachments, Access JWTs, draft-first AI tools, and MCP integration |
 | [formula-transparent-financial-analytics.md](patterns/formula-transparent-financial-analytics.md) | JerBouma/FinanceToolkit | Keep provider ingestion, statement normalization, financial formulas, controller APIs, and snapshot tests as separate layers so ratios, risk metrics, options, and valuation outputs remain inspectable |
 | [portable-agent-brain-adapters.md](patterns/portable-agent-brain-adapters.md) | codejunkie99/agentic-stack | Keep agent memory, skills, protocols, tools, and local telemetry in a project-local brain directory, then connect many coding-agent harnesses through manifest-validated adapters and conservative install/remove state |
 | [local-document-vlm-runtime.md](patterns/local-document-vlm-runtime.md) | datalab-to/surya | Run document OCR/layout/table recognition through task-specific predictors over a shared OpenAI-compatible local VLM server with health probes, locks, sentinels, backend spawn paths, and structured outputs |
