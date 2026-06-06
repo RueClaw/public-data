@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [defending-code-reference-harness.md](reviews/defending-code-reference-harness.md) | [anthropics/defending-code-reference-harness](https://github.com/anthropics/defending-code-reference-harness) | Apache-2.0 | 🔧 Harvest | Claude-driven vulnerability discovery and remediation reference with Claude Code skills, Docker/gVisor sandboxing, ASAN target containers, PoC-producing find agents, fresh-container verification, semantic dedupe, structured reports, and executable patch grading |
 | [walkthrough.md](reviews/walkthrough.md) | [austeane/walkthrough](https://github.com/austeane/walkthrough) | **no license** | 📚 Study | Python pipeline for turning Codex, Claude Code, and OpenCode session histories into evidence-backed offline HTML walkthroughs with provider-normalized events, projection, chunking, source refs, media handling, and quality gates |
 | [cuda-agent.md](reviews/cuda-agent.md) | [CUDA Agent](https://arxiv.org/html/2602.24286v1) | N/A | ⚠️ Interesting | Research paper on large-scale agentic RL for CUDA kernel generation, combining synthesized operator tasks, hardened compile/profile feedback, a CUDA skill loop, robust rewards, and staged actor/critic warm-up |
 | [oh-my-pi.md](reviews/oh-my-pi.md) | [can1357/oh-my-pi](https://github.com/can1357/oh-my-pi) | MIT | ✅ Deploy candidate | Terminal coding-agent harness with Bun/TypeScript packages, Rust native tools, hash-anchored edits, LSP/DAP integration, subagents, local memory, GitHub/internal URL routing, provider adapters, and a self-hosted GitHub triage bot |
@@ -144,6 +145,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [sandboxed-execution-verified-security-agent-loop.md](patterns/sandboxed-execution-verified-security-agent-loop.md) | anthropics/defending-code-reference-harness | Run high-risk security agents in isolated workers, require concrete artifacts, verify those artifacts in fresh containers, and gate patches with executable build, reproducer, test, and re-attack checks |
 | [provider-normalized-agent-walkthrough-pipeline.md](patterns/provider-normalized-agent-walkthrough-pipeline.md) | austeane/walkthrough | Convert heterogeneous agent session histories into a normalized evidence model, reduce noise deterministically, then generate source-backed walkthrough artifacts |
 | [ide-wired-agent-harness.md](patterns/ide-wired-agent-harness.md) | can1357/oh-my-pi | Build coding agents around semantic IDE/runtime tools: LSP, DAP, snapshot-anchored edits, AST previews, structured subagents, resource URLs, and heuristic local memory |
 | [edge-native-agentic-email-runtime.md](patterns/edge-native-agentic-email-runtime.md) | cloudflare/agentic-inbox | Build an AI email client at the edge with Email Routing inbound, Email Service outbound, per-mailbox Durable Objects, R2 attachments, Access JWTs, draft-first AI tools, and MCP integration |
