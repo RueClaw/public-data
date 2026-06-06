@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [walkthrough.md](reviews/walkthrough.md) | [austeane/walkthrough](https://github.com/austeane/walkthrough) | **no license** | 📚 Study | Python pipeline for turning Codex, Claude Code, and OpenCode session histories into evidence-backed offline HTML walkthroughs with provider-normalized events, projection, chunking, source refs, media handling, and quality gates |
 | [oh-my-pi.md](reviews/oh-my-pi.md) | [can1357/oh-my-pi](https://github.com/can1357/oh-my-pi) | MIT | ✅ Deploy candidate | Terminal coding-agent harness with Bun/TypeScript packages, Rust native tools, hash-anchored edits, LSP/DAP integration, subagents, local memory, GitHub/internal URL routing, provider adapters, and a self-hosted GitHub triage bot |
 | [learn-quiz-skill-gist.md](reviews/learn-quiz-skill-gist.md) | [ThariqS/Learn Quiz gist](https://gist.github.com/ThariqS/1389dcdff9eba4789887a2211370f06b) | **no license** | 📚 Study | Compact tutoring skill prompt for teach-back learning loops, running comprehension checklists, incremental explanation, and quiz/debugger-based verification; useful as an opt-in coaching pattern, not a default agent behavior |
 | [deepagents-with-langsmith.md](reviews/deepagents-with-langsmith.md) | [langchain-samples/deepagents-with-langsmith](https://github.com/langchain-samples/deepagents-with-langsmith) | **no license** | 📚 Study | Workshop repo for Deep Agents and LangSmith showing path-routed memory, subagents, AGENTS.md, skills, HITL interrupts, deployment, tracing, datasets, and trajectory evals; useful as reference material, not a fork target |
@@ -141,6 +142,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [provider-normalized-agent-walkthrough-pipeline.md](patterns/provider-normalized-agent-walkthrough-pipeline.md) | austeane/walkthrough | Convert heterogeneous agent session histories into a normalized evidence model, reduce noise deterministically, then generate source-backed walkthrough artifacts |
 | [ide-wired-agent-harness.md](patterns/ide-wired-agent-harness.md) | can1357/oh-my-pi | Build coding agents around semantic IDE/runtime tools: LSP, DAP, snapshot-anchored edits, AST previews, structured subagents, resource URLs, and heuristic local memory |
 | [edge-native-agentic-email-runtime.md](patterns/edge-native-agentic-email-runtime.md) | cloudflare/agentic-inbox | Build an AI email client at the edge with Email Routing inbound, Email Service outbound, per-mailbox Durable Objects, R2 attachments, Access JWTs, draft-first AI tools, and MCP integration |
 | [formula-transparent-financial-analytics.md](patterns/formula-transparent-financial-analytics.md) | JerBouma/FinanceToolkit | Keep provider ingestion, statement normalization, financial formulas, controller APIs, and snapshot tests as separate layers so ratios, risk metrics, options, and valuation outputs remain inspectable |
