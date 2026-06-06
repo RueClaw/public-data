@@ -1,17 +1,19 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-05-29
-**Generated:** 2026-05-29
+**Message range:** 2026-02-17 to 2026-06-06
+**Generated:** 2026-06-06
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 501 public/included repositories, 127 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 503 public/included repositories, 128 reviewed, 375 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [RyanCodrai/turbovec](https://github.com/RyanCodrai/turbovec) | 2026-06-06 | 2026-06-06 | 3 | yes | 2026-06-06 | [reviews/turbovec.md](reviews/turbovec.md) |
+| [elpapi42/pi-observational-memory](https://github.com/elpapi42/pi-observational-memory) | 2026-06-06 | 2026-06-06 | 1 | no |  |  |
 | [ssreeni1/tracebase](https://github.com/ssreeni1/tracebase) | 2026-05-29 | 2026-05-29 | 1 | yes | 2026-05-29 | [reviews/tracebase.md](reviews/tracebase.md) |
 | [transitive-bullshit/kindle-ai-export](https://github.com/transitive-bullshit/kindle-ai-export) | 2026-05-26 | 2026-05-26 | 1 | yes | 2026-05-26 | [reviews/kindle-ai-export.md](reviews/kindle-ai-export.md) |
 | [microsoft/Webwright](https://github.com/microsoft/Webwright) | 2026-05-26 | 2026-05-26 | 1 | yes | 2026-05-26 | [reviews/webwright.md](reviews/webwright.md) |
