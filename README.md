@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [last30days-skill.md](reviews/last30days-skill.md) | [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) | MIT | ✅ Deploy candidate | Agent Skill and Python research engine for last-30-days social/market/developer/web synthesis across Reddit, X, YouTube, TikTok, HN, Polymarket, GitHub, Digg, Perplexity, and more, with planning, fan-out, scoring, clustering, HTML briefs, and a large passing test suite |
 | [omniretrieval.md](reviews/omniretrieval.md) | [JinheonBaek/OmniRetrieval](https://github.com/JinheonBaek/OmniRetrieval) | MIT | 📚 Study | Research code for unified retrieval across heterogeneous sources, routing natural-language questions to text search, SQL, SPARQL, or Cypher backends while preserving source-native query/execution semantics |
 | [tech-snacks.md](reviews/tech-snacks.md) | [ragnar-pwninskjold/tech-snacks](https://github.com/ragnar-pwninskjold/tech-snacks) | MIT | ⚠️ Interesting | Claude Code plugin skill library with Markdown skills, references, templates, research agents, and workflow-backed procedures for UI cloning, PRD-to-UX, CLAUDE.md mining, and React refactor campaigns |
 | [mamma.md](reviews/mamma.md) | [cuevhv/mamma](https://github.com/cuevhv/mamma) | Custom non-commercial scientific research | ⚠️ Interesting | CVPR 2026 markerless multi-person motion-acquisition pipeline with capture loading, SAM/YOLO segmentation, MammaNet 2D landmarks, SMPL-X optimization, Rerun/overlay visualization, local Flask/React GUI, gated assets, and heavy CUDA/runtime caveats |
@@ -150,6 +151,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [social-signal-recency-research-engine.md](patterns/social-signal-recency-research-engine.md) | mvanhorn/last30days-skill | Research recent topics by fanning out across social, market, developer, video, and web sources, normalizing evidence, scoring engagement/freshness/relevance, clustering, and rendering a brief plus raw artifact |
 | [source-native-heterogeneous-retrieval.md](patterns/source-native-heterogeneous-retrieval.md) | JinheonBaek/OmniRetrieval | Route queries to backend-specific text, SQL, SPARQL, or Cypher execution instead of flattening heterogeneous sources into one vector index |
 | [workflow-backed-agent-skill-library.md](patterns/workflow-backed-agent-skill-library.md) | ragnar-pwninskjold/tech-snacks | Package agent procedures as routeable skills backed by references, templates, specialized agents, and workflow scripts for stateful orchestration |
 | [sandboxed-execution-verified-security-agent-loop.md](patterns/sandboxed-execution-verified-security-agent-loop.md) | anthropics/defending-code-reference-harness | Run high-risk security agents in isolated workers, require concrete artifacts, verify those artifacts in fresh containers, and gate patches with executable build, reproducer, test, and re-attack checks |

@@ -236,7 +236,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [togethercomputer/together-cookbook](https://github.com/togethercomputer/together-cookbook) | 2026-03-05 | 2026-03-05 | 1 | no |  |  |
 | [coasty-ai/open-computer-use](https://github.com/coasty-ai/open-computer-use) | 2026-03-06 | 2026-03-06 | 1 | no |  |  |
 | [always-further/nono](https://github.com/always-further/nono) | 2026-03-06 | 2026-03-06 | 1 | no |  |  |
-| [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) | 2026-03-06 | 2026-04-16 | 2 | no |  |  |
+| [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) | 2026-03-06 | 2026-04-16 | 2 | yes | [last30days-skill.md](last30days-skill.md) | ✅ Deploy candidate |
 | [MHaggis/Security-Detections-MCP](https://github.com/MHaggis/Security-Detections-MCP) | 2026-03-06 | 2026-03-06 | 1 | no |  |  |
 | [danpeg/bug-hunt](https://github.com/danpeg/bug-hunt) | 2026-03-06 | 2026-03-06 | 1 | no |  |  |
 | [arklexai/arksim](https://github.com/arklexai/arksim) | 2026-03-06 | 2026-03-06 | 1 | no |  |  |
