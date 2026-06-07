@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [tech-snacks.md](reviews/tech-snacks.md) | [ragnar-pwninskjold/tech-snacks](https://github.com/ragnar-pwninskjold/tech-snacks) | MIT | ⚠️ Interesting | Claude Code plugin skill library with Markdown skills, references, templates, research agents, and workflow-backed procedures for UI cloning, PRD-to-UX, CLAUDE.md mining, and React refactor campaigns |
 | [mamma.md](reviews/mamma.md) | [cuevhv/mamma](https://github.com/cuevhv/mamma) | Custom non-commercial scientific research | ⚠️ Interesting | CVPR 2026 markerless multi-person motion-acquisition pipeline with capture loading, SAM/YOLO segmentation, MammaNet 2D landmarks, SMPL-X optimization, Rerun/overlay visualization, local Flask/React GUI, gated assets, and heavy CUDA/runtime caveats |
 | [art.md](reviews/art.md) | [OpenPipe/ART](https://github.com/OpenPipe/ART) | Apache-2.0 | ✅ Deploy candidate | Agent Reinforcement Trainer framework for training multi-step LLM agents with GRPO over grouped trajectories, OpenAI-compatible clients, vLLM/LoRA backends, RULER LLM-judge rewards, MCP-RL examples, and local or managed GPU training paths |
 | [self-revising-discovery-systems.md](reviews/self-revising-discovery-systems.md) | [Self-Revising Discovery Systems for Science](https://arxiv.org/abs/2606.01444) | CC BY-NC-ND 4.0 | 📚 Good reference | Category-theoretic framework for auditable agentic science systems, distinguishing retrieval, search, and discovery as typed regime transitions with provenance, gates, retained rejections, and residual content |
@@ -148,6 +149,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [workflow-backed-agent-skill-library.md](patterns/workflow-backed-agent-skill-library.md) | ragnar-pwninskjold/tech-snacks | Package agent procedures as routeable skills backed by references, templates, specialized agents, and workflow scripts for stateful orchestration |
 | [sandboxed-execution-verified-security-agent-loop.md](patterns/sandboxed-execution-verified-security-agent-loop.md) | anthropics/defending-code-reference-harness | Run high-risk security agents in isolated workers, require concrete artifacts, verify those artifacts in fresh containers, and gate patches with executable build, reproducer, test, and re-attack checks |
 | [provider-normalized-agent-walkthrough-pipeline.md](patterns/provider-normalized-agent-walkthrough-pipeline.md) | austeane/walkthrough | Convert heterogeneous agent session histories into a normalized evidence model, reduce noise deterministically, then generate source-backed walkthrough artifacts |
 | [ide-wired-agent-harness.md](patterns/ide-wired-agent-harness.md) | can1357/oh-my-pi | Build coding agents around semantic IDE/runtime tools: LSP, DAP, snapshot-anchored edits, AST previews, structured subagents, resource URLs, and heuristic local memory |
