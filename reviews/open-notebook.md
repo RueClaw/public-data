@@ -2,15 +2,27 @@
 
 **Repo:** https://github.com/lfnovo/open-notebook
 **License:** MIT
-**Reviewed:** 2026-05-24
-**Stack:** Python 3.11/3.12, FastAPI, LangChain/LangGraph, SurrealDB, Next.js, React, TypeScript, Tailwind, Docker
+**Reviewed:** 2026-06-07
+**Stack:** Python 3.11/3.12, FastAPI, LangChain/LangGraph, SurrealDB, Next.js, React 19, TypeScript, Tailwind, Docker
 **What it is:** Open Notebook is a self-hosted, privacy-focused NotebookLM alternative with multi-provider AI support, document/source ingestion, full-text and vector search, contextual chat, transformations, notes, API access, and multi-speaker podcast generation.
 
 ---
 
+## Update Notes
+
+Checked on 2026-06-07 against current HEAD `327d766e2ad2c86afe39eca5473b1441c6b2d749` / version 1.9.0. Prior review was 2026-05-24 against `24892ac`.
+
+Material changes:
+
+- 1.9.0 added or surfaced more audio/provider capabilities through Esperanto 2.21-2.22: Mistral Voxtral STT/TTS, Deepgram TTS, xAI TTS, Google STT/TTS, Vertex TTS, ElevenLabs STT, and OpenRouter embeddings.
+- Ollama credentials now support a per-credential `num_ctx` override, while the default Ollama context window dropped to 8192 to avoid consumer-GPU OOMs.
+- Embedding robustness improved with `OPEN_NOTEBOOK_EMBEDDING_BATCH_SIZE` and `OPEN_NOTEBOOK_MIN_CHUNK_SIZE`, plus fixes for degenerate tiny chunks and null embeddings from stricter/local providers.
+- Docs grew materially: Windows native installation, external Ollama setup, provider matrix refresh, and new Polish/Catalan UI locales.
+- Validation on current HEAD passed: backend `uv run pytest -q` 158 passed; frontend `npm test` 32 passed; `npm run lint` 0 errors / 12 warnings; `npm ci` still reports 6 advisories, 1 low and 5 moderate.
+
 ## Verdict
 
-✅ **Deploy candidate for local or hardened self-hosted research workflows.** Open Notebook is active, well-documented, MIT-licensed, and substantially more complete than most NotebookLM-style clones. The main caution is deployment hardening: authentication is disabled unless OPEN_NOTEBOOK_PASSWORD is set, the API defaults CORS to wildcard for backward compatibility, Docker examples expose SurrealDB and the API locally, and frontend dependencies currently report low/moderate npm advisories.
+✅ **Deploy candidate for local or hardened self-hosted research workflows.** Open Notebook is active, well-documented, MIT-licensed, and substantially more complete than most NotebookLM-style clones. Version 1.9.0 strengthens the provider/audio matrix and local embedding ergonomics rather than changing the core architecture. The main caution is still deployment hardening: authentication is disabled unless OPEN_NOTEBOOK_PASSWORD is set, the API defaults CORS to wildcard for backward compatibility, Docker examples expose SurrealDB and the API locally, and frontend dependencies currently report low/moderate npm advisories.
 
 ---
 
@@ -18,7 +30,7 @@
 
 Open Notebook is a research workspace for collecting sources, organizing notebooks, asking questions over selected context, extracting insights, writing notes, and generating audio/podcast outputs. It targets users who want the NotebookLM workflow without being locked to Google-hosted data or Google-only models.
 
-The project supports a broad provider matrix through the Esperanto library, including OpenAI, Anthropic, Google, Vertex AI, Groq, Ollama, LM Studio/OpenAI-compatible endpoints, Mistral, DeepSeek, Voyage, ElevenLabs, Azure OpenAI, xAI, OpenRouter, DashScope, and MiniMax. It also supports fully local setups through Docker Compose examples with Ollama and related services.
+The project supports a broad provider matrix through the Esperanto library, including OpenAI, Anthropic, Google, Vertex AI, Groq, Ollama, LM Studio/OpenAI-compatible endpoints, Mistral, DeepSeek, Voyage, ElevenLabs, Azure OpenAI, xAI, OpenRouter, DashScope, MiniMax, and Deepgram for supported audio paths. It also supports fully local setups through Docker Compose examples with Ollama and related services.
 
 The strongest product idea is context control. Open Notebook distinguishes notebooks, sources, notes, transformations, chat, and ask/RAG flows so users can decide which source material is sent to a model, which stays out of context, and which is represented through summaries or retrieved chunks.
 
@@ -39,7 +51,7 @@ The strongest product idea is context control. Open Notebook distinguishes noteb
 
 ### Multi-Provider AI Without Hard Lock-In
 
-Open Notebook separates model/provider credentials from notebook content and lets users register models after connection testing. That supports private/local models for sensitive work and paid cloud providers when quality or modality support matters.
+Open Notebook separates model/provider credentials from notebook content and lets users register models after connection testing. That supports private/local models for sensitive work and paid cloud providers when quality or modality support matters. In 1.9.0, this matrix expanded most visibly around audio and OpenRouter embeddings.
 
 ### Explicit Research Object Model
 
@@ -55,7 +67,7 @@ Provider API keys are stored as encrypted credential records using Fernet-derive
 
 ### Podcast and Audio Workflows
 
-The app goes beyond text Q&A by generating multi-speaker podcast episodes from research material. That makes it useful for turning dense research into reviewable audio, especially when paired with local or low-cost speech models.
+The app goes beyond text Q&A by generating multi-speaker podcast episodes from research material. That makes it useful for turning dense research into reviewable audio, especially when paired with local or low-cost speech models. The 1.9.0 release improves the audio provider surface and makes STT connection tests use a real bundled speech clip instead of silence.
 
 ## Architecture
 
@@ -75,10 +87,10 @@ The deployment defaults need care. Authentication is optional and disabled when 
 
 ## Verification
 
-Validation run against commit 24892ac:
+Validation run against current HEAD `327d766`:
 
-- Python backend tests: 147 passed, 7 warnings.
-- Frontend tests: 30 passed.
+- Python backend tests: 158 passed, 7 warnings.
+- Frontend tests: 32 passed.
 - ESLint: 0 errors, 12 warnings.
 - npm audit: 6 advisories, 1 low and 5 moderate, including eslint plugin, ajv, brace-expansion, postcss/next, and ws.
 - Secret scan found documented placeholders and example credentials only, not obvious live secrets.
