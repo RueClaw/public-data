@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [qship.md](reviews/qship.md) | [3awny/qship](https://github.com/3awny/qship) | MIT | ✅ Deploy candidate | Claude Code/Codex CLI ticket-to-PR pipeline with 21 rendered skills, hook-enforced phase gates, disk-backed state, Codex review/implementation routing, installer/config schema, smoke tests, eval scaffold, and strong sandboxing caveats |
 | [agent-coding.md](reviews/agent-coding.md) | [dsweet99/agent_coding](https://github.com/dsweet99/agent_coding) | **no license** | 📚 Study | Cursor-oriented coding-agent prompt workflow plus Python `malvin` CLI for implementing, reviewing, falsifying concerns, fixing, and repeating until exact `LGTM`, with run artifacts and a passing 75-test suite when explicit test deps are installed |
 | [last30days-skill.md](reviews/last30days-skill.md) | [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) | MIT | ✅ Deploy candidate | Agent Skill and Python research engine for last-30-days social/market/developer/web synthesis across Reddit, X, YouTube, TikTok, HN, Polymarket, GitHub, Digg, Perplexity, and more, with planning, fan-out, scoring, clustering, HTML briefs, and a large passing test suite |
 | [omniretrieval.md](reviews/omniretrieval.md) | [JinheonBaek/OmniRetrieval](https://github.com/JinheonBaek/OmniRetrieval) | MIT | 📚 Study | Research code for unified retrieval across heterogeneous sources, routing natural-language questions to text search, SQL, SPARQL, or Cypher backends while preserving source-native query/execution semantics |
@@ -152,6 +153,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [hook-gated-agent-delivery-pipeline.md](patterns/hook-gated-agent-delivery-pipeline.md) | 3awny/qship | Move long-running agent completion gates out of prompt prose and into filesystem artifacts, pre-tool hooks, stop hooks, freshness checks, persistence loops, and watchdogs |
 | [falsification-driven-agent-coding-loop.md](patterns/falsification-driven-agent-coding-loop.md) | dsweet99/agent_coding | Run coding agents through plan, implement, fresh-context review, falsification of concerns, repair, bounded retry, exact acceptance, and durable artifacts |
 | [social-signal-recency-research-engine.md](patterns/social-signal-recency-research-engine.md) | mvanhorn/last30days-skill | Research recent topics by fanning out across social, market, developer, video, and web sources, normalizing evidence, scoring engagement/freshness/relevance, clustering, and rendering a brief plus raw artifact |
 | [source-native-heterogeneous-retrieval.md](patterns/source-native-heterogeneous-retrieval.md) | JinheonBaek/OmniRetrieval | Route queries to backend-specific text, SQL, SPARQL, or Cypher execution instead of flattening heterogeneous sources into one vector index |
