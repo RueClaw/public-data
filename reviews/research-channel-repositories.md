@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 505 public/included repositories, 131 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 506 public/included repositories, 132 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [dsweet99/agent_coding](https://github.com/dsweet99/agent_coding) | 2026-06-07 | 2026-06-07 | 1 | yes | 2026-06-07 | [reviews/agent-coding.md](reviews/agent-coding.md) |
 | [cuevhv/mamma](https://github.com/cuevhv/mamma) | 2026-06-06 | 2026-06-06 | 1 | yes | 2026-06-06 | [reviews/mamma.md](reviews/mamma.md) |
 | [OpenPipe/ART](https://github.com/OpenPipe/ART) | 2026-06-06 | 2026-06-06 | 1 | yes | 2026-06-06 | [reviews/art.md](reviews/art.md) |
 | [RyanCodrai/turbovec](https://github.com/RyanCodrai/turbovec) | 2026-06-06 | 2026-06-06 | 3 | yes | 2026-06-06 | [reviews/turbovec.md](reviews/turbovec.md) |
