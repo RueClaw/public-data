@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [mq.md](reviews/mq.md) | [harehare/mq](https://github.com/harehare/mq) | MIT | ✅ Deploy candidate | Rust jq-like Markdown query language and CLI with structured selectors, update mode, multi-format IO, formatter, type checker, LSP, REPL, DAP, WASM/web API, editor integrations, Agent Skill docs, and passing workspace fmt/test/clippy validation |
 | [qship.md](reviews/qship.md) | [3awny/qship](https://github.com/3awny/qship) | MIT | ✅ Deploy candidate | Claude Code/Codex CLI ticket-to-PR pipeline with 21 rendered skills, hook-enforced phase gates, disk-backed state, Codex review/implementation routing, installer/config schema, smoke tests, eval scaffold, and strong sandboxing caveats |
 | [agent-coding.md](reviews/agent-coding.md) | [dsweet99/agent_coding](https://github.com/dsweet99/agent_coding) | **no license** | 📚 Study | Cursor-oriented coding-agent prompt workflow plus Python `malvin` CLI for implementing, reviewing, falsifying concerns, fixing, and repeating until exact `LGTM`, with run artifacts and a passing 75-test suite when explicit test deps are installed |
 | [last30days-skill.md](reviews/last30days-skill.md) | [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill) | MIT | ✅ Deploy candidate | Agent Skill and Python research engine for last-30-days social/market/developer/web synthesis across Reddit, X, YouTube, TikTok, HN, Polymarket, GitHub, Digg, Perplexity, and more, with planning, fan-out, scoring, clustering, HTML briefs, and a large passing test suite |
@@ -153,6 +154,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [structured-markdown-query-language.md](patterns/structured-markdown-query-language.md) | harehare/mq | Treat Markdown as a structured document tree with selectors, query/update functions, formatter/checker tooling, multi-format output, and agent-facing recipes instead of relying on brittle regex |
 | [hook-gated-agent-delivery-pipeline.md](patterns/hook-gated-agent-delivery-pipeline.md) | 3awny/qship | Move long-running agent completion gates out of prompt prose and into filesystem artifacts, pre-tool hooks, stop hooks, freshness checks, persistence loops, and watchdogs |
 | [falsification-driven-agent-coding-loop.md](patterns/falsification-driven-agent-coding-loop.md) | dsweet99/agent_coding | Run coding agents through plan, implement, fresh-context review, falsification of concerns, repair, bounded retry, exact acceptance, and durable artifacts |
 | [social-signal-recency-research-engine.md](patterns/social-signal-recency-research-engine.md) | mvanhorn/last30days-skill | Research recent topics by fanning out across social, market, developer, video, and web sources, normalizing evidence, scoring engagement/freshness/relevance, clustering, and rendering a brief plus raw artifact |
