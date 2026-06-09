@@ -1,17 +1,18 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-06-06
-**Generated:** 2026-06-06
+**Message range:** 2026-02-17 to 2026-06-08
+**Generated:** 2026-06-09
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 508 public/included repositories, 134 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 509 public/included repositories, 135 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [trymirai/uzu](https://github.com/trymirai/uzu) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/uzu.md](reviews/uzu.md) |
 | [harehare/mq](https://github.com/harehare/mq) | 2026-06-07 | 2026-06-07 | 1 | yes | 2026-06-07 | [reviews/mq.md](reviews/mq.md) |
 | [3awny/qship](https://github.com/3awny/qship) | 2026-06-07 | 2026-06-07 | 1 | yes | 2026-06-07 | [reviews/qship.md](reviews/qship.md) |
 | [dsweet99/agent_coding](https://github.com/dsweet99/agent_coding) | 2026-06-07 | 2026-06-07 | 1 | yes | 2026-06-07 | [reviews/agent-coding.md](reviews/agent-coding.md) |

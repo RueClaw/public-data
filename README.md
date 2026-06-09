@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [uzu.md](reviews/uzu.md) | [trymirai/uzu](https://github.com/trymirai/uzu) | MIT | ✅ Deploy candidate | Rust on-device AI inference engine with native Metal/CPU backends, model registry and download management, chat/classification/TTS sessions, generated Rust/Python/TypeScript/Swift/WASM bindings, CLI, OpenAI-compatible server, and strong privacy caveats around registry/telemetry defaults |
 | [mq.md](reviews/mq.md) | [harehare/mq](https://github.com/harehare/mq) | MIT | ✅ Deploy candidate | Rust jq-like Markdown query language and CLI with structured selectors, update mode, multi-format IO, formatter, type checker, LSP, REPL, DAP, WASM/web API, editor integrations, Agent Skill docs, and passing workspace fmt/test/clippy validation |
 | [qship.md](reviews/qship.md) | [3awny/qship](https://github.com/3awny/qship) | MIT | ✅ Deploy candidate | Claude Code/Codex CLI ticket-to-PR pipeline with 21 rendered skills, hook-enforced phase gates, disk-backed state, Codex review/implementation routing, installer/config schema, smoke tests, eval scaffold, and strong sandboxing caveats |
 | [agent-coding.md](reviews/agent-coding.md) | [dsweet99/agent_coding](https://github.com/dsweet99/agent_coding) | **no license** | 📚 Study | Cursor-oriented coding-agent prompt workflow plus Python `malvin` CLI for implementing, reviewing, falsifying concerns, fixing, and repeating until exact `LGTM`, with run artifacts and a passing 75-test suite when explicit test deps are installed |
@@ -154,6 +155,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [multi-language-rust-core-sdk.md](patterns/multi-language-rust-core-sdk.md) | trymirai/uzu | Keep performance-sensitive runtime logic in one Rust core, annotate domain APIs once, and generate Python, Node, Swift, Rust, and WASM SDK surfaces from the same contract |
 | [structured-markdown-query-language.md](patterns/structured-markdown-query-language.md) | harehare/mq | Treat Markdown as a structured document tree with selectors, query/update functions, formatter/checker tooling, multi-format output, and agent-facing recipes instead of relying on brittle regex |
 | [hook-gated-agent-delivery-pipeline.md](patterns/hook-gated-agent-delivery-pipeline.md) | 3awny/qship | Move long-running agent completion gates out of prompt prose and into filesystem artifacts, pre-tool hooks, stop hooks, freshness checks, persistence loops, and watchdogs |
 | [falsification-driven-agent-coding-loop.md](patterns/falsification-driven-agent-coding-loop.md) | dsweet99/agent_coding | Run coding agents through plan, implement, fresh-context review, falsification of concerns, repair, bounded retry, exact acceptance, and durable artifacts |
