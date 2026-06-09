@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 510 public/included repositories, 136 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 511 public/included repositories, 137 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [kunchenguid/no-mistakes](https://github.com/kunchenguid/no-mistakes) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/no-mistakes.md](reviews/no-mistakes.md) |
 | [trymirai/lalamo](https://github.com/trymirai/lalamo) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/lalamo.md](reviews/lalamo.md) |
 | [trymirai/uzu](https://github.com/trymirai/uzu) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/uzu.md](reviews/uzu.md) |
 | [harehare/mq](https://github.com/harehare/mq) | 2026-06-07 | 2026-06-07 | 1 | yes | 2026-06-07 | [reviews/mq.md](reviews/mq.md) |

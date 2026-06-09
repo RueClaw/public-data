@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [no-mistakes.md](reviews/no-mistakes.md) | [kunchenguid/no-mistakes](https://github.com/kunchenguid/no-mistakes) | MIT | ✅ Deploy candidate | Go local git proxy for AI-assisted delivery with managed `git push no-mistakes` remote, daemon, SQLite run ledger, JSON-RPC/TUI/AXI control surfaces, disposable worktrees, agent review/test/fix/PR/CI pipeline, and sandbox/telemetry caveats |
 | [lalamo.md](reviews/lalamo.md) | [trymirai/lalamo](https://github.com/trymirai/lalamo) | MIT | ⚠️ Interesting | Python/JAX model conversion and optimization toolchain for Uzu with typed model specs, Hugging Face import, quantization/compression support, safetensors runtime artifact export, broad model-family coverage, and heavyweight CI/coherence validation |
 | [uzu.md](reviews/uzu.md) | [trymirai/uzu](https://github.com/trymirai/uzu) | MIT | ✅ Deploy candidate | Rust on-device AI inference engine with native Metal/CPU backends, model registry and download management, chat/classification/TTS sessions, generated Rust/Python/TypeScript/Swift/WASM bindings, CLI, OpenAI-compatible server, and strong privacy caveats around registry/telemetry defaults |
 | [mq.md](reviews/mq.md) | [harehare/mq](https://github.com/harehare/mq) | MIT | ✅ Deploy candidate | Rust jq-like Markdown query language and CLI with structured selectors, update mode, multi-format IO, formatter, type checker, LSP, REPL, DAP, WASM/web API, editor integrations, Agent Skill docs, and passing workspace fmt/test/clippy validation |
@@ -156,6 +157,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [local-git-remote-validation-gate.md](patterns/local-git-remote-validation-gate.md) | kunchenguid/no-mistakes | Put a local git remote and daemon-backed post-receive pipeline in front of upstream delivery so pushed branches are validated in disposable worktrees before PR/CI completion |
 | [source-model-to-runtime-artifact-pipeline.md](patterns/source-model-to-runtime-artifact-pipeline.md) | trymirai/lalamo | Treat model conversion as a compiler pipeline from typed source-model specs through config translation, weight loading, compression, stable artifact export, and tiered compatibility validation |
 | [multi-language-rust-core-sdk.md](patterns/multi-language-rust-core-sdk.md) | trymirai/uzu | Keep performance-sensitive runtime logic in one Rust core, annotate domain APIs once, and generate Python, Node, Swift, Rust, and WASM SDK surfaces from the same contract |
 | [structured-markdown-query-language.md](patterns/structured-markdown-query-language.md) | harehare/mq | Treat Markdown as a structured document tree with selectors, query/update functions, formatter/checker tooling, multi-format output, and agent-facing recipes instead of relying on brittle regex |
