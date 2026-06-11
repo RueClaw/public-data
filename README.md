@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [agent-scripts.md](reviews/agent-scripts.md) | [steipete/agent-scripts](https://github.com/steipete/agent-scripts) | MIT | 📚 Study | Canonical shared coding-agent operations repo with routeable skills, pointer-style shared instructions, docs metadata, small portable helpers, and validation for skill front matter |
 | [continual-learning-bench.md](reviews/continual-learning-bench.md) | [pgasawa/continual-learning-bench](https://github.com/pgasawa/continual-learning-bench) | Apache-2.0 | ✅ Deploy candidate | Python 3.13 benchmark harness for stateful AI agents with task/system contracts, reset-baseline gain metrics, trace artifacts, Dockerized Claude/Codex/Mem0/ACE/ICL systems, and substantial sequential tasks |
 | [continual-learning-bench-1-0.md](reviews/continual-learning-bench-1-0.md) | [Continual Learning Bench 1.0](https://continual-learning-bench.com/news/cl-bench-1-0/) | N/A | ⚠️ Interesting | Benchmark release for stateful AI systems that should improve across related task sequences, with useful gain-over-stateless-baseline framing but a still-pending technical report |
 | [no-mistakes.md](reviews/no-mistakes.md) | [kunchenguid/no-mistakes](https://github.com/kunchenguid/no-mistakes) | MIT | ✅ Deploy candidate | Go local git proxy for AI-assisted delivery with managed `git push no-mistakes` remote, daemon, SQLite run ledger, JSON-RPC/TUI/AXI control surfaces, disposable worktrees, agent review/test/fix/PR/CI pipeline, and sandbox/telemetry caveats |
@@ -159,6 +160,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [canonical-agent-ops-repo.md](patterns/canonical-agent-ops-repo.md) | steipete/agent-scripts | Keep shared coding-agent instructions, skills, docs, helper scripts, and validators in one versioned repository, with downstream projects pointing at the canonical source instead of copying it |
 | [stateless-baseline-gain-evaluation.md](patterns/stateless-baseline-gain-evaluation.md) | pgasawa/continual-learning-bench | Evaluate stateful agents by running the same canonical instances with memory enabled and reset between instances, then reporting reward, cost, and latency gain over the reset baseline |
 | [local-git-remote-validation-gate.md](patterns/local-git-remote-validation-gate.md) | kunchenguid/no-mistakes | Put a local git remote and daemon-backed post-receive pipeline in front of upstream delivery so pushed branches are validated in disposable worktrees before PR/CI completion |
 | [source-model-to-runtime-artifact-pipeline.md](patterns/source-model-to-runtime-artifact-pipeline.md) | trymirai/lalamo | Treat model conversion as a compiler pipeline from typed source-model specs through config translation, weight loading, compression, stable artifact export, and tiered compatibility validation |
