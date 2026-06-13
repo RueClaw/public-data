@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [fabro.md](reviews/fabro.md) | [fabro-sh/fabro](https://github.com/fabro-sh/fabro) | MIT | ✅ Deploy candidate | Rust/React dark software factory for deterministic Graphviz-coded AI workflows with typed agent/command/human/parallel nodes, model routing, sandbox providers, checkpoints, OpenAPI/SSE control plane, and explicit single-tenant security caveats |
 | [agent-scripts.md](reviews/agent-scripts.md) | [steipete/agent-scripts](https://github.com/steipete/agent-scripts) | MIT | 📚 Study | Canonical shared coding-agent operations repo with routeable skills, pointer-style shared instructions, docs metadata, small portable helpers, and validation for skill front matter |
 | [agent-skills-tmchow.md](reviews/agent-skills-tmchow.md) | [tmchow/agent-skills](https://github.com/tmchow/agent-skills) | MIT | ✅ Deploy candidate | Cross-runtime Agent Skills catalog with Camofox, Chrome DevTools AXI, Clawpatch, and Illo skills; strong README/SKILL split, runtime metadata, scanner-safe credential rules, and checksum-gated binary asset repair |
 | [rockyvoice.md](reviews/rockyvoice.md) | [Lagunaswift/RockyVoice](https://github.com/Lagunaswift/RockyVoice) | MIT code; fan-project character/audio caveats | 🔧 Harvest | Claude persona skill and local Hume TTS voice app with explicit off-switch, safety-clarity override, Stop-hook ingestion, Markdown-to-speech cleanup, SSE streaming, and Web Audio playback |
@@ -162,6 +163,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [deterministic-agent-workflow-graphs.md](patterns/deterministic-agent-workflow-graphs.md) | fabro-sh/fabro | Represent long-running agent work as version-controlled workflow graphs with typed nodes, explicit human gates, sandbox boundaries, model routing, durable events, and checkpoints |
 | [canonical-agent-ops-repo.md](patterns/canonical-agent-ops-repo.md) | steipete/agent-scripts | Keep shared coding-agent instructions, skills, docs, helper scripts, and validators in one versioned repository, with downstream projects pointing at the canonical source instead of copying it |
 | [scanner-safe-community-agent-skills.md](patterns/scanner-safe-community-agent-skills.md) | tmchow/agent-skills | Design community-installable skills to avoid scanner red flags: no ambient secret reads, no CLI secret flags, user-run config init, pinned installs, lean bundles, runtime metadata, and checksum-repaired binary assets |
 | [persona-voice-safety-switch.md](patterns/persona-voice-safety-switch.md) | Lagunaswift/RockyVoice | Keep strong assistant personas persistent but subordinate to explicit off-switches, exact technical content, plain-language safety overrides, and separate local voice side channels |
