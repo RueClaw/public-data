@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [esperanto.md](reviews/esperanto.md) | [lfnovo/esperanto](https://github.com/lfnovo/esperanto) | MIT | ✅ Deploy candidate | Lightweight Python direct-HTTP provider-normalization library for LLMs, embeddings, reranking, STT, and TTS, with OpenAI-compatible profiles, common typed responses, release-gated real API tests, and a strong mocked parity suite |
 | [fabro.md](reviews/fabro.md) | [fabro-sh/fabro](https://github.com/fabro-sh/fabro) | MIT | ✅ Deploy candidate | Rust/React dark software factory for deterministic Graphviz-coded AI workflows with typed agent/command/human/parallel nodes, model routing, sandbox providers, checkpoints, OpenAPI/SSE control plane, and explicit single-tenant security caveats |
 | [agent-scripts.md](reviews/agent-scripts.md) | [steipete/agent-scripts](https://github.com/steipete/agent-scripts) | MIT | 📚 Study | Canonical shared coding-agent operations repo with routeable skills, pointer-style shared instructions, docs metadata, small portable helpers, and validation for skill front matter |
 | [agent-skills-tmchow.md](reviews/agent-skills-tmchow.md) | [tmchow/agent-skills](https://github.com/tmchow/agent-skills) | MIT | ✅ Deploy candidate | Cross-runtime Agent Skills catalog with Camofox, Chrome DevTools AXI, Clawpatch, and Illo skills; strong README/SKILL split, runtime metadata, scanner-safe credential rules, and checksum-gated binary asset repair |
@@ -163,6 +164,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [direct-http-provider-parity-layer.md](patterns/direct-http-provider-parity-layer.md) | lfnovo/esperanto | Build a small direct-HTTP AI provider adapter layer around typed common responses, provider profiles, explicit unsupported-feature behavior, and separate mocked vs real-API tests |
 | [deterministic-agent-workflow-graphs.md](patterns/deterministic-agent-workflow-graphs.md) | fabro-sh/fabro | Represent long-running agent work as version-controlled workflow graphs with typed nodes, explicit human gates, sandbox boundaries, model routing, durable events, and checkpoints |
 | [canonical-agent-ops-repo.md](patterns/canonical-agent-ops-repo.md) | steipete/agent-scripts | Keep shared coding-agent instructions, skills, docs, helper scripts, and validators in one versioned repository, with downstream projects pointing at the canonical source instead of copying it |
 | [scanner-safe-community-agent-skills.md](patterns/scanner-safe-community-agent-skills.md) | tmchow/agent-skills | Design community-installable skills to avoid scanner red flags: no ambient secret reads, no CLI secret flags, user-run config init, pinned installs, lean bundles, runtime metadata, and checksum-repaired binary assets |
