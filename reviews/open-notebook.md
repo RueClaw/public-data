@@ -3,12 +3,24 @@
 **Repo:** https://github.com/lfnovo/open-notebook
 **License:** MIT
 **Reviewed:** 2026-06-07
+**Checked:** 2026-06-13
 **Stack:** Python 3.11/3.12, FastAPI, LangChain/LangGraph, SurrealDB, Next.js, React 19, TypeScript, Tailwind, Docker
 **What it is:** Open Notebook is a self-hosted, privacy-focused NotebookLM alternative with multi-provider AI support, document/source ingestion, full-text and vector search, contextual chat, transformations, notes, API access, and multi-speaker podcast generation.
 
 ---
 
 ## Update Notes
+
+Checked on 2026-06-13 against current HEAD `d39af076605171bc5ef51441e20e2842af6618e4` / version 1.9.0. Prior review/check-in was 2026-06-07 against `327d766e2ad2c86afe39eca5473b1441c6b2d749`.
+
+Material changes since the prior check-in:
+
+- Security/dependency patching continued: Starlette/FastAPI were bumped for CVE-2026-48710, and `aiohttp` and `tornado` were bumped.
+- Podcast generation got a real `Notebook.get_context()` path that fetches full source text and note content instead of handing podcast workflows a thin notebook object.
+- PUT handlers for speaker and episode profiles now use `model_dump(exclude_unset=True)`, reducing accidental overwrite behavior on partial profile updates.
+- Turkish UI localization was added, along with a Contributor Covenant code of conduct and issue-first contribution guidance.
+- `scripts/export_docs.py` now generates a table of contents in consolidated doc exports.
+- Validation refreshed on current HEAD: backend `uv run pytest -q` passed 163 tests; frontend `npm test` passed 33 tests; `npm run lint` has 0 errors / 12 warnings; `npm audit --omit=dev` reports 2 moderate advisories; full `npm audit` reports 9 advisories, including 3 high-severity dev-toolchain advisories.
 
 Checked on 2026-06-07 against current HEAD `327d766e2ad2c86afe39eca5473b1441c6b2d749` / version 1.9.0. Prior review was 2026-05-24 against `24892ac`.
 
@@ -22,7 +34,7 @@ Material changes:
 
 ## Verdict
 
-✅ **Deploy candidate for local or hardened self-hosted research workflows.** Open Notebook is active, well-documented, MIT-licensed, and substantially more complete than most NotebookLM-style clones. Version 1.9.0 strengthens the provider/audio matrix and local embedding ergonomics rather than changing the core architecture. The main caution is still deployment hardening: authentication is disabled unless OPEN_NOTEBOOK_PASSWORD is set, the API defaults CORS to wildcard for backward compatibility, Docker examples expose SurrealDB and the API locally, and frontend dependencies currently report low/moderate npm advisories.
+✅ **Deploy candidate for local or hardened self-hosted research workflows.** Open Notebook is active, well-documented, MIT-licensed, and substantially more complete than most NotebookLM-style clones. The June 13 changes improve security posture and fix a real podcast-context gap without changing the core adoption call. The main caution is still deployment and dependency hygiene: authentication is disabled unless OPEN_NOTEBOOK_PASSWORD is set, the API defaults CORS to wildcard for backward compatibility, Docker examples expose SurrealDB and the API locally, and the frontend dependency tree still reports audit advisories.
 
 ---
 
@@ -87,12 +99,13 @@ The deployment defaults need care. Authentication is optional and disabled when 
 
 ## Verification
 
-Validation run against current HEAD `327d766`:
+Validation run against current HEAD `d39af07`:
 
-- Python backend tests: 158 passed, 7 warnings.
-- Frontend tests: 32 passed.
+- Python backend tests: 163 passed, 8 warnings.
+- Frontend tests: 33 passed.
 - ESLint: 0 errors, 12 warnings.
-- npm audit: 6 advisories, 1 low and 5 moderate, including eslint plugin, ajv, brace-expansion, postcss/next, and ws.
+- npm audit, production only: 2 moderate advisories via Next/PostCSS.
+- npm audit, full tree: 9 advisories, 1 low, 5 moderate, 3 high. High advisories are in the dev-toolchain path through esbuild/Vite/@vitejs/plugin-react.
 - Secret scan found documented placeholders and example credentials only, not obvious live secrets.
 
 ## Comparison
