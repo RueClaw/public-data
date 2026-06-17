@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [knowledge-catalog.md](reviews/knowledge-catalog.md) | [GoogleCloudPlatform/knowledge-catalog](https://github.com/GoogleCloudPlatform/knowledge-catalog) | Apache-2.0 | ⚠️ Interesting | Google Cloud sample repo for Open Knowledge Format, metadata-as-code catalog snapshots, agentic data-documentation enrichment, MCP catalog tooling, and static graph viewing |
 | [context-firewall.md](reviews/context-firewall.md) | [nik1t7n/context-firewall](https://github.com/nik1t7n/context-firewall) | Apache-2.0 | ✅ Deploy candidate | Rust local-first command-output firewall for coding agents with deterministic reducers, local raw artifacts, SQLite spans, MCP run/show/receipt tools, policy gates, dedupe, and guarded exact-output retrieval |
 | [oz-for-oss.md](reviews/oz-for-oss.md) | [warpdotdev/oz-for-oss](https://github.com/warpdotdev/oz-for-oss) | MIT | ⚠️ Interesting | Webhook-driven GitHub App control plane for Oz agents with explicit event routing, Vercel KV run state, cron-side result application, repo-local skill companions, and strong tests |
 | [esperanto.md](reviews/esperanto.md) | [lfnovo/esperanto](https://github.com/lfnovo/esperanto) | MIT | ✅ Deploy candidate | Lightweight Python direct-HTTP provider-normalization library for LLMs, embeddings, reranking, STT, and TTS, with OpenAI-compatible profiles, common typed responses, release-gated real API tests, and a strong mocked parity suite |
@@ -166,6 +167,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [open-knowledge-format.md](patterns/open-knowledge-format.md) | GoogleCloudPlatform/knowledge-catalog | Represent operational knowledge as git-native markdown/frontmatter bundles with concept IDs, links, generated indexes, citations, and agent-safe preservation guards |
 | [evidence-backed-command-output-compaction.md](patterns/evidence-backed-command-output-compaction.md) | nik1t7n/context-firewall | Run noisy commands through a local wrapper that stores exact stdout/stderr evidence, returns deterministic compact summaries, and exposes span handles for targeted raw retrieval |
 | [direct-http-provider-parity-layer.md](patterns/direct-http-provider-parity-layer.md) | lfnovo/esperanto | Build a small direct-HTTP AI provider adapter layer around typed common responses, provider profiles, explicit unsupported-feature behavior, and separate mocked vs real-API tests |
 | [deterministic-agent-workflow-graphs.md](patterns/deterministic-agent-workflow-graphs.md) | fabro-sh/fabro | Represent long-running agent work as version-controlled workflow graphs with typed nodes, explicit human gates, sandbox boundaries, model routing, durable events, and checkpoints |
