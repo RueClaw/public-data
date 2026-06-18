@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [storm.md](reviews/storm.md) | [stanford-oval/storm](https://github.com/stanford-oval/storm) | MIT | 📚 Study | Stanford OVAL knowledge curation engine for perspective-guided retrieval, staged outline/report generation, Co-STORM collaborative discourse, and citation-preserving research artifacts |
 | [knowledge-catalog.md](reviews/knowledge-catalog.md) | [GoogleCloudPlatform/knowledge-catalog](https://github.com/GoogleCloudPlatform/knowledge-catalog) | Apache-2.0 | ⚠️ Interesting | Google Cloud sample repo for Open Knowledge Format, metadata-as-code catalog snapshots, agentic data-documentation enrichment, MCP catalog tooling, and static graph viewing |
 | [context-firewall.md](reviews/context-firewall.md) | [nik1t7n/context-firewall](https://github.com/nik1t7n/context-firewall) | Apache-2.0 | ✅ Deploy candidate | Rust local-first command-output firewall for coding agents with deterministic reducers, local raw artifacts, SQLite spans, MCP run/show/receipt tools, policy gates, dedupe, and guarded exact-output retrieval |
 | [oz-for-oss.md](reviews/oz-for-oss.md) | [warpdotdev/oz-for-oss](https://github.com/warpdotdev/oz-for-oss) | MIT | ⚠️ Interesting | Webhook-driven GitHub App control plane for Oz agents with explicit event routing, Vercel KV run state, cron-side result application, repo-local skill companions, and strong tests |
@@ -167,6 +168,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [perspective-guided-research-pipeline.md](patterns/perspective-guided-research-pipeline.md) | stanford-oval/storm | Split long-form research generation into perspectives, simulated question asking, retrieval evidence tables, outline synthesis, citation-grounded drafting, and final polishing |
 | [open-knowledge-format.md](patterns/open-knowledge-format.md) | GoogleCloudPlatform/knowledge-catalog | Represent operational knowledge as git-native markdown/frontmatter bundles with concept IDs, links, generated indexes, citations, and agent-safe preservation guards |
 | [evidence-backed-command-output-compaction.md](patterns/evidence-backed-command-output-compaction.md) | nik1t7n/context-firewall | Run noisy commands through a local wrapper that stores exact stdout/stderr evidence, returns deterministic compact summaries, and exposes span handles for targeted raw retrieval |
 | [direct-http-provider-parity-layer.md](patterns/direct-http-provider-parity-layer.md) | lfnovo/esperanto | Build a small direct-HTTP AI provider adapter layer around typed common responses, provider profiles, explicit unsupported-feature behavior, and separate mocked vs real-API tests |
