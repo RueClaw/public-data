@@ -1,17 +1,18 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-06-18
-**Generated:** 2026-06-18
+**Message range:** 2026-02-17 to 2026-06-20
+**Generated:** 2026-06-18; manually updated 2026-06-20
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 512 public/included repositories, 138 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 513 public/included repositories, 139 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [modem-dev/hunk](https://github.com/modem-dev/hunk) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/hunk.md](reviews/hunk.md) |
 | [stanford-oval/storm](https://github.com/stanford-oval/storm) | 2026-06-18 | 2026-06-18 | 1 | yes | 2026-06-18 | [reviews/storm.md](reviews/storm.md) |
 | [kunchenguid/no-mistakes](https://github.com/kunchenguid/no-mistakes) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/no-mistakes.md](reviews/no-mistakes.md) |
 | [trymirai/lalamo](https://github.com/trymirai/lalamo) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/lalamo.md](reviews/lalamo.md) |
