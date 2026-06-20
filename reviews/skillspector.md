@@ -2,15 +2,21 @@
 
 **Repo:** https://github.com/NVIDIA/SkillSpector
 **License:** Apache-2.0, permissive reuse with attribution
-**Reviewed:** 2026-05-31
-**Stack:** Python 3.12+, LangGraph, Typer, Rich, Pydantic, YARA, OSV.dev, OpenAI/Anthropic/NVIDIA-compatible LLM providers
-**What it is:** A security scanner for AI agent skills that checks skill bundles before installation, combining static rules, AST/taint checks, YARA signatures, MCP-specific checks, OSV dependency lookups, and optional LLM review.
+**Reviewed:** 2026-06-20
+**Stack:** Python 3.12-3.14, LangGraph, Typer, Rich, Pydantic, YARA, OSV.dev, OpenAI/Anthropic/NVIDIA-compatible LLM providers, Docker
+**What it is:** A security scanner for AI agent skills that checks skill bundles before installation, combining static rules, AST/taint checks, YARA signatures, MCP-specific checks, live OSV dependency lookups, and optional LLM review.
+
+---
+
+## Update Notes
+
+Checked against `a5092dd` on 2026-06-20. Since the 2026-05-31 review, SkillSpector has moved to version `2.2.3`, added a Docker path, constrained Python support to `<3.15`, expanded provider abstraction, fixed real-scan MCP tool-poisoning reachability, added invalid skill path rejection, and grew the default test run to 621 passing tests.
 
 ---
 
 ## Verdict
 
-✅ **Deploy candidate for pre-install skill screening.** SkillSpector is exactly aimed at a real gap: agent skill bundles are executable trust packages, and most agent runtimes still treat them too casually. It is young, but the implementation is coherent, Apache-2.0, well tested, and already covers the right categories for a first-pass gate.
+✅ **Deploy candidate for pre-install skill screening.** SkillSpector still hits a real and under-served gap: agent skills are executable trust packages, and most agent runtimes still treat them as plain documentation. The repo is young, but the current snapshot is stronger than the May review: Docker packaging, Python-version guardrails, reachable MCP checks, live dependency intelligence, and a larger passing test suite make it usable as a practical intake gate.
 
 ---
 
@@ -20,7 +26,7 @@ SkillSpector scans a local directory, single `SKILL.md`, zip, raw URL, or Git re
 
 The architecture is a LangGraph workflow: input resolution, context building, parallel analyzers, optional LLM filtering/enrichment, then report generation. That is a good fit for a scanner because deterministic passes can run quickly while semantic passes remain optional and provider-selectable.
 
-The project is still alpha-classified in `pyproject.toml`, and there are signs of active internal TODOs around analyzer discovery and service mode. But the repo is not just a paper demo: it has a broad test suite, fixtures for malicious and clean skills, SARIF output, and documentation for extending analyzers.
+The project remains alpha-classified, and there are still explicit TODOs around analyzer discovery and service mode. But it is no longer just a paper-shaped demo. It has a real CLI, Dockerfile, SARIF output, provider registries, OSV fallback behavior, malicious/clean fixtures, and a broad test suite.
 
 ## Stack
 
@@ -29,9 +35,10 @@ The project is still alpha-classified in `pyproject.toml`, and there are signs o
 | CLI | Typer, Rich |
 | Workflow | LangGraph |
 | Models | Pydantic, dataclasses |
-| Static scanning | Regex analyzers, AST analyzer, YARA rules |
-| Dependency intelligence | OSV.dev via `httpx` |
+| Static scanning | Regex analyzers, AST analyzer, taint-tracking stub, YARA rules |
+| Dependency intelligence | OSV.dev via `httpx`, static fallback lists |
 | Semantic analysis | OpenAI, Anthropic, NVIDIA build endpoint, OpenAI-compatible local endpoints |
+| Packaging | Python package, uv/pip install, Dockerfile on Python 3.12 slim |
 | Outputs | Terminal, JSON, Markdown, SARIF |
 | Tests | Pytest, pytest-asyncio |
 
@@ -45,19 +52,27 @@ The strongest part is the domain-specific taxonomy. SkillSpector does not just s
 
 The scanner runs deterministic analyzers first, then optionally uses an LLM meta-analyzer to filter and enrich findings. This is the right shape for a noisy security domain: fast high-recall rules produce candidates, while semantic review can reduce false positives when credentials and model access are available.
 
+### Live Dependency Lookup
+
+The supply-chain analyzer now uses OSV.dev for live vulnerability checks, with a static fallback when the API is unavailable. That is a meaningful improvement over hand-curated vulnerable-package lists because new Python and npm advisories do not require a scanner release before they can be detected.
+
 ### CI-Friendly Outputs
 
 SARIF support matters. A scanner like this is most useful when it can become a required check before skills are installed, published, or promoted. JSON and Markdown outputs make it usable in local review and documentation pipelines.
 
+### Docker Path
+
+The repo now includes Docker support and a smoke-test script. The Dockerfile installs `git`, which matters because scanning repository URLs from inside the container would otherwise fail.
+
 ### Real Test Surface
 
-Verification on 2026-05-31 with Python 3.12 passed:
+Verification on 2026-06-20 with Python 3.12 passed:
 
 ```text
-598 passed, 11 skipped, 22 deselected
+621 passed, 12 skipped, 26 deselected, 1 warning
 ```
 
-That is unusually solid for a fresh agent-security repo. The tests cover input resolution, CLI behavior, SARIF, static patterns, semantic analyzer plumbing, MCP checks, graph integration, and report generation.
+That is unusually solid for a fresh agent-security repo. The tests cover input resolution, CLI behavior, SARIF, static patterns, semantic analyzer plumbing, MCP checks, provider routing, graph integration, and report generation.
 
 ## Architecture
 
@@ -67,7 +82,9 @@ The main workflow is compact:
 resolve_input -> build_context -> parallel analyzers -> meta_analyzer -> report
 ```
 
-`resolve_input` normalizes Git URLs, file URLs, zips, single files, and directories into a local directory. `build_context` walks files, builds a file cache, parses `SKILL.md` frontmatter, and records executable-file metadata. Analyzer nodes append findings through the LangGraph state reducer. `meta_analyzer` optionally calls an LLM per file or chunk. `report` computes a score, risk band, recommendation, and selected output format.
+`resolve_input` normalizes Git URLs, file URLs, zips, single files, and directories into a local directory. `build_context` walks files, builds a file cache, parses `SKILL.md` frontmatter, records executable-file metadata, and now preserves parameter definitions so MCP tool-poisoning checks can run on real scans.
+
+Analyzer nodes append normalized findings through the LangGraph state reducer. `meta_analyzer` optionally calls an LLM per file or chunk. `report` computes a score, risk band, recommendation, and selected output format.
 
 The biggest design win is keeping analyzers as independent graph nodes. Adding a detector is mostly a registration problem: implement a node that returns findings, add it to `ANALYZER_NODE_IDS`, and the graph fans it out automatically.
 
@@ -86,7 +103,14 @@ SkillSpector should complement, not replace, broader scanners. It catches agent-
 
 ## Self-Hosting Notes
 
-Use Python 3.12 or 3.13. A Python 3.14 install attempt hit a transitive `jsonschema-rs`/PyO3 compatibility failure through the LangGraph CLI dependency path, even though the project declares `>=3.12` with no upper bound. Python 3.12 installed cleanly and ran the test suite.
+Use Python 3.12 or 3.13 for local development today. The project now declares `>=3.12,<3.15`, but the current dependency path still fails to build on Python 3.14 in this environment through `jsonschema-rs`/PyO3 from `langgraph-cli[inmem]`. Running the test suite with Python 3.12 works cleanly.
+
+Docker is now the least fussy path for no-Python local scans:
+
+```bash
+make docker-build
+docker run --rm -v "$PWD:/scan" skillspector scan ./my-skill/ --no-llm
+```
 
 For privacy-sensitive scans, run `--no-llm` or point the OpenAI-compatible provider at a local endpoint. The static checks and OSV lookup remain useful without sending skill content to a hosted model. If using live OSV lookup, allow outbound HTTPS to `api.osv.dev`.
 

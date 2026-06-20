@@ -3,7 +3,7 @@
 **Source:** NVIDIA/SkillSpector  
 **Repo:** https://github.com/NVIDIA/SkillSpector  
 **License:** Apache-2.0  
-**Reviewed:** 2026-05-31
+**Reviewed:** 2026-06-20
 
 ## Pattern
 
@@ -18,6 +18,15 @@ input artifact
   -> run deterministic analyzers in parallel
   -> optionally use semantic review for filtering/enrichment
   -> emit machine-readable report, human summary, and policy decision
+```
+
+For packaged use, run the scanner in a dedicated environment or container:
+
+```text
+candidate artifact mounted read-only
+  -> static scan by default
+  -> optional provider credentials only for semantic analysis
+  -> JSON/SARIF report written to a mounted output directory
 ```
 
 ## Why It Works
@@ -38,9 +47,11 @@ The two-stage approach is practical. Deterministic analyzers provide fast, audit
 
 - Keep input resolution separate from scanning so remote Git/zip/single-file handling can be hardened independently.
 - Build a complete file inventory first, including file type, line count, size, and executable markers.
+- Preserve structured manifest fields, including tool parameters, so metadata-poisoning checks can inspect the same descriptions the agent runtime will see.
 - Run analyzers as independent modules that return one normalized finding shape.
 - Emit SARIF or another CI-native format so the scanner can gate publication or installation.
 - Let semantic analyzers be optional and provider-configurable; skill content may be private or adversarial.
+- Use live vulnerability intelligence where possible, but provide an offline fallback so air-gapped scans still produce a baseline result.
 - Include fixtures for both malicious and clean skills, since false positives can make a scanner unusable.
 
 ## Caveats
