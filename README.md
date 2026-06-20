@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [drawio-skill.md](reviews/drawio-skill.md) | [Agents365-ai/drawio-skill](https://github.com/Agents365-ai/drawio-skill) | MIT | ✅ Deploy candidate | Agent Skill for editable draw.io diagram generation with codebase-to-diagram importers, Graphviz auto-layout, exact vendor shape search, AI/LLM brand logos, deterministic XML validation, and PNG export repair |
 | [hunk.md](reviews/hunk.md) | [modem-dev/hunk](https://github.com/modem-dev/hunk) | MIT | ✅ Deploy candidate | Review-first terminal diff viewer for agent-authored changesets with OpenTUI/React rendering, Git/jj/Sapling loaders, inline agent annotations, loopback session control, reusable TUI components, and strong package/test coverage |
 | [storm.md](reviews/storm.md) | [stanford-oval/storm](https://github.com/stanford-oval/storm) | MIT | 📚 Study | Stanford OVAL knowledge curation engine for perspective-guided retrieval, staged outline/report generation, Co-STORM collaborative discourse, and citation-preserving research artifacts |
 | [knowledge-catalog.md](reviews/knowledge-catalog.md) | [GoogleCloudPlatform/knowledge-catalog](https://github.com/GoogleCloudPlatform/knowledge-catalog) | Apache-2.0 | ⚠️ Interesting | Google Cloud sample repo for Open Knowledge Format, metadata-as-code catalog snapshots, agentic data-documentation enrichment, MCP catalog tooling, and static graph viewing |
@@ -169,6 +170,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [agent-native-drawio-diagram-pipeline.md](patterns/agent-native-drawio-diagram-pipeline.md) | Agents365-ai/drawio-skill | Generate editable draw.io artifacts through a pipeline of diagram planning, XML generation, structural linting, preview export, targeted XML repair, final embedded export, and exporter-specific repair |
 | [local-loopback-agent-session-control.md](patterns/local-loopback-agent-session-control.md) | modem-dev/hunk | Give a human-facing local app a loopback-only structured control plane so agents can inspect, navigate, reload, and annotate live UI state without terminal scraping |
 | [perspective-guided-research-pipeline.md](patterns/perspective-guided-research-pipeline.md) | stanford-oval/storm | Split long-form research generation into perspectives, simulated question asking, retrieval evidence tables, outline synthesis, citation-grounded drafting, and final polishing |
 | [open-knowledge-format.md](patterns/open-knowledge-format.md) | GoogleCloudPlatform/knowledge-catalog | Represent operational knowledge as git-native markdown/frontmatter bundles with concept IDs, links, generated indexes, citations, and agent-safe preservation guards |
