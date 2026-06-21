@@ -1,9 +1,9 @@
 # Persistent Codebase Knowledge Graph
 
-**Source:** https://github.com/Lum1104/Understand-Anything  
-**Author:** Lum1104 / Yuxiang Lin  
-**License:** MIT  
-**Reviewed:** 2026-05-23
+**Source:** https://github.com/Egonex-AI/Understand-Anything
+**Author:** Egonex-AI, originally created by Lum1104 / Yuxiang Lin
+**License:** MIT
+**Reviewed:** 2026-06-20
 
 ## Pattern
 
@@ -26,6 +26,7 @@ That map is imperfect, but it is inspectable, versionable, and reusable.
 ## Core Components
 
 - **Deterministic scan:** enumerate files, languages, frameworks, categories, line counts, and import maps.
+- **Semantic batching:** group related files before LLM analysis so large repositories can be processed in bounded chunks.
 - **Structural extraction:** use tree-sitter and parsers before LLM summarization.
 - **LLM enrichment:** summarize nodes, explain roles, infer relationships, build tours.
 - **Validation:** check schema, referential integrity, layer coverage, duplicates, and graph completeness.
@@ -38,6 +39,7 @@ That map is imperfect, but it is inspectable, versionable, and reusable.
 - Keep the graph schema typed and versioned.
 - Separate structural facts from LLM-authored summaries.
 - Track the git commit hash used to generate the graph.
+- Generate import maps and semantic batches before agent analysis so model calls receive bounded, relevant context.
 - Exclude intermediate files and local diff overlays from committed graph artifacts.
 - Gate file-content preview through graph membership and path normalization.
 - Use Git LFS when graph JSON grows past normal repository-friendly sizes.
@@ -71,4 +73,4 @@ That map is imperfect, but it is inspectable, versionable, and reusable.
 
 ---
 
-**Attribution:** Lum1104/Understand-Anything, MIT
+**Attribution:** Egonex-AI/Understand-Anything, originally created by Lum1104, MIT

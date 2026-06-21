@@ -367,7 +367,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [vercel-labs/json-render](https://github.com/vercel-labs/json-render) | 2026-03-23 | 2026-03-23 | 1 | no |  |  |
 | [semos-labs/glyph](https://github.com/semos-labs/glyph) | 2026-03-23 | 2026-03-23 | 1 | no |  |  |
 | [0xSero/ai-data-extraction](https://github.com/0xSero/ai-data-extraction) | 2026-03-23 | 2026-03-23 | 1 | no |  |  |
-| [Lum1104/Understand-Anything](https://github.com/Lum1104/Understand-Anything) | 2026-03-24 | 2026-03-24 | 1 | yes | 2026-03-24 | [reviews/understand-anything.md](reviews/understand-anything.md) |
+| [Egonex-AI/Understand-Anything](https://github.com/Egonex-AI/Understand-Anything) | 2026-03-24 | 2026-06-20 | 2 | yes | 2026-06-20 | [reviews/understand-anything.md](reviews/understand-anything.md) |
 | [fasouto/termaid](https://github.com/fasouto/termaid) | 2026-03-25 | 2026-03-25 | 1 | yes | 2026-03-25 | [reviews/termaid.md](reviews/termaid.md) |
 | [aliirz/phntm-cli](https://github.com/aliirz/phntm-cli) | 2026-03-25 | 2026-03-25 | 1 | yes | 2026-03-25 | [reviews/phntm-cli.md](reviews/phntm-cli.md) |
 | [SawyerHood/dev-browser](https://github.com/SawyerHood/dev-browser) | 2026-03-25 | 2026-03-25 | 1 | yes | 2026-03-25 | [reviews/dev-browser.md](reviews/dev-browser.md) |
