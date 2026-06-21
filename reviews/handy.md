@@ -8,6 +8,12 @@
 
 ---
 
+## Update Notes
+
+Checked on 2026-06-20 against `bc6a41e418dda66a1f8d0b123e6a83880a66b6a1` (`0.8.3`). The verdict remains the same, but the model matrix is broader than the first pass captured: the current code includes Whisper, Parakeet, Moonshine, SenseVoice, GigaAM, Canary, and Cohere engine paths through `transcribe-rs`. GitHub metadata at check time: about 24.4k stars, 2.1k forks, 94 open issues, and a push on 2026-06-20 UTC.
+
+---
+
 ## Verdict
 
 ✅ **Deploy candidate for local dictation, with Linux and model-stability caveats.** Handy has the right product shape: local-first, one main job, signed releases, cross-platform builds, and a codebase that is much more inspectable than most desktop AI utilities. The weak spots are exactly where desktop speech apps tend to hurt: Wayland input, overlay focus behavior, GPU/model crashes on some configurations, and still-thin test coverage around the real transcription path.
@@ -18,7 +24,7 @@
 
 Handy turns a configurable keyboard shortcut into system-wide dictation. Press the shortcut, speak, release or toggle, and the app runs local speech recognition before pasting the text into whatever field had focus. The core path is intentionally simple and privacy-oriented: microphone input is captured locally, silence is filtered with VAD, transcription runs on local Whisper or Parakeet-family models, and the result can be pasted without sending audio to a cloud service.
 
-The project is explicitly positioned as a forkable foundation, not just a packaged app. That shows in the README, the CLI control flags, the Raycast integration, the manual model installation path, the Linux display-server notes, and the active maintainer notes about refactoring settings and Tauri command organization. As of review, GitHub reports roughly 24.3k stars, 2.1k forks, 177 open issues, and a push on 2026-06-20 UTC.
+The project is explicitly positioned as a forkable foundation, not just a packaged app. That shows in the README, the CLI control flags, the Raycast integration, the manual model installation path, the Linux display-server notes, and the active maintainer notes about refactoring settings and Tauri command organization. As of check-in, GitHub reports roughly 24.4k stars, 2.1k forks, 94 open issues, and a push on 2026-06-20 UTC.
 
 ---
 
@@ -29,7 +35,7 @@ The project is explicitly positioned as a forkable foundation, not just a packag
 | Desktop shell | Tauri 2 |
 | Backend | Rust |
 | Frontend | React 18, TypeScript, Tailwind CSS, Vite |
-| Speech inference | `transcribe-rs`, Whisper, Parakeet, ONNX, whisper.cpp features |
+| Speech inference | `transcribe-rs`, Whisper, Parakeet, Moonshine, SenseVoice, GigaAM, Canary, Cohere, ONNX, whisper.cpp features |
 | Audio | `cpal`, `rubato`, `hound`, `vad-rs`, Silero VAD resource |
 | State | Tauri store, bundled SQLite via `rusqlite` |
 | Shortcuts/input | Tauri global shortcut, `handy-keys`, `rdev`, `enigo`, platform command helpers |
@@ -42,7 +48,7 @@ The project is explicitly positioned as a forkable foundation, not just a packag
 
 Handy supports multiple local model families instead of hard-coding one Whisper build. The model manager tracks model IDs, filenames, download URLs, SHA-256 hashes, size, engine type, language support, translation support, and whether a model is custom. That is the right model-management shape for a consumer-facing local AI app: users can pick speed versus accuracy, and the app can still reason about capabilities.
 
-The README currently highlights Whisper Small/Medium/Turbo/Large and Parakeet V3. The code has room for more engines, including Moonshine, SenseVoice, GigaAM, Canary, and Cohere model variants, which suggests the app is moving toward a broader local ASR runtime rather than a single-model wrapper.
+The README currently highlights Whisper Small/Medium/Turbo/Large and Parakeet V3. The code already exposes more engines, including Moonshine, SenseVoice, GigaAM, Canary, and Cohere model variants, which makes Handy more of a local ASR runtime shell than a single-model wrapper.
 
 ### System-Wide Control Surface
 
