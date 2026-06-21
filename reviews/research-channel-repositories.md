@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 514 public/included repositories, 140 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 515 public/included repositories, 141 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [azz-kikkr/kulshan](https://github.com/azz-kikkr/kulshan) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/kulshan.md](reviews/kulshan.md) |
 | [nubo-db/dynoxide](https://github.com/nubo-db/dynoxide) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/dynoxide.md](reviews/dynoxide.md) |
 | [modem-dev/hunk](https://github.com/modem-dev/hunk) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/hunk.md](reviews/hunk.md) |
 | [stanford-oval/storm](https://github.com/stanford-oval/storm) | 2026-06-18 | 2026-06-18 | 1 | yes | 2026-06-18 | [reviews/storm.md](reviews/storm.md) |
