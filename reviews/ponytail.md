@@ -8,9 +8,18 @@
 
 ---
 
+## Update Notes
+
+**Checked:** 2026-06-20 18:26 PDT  
+**Prior reviewed ref:** `0403c4d`  
+**Current ref:** `6da37bf`  
+**Material changes:** bumped `@modelcontextprotocol/sdk` from `^1.19.0` to `^1.26.0` for CVE-2026-25536, added shell-metacharacter allowlist protection before emitting Claude statusline setup commands, added tests for unsafe install paths, and made the robustness audit use `python3`/`python` probing instead of assuming `python3`.
+
+---
+
 ## Verdict
 
-✅ **Deploy candidate for agent-instruction stacks.** Ponytail is small, opinionated, and unusually disciplined about portability: one canonical skill body fans out into multiple host adapters, generated OpenClaw skills, plugin manifests, lifecycle hooks, and tests that catch drift. The main caveat is that its own local test run needs `pandas` installed for the benchmark correctness test; upstream CI accounts for that.
+✅ **Deploy candidate for agent-instruction stacks.** Ponytail is small, opinionated, and unusually disciplined about portability: one canonical skill body fans out into multiple host adapters, generated OpenClaw skills, plugin manifests, lifecycle hooks, and tests that catch drift. The latest check improves the security posture by bumping the MCP SDK and avoiding unsafe shell command snippets for odd install paths. The main local caveat remains that `npm test` needs `pandas` installed for the benchmark correctness test; upstream CI accounts for that.
 
 ---
 
@@ -54,6 +63,10 @@ The skill is explicit about what must not be simplified away: trust-boundary val
 ### Benchmark Harness With Critique Response
 
 The benchmark docs directly address a prior critique of the project's single-shot numbers. The newer agentic run uses real agent sessions, isolates plugins per arm, measures diffs rather than prose, and checks adversarial cases such as path traversal, SQL injection, forged tokens, malformed CSV rows, and client-specific rate limiting.
+
+### Fast Security Maintenance
+
+The current head includes a targeted MCP SDK bump for CVE-2026-25536 and a defensive statusline setup change. Instead of trying to escape every shell, Ponytail only embeds install paths made of ordinary path characters and falls back to manual setup instructions when a plugin path contains metacharacters. That is a small but good local-agent hardening move.
 
 ## Architecture
 
