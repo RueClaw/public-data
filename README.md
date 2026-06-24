@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [mineru.md](reviews/mineru.md) | [opendatalab/MinerU](https://github.com/opendatalab/MinerU) | MinerU Open Source License | ✅ Deploy candidate | Multi-format document parsing engine for PDFs, images, DOCX, PPTX, and XLSX with Markdown/JSON outputs, hybrid/VLM/pipeline backends, FastAPI tasks, router deployment, Gradio, Docker, and public-bind SSRF guard |
 | [handy.md](reviews/handy.md) | [cjpais/Handy](https://github.com/cjpais/Handy) | MIT | ✅ Deploy candidate | Cross-platform local speech-to-text desktop app with Rust/Tauri, shortcut-driven recording, multi-engine local ASR model management, VAD, active-app paste, optional transcript post-processing, signed releases, and candid Linux/Wayland caveats |
 | [improve.md](reviews/improve.md) | [shadcn/improve](https://github.com/shadcn/improve) | MIT | ✅ Deploy candidate | Agent Skill for read-only codebase audits that turns vetted findings into commit-stamped, self-contained implementation plans for separate executor agents or humans |
 | [kulshan.md](reviews/kulshan.md) | [azz-kikkr/kulshan](https://github.com/azz-kikkr/kulshan) | Apache-2.0 | ✅ Deploy candidate | Local-first read-only AWS FinOps and posture audit CLI with ten opt-in packs, explicit IAM policies, local HTML/JSON/SARIF/CSV reports, PII redaction, Cost Explorer cost warnings, and agent-readable output |
@@ -176,6 +177,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [public-bind-http-client-guard.md](patterns/public-bind-http-client-guard.md) | opendatalab/MinerU | Disable caller-supplied remote HTTP endpoints automatically when a self-hosted API is bound to public interfaces, unless the operator explicitly opts in |
 | [advisor-executor-plan-handoff.md](patterns/advisor-executor-plan-handoff.md) | shadcn/improve | Separate senior codebase audit and planning from bounded execution by writing commit-stamped, self-contained plans with drift checks, scope, verification gates, and STOP conditions |
 | [local-first-read-only-cloud-audit.md](patterns/local-first-read-only-cloud-audit.md) | azz-kikkr/kulshan | Run cloud posture and cost audits from a local CLI with explicit read-only IAM, opt-in packs, local reports, PII redaction, machine-readable output, and no SaaS data upload |
 | [conformance-first-service-emulator.md](patterns/conformance-first-service-emulator.md) | nubo-db/dynoxide | Build local cloud-service emulators around real-service conformance suites, embedded test APIs, wire-compatible servers, explicit unsupported surfaces, and release gates for compatibility/security drift |

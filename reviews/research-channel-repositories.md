@@ -2,16 +2,17 @@
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
 **Message range:** 2026-02-17 to 2026-06-20
-**Generated:** 2026-06-18; manually updated 2026-06-20
+**Generated:** 2026-06-18; manually updated 2026-06-24
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 515 public/included repositories, 141 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 516 public/included repositories, 142 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [opendatalab/MinerU](https://github.com/opendatalab/MinerU) | 2026-06-24 | 2026-06-24 | 1 | yes | 2026-06-24 | [reviews/mineru.md](reviews/mineru.md) |
 | [azz-kikkr/kulshan](https://github.com/azz-kikkr/kulshan) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/kulshan.md](reviews/kulshan.md) |
 | [nubo-db/dynoxide](https://github.com/nubo-db/dynoxide) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/dynoxide.md](reviews/dynoxide.md) |
 | [modem-dev/hunk](https://github.com/modem-dev/hunk) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/hunk.md](reviews/hunk.md) |
