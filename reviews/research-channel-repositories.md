@@ -122,6 +122,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [manaflow-ai/cmux](https://github.com/manaflow-ai/cmux) | 2026-02-26 | 2026-02-26 | 1 | no |  |  |
 | [gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done) | 2026-02-26 | 2026-02-26 | 1 | yes | 2026-02-26 | Research/repo-reviews/get-shit-done.md |
 | [nicobailon/visual-explainer](https://github.com/nicobailon/visual-explainer) | 2026-02-27 | 2026-06-25 | 3 | yes | 2026-06-25 | [reviews/visual-explainer.md](reviews/visual-explainer.md) |
+| [utsengar/htmlbin-cli](https://github.com/utsengar/htmlbin-cli) | 2026-06-25 | 2026-06-25 | 1 | yes | 2026-06-25 | [reviews/htmlbin-cli.md](reviews/htmlbin-cli.md) |
 | [hamelsmu/research-council](https://github.com/hamelsmu/research-council) | 2026-02-27 | 2026-02-27 | 1 | yes | 2026-02-26 | Research/repo-reviews/research-council.md |
 | [apple/python-apple-fm-sdk](https://github.com/apple/python-apple-fm-sdk) | 2026-02-27 | 2026-02-27 | 1 | yes | 2026-02-26 | Research/repo-reviews/apple-fm-sdk.md |
 | [Whamp/pi-token-burden](https://github.com/Whamp/pi-token-burden) | 2026-02-27 | 2026-02-27 | 1 | yes | 2026-02-26 | Research/repo-reviews/pi-token-burden.md |
