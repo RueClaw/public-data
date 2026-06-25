@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [fractal.md](reviews/fractal.md) | [Trampoline-AI/fractal](https://github.com/Trampoline-AI/fractal) | MIT | ✅ Deploy candidate | Recursive Language Model terminal coding agent with predict-rlm, Docker SBX direct workspace mounts, provider setup, session persistence, TUI, headless JSON delegation mode, installable agent skill, and 270 passing tests |
 | [mineru.md](reviews/mineru.md) | [opendatalab/MinerU](https://github.com/opendatalab/MinerU) | MinerU Open Source License | ✅ Deploy candidate | Multi-format document parsing engine for PDFs, images, DOCX, PPTX, and XLSX with Markdown/JSON outputs, hybrid/VLM/pipeline backends, FastAPI tasks, router deployment, Gradio, Docker, and public-bind SSRF guard |
 | [handy.md](reviews/handy.md) | [cjpais/Handy](https://github.com/cjpais/Handy) | MIT | ✅ Deploy candidate | Cross-platform local speech-to-text desktop app with Rust/Tauri, shortcut-driven recording, multi-engine local ASR model management, VAD, active-app paste, optional transcript post-processing, signed releases, and candid Linux/Wayland caveats |
 | [improve.md](reviews/improve.md) | [shadcn/improve](https://github.com/shadcn/improve) | MIT | ✅ Deploy candidate | Agent Skill for read-only codebase audits that turns vetted findings into commit-stamped, self-contained implementation plans for separate executor agents or humans |
