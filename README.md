@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [cve-env.md](reviews/cve-env.md) | [gadievron/cve-env](https://github.com/gadievron/cve-env) | MIT | ⚠️ Interesting | Agentic CVE-to-Docker lab builder that researches affected versions, pulls or builds pre-patch environments, launches them with hardened localhost-only defaults, and requires both version proof and benign functional smoke before marking success |
 | [agentsonar.md](reviews/agentsonar.md) | [knostic/AgentSonar](https://github.com/knostic/AgentSonar) | **no license** | ⚠️ Interesting | Go endpoint network monitor for shadow-AI detection, joining DNS/TLS/SNI/streaming traffic to local process/domain pairs with heuristic AI scoring, SQLite events, overrides, external classifiers, Sigma export, and partial router/mirror support via PID0 mode |
 | [exploitation-validator.md](reviews/exploitation-validator.md) | [gadievron/exploitation-validator](https://github.com/gadievron/exploitation-validator) | MIT | 🔧 Harvest | Prompt-only staged exploitability validation pipeline for LLM sub-agents, with inventory, one-shot proof attempts, systematic attack-path documents, source sanity checks, ruling filters, and final self-review |
 | [os-june.md](reviews/os-june.md) | [open-software-network/os-june](https://github.com/open-software-network/os-june) | MIT | ✅ Deploy candidate | Private Tauri desktop AI assistant for meeting notes, dictation, and local Hermes agent work, with saved-audio-first capture, SQLite local state, June API model proxying, TEE attestation docs, and mature macOS/Windows release workflows |
@@ -184,6 +185,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [cve-to-verified-container-lab-pipeline.md](patterns/cve-to-verified-container-lab-pipeline.md) | gadievron/cve-env | Build vulnerable lab environments through staged CVE research, image/source acquisition, hardened local launch, affected-version proof, benign functional smoke, and explicit partial outcome statuses |
 | [llm-exploitability-validation-prompt-pipeline.md](patterns/llm-exploitability-validation-prompt-pipeline.md) | gadievron/exploitation-validator | Split LLM-driven vulnerability analysis into inventory, attempted proof, systematic attack-path exploration, source sanity checks, ruling filters, and final self-review artifacts |
 | [public-bind-http-client-guard.md](patterns/public-bind-http-client-guard.md) | opendatalab/MinerU | Disable caller-supplied remote HTTP endpoints automatically when a self-hosted API is bound to public interfaces, unless the operator explicitly opts in |
 | [advisor-executor-plan-handoff.md](patterns/advisor-executor-plan-handoff.md) | shadcn/improve | Separate senior codebase audit and planning from bounded execution by writing commit-stamped, self-contained plans with drift checks, scope, verification gates, and STOP conditions |
