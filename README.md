@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [arcane.md](reviews/arcane.md) | [getarcaneapp/arcane](https://github.com/getarcaneapp/arcane) | BSD-3-Clause | ✅ Deploy candidate | Self-hosted Docker/Compose control plane with Go/Huma backend, SvelteKit UI, granular RBAC, OIDC/API keys, edge agents, GitOps syncs, vulnerability scans, signed multi-arch releases, and Docker-socket deployment caveats |
 | [cve-env.md](reviews/cve-env.md) | [gadievron/cve-env](https://github.com/gadievron/cve-env) | MIT | ⚠️ Interesting | Agentic CVE-to-Docker lab builder that researches affected versions, pulls or builds pre-patch environments, launches them with hardened localhost-only defaults, and requires both version proof and benign functional smoke before marking success |
 | [agentsonar.md](reviews/agentsonar.md) | [knostic/AgentSonar](https://github.com/knostic/AgentSonar) | **no license** | ⚠️ Interesting | Go endpoint network monitor for shadow-AI detection, joining DNS/TLS/SNI/streaming traffic to local process/domain pairs with heuristic AI scoring, SQLite events, overrides, external classifiers, Sigma export, and partial router/mirror support via PID0 mode |
 | [exploitation-validator.md](reviews/exploitation-validator.md) | [gadievron/exploitation-validator](https://github.com/gadievron/exploitation-validator) | MIT | 🔧 Harvest | Prompt-only staged exploitability validation pipeline for LLM sub-agents, with inventory, one-shot proof attempts, systematic attack-path documents, source sanity checks, ruling filters, and final self-review |
@@ -185,6 +186,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [edge-agent-command-allowlist.md](patterns/edge-agent-command-allowlist.md) | getarcaneapp/arcane | Restrict remote high-authority agents through an explicit method/path/stream command registry, stable command names, manager-side permission checks, audit labels, and fail-closed routing |
 | [cve-to-verified-container-lab-pipeline.md](patterns/cve-to-verified-container-lab-pipeline.md) | gadievron/cve-env | Build vulnerable lab environments through staged CVE research, image/source acquisition, hardened local launch, affected-version proof, benign functional smoke, and explicit partial outcome statuses |
 | [llm-exploitability-validation-prompt-pipeline.md](patterns/llm-exploitability-validation-prompt-pipeline.md) | gadievron/exploitation-validator | Split LLM-driven vulnerability analysis into inventory, attempted proof, systematic attack-path exploration, source sanity checks, ruling filters, and final self-review artifacts |
 | [public-bind-http-client-guard.md](patterns/public-bind-http-client-guard.md) | opendatalab/MinerU | Disable caller-supplied remote HTTP endpoints automatically when a self-hosted API is bound to public interfaces, unless the operator explicitly opts in |
