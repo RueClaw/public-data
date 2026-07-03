@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [exploitation-validator.md](reviews/exploitation-validator.md) | [gadievron/exploitation-validator](https://github.com/gadievron/exploitation-validator) | MIT | 🔧 Harvest | Prompt-only staged exploitability validation pipeline for LLM sub-agents, with inventory, one-shot proof attempts, systematic attack-path documents, source sanity checks, ruling filters, and final self-review |
 | [os-june.md](reviews/os-june.md) | [open-software-network/os-june](https://github.com/open-software-network/os-june) | MIT | ✅ Deploy candidate | Private Tauri desktop AI assistant for meeting notes, dictation, and local Hermes agent work, with saved-audio-first capture, SQLite local state, June API model proxying, TEE attestation docs, and mature macOS/Windows release workflows |
 | [fractal.md](reviews/fractal.md) | [Trampoline-AI/fractal](https://github.com/Trampoline-AI/fractal) | MIT | ✅ Deploy candidate | Recursive Language Model terminal coding agent with predict-rlm, Docker SBX direct workspace mounts, provider setup, session persistence, TUI, headless JSON delegation mode, installable agent skill, and 270 passing tests |
 | [mineru.md](reviews/mineru.md) | [opendatalab/MinerU](https://github.com/opendatalab/MinerU) | MinerU Open Source License | ✅ Deploy candidate | Multi-format document parsing engine for PDFs, images, DOCX, PPTX, and XLSX with Markdown/JSON outputs, hybrid/VLM/pipeline backends, FastAPI tasks, router deployment, Gradio, Docker, and public-bind SSRF guard |
@@ -182,6 +183,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [llm-exploitability-validation-prompt-pipeline.md](patterns/llm-exploitability-validation-prompt-pipeline.md) | gadievron/exploitation-validator | Split LLM-driven vulnerability analysis into inventory, attempted proof, systematic attack-path exploration, source sanity checks, ruling filters, and final self-review artifacts |
 | [public-bind-http-client-guard.md](patterns/public-bind-http-client-guard.md) | opendatalab/MinerU | Disable caller-supplied remote HTTP endpoints automatically when a self-hosted API is bound to public interfaces, unless the operator explicitly opts in |
 | [advisor-executor-plan-handoff.md](patterns/advisor-executor-plan-handoff.md) | shadcn/improve | Separate senior codebase audit and planning from bounded execution by writing commit-stamped, self-contained plans with drift checks, scope, verification gates, and STOP conditions |
 | [local-first-read-only-cloud-audit.md](patterns/local-first-read-only-cloud-audit.md) | azz-kikkr/kulshan | Run cloud posture and cost audits from a local CLI with explicit read-only IAM, opt-in packs, local reports, PII redaction, machine-readable output, and no SaaS data upload |
