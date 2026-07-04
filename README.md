@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [traycer.md](reviews/traycer.md) | [traycerai/traycer](https://github.com/traycerai/traycer) | Apache-2.0 | ✅ Deploy candidate | Desktop multi-agent coding workspace with React/Electron GUI, Bun/Nx TypeScript monorepo, signed local host lifecycle, per-method versioned RPC, Yjs-backed Epic state, terminal agents, collaboration, and strong CI/security hygiene |
 | [outline.md](reviews/outline.md) | [outline/outline](https://github.com/outline/outline) | BSL-1.1 | ✅ Deploy candidate | Mature collaborative team knowledge base with React/Vite/MobX frontend, Koa/Postgres/Redis backend, ProseMirror/Hocuspocus realtime editing, large integration surface, Docker self-hosting, strong CI, and a scope-aware MCP endpoint |
 | [arcane.md](reviews/arcane.md) | [getarcaneapp/arcane](https://github.com/getarcaneapp/arcane) | BSD-3-Clause | ✅ Deploy candidate | Self-hosted Docker/Compose control plane with Go/Huma backend, SvelteKit UI, granular RBAC, OIDC/API keys, edge agents, GitOps syncs, vulnerability scans, signed multi-arch releases, and Docker-socket deployment caveats |
 | [use-codex-skill.md](reviews/use-codex-skill.md) | [Use Codex Skill](https://public.my-agent-04eee268.sandbox.dev/skills/use-codex.md) | N/A | ⚠️ Interesting | Skill document for delegating context-heavy work to Codex CLI subagents; useful parent/subagent synthesis pattern, but risky defaults around shell-spawned agents, broad execution flags, generic temp files, and weak validation guardrails |
@@ -188,6 +189,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [per-method-versioned-rpc-compatibility.md](patterns/per-method-versioned-rpc-compatibility.md) | traycerai/traycer | Evolve independently shipped clients, CLIs, and local hosts with per-method schema versions, manifest negotiation, explicit upgrade/downgrade paths, and transport-owned payload transforms |
 | [oauth-scoped-application-mcp-tools.md](patterns/oauth-scoped-application-mcp-tools.md) | outline/outline | Expose an application's native objects/actions as MCP tools by creating a scope-filtered per-request tool surface, gating it by tenant preference, and reusing existing auth, policy checks, presenters, signed URLs, rate limits, and tests |
 | [edge-agent-command-allowlist.md](patterns/edge-agent-command-allowlist.md) | getarcaneapp/arcane | Restrict remote high-authority agents through an explicit method/path/stream command registry, stable command names, manager-side permission checks, audit labels, and fail-closed routing |
 | [cli-subagent-context-offload.md](patterns/cli-subagent-context-offload.md) | Use Codex Skill | Delegate noisy or context-heavy work to bounded CLI subagents while the parent agent owns prompt specificity, side-effect boundaries, completion monitoring, claim validation, and final synthesis |
