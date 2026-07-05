@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [dzhng-skills.md](reviews/dzhng-skills.md) | [dzhng/skills](https://github.com/dzhng/skills) | MIT | ✅ Deploy candidate | Portable Agent Skills catalog for software-factory workflows: unknown mapping, living spec slice graphs, iterative implementation passes, visual comparison gates, refactor cleanup, second-agent review, and skill authoring/eval discipline |
 | [meetily.md](reviews/meetily.md) | [Zackriya-Solutions/meetily](https://github.com/Zackriya-Solutions/meetily) | MIT | ✅ Deploy candidate | Local-first Tauri meeting assistant with Rust audio capture, Whisper/Parakeet transcription, import/retranscription, SQLite meeting folders, local or cloud summary providers, and caveats around broad native permissions and model provenance |
 | [traycer.md](reviews/traycer.md) | [traycerai/traycer](https://github.com/traycerai/traycer) | Apache-2.0 | ✅ Deploy candidate | Desktop multi-agent coding workspace with React/Electron GUI, Bun/Nx TypeScript monorepo, signed local host lifecycle, per-method versioned RPC, Yjs-backed Epic state, terminal agents, collaboration, and strong CI/security hygiene |
 | [outline.md](reviews/outline.md) | [outline/outline](https://github.com/outline/outline) | BSL-1.1 | ✅ Deploy candidate | Mature collaborative team knowledge base with React/Vite/MobX frontend, Koa/Postgres/Redis backend, ProseMirror/Hocuspocus realtime editing, large integration surface, Docker self-hosting, strong CI, and a scope-aware MCP endpoint |
@@ -190,6 +191,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [living-slice-graph-spec-loop.md](patterns/living-slice-graph-spec-loop.md) | dzhng/skills | Represent long-running software work as a living spec folder with independently verifiable slices, current handoff state, review evidence, gates, and explicit reslicing when implementation uncovers hidden scope |
 | [per-method-versioned-rpc-compatibility.md](patterns/per-method-versioned-rpc-compatibility.md) | traycerai/traycer | Evolve independently shipped clients, CLIs, and local hosts with per-method schema versions, manifest negotiation, explicit upgrade/downgrade paths, and transport-owned payload transforms |
 | [oauth-scoped-application-mcp-tools.md](patterns/oauth-scoped-application-mcp-tools.md) | outline/outline | Expose an application's native objects/actions as MCP tools by creating a scope-filtered per-request tool surface, gating it by tenant preference, and reusing existing auth, policy checks, presenters, signed URLs, rate limits, and tests |
 | [edge-agent-command-allowlist.md](patterns/edge-agent-command-allowlist.md) | getarcaneapp/arcane | Restrict remote high-authority agents through an explicit method/path/stream command registry, stable command names, manager-side permission checks, audit labels, and fail-closed routing |

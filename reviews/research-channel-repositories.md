@@ -12,6 +12,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [dzhng/skills](https://github.com/dzhng/skills) | 2026-07-05 | 2026-07-05 | 1 | yes | 2026-07-05 | [reviews/dzhng-skills.md](reviews/dzhng-skills.md) |
 | [opendatalab/MinerU](https://github.com/opendatalab/MinerU) | 2026-06-24 | 2026-06-24 | 1 | yes | 2026-06-24 | [reviews/mineru.md](reviews/mineru.md) |
 | [azz-kikkr/kulshan](https://github.com/azz-kikkr/kulshan) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/kulshan.md](reviews/kulshan.md) |
 | [nubo-db/dynoxide](https://github.com/nubo-db/dynoxide) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/dynoxide.md](reviews/dynoxide.md) |
