@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [council-of-high-intelligence.md](reviews/council-of-high-intelligence.md) | [0xNyk/council-of-high-intelligence](https://github.com/0xNyk/council-of-high-intelligence) | MIT | ✅ Deploy candidate | Multi-persona, multi-provider deliberation skill with 18 reasoning seats, blind-first analysis, anonymized cross-examination, method diversity, confidence-weighted stances, chairman synthesis, and Claude/Codex/Gemini/opencode packaging |
 | [mission-control.md](reviews/mission-control.md) | [builderz-labs/mission-control](https://github.com/builderz-labs/mission-control) | MIT | ✅ Deploy candidate | Self-hosted AI agent operations dashboard/control plane with Next.js, SQLite, RBAC, task/review gates, runtime dispatch, skills, memory, costs, security scans, OpenAPI parity, and serious test/CI posture |
 | [awesome-hermes-agent.md](reviews/awesome-hermes-agent.md) | [0xNyk/awesome-hermes-agent](https://github.com/0xNyk/awesome-hermes-agent) | CC BY 4.0 | 📚 Study | Large curated Hermes Agent ecosystem map with 189 maturity-tagged skills, plugins, tools, memory providers, integrations, deployment resources, operational playbooks, and blueprint bundles; useful for discovery, not as a verified registry |
 | [codesherpa.md](reviews/codesherpa.md) | [farhankhwaja/codesherpa](https://github.com/farhankhwaja/codesherpa) | Apache-2.0 | ✅ Deploy candidate | Local git-native structural memory for coding agents with blob-keyed incremental indexing, tree-sitter chunks, SQLite/FTS5/sqlite-vec storage, hybrid retrieval, compact MCP tools, local analytics, and candid eval caveats |
@@ -194,6 +195,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [anti-convergence-deliberation-protocol.md](patterns/anti-convergence-deliberation-protocol.md) | 0xNyk/council-of-high-intelligence | Run hard decisions through blind-first analysis, anonymized cross-examination, named updates, forced dissent checks, structured stance lines, confidence-weighted tallies, no-consensus reporting, and separate synthesis |
 | [git-blob-keyed-code-memory.md](patterns/git-blob-keyed-code-memory.md) | farhankhwaja/codesherpa | Cache expensive code-index work by git blob hash, map active refs/paths separately, recompute path-dependent projections, and validate incremental sync against clean rebuilds |
 | [living-slice-graph-spec-loop.md](patterns/living-slice-graph-spec-loop.md) | dzhng/skills | Represent long-running software work as a living spec folder with independently verifiable slices, current handoff state, review evidence, gates, and explicit reslicing when implementation uncovers hidden scope |
 | [per-method-versioned-rpc-compatibility.md](patterns/per-method-versioned-rpc-compatibility.md) | traycerai/traycer | Evolve independently shipped clients, CLIs, and local hosts with per-method schema versions, manifest negotiation, explicit upgrade/downgrade paths, and transport-owned payload transforms |
