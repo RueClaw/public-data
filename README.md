@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [emilkowalski-skills.md](reviews/emilkowalski-skills.md) | [emilkowalski/skills](https://github.com/emilkowalski/skills) | MIT | ✅ Deploy candidate | Compact design-engineering skill pack for AI agents with strict animation-review standards, concrete easing/duration/origin/accessibility rules, motion vocabulary, and Apple-style fluid-interface guidance |
 | [poormansadvisor.md](reviews/poormansadvisor.md) | [leighstillard/poormansadvisor](https://github.com/leighstillard/poormansadvisor) | README says MIT; no LICENSE file | ⚠️ Interesting | Single-file Claude Code advisor-consult skill with useful stuck-loop and architecture-decision triggers, but weak packaging, no validation, brittle model/subagent assumptions, and an unsafe verbatim-return rule |
 | [fable-advisor.md](reviews/fable-advisor.md) | [DannyMac180/fable-advisor](https://github.com/DannyMac180/fable-advisor) | MIT | ⚠️ Interesting | Claude Code plugin and skill for architect-as-orchestrator model routing: top model keeps judgment/specs/verification while Sonnet, Opus, and Codex lanes handle implementation volume; useful contracts, but model/account assumptions and Codex workspace authority need care |
 | [dctanner-cook-skill.md](reviews/dctanner-cook-skill.md) | [dctanner cook Skill](https://gist.github.com/dctanner/54c57da4a94a24e71df6281f487f51e1) | **no license** | ⚠️ Interesting | Tiny agent coding workflow skill with a useful plan-approve-implement-review-smoke-test shape, but unsafe defaults around `codex --yolo`, environment-specific model names, real requests, and commit/push authority |
@@ -206,6 +207,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [motion-review-quality-gate.md](patterns/motion-review-quality-gate.md) | emilkowalski/skills | Review UI motion as a first-class quality surface with explicit blockers for high-frequency animation, weak easing, wrong origins, layout-property animation, missing reduced-motion handling, and vague taste-only feedback |
 | [anti-convergence-deliberation-protocol.md](patterns/anti-convergence-deliberation-protocol.md) | 0xNyk/council-of-high-intelligence | Run hard decisions through blind-first analysis, anonymized cross-examination, named updates, forced dissent checks, structured stance lines, confidence-weighted tallies, no-consensus reporting, and separate synthesis |
 | [git-blob-keyed-code-memory.md](patterns/git-blob-keyed-code-memory.md) | farhankhwaja/codesherpa | Cache expensive code-index work by git blob hash, map active refs/paths separately, recompute path-dependent projections, and validate incremental sync against clean rebuilds |
 | [living-slice-graph-spec-loop.md](patterns/living-slice-graph-spec-loop.md) | dzhng/skills | Represent long-running software work as a living spec folder with independently verifiable slices, current handoff state, review evidence, gates, and explicit reslicing when implementation uncovers hidden scope |
