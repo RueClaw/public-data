@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [colibri.md](reviews/colibri.md) | [JustVugg/colibri](https://github.com/JustVugg/colibri) | Apache-2.0 | ✅ Deploy candidate | Tiny C inference engine for running GLM-5.2 744B MoE on consumer hardware by keeping dense weights resident, streaming routed experts from NVMe, caching/pinning hot experts, exposing an OpenAI-compatible local server, and shipping a small React/Vite client |
 | [omnigent.md](reviews/omnigent.md) | [omnigent-ai/omnigent](https://github.com/omnigent-ai/omnigent) | Apache-2.0 | ✅ Deploy candidate | Python meta-harness/control plane for Claude Code, Codex, Cursor, OpenCode, Hermes, Pi, Kimi, Qwen, Copilot, Antigravity, and custom YAML agents, with FastAPI server, sharing, policies, sandboxing, credential proxying, cloud sandbox providers, and broad CI |
 | [superpowers.md](reviews/superpowers.md) | [obra/superpowers](https://github.com/obra/superpowers) | MIT | ✅ Deploy candidate | Multi-harness Agent Skills methodology for coding agents with brainstorming, planning, TDD, file-backed subagent-driven development, skeptical task review, Codex marketplace packaging, and strong AI-contribution guardrails |
 | [destructive-command-guard.md](reviews/destructive-command-guard.md) | [Dicklesworthstone/destructive_command_guard](https://github.com/Dicklesworthstone/destructive_command_guard) | MIT-style with OpenAI/Anthropic rider | ⚠️ Interesting | Rust command guard for AI coding agents that blocks destructive shell/git/cloud/db/Kubernetes commands before execution, with agent-specific hook protocols, modular rule packs, heredoc/inline-script scanning, scan/SARIF modes, broad tests, and a restrictive/non-OSI license rider |
@@ -213,6 +214,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [disk-tiered-moe-inference.md](patterns/disk-tiered-moe-inference.md) | JustVugg/colibri | Run oversized MoE models by keeping dense/shared weights resident, streaming cold routed experts from local NVMe, and promoting hot experts into RAM/VRAM based on usage and resource planning |
 | [secretless-sandbox-credential-proxy.md](patterns/secretless-sandbox-credential-proxy.md) | omnigent-ai/omnigent | Keep real credentials in a trusted parent process and let an egress proxy attach or swap them only for configured hosts, so sandboxed agent tools get scoped API access without receiving long-lived tokens |
 | [file-backed-subagent-review-loop.md](patterns/file-backed-subagent-review-loop.md) | obra/superpowers | Use workspace artifacts for task briefs, diffs, implementer reports, reviewer verdicts, and progress ledgers so subagent-driven development stays resumable, auditable, and less context-heavy |
 | [scanner-backed-aesthetic-taxonomy-skill.md](patterns/scanner-backed-aesthetic-taxonomy-skill.md) | yetone/kill-ai-slop | Turn subjective design critique into an agent workflow with a named taxonomy, detection leads, false-positive notes, remediation patterns, a read-only scanner, human-visible triage, and approval-gated minimal fixes |
