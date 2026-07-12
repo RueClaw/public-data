@@ -2,34 +2,44 @@
 
 **Repo:** https://github.com/DietrichGebert/ponytail  
 **License:** MIT. Reusable with attribution.  
-**Reviewed:** 2026-06-20  
-**Stack:** JavaScript, Node.js lifecycle hooks, Agent Skills, MCP, Claude/Codex/OpenCode/Gemini/Copilot/Pi/OpenClaw adapters  
-**What it is:** Ponytail is a portable "lazy senior developer" instruction pack for coding agents. It tries to make agents stop before overbuilding: skip unnecessary work, use the standard library, use native platform features, and only write custom code when the simpler rungs fail.
+**Reviewed:** 2026-07-11  
+**Stack:** JavaScript/Node lifecycle hooks, Agent Skills, MCP, npm package, Claude/Codex/OpenCode/Gemini/Copilot/Pi/Hermes/Qoder/Devin/OpenClaw adapters  
+**What it is:** Ponytail is a portable "lazy senior developer" instruction pack for coding agents. It pushes agents to understand the task, reuse what already exists, prefer standard/native features, and only write custom code when the simpler rungs fail.
 
 ---
 
 ## Update Notes
 
-**Checked:** 2026-06-20 18:26 PDT  
-**Prior reviewed ref:** `0403c4d`  
-**Current ref:** `6da37bf`  
-**Material changes:** bumped `@modelcontextprotocol/sdk` from `^1.19.0` to `^1.26.0` for CVE-2026-25536, added shell-metacharacter allowlist protection before emitting Claude statusline setup commands, added tests for unsafe install paths, and made the robustness audit use `python3`/`python` probing instead of assuming `python3`.
+**Checked:** 2026-07-11  
+**Prior reviewed ref:** `6da37bf`  
+**Current ref:** `14a0d79`  
+**Latest release:** `v4.8.4` (2026-06-29); `main` has additional fixes after that tag.  
+
+Material changes since the prior review:
+
+- Ponytail is now published as the scoped npm package `@dietrichgebert/ponytail`, with OpenCode/Pi packaging and npm trusted-publishing workflow.
+- Added or expanded Qoder, Devin, Hermes, Pi, Copilot, Codex, OpenCode, Antigravity/Gemini, and static AGENTS/rules support.
+- Fixed Codex hook output schemas, including top-level `additionalContext` for Codex CLI SessionStart.
+- Added subagent ruleset injection via lifecycle hooks, with later scoping so SubagentStart injection can be limited by agent type.
+- Added default-mode persistence (`/ponytail default <mode>`), quiet Pi startup options, status indicator controls, and safer uninstall behavior that preserves combined statuslines.
+- Hardened cross-platform behavior: PowerShell-compatible hook commands, no bash-only `exec`, Windows stdin EOF freeze fix, CRLF handling, malformed config handling, and Qwen/OpenCode system-entry compatibility.
+- Improved adapter/test coverage: Pi extension tests, MCP tests under root test intent, Qoder tests, copied-rule invariants, OpenClaw generated-skill parity, and more manifest/version drift checks.
 
 ---
 
 ## Verdict
 
-✅ **Deploy candidate for agent-instruction stacks.** Ponytail is small, opinionated, and unusually disciplined about portability: one canonical skill body fans out into multiple host adapters, generated OpenClaw skills, plugin manifests, lifecycle hooks, and tests that catch drift. The latest check improves the security posture by bumping the MCP SDK and avoiding unsafe shell command snippets for odd install paths. The main local caveat remains that `npm test` needs `pandas` installed for the benchmark correctness test; upstream CI accounts for that.
+✅ **Deploy candidate for agent-instruction stacks.** Ponytail remains a strong small behavior layer, and the update makes it more deployable: npm packaging, broader host support, better Codex/OpenCode/Pi/Qoder compatibility, and more cross-platform hook hardening. It is still a behavior modifier rather than a correctness/security tool, so pair it with tests and review gates.
 
 ---
 
 ## What It Is
 
-Ponytail packages a coding-agent style guide as reusable agent infrastructure. The core rule is a ladder: ask whether the task should exist, prefer the standard library, prefer native platform features, use already-installed dependencies, then write the smallest custom implementation that still preserves validation, security, accessibility, and explicit user requirements.
+Ponytail packages a coding-agent style guide as reusable agent infrastructure. The core rule is a ladder: ask whether the task should exist, reuse existing code, use the standard library, use native platform features, use already-installed dependencies, then write the smallest custom implementation that preserves validation, security, accessibility, and explicit user requirements.
 
-The repo is not just a prompt file. It ships adapter surfaces for Claude Code, Codex, GitHub Copilot CLI, Gemini/Antigravity, OpenCode, Pi, CodeWhale, Cursor, Windsurf, Cline, Kiro, VS Code Codex, OpenClaw, and an MCP server. The adapters are thin wrappers around the same rule source, with lifecycle hooks that persist the active mode and inject the right ruleset.
+The repo is no longer just a multi-host prompt pack. It is an installable npm package, an MCP server, a Pi extension, OpenCode plugin, Claude/Codex plugin set, Qoder/Devin/Hermes/Gemini/Copilot adapter collection, generated OpenClaw skill source, and static rules bundle for hosts that read `AGENTS.md` or rule files.
 
-The benchmark work is better than the usual "count lines in a chat answer" demo. The current agentic benchmark runs real headless Claude Code sessions against a pinned FastAPI/React repo, scores the resulting git diff, and adds deterministic adversarial checks for safety-sensitive tasks. The evidence still has limits, but the measurement is honest about those limits.
+The benchmark story remains a useful corrective: the project documents how earlier single-shot numbers overstated the effect, then moved to real agentic runs against a FastAPI/React repo with diff-based scoring and adversarial safety checks.
 
 ## Stack
 
@@ -37,66 +47,73 @@ The benchmark work is better than the usual "count lines in a chat answer" demo.
 |-------|------|
 | Core rules | Markdown Agent Skills and `AGENTS.md` |
 | Runtime hooks | Node.js CommonJS lifecycle scripts |
+| Package | npm package `@dietrichgebert/ponytail` |
 | MCP | `@modelcontextprotocol/sdk`, Zod, stdio server |
-| Host adapters | Claude/Codex manifests, OpenCode plugin, Gemini extension, Copilot CLI commands, Pi extension, OpenClaw generated skills |
-| Tests | Node test runner, Python helper checks, pandas for CSV correctness benchmark |
+| Host adapters | Claude, Codex, OpenCode, Gemini/Antigravity, Copilot CLI, Pi, Hermes, Qoder, Devin, Cursor, Windsurf, Cline, Kiro, OpenClaw |
+| Tests | Node test runner, adapter smoke tests, Windows hook checks, generated-skill drift tests, MCP/Pi subproject tests |
 | Benchmarks | Promptfoo configs, Python agentic harness, Claude Code JSON telemetry |
 
 ## Key Features
 
 ### Canonical Rule Source With Adapter Fan-Out
 
-The important engineering choice is that Ponytail keeps the rules in one place and makes adapters consume or generate from that source. `hooks/ponytail-instructions.js` reads the canonical skill, filters mode-specific sections, and feeds the lifecycle hooks and MCP server. `scripts/build-openclaw-skills.js` and tests keep generated skill copies aligned.
+The strongest engineering pattern is still the same: Ponytail keeps the rules canonical and makes adapters consume or generate from that source. `hooks/ponytail-instructions.js` reads the canonical skill, filters mode-specific sections, and feeds lifecycle hooks and MCP. Tests keep generated OpenClaw skills and copied rule files aligned.
 
-That matters because prompt packs rot quickly when every host gets its own hand-edited copy. Ponytail treats instruction text like a build artifact.
+### Installable Package and Broader Adapter Support
+
+Since the prior review, Ponytail became an npm package and added more first-class adapter surfaces. OpenCode and Pi can consume it through package-style installs; Qoder has rules plus hook config; Hermes has a plugin manifest and runtime tests; Devin has plugin metadata; Codex hook schemas were corrected; and static `AGENTS.md`/rules files cover hosts that do not need active hooks.
 
 ### Persistent, Mode-Aware Hooks
 
-The Claude/Codex/Copilot hooks persist the current mode in a small state file and inject hidden session context on start. The mode tracker recognizes `/ponytail`, `@ponytail`, `$ponytail`, host-specific command names, and exact deactivation phrases without disabling itself just because a normal task mentions "normal mode."
+The hooks persist active mode and inject the right ruleset on session start or prompt submission. Newer changes improve default-mode persistence and status indicators while reducing accidental state damage during uninstall or malformed config handling.
 
-The implementation is deliberately boring: small Node scripts, explicit platform branches, no long-running daemon.
+### Cross-Platform Hook Hardening
+
+The recent commit history is mostly boring in the best way: PowerShell compatibility, bash-only `exec` removal, Windows stdin freeze protection, UTF-8 BOM handling, CRLF benchmark parsing, and safer filesystem writes. That is exactly the maintenance work portable agent plugins need.
 
 ### Defensive Minimalism, Not Code Golf
 
-The skill is explicit about what must not be simplified away: trust-boundary validation, data-loss error handling, security, accessibility, hardware calibration, and anything the user explicitly requested. It also requires a tiny runnable check for non-trivial logic. That boundary is what separates "less code" from "careless code."
-
-### Benchmark Harness With Critique Response
-
-The benchmark docs directly address a prior critique of the project's single-shot numbers. The newer agentic run uses real agent sessions, isolates plugins per arm, measures diffs rather than prose, and checks adversarial cases such as path traversal, SQL injection, forged tokens, malformed CSV rows, and client-specific rate limiting.
-
-### Fast Security Maintenance
-
-The current head includes a targeted MCP SDK bump for CVE-2026-25536 and a defensive statusline setup change. Instead of trying to escape every shell, Ponytail only embeds install paths made of ordinary path characters and falls back to manual setup instructions when a plugin path contains metacharacters. That is a small but good local-agent hardening move.
+The skill still blocks the bad version of "write less." It tells the agent not to simplify away trust-boundary validation, data-loss error handling, security, accessibility, hardware calibration, or explicit user requirements. It also expects a tiny runnable check for non-trivial logic.
 
 ## Architecture
 
-Ponytail's architecture is a compact portability layer around one rule corpus:
+Ponytail is a portability layer around one rule corpus:
 
-- `skills/` holds the canonical command and skill definitions.
-- `AGENTS.md` and host-specific rule files make instruction-only adapters work.
-- `hooks/` implements session activation, mode persistence, statusline support, and instruction assembly.
-- `.codex-plugin/`, `.claude-plugin/`, `.github/plugin/`, `gemini-extension.json`, `.opencode/`, and `pi-extension/` expose the same behavior to different hosts.
-- `ponytail-mcp/` serves the ruleset as MCP prompt/tool for hosts that prefer MCP context retrieval.
-- `tests/` checks adapter wiring, copied rule drift, generated OpenClaw skills, Windows hook syntax, and benchmark correctness helpers.
+- `skills/` holds canonical skills and commands.
+- `AGENTS.md` and host rule files make instruction-only adapters work.
+- `hooks/` implements mode tracking, activation, instruction assembly, subagent injection, and statusline support.
+- `.codex-plugin/`, `.claude-plugin/`, `.opencode/`, `.qoder-plugin/`, `.devin-plugin/`, `.github/plugin/`, `gemini-extension.json`, `plugin.yaml`, and `pi-extension/` expose host-specific install surfaces.
+- `ponytail-mcp/` serves the ruleset through MCP.
+- `tests/` checks adapter wiring, copied-rule drift, generated OpenClaw skills, Windows hook syntax, package scripts, uninstall behavior, and benchmark correctness helpers.
 
-The cleanest pattern is "source instruction once, generate or verify every downstream host copy." That is more durable than maintaining a pile of nearly identical prompt files.
+The clean pattern is "source instruction once, generate or verify every downstream host copy." That is still worth copying.
 
 ## Comparison
 
-| Aspect | Ponytail | agent-scripts | agent-skills-tmchow | tech-snacks |
-|--------|----------|---------------|---------------------|-------------|
-| Primary value | Minimal-code behavior layer | Shared agent operations repo | Cross-runtime skill catalog | Claude skill/workflow library |
-| Runtime scope | Many host adapters plus MCP | Repo of instructions/scripts | Skill packages and metadata | Claude Code plugins/skills |
-| Best pattern | Canonical prompt source with adapter tests | Canonical ops repo | Scanner-safe skill packaging | Workflow-backed skills |
-| Deployability | High for personal/team agent config | High as reference | High for selected skills | Useful, more Claude-specific |
-
-Ponytail is narrower than a general skill library. That is a strength: it has one behavior to enforce and enough adapter/test discipline to make that behavior portable.
+| Aspect | Ponytail | Superpowers | agent-skills | dzhng/skills |
+|--------|----------|-------------|--------------|--------------|
+| Primary value | Minimal-code behavior layer | Full coding workflow methodology | Broad production skill catalog | Portable software-factory skills |
+| Scope | One behavior, many adapters | End-to-end dev lifecycle | Many skills and personas | Spec/implementation/review loops |
+| Runtime weight | Small Node hooks or static rules | Skill/plugin bootstrap | Skill/command pack | Skill pack |
+| Best pattern | Canonical rule source with drift tests | File-backed SDD/review | Anti-rationalization breadth | Living slice graph |
+| Caveat | Behavior modifier only | Heavier workflow | Needs pruning | Less packaged than Ponytail |
 
 ## Self-Hosting Notes
 
-For most users, install through the target host's plugin or skill mechanism. The repo also supports copying rule files into instruction-only hosts. Node must be available for lifecycle-hook activation in Claude/Codex/Copilot paths; without Node, the static skills still work but always-on activation may not.
+For most users, install through the target host's plugin/package mechanism. The npm package path is now the cleanest route for OpenCode/Pi-style use. Node must be available for lifecycle hooks in active-hook hosts; if it is missing, the static skills/rules still work where the host loads them.
 
-For verification, upstream CI installs `pandas` before `npm test`. A local run without pandas fails one CSV benchmark correctness test even though the JavaScript and adapter tests pass.
+For local verification, upstream expects Python with pandas for one CSV benchmark correctness test. Without pandas, the root test suite fails that one fixture while the adapter/hook/package tests around it still pass.
+
+## Verification Notes
+
+Local checks on 2026-07-11:
+
+- Cloned current `main` at `14a0d79548d4de8fc2de95c1b94bb0de63a739d3`.
+- GitHub metadata: 80,849 stars, 4,364 forks, 24 open issues, latest release `v4.8.4`.
+- `npm install` at root reported 0 vulnerabilities.
+- `npm test` at root ran 82 tests: 81 passed, 1 failed because this machine lacks pandas for the CSV benchmark correctness fixture.
+- `npm test --prefix pi-extension` passed 23 tests.
+- `npm test --prefix ponytail-mcp` passed 3 tests and reported 0 vulnerabilities after install.
 
 ---
 
