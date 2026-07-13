@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 517 public/included repositories, 143 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 518 public/included repositories, 144 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [sants2001/personal-claude-code-cheatsheet](https://github.com/sants2001/personal-claude-code-cheatsheet) | 2026-07-12 | 2026-07-12 | 1 | yes | 2026-07-12 | [reviews/personal-claude-code-cheatsheet.md](reviews/personal-claude-code-cheatsheet.md) |
 | [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) | 2026-07-12 | 2026-07-12 | 1 | yes | 2026-07-12 | [reviews/compound-engineering-plugin.md](reviews/compound-engineering-plugin.md) |
 | [0xNyk/awesome-hermes-agent](https://github.com/0xNyk/awesome-hermes-agent) | 2026-07-05 | 2026-07-05 | 1 | yes | 2026-07-05 | [reviews/awesome-hermes-agent.md](reviews/awesome-hermes-agent.md) |
 | [farhankhwaja/codesherpa](https://github.com/farhankhwaja/codesherpa) | 2026-07-05 | 2026-07-05 | 1 | yes | 2026-07-05 | [reviews/codesherpa.md](reviews/codesherpa.md) |
