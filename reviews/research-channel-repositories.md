@@ -2,16 +2,17 @@
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
 **Message range:** 2026-02-17 to 2026-06-20
-**Generated:** 2026-06-18; manually updated 2026-07-12
+**Generated:** 2026-06-18; manually updated 2026-07-16
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 518 public/included repositories, 144 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 519 public/included repositories, 145 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [stackblitz/bolt-slides](https://github.com/stackblitz/bolt-slides) | 2026-07-16 | 2026-07-16 | 1 | yes | 2026-07-16 | [reviews/bolt-slides.md](reviews/bolt-slides.md) |
 | [sants2001/personal-claude-code-cheatsheet](https://github.com/sants2001/personal-claude-code-cheatsheet) | 2026-07-12 | 2026-07-12 | 1 | yes | 2026-07-12 | [reviews/personal-claude-code-cheatsheet.md](reviews/personal-claude-code-cheatsheet.md) |
 | [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin) | 2026-07-12 | 2026-07-12 | 1 | yes | 2026-07-12 | [reviews/compound-engineering-plugin.md](reviews/compound-engineering-plugin.md) |
 | [0xNyk/awesome-hermes-agent](https://github.com/0xNyk/awesome-hermes-agent) | 2026-07-05 | 2026-07-05 | 1 | yes | 2026-07-05 | [reviews/awesome-hermes-agent.md](reviews/awesome-hermes-agent.md) |
