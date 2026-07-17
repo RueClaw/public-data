@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [tool-eval-bench.md](reviews/tool-eval-bench.md) | [SeraphimSerapis/tool-eval-bench](https://github.com/SeraphimSerapis/tool-eval-bench) | MIT | ✅ Deploy candidate | Deterministic Python benchmark for tool-calling quality across OpenAI-compatible serving stacks, with 69+ scenarios, hard mode, safety-capped scoring, trace reports, plugin benchmarks, Docker/CI, and 2107 passing local tests |
 | [rodmanai-50-github-repos.md](reviews/rodmanai-50-github-repos.md) | [50 GitHub Repos Every Developer Needs](https://x.com/RodmanAi/status/2077772397328138401) | N/A | ⚠️ Interesting | X post listing 50 developer and AI GitHub repositories; useful as discovery backlog fuel, but too shallow and unsorted to treat as a vetted recommendation registry |
 | [ai-marketing-skills.md](reviews/ai-marketing-skills.md) | [ericosiu/ai-marketing-skills](https://github.com/ericosiu/ai-marketing-skills) | MIT | ⚠️ Interesting | Large Claude Code-style marketing/revenue skill pack with expert panels, growth experiment tracking, content scoring, closed-loop analytics, sales/outbound scripts, local telemetry, and a noisy/inactive safety posture that needs pruning before use |
 | [codex-orchestration.md](reviews/codex-orchestration.md) | [Cjbuilds/Codex-Orchestration](https://github.com/Cjbuilds/Codex-Orchestration) | MIT | ✅ Deploy candidate | Codex plugin for persistent Planner/Advisor/Executor model routing, reversible setup/status/disable, bounded Claude Fable 5 bridge, custom-agent routes, and strong contract/config tests |
@@ -221,6 +222,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [deterministic-tool-call-benchmark-harness.md](patterns/deterministic-tool-call-benchmark-harness.md) | SeraphimSerapis/tool-eval-bench | Evaluate model/tool-serving quality with stable deterministic scenarios, mock tools, evaluator-local expected behavior, safety-gated scoring, endpoint adapters, and trace-complete reports |
 | [closed-loop-analytics-skill-readback.md](patterns/closed-loop-analytics-skill-readback.md) | ericosiu/ai-marketing-skills | Promote skill, prompt, rubric, or playbook changes only after baseline/candidate outcome readback proves they worked |
 | [root-mediated-model-routing-policy.md](patterns/root-mediated-model-routing-policy.md) | Cjbuilds/Codex-Orchestration | Keep one root agent authoritative while optional Planner, Advisor, and Executor seats provide bounded planning, critique, and implementation routes |
 | [guardrails-not-choreography-plans.md](patterns/guardrails-not-choreography-plans.md) | EveryInc/compound-engineering-plugin | Use plans as durable decision artifacts with scope, stable unit IDs, verification scenarios, and risks, while leaving exact code shape and execution steps to the implementer with current context |
