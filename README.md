@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [codex-orchestration.md](reviews/codex-orchestration.md) | [Cjbuilds/Codex-Orchestration](https://github.com/Cjbuilds/Codex-Orchestration) | MIT | ✅ Deploy candidate | Codex plugin for persistent Planner/Advisor/Executor model routing, reversible setup/status/disable, bounded Claude Fable 5 bridge, custom-agent routes, and strong contract/config tests |
 | [whathappened.md](reviews/whathappened.md) | [kunchenguid/whathappened](https://github.com/kunchenguid/whathappened) | MIT | ⚠️ Interesting | Grok Build-only Agent Skill for X/Twitter event briefings with hard X-tool gates, adaptive recency windows, Top/Latest/Semantic/first-party/debate search lanes, opinion maps, receipts, and failure-mode guidance |
 | [bolt-slides.md](reviews/bolt-slides.md) | [stackblitz/bolt-slides](https://github.com/stackblitz/bolt-slides) | MIT | ✅ Deploy candidate | React/Vite presentation deck engine plus agent-facing authoring skill for responsive, interactive web-app slides, with click-builds, presenter mode, annotations, component kit, and a useful locked-engine/editable-content boundary |
 | [personal-claude-code-cheatsheet.md](reviews/personal-claude-code-cheatsheet.md) | [sants2001/personal-claude-code-cheatsheet](https://github.com/sants2001/personal-claude-code-cheatsheet) | **no license**; README claims MIT | ⚠️ Interesting | Tiny Claude Code skill that generates a personalized offline HTML cheat sheet from the live session skill list and local CLAUDE.md files; useful live-environment-reflection pattern, but no license file, tests, manifest, or deterministic generator |
@@ -218,6 +219,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [root-mediated-model-routing-policy.md](patterns/root-mediated-model-routing-policy.md) | Cjbuilds/Codex-Orchestration | Keep one root agent authoritative while optional Planner, Advisor, and Executor seats provide bounded planning, critique, and implementation routes |
 | [guardrails-not-choreography-plans.md](patterns/guardrails-not-choreography-plans.md) | EveryInc/compound-engineering-plugin | Use plans as durable decision artifacts with scope, stable unit IDs, verification scenarios, and risks, while leaving exact code shape and execution steps to the implementer with current context |
 | [disk-tiered-moe-inference.md](patterns/disk-tiered-moe-inference.md) | JustVugg/colibri | Run oversized MoE models by keeping dense/shared weights resident, streaming cold routed experts from local NVMe, and promoting hot experts into RAM/VRAM based on usage and resource planning |
 | [secretless-sandbox-credential-proxy.md](patterns/secretless-sandbox-credential-proxy.md) | omnigent-ai/omnigent | Keep real credentials in a trusted parent process and let an egress proxy attach or swap them only for configured hosts, so sandboxed agent tools get scoped API access without receiving long-lived tokens |
