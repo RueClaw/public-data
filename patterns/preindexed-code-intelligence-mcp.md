@@ -11,7 +11,7 @@ A useful coding-agent pattern is to keep a local, pre-indexed code graph beside 
 3. Store the graph locally in a queryable database.
 4. Add full-text search for fuzzy discovery.
 5. Resolve cross-file references after extraction.
-6. Expose focused MCP tools for search, context, callers, callees, impact, file listing, and status.
+6. Expose either one strong default exploration tool or a small set of focused tools for search, context, callers, callees, impact, file listing, and status.
 7. Keep the index fresh with an incremental watcher.
 8. Enforce path, file-size, and input-size limits.
 
@@ -28,17 +28,17 @@ The pattern is especially valuable when:
 
 ## MCP Tool Design
 
-Keep the tool surface small and purpose-built:
+Keep the default tool surface small and purpose-built. A good design can expose one primary "explore" tool by default, then keep narrower tools available for advanced/manual use:
 
-- Search: find symbols, files, and text matches.
-- Context: return the local code context around a symbol or file.
-- Callers/callees: traverse graph relationships.
-- Impact: show likely affected files or tests.
-- Node lookup: fetch one graph object by identifier.
-- Explore: batch a bounded codebase reconnaissance query.
+- Explore: return relevant source, line numbers, call paths, and a blast-radius summary in one bounded response.
+- Search: find symbols, files, and text matches when the agent only needs locations.
+- Context/node lookup: return the local code context around a symbol or file.
+- Callers/callees/impact: traverse graph relationships for targeted analysis.
 - Files/status: let the agent understand index coverage and freshness.
 
 The best tools return compact, ranked, source-grounded results. They should not dump the whole graph into context.
+
+The "one strong default tool" pattern is especially useful for LLM agents. A menu of many narrow tools can cause tool-choice errors; a primary exploration tool nudges the agent toward source-grounded answers without a grep/read loop.
 
 ## Storage Notes
 
@@ -54,6 +54,7 @@ A local embedded database is usually enough. SQLite with full-text search is a s
 - Make concurrent reads safe.
 - Provide a clear status command so agents know whether the index is fresh.
 - Document supported runtimes and parser failure modes.
+- Make telemetry explicit and opt-out-able if the tool reports usage statistics.
 
 ## Good Fit
 
@@ -72,4 +73,3 @@ A local embedded database is usually enough. SQLite with full-text search is a s
 ## Implementation Guidance
 
 Start narrow. Support a few high-value languages and query types well before claiming universal coverage. Add framework-specific route and dependency extractors only where they materially improve real agent workflows. Keep the MCP server boring: deterministic local lookups, clear errors, bounded output, and no network dependency.
-

@@ -2,77 +2,87 @@
 
 - Repository: https://github.com/colbymchenry/codegraph
 - Reviewed: 2026-05-23
+- Updated: 2026-07-18
 - License: MIT
-- Current commit reviewed: f366222dbd6b7e43047072a9417289b1b02ae457
-- Latest GitHub release observed: v0.9.3, published 2026-05-22
-- Package version observed: 0.9.4
-- Stack: TypeScript, Node.js 20-24, tree-sitter WASM grammars, SQLite/FTS5, MCP stdio server, Vitest, npm CLI
+- Prior commit reviewed: f366222dbd6b7e43047072a9417289b1b02ae457
+- Current commit checked: 5955d04
+- Latest GitHub release observed: v1.4.1, published 2026-07-10
+- Package version observed: 1.4.1
+- Stack: TypeScript, bundled Node runtime, node:sqlite/FTS5, tree-sitter WASM, optional Rust/N-API extraction kernel, MCP stdio server, Vitest, standalone installers
+
+## Update Notes
+
+Checked 2026-07-18 against the prior 2026-05-23 review. This is a material update: CodeGraph moved from 0.9.4 to 1.4.1, added self-contained runtime bundles, switched the default MCP surface to a single primary `codegraph_explore` tool, added anonymous telemetry with documented opt-outs, added verified release/provenance language, expanded language/framework coverage, and introduced an optional native extraction kernel for TS/JS, Java, Python, Go, C, and C++.
+
+The verdict stays ✅ Deploy candidate. The main caveats changed: the old Node 25 install/runtime concern is mostly softened for CLI users by bundled Node releases, but the package still declares `node >=20 <25` for source/library/dev use. The production `picomatch` advisory remains open in `npm audit --omit=dev`.
 
 ## Verdict
 
-✅ Deploy candidate, with dependency and runtime caveats.
+✅ Deploy candidate, with telemetry and dependency caveats.
 
-CodeGraph is a strong local code-intelligence layer for coding agents. It pre-indexes a repository into a local SQLite graph, exposes MCP tools for search/context/callers/callees/impact analysis, and ships with broad language/framework extraction plus a practical installer for Claude Code, Codex, Cursor, OpenCode, and Hermes Agent.
+CodeGraph remains a strong local code-intelligence layer for coding agents. It pre-indexes a repository into a local SQLite/FTS graph, exposes agent-friendly MCP/CLI queries, and now emphasizes one high-signal `codegraph_explore` tool that returns source, call paths, and blast radius in one bounded answer.
 
-The implementation is more credible than the marketing pitch alone: tests are broad, the CLI has real indexing/query/watch paths, and the MCP surface is shaped around agent workflows rather than IDE-only diagnostics. The main caveats are operational: stay on Node 20/22/24, avoid Node 25 for now, and update the production dependency chain for the high picomatch advisory before treating it as hardened.
+The implementation matured substantially since the first review: self-contained install bundles, npm/GitHub provenance, upgrade/uninstall flows, multi-project MCP behavior, broader framework dispatch synthesis, native extraction acceleration, and more explicit telemetry documentation. The remaining caution is not about the architecture; it is operational hygiene: opt out of telemetry where appropriate, patch the production `picomatch` advisory before sensitive deployments, and pin versions when relying on the fast-moving analysis behavior.
 
 ## What It Is
 
-CodeGraph is a local semantic code graph for agents. Instead of repeatedly spending tool calls on grep/read exploration, an agent can query a precomputed graph of symbols, files, imports, calls, routes, and surrounding context.
+CodeGraph is a local semantic code graph for agents. Instead of repeatedly spending tool calls on grep/read exploration, an agent can query a precomputed graph of symbols, files, imports, calls, routes, framework dispatch edges, and surrounding context.
 
-The core idea is straightforward and useful:
+The core shape is still straightforward:
 
 - Parse source files with tree-sitter grammars.
-- Store extracted nodes and edges in a local SQLite database under .codegraph/.
+- Store extracted nodes and edges in a local `.codegraph/` SQLite database.
 - Add full-text search with SQLite FTS5.
-- Resolve references after extraction so calls/imports/routes become graph edges.
+- Resolve references and framework edges after extraction.
 - Serve compact query tools through MCP and a CLI.
-- Keep the index fresh with native file watchers and debounce logic.
+- Keep the index fresh with native file watchers and debounced sync.
+
+The packaging story changed materially. CodeGraph now ships self-contained platform bundles with a vendored Node runtime and built-in `node:sqlite`, so the CLI can be installed without a local Node version or native SQLite addon build. npm installs act as a shim to the same bundle.
 
 ## Notable Capabilities
 
-- MCP tools: codegraph_search, codegraph_context, codegraph_callers, codegraph_callees, codegraph_impact, codegraph_node, codegraph_explore, codegraph_files, and codegraph_status.
-- CLI commands: install, uninstall, init, uninit, index, sync, status, query, files, context, callers, callees, impact, affected, and serve --mcp.
-- Language coverage includes TypeScript, JavaScript, Python, Go, Rust, Java, C#, PHP, Ruby, C/C++, Swift, Kotlin, Scala, Dart, Svelte, Vue, Liquid, Pascal/Delphi, Lua, and Luau.
-- Framework route extraction covers common Python, Node, PHP, Ruby, Java, Go, Rust, .NET, Swift, and frontend routing patterns.
-- Installer support covers several agent hosts and writes reversible MCP configuration.
-- Auto-sync respects gitignore and source-file filtering.
-- codegraph affected can map file changes to likely relevant tests.
+- Default MCP surface is now `codegraph_explore`: one primary tool for source-backed exploration, flow tracing, and blast-radius context.
+- Narrower tools still exist but are unlisted by default: `codegraph_node`, `codegraph_search`, `codegraph_callers`, `codegraph_callees`, `codegraph_impact`, `codegraph_files`, and `codegraph_status`.
+- CLI commands cover install, uninstall, upgrade, init, uninit, index, sync, status, query, files, context, callers, callees, impact, affected, telemetry, and MCP serving.
+- Standalone installers support macOS/Linux shell and Windows PowerShell with bundled runtime artifacts.
+- Agent installer targets include Claude Code, Cursor, Codex CLI, opencode, Hermes Agent, Gemini, Antigravity, and Kiro.
+- Language support has expanded to include TypeScript/JavaScript, Python, Go, Rust, Java, C#, PHP, Ruby, C/C++, Swift, Kotlin, Scala, Dart, Svelte, Vue, Astro, Liquid, Pascal/Delphi, Lua/Luau, CFML, COBOL, VB.NET, Erlang, Solidity, Terraform/OpenTofu, Nix, Metal, CUDA, Objective-C, and ArkTS.
+- Framework/dynamic-dispatch work now includes React/Next/React Native/Expo bridges, RTK Query, Celery, Spring events, MediatR, Sidekiq, Laravel events, GoFrame routes, Lombok-generated Java members, C/C++ function-pointer dispatch, and more.
+- Releases now claim npm provenance and GitHub release attestations.
 
 ## Architecture Notes
 
-The project is structured as a CLI plus library. The CodeGraph path is roughly:
+CodeGraph is still a CLI plus library, but the internals have grown:
 
-1. Discover source files and respect ignore rules.
-2. Parse files with language-specific tree-sitter extractors.
-3. Store nodes and raw relationships in SQLite.
-4. Run reference resolution for calls, imports, inheritance, and routes.
-5. Expose graph queries through CLI commands and an MCP stdio server.
-6. Format context for agent consumption.
+1. Discover source files and respect gitignore plus `codegraph.json` include/exclude and extension mappings.
+2. Parse with tree-sitter WASM, or an optional Rust/N-API extraction kernel when a prebuilt binary is available.
+3. Store nodes and relationships in SQLite using built-in `node:sqlite` and FTS5.
+4. Run cross-file reference resolution and framework/dynamic-dispatch synthesis.
+5. Expose graph queries through CLI commands and MCP stdio.
+6. Keep the index fresh through file watching, incremental sync, and shared background server/daemon behavior.
 
-This is the right shape for agent tooling because it separates expensive repository indexing from cheap repeated lookups. It also avoids shipping source code to a remote service, which matters for private repositories.
+The most interesting update is product/tool design: defaulting the MCP server to one strong `codegraph_explore` tool. That is a good agent ergonomics move. Agents often mis-pick among many narrow tools; a single "give me relevant source plus flow plus impact" tool better matches how coding agents actually work.
 
 ## Verification
 
-Verification was run locally from a fresh clone.
+This check-in used a fresh clone and upstream metadata.
 
-- npm ci completed, but Node 25 emitted an engine warning because the package declares Node >=20 <25.
-- npm test under Node 25 reproduced the repository's documented unsupported-runtime problem: many tests passed, but the run failed with tree-sitter/V8 WASM instability and related MCP test failures.
-- npm run build under Node 25 completed.
-- Re-running tests under Node 22.22.2 passed: 35 test files, 776 tests passed, 2 skipped.
-- npm pack --dry-run under Node 22 succeeded and included built dist files plus WASM grammars: 407 files, 1.2 MB package, 8.1 MB unpacked.
-- node dist/bin/codegraph.js --version returned 0.9.4.
-- npm audit --omit=dev --audit-level moderate reported one production high vulnerability in picomatch 4.0.0-4.0.3.
-- Full npm audit reported 8 vulnerabilities total: 6 moderate, 2 high, mostly dev/build chain plus picomatch.
-- A basic secret scan found no obvious committed secrets.
+- GitHub metadata on 2026-07-18: 60,771 stars, 3,807 forks, 91 open issues, latest release v1.4.1.
+- Latest commit checked: `5955d04`, pushed 2026-07-18.
+- `git diff --stat f366222d..HEAD` shows a major change set: 505 files changed, including the bundling system, telemetry worker, site docs, Rust extraction kernel, MCP daemon/proxy/session code, expanded tests, and many extraction/resolution modules.
+- `npm audit --omit=dev --audit-level moderate` still reports one production high vulnerability in `picomatch 4.0.0 - 4.0.3`.
+- Full `npm audit --audit-level moderate` reports 8 vulnerabilities across production and dev dependencies.
+- Basic secret-pattern scan found no obvious committed credentials; matches were docs, tests, placeholders, or token/security terminology.
+- I did not rerun the full test suite locally in this check-in because the current local runtime is Node 25.9.0 and the package still declares `node >=20 <25` for source/library/dev use.
 
 ## Risks And Caveats
 
-- Node 25 is explicitly unsafe for this package today. The package blocks it by default because of a V8/tree-sitter WASM failure mode. Use Node 20, 22, or 24.
-- The production dependency audit currently has a high picomatch advisory. This should be updated before broad deployment in sensitive environments.
-- The README's token/tool-call savings are plausible for this category, but should be treated as project-published benchmark claims until independently reproduced on representative repositories.
-- The .codegraph/ directory is a local derived index. Teams should decide whether to ignore, retain, or regenerate it and avoid accidentally publishing private code-derived graph artifacts.
-- Broad language coverage is valuable, but extractor quality will vary by language and framework. Test on the target stack before relying on impact analysis.
+- Anonymous telemetry is now part of the product. It is documented, constrained, and opt-out via `codegraph telemetry off`, `CODEGRAPH_TELEMETRY=0`, or `DO_NOT_TRACK=1`, but privacy-sensitive teams should set that deliberately before first use.
+- The production dependency audit still has a high `picomatch` advisory. Patch before broad deployment in sensitive environments.
+- The self-contained CLI reduces Node-version pain, but source/library/dev use still declares Node >=20 <25. Treat Node 25 as unsupported unless the project removes that gate.
+- Release docs are stronger, but code signing is still called out as a gap in bundling notes for direct download trust on macOS/Windows.
+- `.codegraph/` is derived local metadata. Do not publish private indexes accidentally.
+- The project is moving fast. Re-index after upgrades and pin versions if relying on specific graph semantics.
 
 ## Comparison
 
@@ -80,11 +90,11 @@ Compared with plain ripgrep, CodeGraph has higher upfront cost but gives agents 
 
 Compared with LSP/LSIF-style tooling, CodeGraph is more agent-oriented: it emphasizes compact context, impact queries, and MCP tools rather than editor diagnostics.
 
-Compared with Understand Anything, CodeGraph is narrower and more operationally direct. Understand Anything is closer to a dashboard/knowledge-graph workbench; CodeGraph is a local CLI/MCP index for code agents.
+Compared with GitNexus, CodeGraph is smaller, MIT-licensed, and more deployable as a permissive local sidecar. GitNexus is broader and more ambitious in graph/process tooling, but its PolyForm Noncommercial license changes reuse.
 
 ## Best Use
 
-Use CodeGraph when an agent will repeatedly inspect a medium-to-large codebase and needs cheap local answers about symbols, files, callers, callees, routes, and likely impact.
+Use CodeGraph when an agent will repeatedly inspect a medium-to-large codebase and needs cheap local answers about symbols, files, callers, callees, framework flows, routes, and likely impact.
 
-I would start with Node 22, install it into one non-sensitive repository, run a full index, and compare agent behavior against a baseline session using normal file search. If the graph answers are accurate on that codebase, it is worth adding to the agent tool stack.
+The best pilot remains one non-sensitive repository with a known architecture question set. Install, run `codegraph init`, ask the same questions with and without CodeGraph, and check whether `codegraph_explore` actually prevents follow-up file reads.
 
