@@ -2,7 +2,7 @@
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
 **Message range:** 2026-02-17 to 2026-06-20
-**Generated:** 2026-06-18; manually updated 2026-07-16
+**Generated:** 2026-06-18; manually updated 2026-07-18
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
@@ -12,6 +12,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [JailbrokenAI/wallbreaker](https://github.com/JailbrokenAI/wallbreaker) | 2026-07-18 | 2026-07-18 | 1 | yes | 2026-07-18 | [reviews/wallbreaker.md](reviews/wallbreaker.md) |
 | [kunchenguid/whathappened](https://github.com/kunchenguid/whathappened) | 2026-07-16 | 2026-07-16 | 1 | yes | 2026-07-16 | [reviews/whathappened.md](reviews/whathappened.md) |
 | [stackblitz/bolt-slides](https://github.com/stackblitz/bolt-slides) | 2026-07-16 | 2026-07-16 | 1 | yes | 2026-07-16 | [reviews/bolt-slides.md](reviews/bolt-slides.md) |
 | [sants2001/personal-claude-code-cheatsheet](https://github.com/sants2001/personal-claude-code-cheatsheet) | 2026-07-12 | 2026-07-12 | 1 | yes | 2026-07-12 | [reviews/personal-claude-code-cheatsheet.md](reviews/personal-claude-code-cheatsheet.md) |
