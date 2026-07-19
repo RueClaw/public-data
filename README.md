@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [mindwalk.md](reviews/mindwalk.md) | [cosmtrek/mindwalk](https://github.com/cosmtrek/mindwalk) | MIT | ✅ Deploy candidate | Local Go/React/Three visualizer for replaying Claude Code and Codex sessions over deterministic repo maps, with trace/citymap/report artifacts, subagent lenses, sealed optional judge, schemas, CI, releases, and passing local tests |
 | [exercises-dataset.md](reviews/exercises-dataset.md) | [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) | MIT for code/data/text; media excluded | ⚠️ Interesting | Static 1,324-exercise fitness dataset with JSON Schema, thumbnails/GIFs, 10-language instructions, and browser/setup tools; useful app seed with Gym visual media-license caveats and a French-omitting SQL exporter |
 | [wallbreaker.md](reviews/wallbreaker.md) | [JailbrokenAI/wallbreaker](https://github.com/JailbrokenAI/wallbreaker) | AGPL-3.0-or-later | ⚠️ Interesting | Python LLM red-team harness with attacker/target/judge roles, Textual/Rich CLI, provider adapters, MCP bridge, optional dashboard, automated campaigns, reporting/regrading/export, and strong authorized-lab-only caveats |
 | [gitnexus.md](reviews/gitnexus.md) | [abhigyanpatwari/GitNexus](https://github.com/abhigyanpatwari/GitNexus) | PolyForm Noncommercial 1.0.0 | ✅ Deploy candidate | Local-first code intelligence engine for AI coding agents with a LadybugDB knowledge graph, MCP/CLI tools, React graph explorer, broad Tree-sitter language coverage, read-only mode, and serious CI/security posture |
@@ -228,6 +229,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [sealed-agent-trajectory-judge.md](patterns/sealed-agent-trajectory-judge.md) | cosmtrek/mindwalk | Evaluate untrusted agent-session traces with a sealed no-tool/no-MCP/no-config judge subprocess, evidence-cited JSON findings, deterministic verdict rollup, and stale-report detection |
 | [diagnosis-before-cure-intake.md](patterns/diagnosis-before-cure-intake.md) | Corey Ganim AI Tools Assessment thread | Start with a transcript-first diagnostic conversation about lived workflow friction before recommending tools, process changes, automation, or support |
 | [git-derived-agent-worker-scope-gate.md](patterns/git-derived-agent-worker-scope-gate.md) | procoders/superpowers-v | Verify each coding-agent worker's actual changed-file set from git against manifest-declared write scopes before accepting or merging the result |
 | [deterministic-tool-call-benchmark-harness.md](patterns/deterministic-tool-call-benchmark-harness.md) | SeraphimSerapis/tool-eval-bench | Evaluate model/tool-serving quality with stable deterministic scenarios, mock tools, evaluator-local expected behavior, safety-gated scoring, endpoint adapters, and trace-complete reports |
