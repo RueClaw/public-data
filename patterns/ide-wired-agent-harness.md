@@ -2,6 +2,7 @@
 
 **Source:** https://github.com/can1357/oh-my-pi
 **Reviewed:** 2026-06-06
+**Updated:** 2026-07-19
 **License context:** Oh My Pi is MIT licensed. This pattern is a clean-room architecture summary with attribution.
 
 ## Pattern
@@ -9,6 +10,8 @@
 Treat a coding agent as a real development-environment client, not a chat model with a shell.
 
 The harness exposes narrow, typed tools for the operations developers already rely on: language-server diagnostics and renames, debugger sessions, snapshot-anchored edits, AST rewrites, structured subagent delegation, persistent eval kernels, browser control, internal documentation/resource URLs, and local memory. The model can still use a shell, but the shell is not the only path to every action.
+
+The July 2026 Oh My Pi update adds a second important pattern: keep the essential tool set small and mount less-frequent or dynamic tools as readable/executable resources. In OMP's case, `xd://` devices let the model list, inspect, and invoke discoverable custom tools, MCP tools, image/TTS tools, and preview-resolution devices without forcing every schema into the top-level tool inventory.
 
 ## Why It Matters
 
@@ -38,6 +41,10 @@ For structural rewrites and other broad changes, produce a preview artifact firs
 
 Let the same read/search interface handle local files, archives, docs, memory, PRs, issues, skills, rules, conflict markers, and subagent outputs. A smaller conceptual tool surface is easier for models to use correctly.
 
+### Mounted Tool Devices
+
+For large or dynamic tool catalogs, mount non-essential tools behind a resource protocol. The agent can list available devices, read a device's docs/schema on demand, and write to the device to execute it. This keeps the provider-facing tool inventory smaller while preserving reachability for MCP, extension, generated, or rarely used tools.
+
 ### Structured Subagent Results
 
 Subagents should return schema-validated results that the parent can address by field/path. This avoids parsing informal prose when combining parallel work.
@@ -66,6 +73,7 @@ Inject memory as bounded, project-scoped guidance with instructions to verify ag
 - Are broad edits previewed or snapshot-anchored before disk mutation?
 - Can stale file context be detected before applying a patch?
 - Are internal resources addressable through a small number of familiar tool shapes?
+- Are dynamic or rarely used tools discoverable on demand instead of always occupying top-level tool slots?
 - Are mutating actions separated from read-only inspection for approvals and logging?
 - Do subagents return structured data instead of only prose?
 - Does memory come with freshness warnings and current-state verification requirements?
