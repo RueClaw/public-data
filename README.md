@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [buzz.md](reviews/buzz.md) | [block/buzz](https://github.com/block/buzz) | Apache-2.0 | ✅ Deploy candidate | Self-hostable human-and-agent workspace built on a signed Nostr relay, with Rust services, Tauri/React/Flutter clients, JSON-first CLI, workflows, git events, media, search, audit, and serious tenant-boundary design |
 | [kimi-code.md](reviews/kimi-code.md) | [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code) | MIT | ✅ Deploy candidate | Moonshot AI's open-source TypeScript coding-agent platform with TUI, web/server mode, ACP, MCP, plugins, subagents, goal mode, permissions, native packaging, and active releases |
 | [clodex-ide.md](reviews/clodex-ide.md) | [mereyabdenbekuly-ctrl/clodex-ide](https://github.com/mereyabdenbekuly-ctrl/clodex-ide) | AGPL-3.0-only | ⚠️ Interesting | Local-first Electron/TypeScript agentic IDE for durable software work, with process isolation, Guardian/approval packages, MCP/model/provider surfaces, release evidence automation, and strong zero-trust design, but very fresh and currently unsigned technical-preview software |
 | [mindwalk.md](reviews/mindwalk.md) | [cosmtrek/mindwalk](https://github.com/cosmtrek/mindwalk) | MIT | ✅ Deploy candidate | Local Go/React/Three visualizer for replaying Claude Code and Codex sessions over deterministic repo maps, with trace/citymap/report artifacts, subagent lenses, sealed optional judge, schemas, CI, releases, and passing local tests |
