@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [adhd.md](reviews/adhd.md) | [UditAkhourii/adhd](https://github.com/UditAkhourii/adhd) | MIT | ✅ Deploy candidate | Coding-agent skill, CLI, and TypeScript library for isolated divergent ideation branches with separate critic scoring, trap pruning, clustering, and deepening |
 | [langchain-skills.md](reviews/langchain-skills.md) | [langchain-ai/langchain-skills](https://github.com/langchain-ai/langchain-skills) | MIT declared in plugin metadata; no root LICENSE detected | ✅ Deploy candidate | Official LangChain Agent Skills pack for LangChain, LangGraph, Deep Agents, Managed Deep Agents, RAG, HITL, persistence, eval engineering, and a tested TypeScript swarm helper |
 | [buzz.md](reviews/buzz.md) | [block/buzz](https://github.com/block/buzz) | Apache-2.0 | ✅ Deploy candidate | Self-hostable human-and-agent workspace built on a signed Nostr relay, with Rust services, Tauri/React/Flutter clients, JSON-first CLI, workflows, git events, media, search, audit, and serious tenant-boundary design |
 | [kimi-code.md](reviews/kimi-code.md) | [MoonshotAI/kimi-code](https://github.com/MoonshotAI/kimi-code) | MIT | ✅ Deploy candidate | Moonshot AI's open-source TypeScript coding-agent platform with TUI, web/server mode, ACP, MCP, plugins, subagents, goal mode, permissions, native packaging, and active releases |
