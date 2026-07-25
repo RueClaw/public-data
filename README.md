@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [gigatoken.md](reviews/gigatoken.md) | [marcelroed/gigatoken](https://github.com/marcelroed/gigatoken) | MIT | ✅ Deploy candidate | Rust/Python tokenizer engine for GB/s language-model tokenization, with SIMD pretokenizers, repeated-pretoken caches, native file/JSONL/Parquet inputs, Hugging Face/tiktoken compatibility wrappers, and broad parity tests |
 | [symphony.md](reviews/symphony.md) | [openai/symphony](https://github.com/openai/symphony) | Apache-2.0 | ✅ Deploy candidate | OpenAI's spec and Elixir/OTP reference implementation for issue-tracker-driven autonomous coding-agent runs, with repo-owned workflow contracts, Codex app-server sessions, multi-tracker adapters, host-side tracker tools, dashboard/API observability, CI, and release artifacts |
 | [claudecodepsymphony.md](reviews/claudecodepsymphony.md) | [gherghett/ClaudeCodePSymphony](https://github.com/gherghett/ClaudeCodePSymphony) | package.json declares ISC; no root LICENSE detected | 📚 Study | Tiny TypeScript fork of OpenAI Symphony that uses GitHub Issues labels as the work queue and Claude Code `--print` as the agent runner; useful pattern source, but high-trust `bypassPermissions`, raw shell hooks, prompt-injection exposure, no tests/CI, and dependency advisories block deployment |
 | [needle.md](reviews/needle.md) | [cactus-compute/needle](https://github.com/cactus-compute/needle) | MIT | ⚠️ Interesting | Tiny 26M-parameter JAX/Flax function-calling model and local finetune toolkit for on-device agents, with constrained decoding and open weights, but pickle checkpoints, side-effectful setup scripts, sparse tests, and unreproduced benchmark claims keep it experimental |
@@ -238,6 +239,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [simd-pretokenization-cache-pipeline.md](patterns/simd-pretokenization-cache-pipeline.md) | marcelroed/gigatoken | Treat tokenizer throughput as a whole native data path with file loading, boundary-safe chunking, SIMD pretokenization, repeated-pretoken caching, cache-friendly BPE lookup, and ragged output buffers |
 | [sealed-agent-trajectory-judge.md](patterns/sealed-agent-trajectory-judge.md) | cosmtrek/mindwalk | Evaluate untrusted agent-session traces with a sealed no-tool/no-MCP/no-config judge subprocess, evidence-cited JSON findings, deterministic verdict rollup, and stale-report detection |
 | [diagnosis-before-cure-intake.md](patterns/diagnosis-before-cure-intake.md) | Corey Ganim AI Tools Assessment thread | Start with a transcript-first diagnostic conversation about lived workflow friction before recommending tools, process changes, automation, or support |
 | [git-derived-agent-worker-scope-gate.md](patterns/git-derived-agent-worker-scope-gate.md) | procoders/superpowers-v | Verify each coding-agent worker's actual changed-file set from git against manifest-declared write scopes before accepting or merging the result |
