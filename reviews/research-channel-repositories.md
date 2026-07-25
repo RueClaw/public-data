@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 521 public/included repositories, 147 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 522 public/included repositories, 148 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [Automattic/harper](https://github.com/Automattic/harper) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/harper.md](reviews/harper.md) |
 | [UditAkhourii/adhd](https://github.com/UditAkhourii/adhd) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/adhd.md](reviews/adhd.md) |
 | [JailbrokenAI/wallbreaker](https://github.com/JailbrokenAI/wallbreaker) | 2026-07-18 | 2026-07-18 | 1 | yes | 2026-07-18 | [reviews/wallbreaker.md](reviews/wallbreaker.md) |
 | [kunchenguid/whathappened](https://github.com/kunchenguid/whathappened) | 2026-07-16 | 2026-07-16 | 1 | yes | 2026-07-16 | [reviews/whathappened.md](reviews/whathappened.md) |
