@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [needle.md](reviews/needle.md) | [cactus-compute/needle](https://github.com/cactus-compute/needle) | MIT | ⚠️ Interesting | Tiny 26M-parameter JAX/Flax function-calling model and local finetune toolkit for on-device agents, with constrained decoding and open weights, but pickle checkpoints, side-effectful setup scripts, sparse tests, and unreproduced benchmark claims keep it experimental |
 | [harper.md](reviews/harper.md) | [Automattic/harper](https://github.com/Automattic/harper) | Apache-2.0 | ✅ Deploy candidate | Offline Rust/WASM grammar and spell checker with local-first core, LSP/CLI/JS surfaces, browser/editor integrations, code-aware prose extraction, and strong Rust test coverage |
 | [adhd.md](reviews/adhd.md) | [UditAkhourii/adhd](https://github.com/UditAkhourii/adhd) | MIT | ✅ Deploy candidate | Coding-agent skill, CLI, and TypeScript library for isolated divergent ideation branches with separate critic scoring, trap pruning, clustering, and deepening |
 | [langchain-skills.md](reviews/langchain-skills.md) | [langchain-ai/langchain-skills](https://github.com/langchain-ai/langchain-skills) | MIT declared in plugin metadata; no root LICENSE detected | ✅ Deploy candidate | Official LangChain Agent Skills pack for LangChain, LangGraph, Deep Agents, Managed Deep Agents, RAG, HITL, persistence, eval engineering, and a tested TypeScript swarm helper |
