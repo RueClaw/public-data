@@ -8,7 +8,7 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 524 public/included repositories, 150 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 524 public/included repositories, 151 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
@@ -228,7 +228,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents) | 2026-03-04 | 2026-03-15 | 2 | no |  |  |
 | [mgonto/executive-assistant-skills](https://github.com/mgonto/executive-assistant-skills) | 2026-03-04 | 2026-03-04 | 1 | no |  |  |
 | [maderix/ANE](https://github.com/maderix/ANE) | 2026-03-04 | 2026-03-21 | 2 | yes | 2026-03-21 | [reviews/ane-training.md](reviews/ane-training.md) |
-| [openai/symphony](https://github.com/openai/symphony) | 2026-03-04 | 2026-03-08 | 2 | no |  |  |
+| [openai/symphony](https://github.com/openai/symphony) | 2026-03-04 | 2026-03-08 | 2 | yes | 2026-07-25 | [reviews/symphony.md](reviews/symphony.md) |
 | [paperclipai/paperclip](https://github.com/paperclipai/paperclip) | 2026-03-04 | 2026-03-29 | 2 | no |  |  |
 | [LeoYeAI/openclaw-backup](https://github.com/LeoYeAI/openclaw-backup) | 2026-03-04 | 2026-03-04 | 1 | no |  |  |
 | [gemini-cli-extensions/conductor](https://github.com/gemini-cli-extensions/conductor) | 2026-03-04 | 2026-03-04 | 1 | no |  |  |
