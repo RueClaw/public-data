@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 523 public/included repositories, 149 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 524 public/included repositories, 150 reviewed, 374 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [gherghett/ClaudeCodePSymphony](https://github.com/gherghett/ClaudeCodePSymphony) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/claudecodepsymphony.md](reviews/claudecodepsymphony.md) |
 | [cactus-compute/needle](https://github.com/cactus-compute/needle) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/needle.md](reviews/needle.md) |
 | [Automattic/harper](https://github.com/Automattic/harper) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/harper.md](reviews/harper.md) |
 | [UditAkhourii/adhd](https://github.com/UditAkhourii/adhd) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/adhd.md](reviews/adhd.md) |
