@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [wandr.md](reviews/wandr.md) | [perplexityai/wandr](https://github.com/perplexityai/wandr) | Apache-2.0 | ✅ Deploy candidate | Harbor benchmark for wide/deep research agents with 501 generated tasks, required JSONL outputs, provider-neutral Relay adapters, fetch/triage/canon/dedup/judge scoring, and explicit cost/network caveats |
 | [moonep.md](reviews/moonep.md) | [MoonshotAI/MoonEP](https://github.com/MoonshotAI/MoonEP) | MIT | 📚 Study | Expert-parallel MoE communication library that keeps per-rank token loads exactly balanced with dynamic redundant experts, static `S x K` buffers, zero-copy dispatch/combine views, online CUDA planning, NVLink/VMM symmetric memory, and multi-GPU test/benchmark caveats |
 | [deepseek-v4-flash-dspark-dgx-spark.md](reviews/deepseek-v4-flash-dspark-dgx-spark.md) | [MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark) | MIT repo scripts/docs; upstream component terms vary | ⚠️ Interesting | Two-node DGX Spark vLLM/DeepSeek V4 Flash DSpark runbook with 1M-token NVFP4 KV profile, worker-first launch scripts, DSpark concurrency patch notes, direct smoke tests, benchmark evidence, and privileged-cluster caveats |
 | [foundry.md](reviews/foundry.md) | [simoncorry/foundry](https://github.com/simoncorry/foundry) | MIT | ✅ Deploy candidate | Plain-markdown agent process for durable software work, with staged planning/framing/critique/build/test/wrap-up commands, repo-local plans/sessions/wiki, generated Cursor/Claude/Codex command shapes, zero dependencies, and passing local checks |
@@ -242,6 +243,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [file-output-research-agent-benchmark.md](patterns/file-output-research-agent-benchmark.md) | perplexityai/wandr | Evaluate research agents through task-declared required files, provider-specific artifact collection, workspace-relative validation, verifier-owned fetching/entity/evidence scoring, and trace-complete observability |
 | [simd-pretokenization-cache-pipeline.md](patterns/simd-pretokenization-cache-pipeline.md) | marcelroed/gigatoken | Treat tokenizer throughput as a whole native data path with file loading, boundary-safe chunking, SIMD pretokenization, repeated-pretoken caching, cache-friendly BPE lookup, and ragged output buffers |
 | [sealed-agent-trajectory-judge.md](patterns/sealed-agent-trajectory-judge.md) | cosmtrek/mindwalk | Evaluate untrusted agent-session traces with a sealed no-tool/no-MCP/no-config judge subprocess, evidence-cited JSON findings, deterministic verdict rollup, and stale-report detection |
 | [diagnosis-before-cure-intake.md](patterns/diagnosis-before-cure-intake.md) | Corey Ganim AI Tools Assessment thread | Start with a transcript-first diagnostic conversation about lived workflow friction before recommending tools, process changes, automation, or support |
