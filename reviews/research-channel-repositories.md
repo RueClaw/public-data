@@ -2,16 +2,17 @@
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
 **Message range:** 2026-02-17 to 2026-06-20
-**Generated:** 2026-06-18; manually updated 2026-07-27
+**Generated:** 2026-06-18; manually updated 2026-07-30
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 526 public/included repositories, 153 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 527 public/included repositories, 154 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [synthetic-sciences/openscience](https://github.com/synthetic-sciences/openscience) | 2026-07-30 | 2026-07-30 | 1 | yes | 2026-07-30 | [reviews/openscience.md](reviews/openscience.md) |
 | [MoonshotAI/MoonEP](https://github.com/MoonshotAI/MoonEP) | 2026-07-27 | 2026-07-27 | 1 | yes | 2026-07-27 | [reviews/moonep.md](reviews/moonep.md) |
 | [marcelroed/gigatoken](https://github.com/marcelroed/gigatoken) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/gigatoken.md](reviews/gigatoken.md) |
 | [gherghett/ClaudeCodePSymphony](https://github.com/gherghett/ClaudeCodePSymphony) | 2026-07-25 | 2026-07-25 | 1 | yes | 2026-07-25 | [reviews/claudecodepsymphony.md](reviews/claudecodepsymphony.md) |
