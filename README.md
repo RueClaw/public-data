@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [sageroute.md](reviews/sageroute.md) | [codejunkie99/sageroute](https://github.com/codejunkie99/sageroute) | MIT | ⚠️ Interesting | Trajectory-aware model router that exposes OpenAI/Anthropic-compatible proxy routes, starts sessions on a cheap model, derives stuck/progress signals from tool-call evidence, asks Levanto Sage at checkpoints, and applies a guarded cheap-to-strong ladder; strong pattern, but early ops posture |
 | [openscience.md](reviews/openscience.md) | [synthetic-sciences/openscience](https://github.com/synthetic-sciences/openscience) | Apache-2.0 | ✅ Deploy candidate | Local AI workbench for scientific research with Bun/TypeScript agent runtime, SolidJS workspace, 42 scientific connectors, `science_search`/`science_fetch`, 294 bundled skills, MCP/ACP/plugin surfaces, strong release automation, and unsandboxed/dependency-audit caveats |
 | [wandr.md](reviews/wandr.md) | [perplexityai/wandr](https://github.com/perplexityai/wandr) | Apache-2.0 | ✅ Deploy candidate | Harbor benchmark for wide/deep research agents with 501 generated tasks, required JSONL outputs, provider-neutral Relay adapters, fetch/triage/canon/dedup/judge scoring, and explicit cost/network caveats |
 | [moonep.md](reviews/moonep.md) | [MoonshotAI/MoonEP](https://github.com/MoonshotAI/MoonEP) | MIT | 📚 Study | Expert-parallel MoE communication library that keeps per-rank token loads exactly balanced with dynamic redundant experts, static `S x K` buffers, zero-copy dispatch/combine views, online CUDA planning, NVLink/VMM symmetric memory, and multi-GPU test/benchmark caveats |
@@ -244,6 +245,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [trajectory-aware-model-routing.md](patterns/trajectory-aware-model-routing.md) | codejunkie99/sageroute | Route agent sessions by observed tool-call evidence instead of prompt-time difficulty guesses: recover trajectory, compute deterministic stuck/progress signals, ask a decision policy only at checkpoints, then continue, switch model, restart clean, or escalate human with auditable headers |
 | [file-output-research-agent-benchmark.md](patterns/file-output-research-agent-benchmark.md) | perplexityai/wandr | Evaluate research agents through task-declared required files, provider-specific artifact collection, workspace-relative validation, verifier-owned fetching/entity/evidence scoring, and trace-complete observability |
 | [simd-pretokenization-cache-pipeline.md](patterns/simd-pretokenization-cache-pipeline.md) | marcelroed/gigatoken | Treat tokenizer throughput as a whole native data path with file loading, boundary-safe chunking, SIMD pretokenization, repeated-pretoken caching, cache-friendly BPE lookup, and ragged output buffers |
 | [sealed-agent-trajectory-judge.md](patterns/sealed-agent-trajectory-judge.md) | cosmtrek/mindwalk | Evaluate untrusted agent-session traces with a sealed no-tool/no-MCP/no-config judge subprocess, evidence-cited JSON findings, deterministic verdict rollup, and stale-report detection |
