@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 529 public/included repositories, 156 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 530 public/included repositories, 157 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/deepseek-v4-flash-dspark-dgx-spark.md](reviews/deepseek-v4-flash-dspark-dgx-spark.md) |
 | [ArchAstro/scopey](https://github.com/ArchAstro/scopey) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/scopey.md](reviews/scopey.md) |
 | [codejunkie99/sageroute](https://github.com/codejunkie99/sageroute) | 2026-07-30 | 2026-07-30 | 1 | yes | 2026-07-30 | [reviews/sageroute.md](reviews/sageroute.md) |
 | [synthetic-sciences/openscience](https://github.com/synthetic-sciences/openscience) | 2026-07-30 | 2026-07-30 | 1 | yes | 2026-07-30 | [reviews/openscience.md](reviews/openscience.md) |
