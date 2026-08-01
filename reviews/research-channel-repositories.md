@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 531 public/included repositories, 158 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 532 public/included repositories, 159 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [cosmtrek/mindwalk](https://github.com/cosmtrek/mindwalk) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-07-19 | [reviews/mindwalk.md](reviews/mindwalk.md) |
 | [oso95/scroll-world](https://github.com/oso95/scroll-world) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/scroll-world.md](reviews/scroll-world.md) |
 | [MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark](https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/deepseek-v4-flash-dspark-dgx-spark.md](reviews/deepseek-v4-flash-dspark-dgx-spark.md) |
 | [ArchAstro/scopey](https://github.com/ArchAstro/scopey) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/scopey.md](reviews/scopey.md) |
