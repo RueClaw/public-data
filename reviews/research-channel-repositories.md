@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 533 public/included repositories, 160 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 534 public/included repositories, 161 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [elder-plinius/GL4SS](https://github.com/elder-plinius/GL4SS) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/gl4ss.md](reviews/gl4ss.md) |
 | [JustVugg/colibri](https://github.com/JustVugg/colibri) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/colibri.md](reviews/colibri.md) |
 | [cosmtrek/mindwalk](https://github.com/cosmtrek/mindwalk) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-07-19 | [reviews/mindwalk.md](reviews/mindwalk.md) |
 | [oso95/scroll-world](https://github.com/oso95/scroll-world) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/scroll-world.md](reviews/scroll-world.md) |
