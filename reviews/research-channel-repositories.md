@@ -2,16 +2,17 @@
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
 **Message range:** 2026-02-17 to 2026-06-20
-**Generated:** 2026-06-18; manually updated 2026-07-30
+**Generated:** 2026-06-18; manually updated 2026-08-01
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 528 public/included repositories, 155 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 529 public/included repositories, 156 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [ArchAstro/scopey](https://github.com/ArchAstro/scopey) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/scopey.md](reviews/scopey.md) |
 | [codejunkie99/sageroute](https://github.com/codejunkie99/sageroute) | 2026-07-30 | 2026-07-30 | 1 | yes | 2026-07-30 | [reviews/sageroute.md](reviews/sageroute.md) |
 | [synthetic-sciences/openscience](https://github.com/synthetic-sciences/openscience) | 2026-07-30 | 2026-07-30 | 1 | yes | 2026-07-30 | [reviews/openscience.md](reviews/openscience.md) |
 | [MoonshotAI/MoonEP](https://github.com/MoonshotAI/MoonEP) | 2026-07-27 | 2026-07-27 | 1 | yes | 2026-07-27 | [reviews/moonep.md](reviews/moonep.md) |
