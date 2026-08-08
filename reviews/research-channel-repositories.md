@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 535 public/included repositories, 162 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 536 public/included repositories, 163 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [cloudflare/computer](https://github.com/cloudflare/computer) | 2026-08-07 | 2026-08-07 | 1 | yes | 2026-08-07 | [reviews/cloudflare-computer.md](reviews/cloudflare-computer.md) |
 | [elder-plinius/GL4SS](https://github.com/elder-plinius/GL4SS) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/gl4ss.md](reviews/gl4ss.md) |
 | [boldsoftware/meat](https://github.com/boldsoftware/meat) | 2026-08-03 | 2026-08-03 | 1 | yes | 2026-08-03 | [reviews/meat.md](reviews/meat.md) |
 | [JustVugg/colibri](https://github.com/JustVugg/colibri) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/colibri.md](reviews/colibri.md) |

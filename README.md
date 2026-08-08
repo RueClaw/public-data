@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [cloudflare-computer.md](reviews/cloudflare-computer.md) | [cloudflare/computer](https://github.com/cloudflare/computer) | MIT | ⚠️ Interesting | Cloudflare preview package for persistent agent workspaces with Durable Object SQLite filesystem, pluggable Worker shell/Worker JavaScript/container execution backends, AI SDK tools, git/assets/artifacts surfaces, and preview/API-stability caveats |
 | [meat.md](reviews/meat.md) | [boldsoftware/meat](https://github.com/boldsoftware/meat) | Apache-2.0 | ✅ Deploy candidate | Go CLI that turns raw code diffs into source-derived reading diffs with OpenAI/Anthropic/exe.dev model support, read-only repo context tools, chunked large-diff handling, cache keys tied to prompt/compiler protocol, and a strong LLM edit-plan compiler boundary |
 | [optimal-hypothesis-weakest-not-shortest.md](reviews/optimal-hypothesis-weakest-not-shortest.md) | [The Optimal Choice of Hypothesis Is the Weakest, Not the Shortest](https://arxiv.org/abs/2301.12987v4) | CC BY-NC-ND 4.0 | 📚 Good reference | AGI 2023 paper arguing that, under a finite enactive-cognition task formalism with uniform task distribution, the best valid hypothesis is the weakest one by extension size rather than the shortest one by description length; useful challenge to compression-as-intelligence, with toy binary-arithmetic evidence and strong assumption caveats |
 | [inspect-ai.md](reviews/inspect-ai.md) | [UKGovernmentBEIS/inspect_ai](https://github.com/UKGovernmentBEIS/inspect_ai) / [Inspect docs](https://inspect.aisi.org.uk/) | MIT | ✅ Deploy candidate | UK AI Security Institute framework for LLM and agent evaluations with Python tasks, datasets, solvers, scorers, provider adapters, tool execution, sandboxes, approval policies, log viewer, dataframe/scanner analysis, 200+ evals, and a local detached-run control channel |
@@ -244,6 +245,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [durable-object-workspace-runtime.md](patterns/durable-object-workspace-runtime.md) | cloudflare/computer | Keep a platform-native durable workspace as the source of truth, then route execution to pluggable lightweight isolate or heavyweight container backends with explicit capability descriptions and sync boundaries |
 | [autoforge-two-agent-pattern.md](agents/autoforge-two-agent-pattern.md) | leonvanzyl/autoforge | Two-agent architecture for autonomous coding (initializer + coder) |
 | [shannon-ai-pentester.md](agents/shannon-ai-pentester.md) | keygraphHQ/shannon | Autonomous AI pentester with Temporal orchestration |
 | [antfarm-multi-agent-workflows.md](agents/antfarm-multi-agent-workflows.md) | snarktank/antfarm | Multi-agent workflows with YAML + SQLite + cron |
