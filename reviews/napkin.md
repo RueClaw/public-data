@@ -1,128 +1,141 @@
-# napkin — Review
+# napkin (Michaelliv/napkin)
 
 **Repo:** https://github.com/Michaelliv/napkin  
-**Package:** napkin-ai (npm)  
-**Author:** Michael Liv (MIT)  
-**Stack:** TypeScript / Bun / BM25 / Obsidian-compatible  
-**License:** MIT ✅  
-**Reviewed:** 2026-04-03  
-**Rating:** ⭐⭐⭐⭐⭐ — Direct hit. This is exactly the memory architecture we should be running.
+**License:** MIT; permissive reuse with attribution  
+**Reviewed:** 2026-08-08  
+**Stack:** TypeScript, Bun, Commander, FerroSearch/MiniSearch-compatible BM25, sql.js, gray-matter, Jexl, Obsidian Markdown/Canvas/Bases  
+**What it is:** Local-first, file-based knowledge tooling for agents. It gives agents a progressive-disclosure interface over Markdown/Obsidian vaults: compact context, folder overview, ranked search, and explicit file reads.
 
 ---
 
-## What It Is
+## Update Notes
 
-A CLI knowledge system designed *specifically* for AI agents operating on Obsidian vaults. Not an Obsidian plugin, not a wrapper — it operates directly on markdown files, no app or Electron required.
+Checked against the older April review. Material changes warranted a rewrite:
 
-The core thesis: **agents work best when information is revealed gradually, not dumped all at once.** napkin implements a four-level progressive disclosure model for memory access.
-
----
-
-## The Progressive Disclosure Model
-
-| Level | Command | Tokens | What it does |
-|-------|---------|--------|-------------|
-| L0 | `NAPKIN.md` | ~200 | "Always loaded" project context note — goals, conventions, key decisions |
-| L1 | `napkin overview` | ~1-2k | TF-IDF keyword index per folder — a table of contents for the vault |
-| L2 | `napkin search <query>` | ~2-5k | BM25 + backlinks + recency ranked results with snippets |
-| L3 | `napkin read <file>` | ~5-20k | Full file content |
-
-**The agent decides how deep to go.** Overview → search → read. Never dump the whole vault into context.
-
-The benchmark results validate this aggressively: **83% accuracy on LongMemEval-M** (the 500-session, 1.5M token dataset), beating GPT-4o RAG at 72% — with **zero preprocessing, no embeddings, no graph construction, no summaries**. Just BM25 on per-round markdown notes.
-
----
-
-## Architecture
-
-**CLI commands** cover the full Obsidian feature set from the command line:
-- CRUD on notes (`create`, `read`, `append`, `prepend`, `move`, `delete`)
-- `search` — BM25 + backlinks (PageRank via wikilink graph) + recency
-- `overview` — TF-IDF keyword extraction per folder
-- `daily` — daily notes with template support
-- `task` — task management (list, toggle, complete)
-- `tag`, `property`, `link`, `outline` — full vault metadata access
-- `base` — query `.base` files (Obsidian's frontmatter query system) via SQLite in-memory
-- `canvas` — read/write JSON Canvas files
-- `graph` — interactive force-directed vault graph
-- `--json` flag on everything for programmatic agent access
-
-**Vault structure** is Obsidian-compatible: `.napkin/` houses `NAPKIN.md`, `config.json`, all content directories, and a `.obsidian/` folder that stays in sync. You can use Obsidian to browse the same vault the agent writes to.
-
-**Templates** scaffold domain-specific vault structures:
-```
-coding    → decisions/, architecture/, guides/, changelog/
-company   → people/, projects/, runbooks/, infrastructure/
-product   → features/, roadmap/, research/, specs/, releases/
-personal  → people/, projects/, areas/, references/
-research  → papers/, concepts/, questions/, experiments/
-```
-
----
-
-## The Distill Extension
-
-The most interesting part. A pi extension (`napkin-distill`) that:
-
-1. Runs on a timer (default 60min)
-2. Reads new conversation entries since last run
-3. Loads `NAPKIN.md` (vault context) + vault templates (output format)
-4. Calls an LLM (claude-sonnet-4-6 by default) to identify and structure knowledge worth capturing
-5. Writes structured notes directly to the vault in template format
-6. Outputs `NO_DISTILL` if nothing is worth capturing
-
-**The architectural insight:** napkin is LLM-free. The distill extension is a pi extension that bridges the agent's model access to napkin's vault structure. The agent keeps working; distill runs alongside it.
-
-The agent doesn't have to decide what to remember. A background model call handles it.
-
----
-
-## Why This Matters for Us
-
-**This is what our memory architecture should look like.** Right now we have:
-- `MEMORY.md` — a flat file that grows without structure
-- `memory/YYYY-MM-DD.md` — daily notes that never get distilled
-- No search, no keyword index, no progressive disclosure
-- Manual memory maintenance that requires session attention
-
-napkin provides the exact infrastructure to fix all of this:
-
-1. **`NAPKIN.md` = our `MEMORY.md`** — stays small (~200 tokens), just key context
-2. **`napkin overview`** = boot briefing instead of reading all daily notes
-3. **`napkin search`** = actually finding relevant context instead of hoping it's in MEMORY.md
-4. **distill extension** = automated knowledge capture from sessions instead of manual updates
-
-The LongMemEval benchmark specifically tests what we do every session: long-term conversational memory across hundreds of sessions. 83% accuracy with BM25 on markdown beats every embedding-based approach they tested.
-
----
-
-## Reusable Patterns
-
-**1. Progressive Disclosure as Memory Contract**
-Define explicit token budgets per disclosure level before designing any memory system. L0 = always loaded (<200 tokens), L1 = boot orientation (<2k), L2 = search-on-demand (<5k), L3 = full read (on explicit request). This is a design constraint, not a feature.
-
-**2. Per-Round Notes as the Retrieval Unit**
-Instead of storing full session logs, split sessions into per-round notes (~2.5k chars each). BM25 gets better granularity, and you can retrieve individual exchanges instead of entire conversations.
-
-**3. LLM-Free Core, LLM-Enabled Extension**
-The CLI is pure TypeScript/BM25/SQLite — no model calls, no API keys, no latency. Intelligence is added as an optional extension layer. This separation means the core is reliable, fast, and offline-capable.
-
-**4. Day Directories for Temporal Context**
-Organizing notes into `YYYY-MM-DD/` directories lets the overview extract per-day keywords. The agent gets a topical map by time period for free from the directory structure alone.
-
-**5. Templates as Distillation Output Format**
-Rather than inventing a new note format for distilled knowledge, use the vault's own templates as the output schema. The model's structured output matches what the user already expects. No post-processing.
+- Current release is `0.9.2`, commit `bbea2920374829ca351a1290ad3d794eb0d6f903` from 2026-08-02.
+- Search now uses `@shift-labs/ferrosearch`, a native MiniSearch-compatible engine with prebuilt binaries.
+- The project now exposes a typed SDK in addition to the CLI.
+- Obsidian-adjacent coverage is broader: Bases, Canvas, bookmarks, properties, links, tasks, templates, daily notes, and graph view.
+- The package ships two agent skills, `distill` and `tend`, that operationalize capture and upkeep of vault knowledge.
+- Verification is stronger than before: local tests passed after dependency install, but packaging/audit caveats remain.
 
 ---
 
 ## Verdict
 
-This is a solved problem we've been solving manually. The LongMemEval results are the proof: BM25 on well-structured markdown beats RAG, beats full-context, beats every embedding approach tested — at scale (500 sessions) where other systems completely fall apart.
+✅ **Deploy candidate for local agent memory and vault tooling, with packaging hygiene checks.** napkin has the right core shape: no hosted service, no model dependency in the core, structured JSON output, and a practical disclosure ladder for context budgets. The main caveats are not conceptual; they are release hygiene: the committed lockfile is out of sync, `npm ci` fails on a fresh clone, and `npm audit --omit=dev` reports a high-severity `js-yaml` CPU-DoS advisory.
 
-**Action items:**
-1. Install `napkin-ai` and `napkin init --template personal` on the shared vault
-2. Wire `napkin search` into our boot sequence as a replacement for manually scanning daily notes
-3. Implement the distill pattern for session knowledge capture (can be adapted without the pi runtime)
-4. Extract the per-round notes pattern for our own session memory
+---
 
-Source: Michaelliv/napkin (MIT). Review by Rue.
+## What It Is
+
+napkin is a CLI and TypeScript SDK for agent-operable Markdown vaults. It treats a knowledge base as normal files, not as an opaque vector database or SaaS memory store. Agents can start with `NAPKIN.md`, ask for a compact `overview`, run ranked `search`, then explicitly `read` only the files that matter.
+
+That workflow is the point. A memory system for agents should not start by dumping a whole vault into the prompt. napkin makes the retrieval path legible and controllable: overview for orientation, search for candidate notes, read for full evidence.
+
+The project is also Obsidian-aware without requiring Obsidian. It can work with Markdown notes, frontmatter properties, tasks, wikilinks, JSON Canvas files, `.base` database views, note templates, and daily notes from the command line or SDK.
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Runtime | TypeScript, ESM, Bun for development/tests |
+| CLI | Commander, Chalk |
+| SDK | `Napkin` class wrapping pure core modules |
+| Search | `@shift-labs/ferrosearch`, MiniSearch-compatible BM25/prefix/fuzzy search |
+| Structured data | gray-matter, js-yaml, sql.js, Jexl |
+| Vault format | Markdown, Obsidian-style wikilinks/frontmatter, JSON Canvas, Bases |
+| Tests/tooling | Bun test, TypeScript, Biome |
+
+## Key Features
+
+### Progressive Disclosure
+
+The README frames memory as four levels:
+
+| Level | Surface | Purpose |
+|-------|---------|---------|
+| 0 | `NAPKIN.md` | Small pinned context |
+| 1 | `napkin overview` | Vault map with folder keywords |
+| 2 | `napkin search <query>` | Ranked results and optional snippets |
+| 3 | `napkin read <file>` | Full file content on demand |
+
+This is a clean contract for agent context management. It gives the agent a search path without pretending retrieval is magic.
+
+### Agent-Usable CLI and SDK
+
+Every major command supports `--json`, and the SDK methods return typed data instead of printing or exiting. The architecture split is healthy:
+
+- `core/` owns pure logic and returns values.
+- `commands/` owns CLI parsing and output.
+- `sdk.ts` gives programmatic callers the same behavior without stdout coupling.
+
+That makes napkin usable from shell-based agents, TypeScript agents, and ordinary scripts.
+
+### Obsidian-Compatible Operations
+
+The command surface is broad enough to make a vault actually maintainable:
+
+- create/read/append/prepend/move/rename/delete notes
+- list files/folders, outlines, word counts
+- daily notes
+- tags, aliases, properties, tasks, links, backlinks, unresolved links, orphans, deadends
+- templates and bookmarks
+- Canvas node/edge operations
+- Bases querying via an in-memory SQLite model
+
+This matters because read-only memory tools rot. Agents need narrowly-scoped write and upkeep operations too.
+
+### Bundled Skills
+
+The shipped `distill` skill is a good operational rulebook: gate whether anything is worth saving, search before creating, merge into existing notes when possible, verify unresolved links, and report what changed.
+
+The `tend` skill is similarly conservative: fix a few broken links/tags/orphans/duplicates, avoid structural overreach, and prefer no-op over destructive cleanup. These skills are arguably as valuable as the CLI because they encode the behavior needed to keep a vault usable.
+
+## Architecture
+
+napkin's best architectural choice is the LLM-free core. Search, indexing, Markdown parsing, Obsidian metadata, and file mutation are deterministic local operations. Model behavior belongs at the caller or skill layer, not inside the storage engine.
+
+The search path builds a local index over Markdown files, caches it under `.napkin`, and combines BM25 score with backlink count and recency. Snippets are extracted from the original file content when requested. Overview generation uses keyword extraction with explicit noise stripping for code blocks, URLs, emails, hashes, generated IDs, HTML tags, and similar converted-document debris.
+
+The core/command split is also enforced by tests. There are tests checking that core modules do not import output utilities or call `console.log` / `process.exit`, which is the right kind of guard for a dual CLI/SDK project.
+
+## Comparison
+
+| Aspect | napkin | supermemory | agentmemory | GBrain-style systems |
+|--------|--------|-------------|-------------|----------------------|
+| Primary model | File-based vault CLI/SDK | Hosted/API memory platform | Passive agent-session memory capture | Larger operational knowledge system |
+| Local-first | Strong | Partial/hosted-first | Stronger locally, broader daemon surface | Varies |
+| Core dependency on LLMs | None | Service/API centric | Optional retrieval/enrichment paths | Often LLM-heavy |
+| Best use | Agent-readable Markdown/Obsidian memory | Productized memory gateway | Capturing agent work history | Full knowledge operations |
+| Main caveat | Packaging/audit cleanup | Trust and hosted data boundaries | Passive capture/privacy surface | Complexity |
+
+napkin is not a complete memory product in the same way supermemory is, and it does not automatically capture sessions like agentmemory. Its strength is narrower: it gives agents a clean, local, inspectable interface to a human-editable knowledge base.
+
+## Self-Hosting Notes
+
+There is no service to host. Install the npm package or run from source:
+
+```bash
+npm install -g napkin-ai
+napkin init --template coding
+napkin overview --json
+napkin search "authentication" --json
+```
+
+Fresh source install has one important gotcha. `npm ci` failed because `package-lock.json` is out of sync with `package.json`; `npm install` repaired the local dependency tree and triggered a successful TypeScript build. Until the lockfile is corrected upstream, reproducible CI/source installs are weaker than they should be.
+
+## Verification
+
+Reviewed shallow clone at `bbea2920374829ca351a1290ad3d794eb0d6f903`.
+
+- `npm ci`: failed because the lockfile is out of sync. Missing entries include `@shift-labs/ferrosearch@0.1.1` and platform packages.
+- `npm install`: passed and ran `npm run build` successfully during `prepare`.
+- `npm test`: passed, 388 tests.
+- `npm run check`: passed with 9 Biome warnings, mostly explicit `any` and unused imports.
+- `npm audit --omit=dev --json`: failed with 1 high-severity advisory through `js-yaml`.
+- Secret scan: no obvious hardcoded secrets; notable command-execution surfaces are expected CLI helpers (`open`, `pbcopy`, graph local server, update command, benchmark subprocesses).
+
+---
+
+**Attribution:** Michaelliv/napkin, MIT License.
