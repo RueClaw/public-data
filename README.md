@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [diagram-design.md](reviews/diagram-design.md) | [cathrynlavery/diagram-design](https://github.com/cathrynlavery/diagram-design) | MIT | ✅ Deploy candidate | Agent Skill/plugin for branded editorial technical diagrams with 27 visual types, semantic behavior patterns, draw.io and Mermaid redraw flows, static-first HTML/SVG output, accessibility checks, constrained motion, and broad validation gates |
 | [deepseek-harness.md](reviews/deepseek-harness.md) | [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) | MIT | ✅ Deploy candidate | DeepSeek's developer-preview agent harness with Cordis plugin composition, web/headless profiles, ACP automation, Python runtime, event-sourced sessions, guarded tool execution, sandbox/approval seams, generated docs, and broad test coverage |
 | [logseq.md](reviews/logseq.md) | [logseq/logseq](https://github.com/logseq/logseq) | AGPL-3.0 | ✅ Deploy candidate | Privacy-first local knowledge graph and outliner with Clojure/ClojureScript, Electron, DataScript, SQLite/DB graphs, Markdown/Org, plugins, sync/RTC, mobile apps, CLI, and MCP surfaces; mature but AGPL/DB-beta/dependency-audit caveats |
 | [jellyglance.md](reviews/jellyglance.md) | [Nerdy-Technician/JellyGlance](https://github.com/Nerdy-Technician/JellyGlance) | MIT/GPL metadata conflict | ⚠️ Interesting | Self-hosted Jellyfin operations dashboard with Express, React/Vite, PostgreSQL, live sessions, users, stats, Arr/Seerr/download integrations, webhooks, backups, and tasks; promising but needs auth, secret, license, and test-posture hardening |
@@ -264,6 +265,7 @@ Repository tracking:
 
 | File | Source | Description |
 |------|--------|-------------|
+| [static-first-semantic-diagram-skill.md](patterns/static-first-semantic-diagram-skill.md) | cathrynlavery/diagram-design | Generate diagrams by choosing semantic behavior patterns before visual layout, rendering a complete static HTML/SVG frame by default, and allowing motion only through a reviewed controller plus deterministic self-checks |
 | [llm-edit-plan-compiler-boundary.md](patterns/llm-edit-plan-compiler-boundary.md) | boldsoftware/meat | Let an LLM propose structured operations over stable source coordinates while deterministic local code validates and renders the final transformed artifact, keeping model judgment useful without trusting model-authored output |
 | [detached-eval-control-channel.md](patterns/detached-eval-control-channel.md) | Inspect AI | Launch long-running evals as supervised detached jobs with a machine-readable startup handoff, local-only control channel, live task/sample/transcript inspection, pause/resume/cancel/config controls, and explicit completion records |
 | [agent-evals-as-test-files.md](patterns/agent-evals-as-test-files.md) | OpenRouter Ori Eval | Represent agent/model evals as ordinary `*.eval.ts` test files while a CLI owns runtime startup, SDK injection, credential resolution, paid model execution, append-only result capture, reports, and history |
