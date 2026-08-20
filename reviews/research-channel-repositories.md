@@ -1,17 +1,18 @@
 # Research Channel Repository Review Index
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
-**Message range:** 2026-02-17 to 2026-06-20
-**Generated:** 2026-06-18; manually updated 2026-08-01
+**Message range:** 2026-02-17 to 2026-08-20
+**Generated:** 2026-06-18; manually updated 2026-08-20
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 537 public/included repositories, 164 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 538 public/included repositories, 165 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [helloianneo/ian-xiaohei-illustrations](https://github.com/helloianneo/ian-xiaohei-illustrations) | 2026-08-20 | 2026-08-20 | 1 | yes | 2026-08-20 | [reviews/ian-xiaohei-illustrations.md](reviews/ian-xiaohei-illustrations.md) |
 | [magnitudedev/magnitude](https://github.com/magnitudedev/magnitude) | 2026-08-18 | 2026-08-18 | 1 | yes | 2026-08-18 | [reviews/magnitude.md](reviews/magnitude.md) |
 | [cloudflare/computer](https://github.com/cloudflare/computer) | 2026-08-07 | 2026-08-07 | 1 | yes | 2026-08-07 | [reviews/cloudflare-computer.md](reviews/cloudflare-computer.md) |
 | [elder-plinius/GL4SS](https://github.com/elder-plinius/GL4SS) | 2026-08-01 | 2026-08-01 | 1 | yes | 2026-08-01 | [reviews/gl4ss.md](reviews/gl4ss.md) |
