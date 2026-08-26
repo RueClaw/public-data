@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 540 public/included repositories, 167 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 541 public/included repositories, 168 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [MengTo/threeui](https://github.com/MengTo/threeui) | 2026-08-26 | 2026-08-26 | 1 | yes | 2026-08-26 | [reviews/threeui.md](reviews/threeui.md) |
 | [andrewyng/openworker](https://github.com/andrewyng/openworker) | 2026-08-26 | 2026-08-26 | 1 | yes | 2026-08-26 | [reviews/openworker.md](reviews/openworker.md) |
 | [helloianneo/ian-xiaohei-illustrations](https://github.com/helloianneo/ian-xiaohei-illustrations) | 2026-08-20 | 2026-08-20 | 1 | yes | 2026-08-20 | [reviews/ian-xiaohei-illustrations.md](reviews/ian-xiaohei-illustrations.md) |
 | [magnitudedev/magnitude](https://github.com/magnitudedev/magnitude) | 2026-08-18 | 2026-08-18 | 1 | yes | 2026-08-18 | [reviews/magnitude.md](reviews/magnitude.md) |
