@@ -2,16 +2,17 @@
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
 **Message range:** 2026-02-17 to 2026-08-20
-**Generated:** 2026-06-18; manually updated 2026-08-20
+**Generated:** 2026-06-18; manually updated 2026-08-29
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 541 public/included repositories, 168 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 542 public/included repositories, 169 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [sodiumsun/agenttrail](https://github.com/sodiumsun/agenttrail) | 2026-08-29 | 2026-08-29 | 1 | yes | 2026-08-29 | [reviews/agenttrail.md](reviews/agenttrail.md) |
 | [MengTo/threeui](https://github.com/MengTo/threeui) | 2026-08-26 | 2026-08-26 | 1 | yes | 2026-08-26 | [reviews/threeui.md](reviews/threeui.md) |
 | [andrewyng/openworker](https://github.com/andrewyng/openworker) | 2026-08-26 | 2026-08-26 | 1 | yes | 2026-08-26 | [reviews/openworker.md](reviews/openworker.md) |
 | [helloianneo/ian-xiaohei-illustrations](https://github.com/helloianneo/ian-xiaohei-illustrations) | 2026-08-20 | 2026-08-20 | 1 | yes | 2026-08-20 | [reviews/ian-xiaohei-illustrations.md](reviews/ian-xiaohei-illustrations.md) |
