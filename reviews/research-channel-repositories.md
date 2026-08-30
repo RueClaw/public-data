@@ -2,16 +2,17 @@
 
 **Source:** discrawl snapshot of Discord #research (channel:1472683320453107794)
 **Message range:** 2026-02-17 to 2026-08-29
-**Generated:** 2026-06-18; manually updated 2026-08-29
+**Generated:** 2026-06-18; manually updated 2026-08-30
 
 This index normalizes GitHub repository URLs shared in #research, marks whether a review artifact exists, and records the latest review date when known.
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 543 public/included repositories, 170 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 544 public/included repositories, 171 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [0xSero/local-ai-registry](https://github.com/0xSero/local-ai-registry) | 2026-08-30 | 2026-08-30 | 1 | yes | 2026-08-30 | [reviews/local-ai-registry.md](reviews/local-ai-registry.md) |
 | [open-telemetry/semantic-conventions-genai](https://github.com/open-telemetry/semantic-conventions-genai) | 2026-08-29 | 2026-08-29 | 1 | yes | 2026-08-29 | [reviews/semantic-conventions-genai.md](reviews/semantic-conventions-genai.md) |
 | [sodiumsun/agenttrail](https://github.com/sodiumsun/agenttrail) | 2026-08-29 | 2026-08-29 | 1 | yes | 2026-08-29 | [reviews/agenttrail.md](reviews/agenttrail.md) |
 | [MengTo/threeui](https://github.com/MengTo/threeui) | 2026-08-26 | 2026-08-26 | 1 | yes | 2026-08-26 | [reviews/threeui.md](reviews/threeui.md) |
