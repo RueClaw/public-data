@@ -8,7 +8,7 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 544 public/included repositories, 171 reviewed, 373 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 549 public/included repositories, 179 reviewed, 370 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
@@ -49,7 +49,7 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [nubo-db/dynoxide](https://github.com/nubo-db/dynoxide) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/dynoxide.md](reviews/dynoxide.md) |
 | [modem-dev/hunk](https://github.com/modem-dev/hunk) | 2026-06-20 | 2026-06-20 | 1 | yes | 2026-06-20 | [reviews/hunk.md](reviews/hunk.md) |
 | [stanford-oval/storm](https://github.com/stanford-oval/storm) | 2026-06-18 | 2026-06-18 | 1 | yes | 2026-06-18 | [reviews/storm.md](reviews/storm.md) |
-| [kunchenguid/no-mistakes](https://github.com/kunchenguid/no-mistakes) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/no-mistakes.md](reviews/no-mistakes.md) |
+| [kunchenguid/no-mistakes](https://github.com/kunchenguid/no-mistakes) | 2026-06-08 | 2026-08-30 | 2 | yes | 2026-08-30 | [reviews/no-mistakes.md](reviews/no-mistakes.md) |
 | [trymirai/lalamo](https://github.com/trymirai/lalamo) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/lalamo.md](reviews/lalamo.md) |
 | [trymirai/uzu](https://github.com/trymirai/uzu) | 2026-06-08 | 2026-06-08 | 1 | yes | 2026-06-09 | [reviews/uzu.md](reviews/uzu.md) |
 | [harehare/mq](https://github.com/harehare/mq) | 2026-06-07 | 2026-06-07 | 1 | yes | 2026-06-07 | [reviews/mq.md](reviews/mq.md) |
@@ -529,7 +529,6 @@ Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Blue
 | [layerbrain/trunks](https://github.com/layerbrain/trunks) | 2026-04-30 | 2026-04-30 | 1 | no |  |  |
 | [KeygraphHQ/shannon](https://github.com/KeygraphHQ/shannon) | 2026-05-01 | 2026-05-01 | 1 | no |  |  |
 | [vibeforge1111/keep-codex-fast](https://github.com/vibeforge1111/keep-codex-fast) | 2026-05-02 | 2026-05-02 | 1 | no |  |  |
-| [kunchenguid/no-mistakes](https://github.com/kunchenguid/no-mistakes) | 2026-05-02 | 2026-05-02 | 1 | no |  |  |
 | [warpdotdev/warp](https://github.com/warpdotdev/warp) | 2026-05-03 | 2026-05-03 | 1 | no |  |  |
 | [LearningCircuit/local-deep-research](https://github.com/LearningCircuit/local-deep-research) | 2026-05-03 | 2026-05-03 | 1 | no |  |  |
 | [vixhal-baraiya/microgpt-c](https://github.com/vixhal-baraiya/microgpt-c) | 2026-05-03 | 2026-05-03 | 1 | no |  |  |
