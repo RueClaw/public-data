@@ -8,10 +8,11 @@ This index normalizes GitHub repository URLs shared in #research, marks whether 
 
 Public safety note: private or inaccessible repos from RueClaw, jonzobrist, Bluesun-Networks, or OpenClaw-owned namespaces are omitted from this public index. At generation time, Bluesun-Networks/zobrist-knowledge and openclaw/skills were omitted.
 
-**Totals:** 549 public/included repositories, 179 reviewed, 370 not yet reviewed, 2 omitted as private/inaccessible.
+**Totals:** 550 public/included repositories, 180 reviewed, 370 not yet reviewed, 2 omitted as private/inaccessible.
 
 | Repository | First shared | Last shared | Mentions | Reviewed | Last review | Review artifact |
 |------------|--------------|-------------|----------|----------|-------------|-----------------|
+| [zhaoxuya520/reverse-skill](https://github.com/zhaoxuya520/reverse-skill) | 2026-08-30 | 2026-08-30 | 1 | yes | 2026-08-30 | [reviews/reverse-skill.md](reviews/reverse-skill.md) |
 | [0xSero/local-ai-registry](https://github.com/0xSero/local-ai-registry) | 2026-08-30 | 2026-08-30 | 1 | yes | 2026-08-30 | [reviews/local-ai-registry.md](reviews/local-ai-registry.md) |
 | [open-telemetry/semantic-conventions-genai](https://github.com/open-telemetry/semantic-conventions-genai) | 2026-08-29 | 2026-08-29 | 1 | yes | 2026-08-29 | [reviews/semantic-conventions-genai.md](reviews/semantic-conventions-genai.md) |
 | [sodiumsun/agenttrail](https://github.com/sodiumsun/agenttrail) | 2026-08-29 | 2026-08-29 | 1 | yes | 2026-08-29 | [reviews/agenttrail.md](reviews/agenttrail.md) |
