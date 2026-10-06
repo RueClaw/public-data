@@ -6,8 +6,9 @@ description: >
   URL with no other instructions, run this skill immediately. Also triggers on phrases like "review this", "check this
   out", "what do you think of this repo/article/project", "take a look at", or any shared link to a codebase or
   technical article. Also triggers on requests to check in on, refresh, re-review, or update an existing review after
-  upstream changes. Covers repos, blog posts, research papers, technical writeups, and tools. Three outputs every time:
-  chat summary, public review (pushed to public-data), and internal vault review with project relevance.
+  upstream changes. Covers repos, blog posts, research papers, technical writeups, and tools. Four outputs every time:
+  chat summary, public review (pushed to public-data), internal vault review with project relevance, and a
+  self-contained interactive HTML page.
 ---
 
 # Review Skill
@@ -30,7 +31,7 @@ If a GitHub repo URL is shared with no additional context, that IS the instructi
 
 ### Step 0: Detect Content Type
 
-Determine whether the input is a **code repository** or a **document/article**. This affects which sections appear in the review, but all three outputs are always produced.
+Determine whether the input is a **code repository** or a **document/article**. This affects which sections appear in the review, but all four outputs are always produced.
 
 - **Code repository**: GitHub/GitLab URL, local repo path, or anything with a codebase
 - **Document/article**: Blog post, research paper, technical writeup, news article, PDF
@@ -99,7 +100,7 @@ If there are no material changes:
 - Append a check-in row to Research/log.md with verdict ↔️ and files written as none
 
 If there are material changes:
-- Update the existing public and internal review files in place
+- Update the existing public and internal review files in place, and regenerate the HTML page (`reviews/<name>.html`)
 - Add a short **Update Notes** section near the top of each updated review:
   - date checked
   - prior reviewed date/version/ref if known
@@ -128,9 +129,9 @@ If there are material changes:
 - **Gaps**: What's missing, what's overstated, counterarguments
 - **Verdict**: Worth reading, worth sharing, worth acting on?
 
-### Step 3: Write Three Outputs
+### Step 3: Write Four Outputs
 
-Every review produces exactly three outputs. No exceptions.
+Every review produces exactly four outputs. No exceptions.
 
 #### Output 1: Chat Summary
 
@@ -194,7 +195,30 @@ The internal review includes everything the public review has PLUS:
 
 After writing, update the research index at `Homelab/lobsters/rue/workspace/research.md` with a new row in the table.
 
-### Step 4: Extract Valuable Content
+#### Output 4: Interactive HTML Page
+
+Written to `Zob-notes-1/public-data/reviews/<name>.html` — same slug as the markdown review.
+
+A self-contained walkthrough page: hero with verdict badge and stats, a scroll-reveal "key points"
+walkthrough (3–5 points), a tabbed deep dive into the repo (stack, features, architecture, comparison,
+self-hosting), and a verdict block. Public, like Output 2 — same scrubbing rules apply.
+
+Build it from `references/review-page-template.html`: copy the file and replace every `{{TOKEN}}`.
+Hard rules:
+
+- **Single file, zero external assets** — no CDNs, web fonts, images hosted elsewhere, or tracking. Inline CSS/JS only.
+- Fill ALL tokens; remove the template's HTML comment header; add/remove `.step` blocks to fit (3–5 key points).
+- Optional tabs (comparison, self-hosting) auto-hide when their panel is empty — leave the panel empty, don't invent content.
+- Same voice as the review: direct, technical, no hype.
+- Verify before committing: every `{{` placeholder is gone, and the file renders standalone (open it locally or sanity-check the markup).
+
+Commit and push together with the public markdown review — one commit `review: <name>` covering both files
+plus the README row. In the README reviews table, append a page link to the row: `[page](reviews/<name>.html)`
+after the markdown link.
+
+On review check-ins with material changes, regenerate the HTML page from the updated markdown review.
+
+### Step 5: Extract Valuable Content
 
 If the reviewed source contains reusable content worth extracting (prompts, patterns, agent configs, tools, scripts), extract them to the appropriate public-data directory with attribution:
 

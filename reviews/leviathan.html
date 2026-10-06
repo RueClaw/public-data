@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leviathan — Review</title>
+<meta name="description" content="Deep memory for agents over large datasets: index any table or export once, and the agent gets the few records that answer the question.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--deploy);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; }
+
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / leviathan</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">elstongun/leviathan · reviewed 2026-10-05</div>
+    <h1>Leviathan</h1>
+    <p class="one-liner">Deep memory for agents over large datasets: index any table or export once, and the agent gets the few records that answer the question — as ranked, cited cards, not a 100K-token grep.</p>
+    <div class="verdict-pill">✅ Deploy candidate</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0</span>
+      <span class="chip">Rust · SQLite FTS5 · BM25 · single binary</span>
+      <span class="chip"><a href="https://github.com/elstongun/leviathan">elstongun/leviathan ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">427</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">~450</div><div class="lbl">Tokens per answer</div></div>
+      <div class="stat"><div class="num">33ms</div><div class="lbl">Median latency</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>107K tokens → 436</h3><p>Agents asking "has this happened before?" over a big dataset normally grep and read raw records — cost scales with the data. Leviathan inverts it: index once into a single SQLite file, then one search call returns a handful of ranked, cited cards. The included benchmark shows 436 median tokens vs 107K for the best grep strategy at 1M records, with a 99.0% top-5 answer rate.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>It refuses to guess</h3><p>Search is scoped to a "group" — the customer, host, or machine the question is about. The resolver walks exact → case-insensitive → normalized → substring → fuzzy, and if more than one candidate wins, it exits with code 3 and lists them. An autonomous agent never gets a silently wrong entity. Records from other groups come back clearly labeled <code>OTHER &lt;GROUP&gt;</code>.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Scoping that gets cheaper as it narrows</h3><p>Group scope and <code>--where field=value</code> filters are indexed as synthetic FTS5 tokens, so filtering is a posting-list intersection instead of scan-and-filter over BM25 results. Narrowing the search makes it faster — the opposite of the usual post-filter design.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>An honest, reproducible benchmark</h3><p>The <code>bench/</code> workspace generates a deterministic hostile dataset (placeholder resolutions, distractors, Zipf-skewed history) and reproduces the headline numbers with two commands. The docs admit it's one synthetic workload. That candor is rarer than the numbers.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Language</td><td>Rust 2024 edition, rust 1.88+, <code>unsafe_code = "forbid"</code></td></tr>
+        <tr><td>Index</td><td>Single SQLite file, FTS5, bundled via rusqlite</td></tr>
+        <tr><td>Ranking</td><td>BM25 × configurable boosts, title weighted 2×, recency tiebreak</td></tr>
+        <tr><td>Input</td><td>JSONL/NDJSON, JSON arrays, CSV/TSV (gzip ok), SQLite, stdin with format sniffing</td></tr>
+        <tr><td>CLI</td><td>clap derive; exit codes 0/1/2/3 with distinct semantics</td></tr>
+        <tr><td>Agent glue</td><td>Bundled SKILL.md (CLI) + optional MCP stdio server</td></tr>
+        <tr><td>Code size</td><td>~4,500 lines of Rust across 13 modules + 410 lines of integration tests</td></tr>
+      </tbody></table>
+      <p>Dependency list is minimal (anyhow, clap, csv, flate2, regex, rusqlite, serde, strsim, toml) — no async runtime, no network stack.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Group-scoped retrieval with ambiguity refusal</h4>
+      <p>Search is scoped to a "group" (a customer, host, machine — the entity the question is about). The resolver tries exact key → case-insensitive key → normalized name → substring → fuzzy (strsim, cutoff 0.6). More than one candidate in the winning tier exits with code 3 and lists candidates — it never guesses. If the group has no match, results from other groups are returned clearly labeled <code>OTHER &lt;GROUP&gt;</code>, so the model can't silently attribute a record to the wrong entity.</p>
+      <h4>Filters and groups as FTS tokens, not post-filters</h4>
+      <p>Group scope and <code>--where field=value</code> filters are indexed as synthetic tokens in the FTS5 corpus, so scoping is a posting-list intersection that gets cheaper as it narrows. A record's own group name is excluded from scoped matching to avoid self-match noise.</p>
+      <h4>Token-budgeted cards</h4>
+      <p>Only the top N records are decoded into display cards, each capped in size. Every answer reports <code>shown N of M</code> so the agent can distinguish "no match" from "no data" — a small detail that prevents a whole class of agent hallucination.</p>
+      <h4>Agent-facing ergonomics</h4>
+      <ul>
+        <li><code>leviathan describe</code> returns a dataset summary (~640 tokens) sized to embed in MCP tool descriptions — the agent learns the schema once per session.</li>
+        <li>Atomic index builds: rebuilds replace the file atomically; open read handles reload on replace.</li>
+        <li>Incremental <code>upsert</code>/<code>delete</code> keep the index fresh; builds skip entirely when sources and mapping are unchanged.</li>
+      </ul>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Thirteen small modules, clean separation: <code>source.rs</code> (input sniffing/streaming) → <code>fields.rs</code>/<code>infer.rs</code> (mapping + inference) → <code>index.rs</code> (atomic SQLite/FTS5 build) → <code>query.rs</code> (read-only retrieval contract, documented at the top of the file) → <code>card.rs</code>/<code>render.rs</code> (token-capped output) → <code>mcp.rs</code>/<code>wrap.rs</code> (agent integration).</p>
+      <p>The retrieval contract is written as a four-point comment at the top of <code>query.rs</code> and the code follows it. No <code>unsafe</code> anywhere — enforced by lint, not convention.</p>
+      <p>The data model is generic: a field mapping (<code>leviathan.toml</code>, CLI flags, or <code>leviathan init</code> inference) declares which field is the <code>id</code>, <code>title</code>, <code>text</code>, <code>group</code>, <code>date</code>, facet <code>filters</code>, and <code>display</code> fields. Any tabular or exportable source works — Postgres via <code>psql | leviathan index -</code>, DuckDB over parquet, plain CSVs.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Aspect</th><th>Leviathan</th><th>agentmemory</th><th>Plain vector store</th></tr>
+        <tr><td>Problem</td><td>Ad-hoc structured datasets too big to grep</td><td>Persistent agent session memory</td><td>Semantic similarity search</td></tr>
+        <tr><td>Retrieval</td><td>BM25 + group scope + facets</td><td>Hybrid (graph/vector/BM25)</td><td>Embedding similarity</td></tr>
+        <tr><td>Setup</td><td>Point at a file, <code>init</code> infers mapping</td><td>Hooks into agent runtime</td><td>You build the pipeline</td></tr>
+        <tr><td>Output contract</td><td>Ranked cited cards, <code>shown N of M</code></td><td>Compact IDs, expand on demand</td><td>Raw chunks</td></tr>
+        <tr><td>Write path</td><td>Index once, upsert/delete</td><td>Continuous capture</td><td>Varies</td></tr>
+        <tr><td>Maturity</td><td>v0.1.0, one day old, 427★</td><td>v0.9.21, months of iteration</td><td>N/A</td></tr>
+      </tbody></table>
+      <p>Leviathan is complementary to memory systems like agentmemory, not competitive: agentmemory captures what the agent <em>did</em>; Leviathan answers questions about data the agent <em>didn't generate</em>. Versus vector stores, the bet is that BM25 + a well-scoped group + facets beats embeddings for "find the record about this specific entity" questions — and it needs no embedding model.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><code>cargo install leviathan-index</code> or grab a prebuilt binary from Releases. No runtime dependencies; the index is one SQLite file you can commit, copy, or back up with the dataset.</p>
+      <p>Read-only, offline — the query path opens the index read-only and nothing in the tool touches the network. Rust 1.88+ required to build from source.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">✅ Deploy candidate</div>
+      <p>Leviathan solves a real, measurable problem — agents burning 100K+ tokens grepping large record sets — with a boring, correct stack: one SQLite file, FTS5, BM25, read-only queries. The benchmark is reproducible and the engineering discipline (forbidden <code>unsafe</code>, atomic builds, ambiguity refusal, meaningful exit codes) is exactly what you want in a tool an agent calls unsupervised. Caveat: it is one day old (v0.1.0), so treat the API as unstable.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/elstongun/leviathan">elstongun/leviathan</a> · Apache-2.0</span>
+    <span><a href="leviathan.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

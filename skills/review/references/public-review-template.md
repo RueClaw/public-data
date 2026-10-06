@@ -110,10 +110,10 @@ These are PUBLIC — no internal project references, no PII, no secrets.
 When updating `public-data/README.md`, add a row to the reviews table:
 
 ```markdown
-| [name.md](reviews/name.md) | [org/repo](repo-url) | License | <emoji> Rating | One-line description |
+| [name.md](reviews/name.md) [page](reviews/name.html) | [org/repo](repo-url) | License | <emoji> Rating | One-line description |
 ```
 
 For articles:
 ```markdown
-| [name.md](reviews/name.md) | [Title](url) | N/A | <emoji> Rating | One-line description |
+| [name.md](reviews/name.md) [page](reviews/name.html) | [Title](url) | N/A | <emoji> Rating | One-line description |
 ```
