@@ -176,8 +176,9 @@ After writing:
 
 **Git operations for public-data:**
 - The repo is at `Zob-notes-1/public-data/` (it's a git repo nested in the vault)
-- Remote: `git@github.com-rue:ruenakatomi-clawdbot/public-data.git`
+- Remote: `git@github.com-rueclaw:RueClaw/public-data.git` (SSH alias `github.com-rueclaw` → key `~/.ssh/rue_2026_id_rsa`, account RueClaw)
 - Branch: `main`
+- Multiple clones push to this repo — always `git pull --rebase origin main` before pushing, or the push is rejected non-fast-forward
 - If git push fails (SSH key not loaded), note it in chat and move on. Don't block the review.
 
 #### Output 3: Internal Vault Review
