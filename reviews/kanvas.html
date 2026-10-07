@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kanvas — Review</title>
+<meta name="description" content="Visual project boards for humans and AI agents on Obsidian Canvas: colors are states, arrows are dependencies, and a zero-dependency CLI keeps agents from breaking the rules.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--deploy);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; }
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / kanvas</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">XMihura/Kanvas · reviewed 2026-10-05</div>
+    <h1>Kanvas</h1>
+    <p class="one-liner">Plan, track, and coordinate projects between humans and AI agents on an Obsidian Canvas board — colors are states, arrows are dependencies, and a zero-dependency CLI keeps agents honest.</p>
+    <div class="verdict-pill">✅ Deploy candidate</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Python 3.7+ · Obsidian Canvas · zero deps</span>
+      <span class="chip"><a href="https://github.com/XMihura/Kanvas">XMihura/Kanvas ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,430</div><div class="lbl">Lines of Python, 0 deps</div></div>
+      <div class="stat"><div class="num">6</div><div class="lbl">States in the flow</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">JSON file as the database</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>The tool is the policy</h3><p>Agents never edit the canvas JSON directly — they go through <code>canvas-tool.py</code>, which enforces valid state transitions and dependency checks. An agent physically cannot mark a blocked task doing, or skip review. That's the correct trust model for shared human/agent state.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Both sides contribute, with the right power split</h3><p>Agents <em>propose</em> (purple) and execute; humans <em>approve</em> (red), draw dependencies, and <em>verify</em> done work (green). Not a one-way instruction sheet — a shared space where the human holds the two gates that matter.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Verified: blocking works, transitively</h3><p>Run against the sample board: <code>status</code>, <code>ready</code>, and <code>blocked</code> all compute correctly — including chains (<code>DL-03</code> correctly gray behind a gray <code>DL-02</code>), and automatic unblocking when a dependency goes green.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>Git-native project memory</h3><p>Board and code commit together; any checkout shows the plan state at that moment. No server, no account, no database — project archaeology for free. Caveats: maintenance looks stalled (last push 2026-03-27), and there's no multi-agent locking story.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Workflow</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Usage</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Board</td><td>Obsidian <code>.canvas</code> (open JSON spec), in the project repo</td></tr>
+        <tr><td>CLI</td><td>Python 3.7+, zero dependencies, 1,430 lines</td></tr>
+        <tr><td>Watcher</td><td>Optional Obsidian plugin (auto-installed by <code>init</code>) + standalone Node watcher</td></tr>
+        <tr><td>Agent glue</td><td><code>CLAUDE.md</code> / <code>AGENTS.md</code> instruction files</td></tr>
+        <tr><td>VCS</td><td>Git-native; board diffs with the code</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Colors are states</h4>
+      <table><tbody>
+        <tr><td>🟣 Purple</td><td>Proposed (by agent)</td></tr>
+        <tr><td>🔴 Red</td><td>To Do (approved by human)</td></tr>
+        <tr><td>🟠 Orange</td><td>Doing</td></tr>
+        <tr><td>🔵 Cyan</td><td>Review (agent finished)</td></tr>
+        <tr><td>🟢 Green</td><td>Done (human verified)</td></tr>
+        <tr><td>⬜ Gray</td><td>Blocked (automatic)</td></tr>
+      </tbody></table>
+      <h4>CLI surface</h4>
+      <p><code>status · show · list · blocked · blocking · ready · dump · start · finish · pause · propose · propose-group · batch · edit · add-dep · normalize</code></p>
+      <h4>Watcher plugin</h4>
+      <p>Lints the board when <em>humans</em> edit in Obsidian: auto-manages blocked states, catches circular dependencies, flags warnings. Optional but recommended.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Aspect</th><th>Kanvas</th><th>GitHub Projects</th><th>Agent task CLIs</th></tr>
+        <tr><td>Visual board</td><td>✅ Obsidian Canvas</td><td>✅ web</td><td>❌</td></tr>
+        <tr><td>Agent enforcement</td><td>CLI transition rules</td><td>API perms</td><td>Conventions</td></tr>
+        <tr><td>Human+agent shared</td><td>✅ designed for it</td><td>⚠️ perms friction</td><td>⚠️ agent-first</td></tr>
+        <tr><td>Dependencies</td><td>Arrows, auto-blocking</td><td>Issue links</td><td>Explicit deps</td></tr>
+        <tr><td>Infra</td><td>None (a JSON file)</td><td>SaaS</td><td>None</td></tr>
+        <tr><td>Multi-agent locking</td><td>❌</td><td>✅</td><td>⚠️</td></tr>
+      </tbody></table>
+      <p>Kanvas trades collaboration features for zero infrastructure and local-first operation — the right trade for a small team with an Obsidian vault already.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Clone outside your project, open the project in Obsidian once (to create <code>.obsidian/</code>), then:</p>
+      <pre><code>python ~/repos/Kanvas/canvas-tool.py init ~/repos/my-project</code></pre>
+      <p>Copies the CLI, instruction files, rules, and a blank board; installs the watcher plugin. Python 3.7+, any OS. Node only needed for the standalone watcher.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">✅ Deploy candidate</div>
+      <p>The lightest workable human/agent coordination board we've seen, running on tools already in the stack: colors-as-states, arrows-as-dependencies, and a guardrail CLI that enforces the workflow so agents can't break it. Verified working against the sample board, including transitive blocking. At 1,430 lines of dependency-free Python you can own it outright — maintenance staleness matters less when the whole thing is auditable in an afternoon.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/XMihura/Kanvas">XMihura/Kanvas</a> · MIT</span>
+    <span><a href="kanvas.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
