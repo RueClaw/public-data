@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shaders — Review</title>
+<meta name="description" content="200+ WebGPU shader effects as declarative components for React, Vue, Svelte, Solid and JavaScript — one engine, generated bindings, agent-wired with CLI and MCP.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--deploy);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; }
+
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / shaders</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">shader-effects-inc/shaders · reviewed 2026-10-05</div>
+    <h1>Shaders</h1>
+    <p class="one-liner">200+ WebGPU effects as declarative components for React, Vue, Svelte, Solid and JavaScript — nest them, blend them, mask them, and let an agent install them as real files in your repo.</p>
+    <div class="verdict-pill">✅ Deploy candidate for web UI work</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">TypeScript · WebGPU/WGSL · TypeGPU</span>
+      <span class="chip"><a href="https://github.com/shader-effects-inc/shaders">shader-effects-inc/shaders ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,780</div><div class="lbl">Tests passing</div></div>
+      <div class="stat"><div class="num">199</div><div class="lbl">Effects in core</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Frameworks, one API</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Verified, not vibes</h3><p>Cloned, <code>pnpm install</code>, full suite: <strong>267 test files, 1,780 tests, all passing in 26 seconds</strong>. For a graphics library that is an unusually serious correctness surface — engine, GPU layer compilation, and per-component behavior are all covered.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>One engine, generated bindings</h3><p>All five framework packages are <em>generated</em> from <code>packages/core</code> — one folder per effect, single source of truth. React, Vue, Svelte, Solid and vanilla JS can never drift apart, which is exactly where most multi-framework libraries rot.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Agent-wired three ways</h3><p>An MCP server (<code>npx shaders install-mcp</code>) for find/install/edit, a CLI that writes real component files into your repo with a lock file — diffable, reviewable, no runtime fetch — and <code>llms-full.txt</code> carrying every prop, default and range. Agent-installed effects are just code in your tree.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>Custom effects are first-class</h3><p><code>defineShader({ name, props, paint: wgsl`...` })</code> — a plain object with typed prop transforms and a WGSL paint function, mountable via <code>&lt;CustomShader&gt;</code> like any built-in. The escape hatch is the same object model as the library itself.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Usage</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Language</td><td>TypeScript, ESM, <code>sideEffects: false</code></td></tr>
+        <tr><td>GPU</td><td>WebGPU + WGSL via TypeGPU (typed GPU resources, SSR-safe)</td></tr>
+        <tr><td>Monorepo</td><td>pnpm workspaces + turbo; <code>packages/{core,js,react,vue,svelte,solid,shaders,partner}</code></td></tr>
+        <tr><td>Components</td><td>199 effects in <code>packages/core/src/shaders/</code>, one folder each</td></tr>
+        <tr><td>Bindings</td><td>Generated from core — single source of truth</td></tr>
+        <tr><td>CLI/MCP</td><td><code>shaders</code> bin: connect / install / update / install-mcp</td></tr>
+        <tr><td>Tests</td><td>267 files, 1,780 tests — verified passing locally in 26s</td></tr>
+        <tr><td>Version</td><td>v4.0.0 (npm <code>shaders</code>)</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Composable GPU layer tree</h4>
+      <p><code>&lt;Shader&gt;</code> renders the canvas; children are layers evaluated top-to-bottom and blended on the GPU. Gradients under distortions under cursor trails, with masks — composition is declarative, and the shaders.com design editor emits exactly this tree as framework code.</p>
+      <pre><code>import { Shader, LinearGradient, CursorTrail } from 'shaders/react'
+
+&lt;Shader className="w-full h-64"&gt;
+  &lt;LinearGradient colorA="#0f172a" colorB="#7c3aed" /&gt;
+  &lt;CursorTrail /&gt;
+&lt;/Shader&gt;</code></pre>
+      <h4>Design visually, export code</h4>
+      <p>The shaders.com editor is an infinite canvas: stack components, tune props with real controls, drive them from cursor or timeline, then Export Code for your framework. Free with an account; Pro adds 1,000+ presets and watermark-free HD rendering.</p>
+      <h4>Custom components</h4>
+      <pre><code>export const Halo = defineShader({
+  name: 'Halo',
+  props: {
+    color:  { default: '#ffd166', transform: transformColor },
+    center: { default: { x: 0.5, y: 0.5 }, transform: transformPosition },
+    radius: { default: 0.6 },
+  },
+  paint: wgsl`
+    let d = length((uv - center) * vec2f(aspect, 1.0)) / radius;
+    return vec4f(color.rgb, 1.0 - smoothstep(0.8, 1.0, d));
+  `,
+})</code></pre>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><code>packages/core</code> holds the engine: <code>shaderRegistry</code>, GPU layer compilation via TypeGPU, <code>customShaders</code>, <code>presetRenderer</code>, <code>performanceTracker</code>, and the 199 component folders. Framework packages wrap core via codegen.</p>
+      <p><code>packages/shaders</code> is the umbrella npm package with subpath exports (<code>shaders/react</code>, <code>shaders/vue</code>, <code>shaders/std</code>, ...) plus the CLI. Prop transforms (<code>transformColor</code>, <code>transformPosition</code>) normalize declarative props into GPU uniforms; <code>paint</code> is WGSL compiled through TypeGPU's typed resolution.</p>
+      <p>The public repo is a week old (created 2026-09-29), but it's the open-sourced evolution of an established platform — v4.0.0 on npm, "16,000+ design engineers" predates the repo going public.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Aspect</th><th>Shaders</th><th>Three.js / raw WebGPU</th><th>CSS/SVG effects</th></tr>
+        <tr><td>Model</td><td>Component library + platform</td><td>DIY engine</td><td>No GPU</td></tr>
+        <tr><td>Frameworks</td><td>5, generated bindings</td><td>Framework-agnostic</td><td>All</td></tr>
+        <tr><td>Effects</td><td>200+ built-in + custom WGSL</td><td>Write your own</td><td>Limited</td></tr>
+        <tr><td>Agent story</td><td>CLI + MCP + llms.txt</td><td>None</td><td>N/A</td></tr>
+        <tr><td>License</td><td>MIT</td><td>MIT</td><td>N/A</td></tr>
+      </tbody></table>
+      <p>Versus Three.js, the bet is that 200+ production-tuned declarative effects beat a general engine for the 95% of web shader use that is "make this section look expensive."</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><code>npm install shaders</code> — fully client-side, works account-free. Account features (editor projects, CLI sync, Pro presets) are additive.</p>
+      <p>Build from source: <code>pnpm install && pnpm lib:build && pnpm test</code>.</p>
+      <p>WebGPU baseline: Chrome/Edge 113+, Safari 26+, Firefox 141+. No WebGL fallback path — plan a static/CSS fallback for older browsers yourself.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">✅ Deploy candidate for web UI work</div>
+      <p>Verified engineering: the full suite ran clean locally (1,780 tests). Generated bindings keep five frameworks honest; custom WGSL effects are first-class; agent integration (MCP + file-writing CLI + llms.txt) is the correct shape. Caveats: the public repo is a week old, the CLI/editor funnel points at a shaders.com account (free tier works, Pro is the business model), and WebGPU-only means you own the older-browser fallback.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/shader-effects-inc/shaders">shader-effects-inc/shaders</a> · MIT</span>
+    <span><a href="shaders.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
