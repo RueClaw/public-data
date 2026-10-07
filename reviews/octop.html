@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Octop — Review</title>
+<meta name="description" content="Tencent Cloud's self-hosted, multi-user, multi-agent AI assistant: per-user expert teams, 8+ IM channels, portable memory, bidirectional ACP — one process, one database.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; }
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / octop</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">TencentCloud/Octop · reviewed 2026-10-05</div>
+    <h1>Octop</h1>
+    <p class="one-liner">A self-hosted, multi-user, multi-agent AI assistant: one process serving dashboard, CLI, 8+ IM channels and cron, with per-user teams of specialized "expert" agents that can be shared across a household or team.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Python 3.12+ · FastAPI · React · SQLite/Postgres</span>
+      <span class="chip"><a href="https://github.com/TencentCloud/Octop">TencentCloud/Octop ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3,712</div><div class="lbl">Unit tests passing</div></div>
+      <div class="stat"><div class="num">8+</div><div class="lbl">IM channels</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Process, one database</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Multi-user is the product, not a feature</h3><p>JWT-isolated users, one admin per household or team, and per-user teams of expert agents — each expert with its own workspace, providers, channels, and cron. Most self-hosted assistants are single-operator; Octop is household-shaped from the database up.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Experts are reusable, shareable agent configs</h3><p>An expert bundles persona (16 MBTI templates or a custom prompt), workspace, providers, channels and cron. A boot-scanned library, an expert market, and in-deployment sharing mean good configurations propagate instead of being rebuilt — skill-system thinking applied at the whole-agent level.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>One process, one database, restart-safe</h3><p>Web UI, IM, and cron all route through a single in-process <code>HarnessProcessor</code> — no external queue or broker. The whole state rebuilds from the control-plane DB (SQLite WAL by default, PostgreSQL optional) on boot. Operationally simpler than multi-service assistants.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>Verified: 3,712 tests pass</h3><p>Local run: <code>uv sync</code> clean, then <strong>3,712 passed, 2 failed</strong> — both failures are FnOS NAS-specific process tests on macOS, not core logic. Caveats: v1.0.2 beta with 734 open issues, the agent runtime itself lives in external <code>octop-*</code> PyPI packages, and the one-line installer curls a script from a Tencent COS bucket.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Language</td><td>Python 3.12+ (~144K lines src, ~90K lines tests in this repo)</td></tr>
+        <tr><td>Web</td><td>FastAPI + uvicorn; API docs off by default</td></tr>
+        <tr><td>Control plane</td><td>SQLite WAL default; PostgreSQL optional</td></tr>
+        <tr><td>Agent runtime</td><td><code>octop-harness[all]</code> (external PyPI package)</td></tr>
+        <tr><td>IM gateway</td><td><code>octop-gateway</code> — Feishu, DingTalk, QQ, WeChat, Telegram, Discord, WeCom → one pipeline</td></tr>
+        <tr><td>Memory</td><td><code>octop-memory</code> — hierarchical recall + FTS, migrates with workspace</td></tr>
+        <tr><td>Frontend</td><td>React 18 + TypeScript + Vite + Ant Design</td></tr>
+        <tr><td>Security</td><td>JWT multi-user, argon2, tool approval, shell guardrails, PII redaction</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Pluggable workspace backends</h4>
+      <p>Expert files can live on local disk, in a Docker sandbox, PostgreSQL, or COS/S3 — separate from the control-plane DB. Memory travels with the workspace, so an agent's identity is portable across backends.</p>
+      <h4>Bidirectional ACP</h4>
+      <p>Inbound: <code>octop acp</code> serves any Octop agent to ACP clients (Zed, OpenCode). Outbound: delegate coding tasks to OpenCode / Claude Code / Codex / CodeBuddy with permission gates. Both directions of agent interop in one product.</p>
+      <h4>Beyond chat</h4>
+      <ul>
+        <li>In-browser terminal with AI-assisted command execution and troubleshooting</li>
+        <li>Headless Chromium automation with persistent profiles (Browser AI+)</li>
+        <li>Remote desktop: live screen + input from the dashboard on Linux/Windows/macOS</li>
+        <li>RAG knowledge bases, shareable within a deployment</li>
+        <li>AgentTeams (beta): a coordinator schedules multiple experts on multi-step work</li>
+      </ul>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><code>src/octop/</code> splits into <code>api</code> (FastAPI surface), <code>cli</code>, <code>config</code>, <code>i18n</code>, and <code>infra</code> — where infra holds agents (builtin skills, expert library), connectors (OAuth + MCP gateway), channels, knowledge, plugins, and workspace backends.</p>
+      <p>The heavy lifting — agent loop, memory, IM normalization, browser automation — is imported from four sister packages (<code>octop-harness</code>, <code>-gateway</code>, <code>-memory</code>, <code>-browser</code>, sources in sibling TencentCloud repos). This repo is the composition layer.</p>
+      <p>State discipline: one control-plane DB rebuilds everything on boot; workspace files are a separate, pluggable concern.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Aspect</th><th>Octop</th><th>OpenHuman</th><th>Single-operator assistants</th></tr>
+        <tr><td>Core</td><td>Python, FastAPI, external runtime pkgs</td><td>Rust, in-process</td><td>Python/TS</td></tr>
+        <tr><td>Multi-user</td><td>✅ JWT users, admin, expert sharing</td><td>Single-user desktop</td><td>❌</td></tr>
+        <tr><td>License</td><td>MIT</td><td>GPL-3.0</td><td>MIT</td></tr>
+        <tr><td>Channels</td><td>8+ IM incl. Chinese suite</td><td>15 incl. email</td><td>A few</td></tr>
+        <tr><td>Memory</td><td>Portable hierarchical (ext. pkg)</td><td>CortexDB hosted default</td><td>Local files/SQLite</td></tr>
+        <tr><td>Maturity</td><td>v1.0.2 beta, 734 open issues</td><td>v0.64, extreme velocity</td><td>—</td></tr>
+      </tbody></table>
+      <p>Octop trades engine depth for product breadth — multi-user, channels, desktop/NAS clients — and wins the license. The multi-user expert model is the thing single-operator assistants don't have.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>One-line installer provisions Python 3.12 via uv under <code>~/.octop/</code> — note it curls from a Tencent COS bucket; audit the script or <code>pip install octop</code> instead.</p>
+      <p><code>octop init</code> runs a setup wizard; <code>octop run</code> starts everything. Docker sandbox backend available for workspace isolation. Desktop clients for Win/macOS/Linux plus FnOS NAS packages.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>The most complete multi-<em>user</em> agent platform reviewed to date: JWT-isolated users, shareable expert agents, pluggable workspace backends, one restart-safe process — MIT licensed with a verified test suite (3,712 passing). Hold-backs: v1.0.2 beta with 734 open issues, the agent runtime is in external packages, Chinese-ecosystem gravity, and a roadmap item ("Managed Agents") that telegraphs a hosted future.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/TencentCloud/Octop">TencentCloud/Octop</a> · MIT</span>
+    <span><a href="octop.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
