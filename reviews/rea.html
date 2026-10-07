@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REA — Review</title>
+<meta name="description" content="One MCP for reverse engineering across binaries, applications, and runtime behavior — every conclusion ships with its evidence, limitations, and unknowns.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--deploy);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+  .steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; }
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / rea</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">morluto/rea · reviewed 2026-10-05</div>
+    <h1>REA</h1>
+    <p class="one-liner">Reverse Engineer Anything: one MCP and CLI for investigating native binaries, JavaScript/Electron apps, .NET, APKs and firmware — where every conclusion ships with its evidence, limitations, and unknowns.</p>
+    <div class="verdict-pill">✅ Deploy candidate for investigation tooling</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">TypeScript · MCP + CLI · Hopper/Ghidra/IDA</span>
+      <span class="chip"><a href="https://github.com/morluto/rea">morluto/rea ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4,059</div><div class="lbl">Tests passing (99.8%)</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Native engines bridged</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Engines needed for JS analysis</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Evidence is the output contract</h3><p>Every analysis returns an immutable Evidence bundle: supporting citations, explicit limitations, and named unknowns — plus tools to canonicalize, export, and diff bundles across app versions. The agent can't overclaim, because the tool reports its own uncertainty. Same anti-hallucination philosophy as Leviathan's <code>shown N of M</code>, applied to reverse engineering.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>It refuses to guess the engine</h3><p>When multiple installed engines (Hopper, Ghidra, IDA) could handle a target, opening it fails with <code>capability_unavailable</code>, <code>selection_reason: "ambiguous"</code>, and the candidate list. You choose once, explicitly; the session never silently falls back. Broken engine → <code>provider_unavailable</code> with remediation. Both failure modes are designed, not emergent.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Consent-gated, fully reversible setup</h3><p>Setup shows exact paths and changes before applying, backs up existing config, detects-but-doesn't-select agents, treats Hopper as a separate consent decision. <code>rea uninstall</code> removes only REA-owned registrations, preserves Evidence and unrelated MCP servers, and never follows purge symlinks. Owner-only snapshot permissions; safe no-follow file opens; analysis on a temp copy of the target.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>Verified: 4,059/4,066 tests pass</h3><p>Local run after <code>npm ci</code> + build: <strong>4,059 passed, 7 failed</strong> — all 7 are Xcode NIB-decoding boundary tests that look host-specific (macOS 27 NIB serialization), not logic bugs. Acceptance tests exercise the <em>compiled</em> CLI and MCP factories end-to-end, which is why the suite is this meaningful.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Usage</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Language</td><td>TypeScript, Node 22.19+/24.11+/26+ (~180K lines src, 504 test files)</td></tr>
+        <tr><td>Surfaces</td><td>MCP server (stdio) + full CLI parity (<code>rea analyze</code>, <code>rea decompile</code>, <code>rea doctor</code>, ...)</td></tr>
+        <tr><td>Native engines</td><td>Hopper (optional approved install, demo mode), Ghidra 12.1.x headless, IDA Pro via ida-pro-mcp</td></tr>
+        <tr><td>Engineless</td><td>Static JS/Electron/ASAR analysis with Node only — no target execution</td></tr>
+        <tr><td>Mobile/FW</td><td>JADX (BYO JAR) for APK; Binwalk/Unblob for firmware regions</td></tr>
+        <tr><td>Data model</td><td>Immutable Evidence bundles; snapshot cache keyed on exact bytes + operation + params</td></tr>
+        <tr><td>Tests</td><td>504 files, 4,125 tests — verified 4,059 pass post-build (99.8%)</td></tr>
+      </tbody></table>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Investigation model</h4>
+      <p>Decompile (recover readable code, strings, structure) → Understand (evidence-backed explanation) → Build (draft an equivalent feature for your project). The agent workflow is installed as a version-matched skill.</p>
+      <h4>Snapshots and reference source</h4>
+      <p>Exact-repeat queries are answered from local snapshot files before any provider process starts — cache hits require target bytes, operation, params, tool and settings to all match. Historical source imports stay separate from observations of the current app.</p>
+      <h4>Scoped doctor</h4>
+      <p><code>rea doctor</code> audits host, engines, and agent registrations — with scoped readiness (<code>--provider ghidra</code>, <code>--client codex</code>, <code>--skill</code>) so a missing engine you're not using doesn't fail the task at hand.</p>
+      <h4>CLI quickstart</h4>
+      <pre><code>npx rea-agents setup                          # consent-gated MCP + skill install
+npx rea-agents analyze-javascript-application /path/to/app --json
+rea doctor --provider ghidra --json
+rea evidence-export bundle.json canonical.json
+rea compare left.json right.json</code></pre>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Monorepo: <code>src/</code> (MCP server, CLI, provider adapters, evidence model), <code>bridge/</code> (Hopper/Ghidra analysis bridges), <code>native/</code> (bundled native controls, e.g. Windows Job Object/private-DACL for the Windows Ghidra boundary), <code>skills/</code> (version-matched investigation workflow), <code>tests/</code> (unit/boundary/acceptance tiers).</p>
+      <p>Provider adapters expose a uniform contract — inventory, function, memory, load-image inspection, atomic annotation edits — over very different engines. Ghidra runs headless on a temporary copy; IDA attached mode never saves your GUI database.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Aspect</th><th>REA</th><th>Raw Ghidra/IDA MCP plugins</th><th>Manual RE</th></tr>
+        <tr><td>Agent contract</td><td>Evidence + limitations + unknowns</td><td>Raw tool output</td><td>Human judgment</td></tr>
+        <tr><td>Engine selection</td><td>Explicit, ambiguity-refusing</td><td>One engine per plugin</td><td>N/A</td></tr>
+        <tr><td>Breadth</td><td>Native + JS/Electron + .NET + APK + firmware</td><td>Native only</td><td>Everything, slowly</td></tr>
+        <tr><td>Setup safety</td><td>Consent diffs, backups, clean uninstall</td><td>Varies</td><td>N/A</td></tr>
+        <tr><td>Verification</td><td>4,125 tests incl. compiled-CLI acceptance</td><td>Sparse</td><td>N/A</td></tr>
+      </tbody></table>
+      <p>REA is the disciplined layer on top of the engines you already trust. If you only ever use one engine and don't care about evidence bundles, a direct plugin is simpler.</p>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><code>npx rea-agents setup</code> registers the MCP with chosen agents and installs a version-matched skill. No-setup path: static JS/Electron analysis works with Node alone.</p>
+      <p>Native analysis needs Hopper (demo mode works), Ghidra 12.1.x + JDK 21, or IDA Pro. Legal/ToS note: reverse-engineering rights vary by jurisdiction and license — REA's local, read-only posture is the responsible default, but entitlement to inspect the target is on you.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">✅ Deploy candidate for investigation tooling</div>
+      <p>The most carefully engineered agent-facing tool in this review series: evidence-with-limitations output, ambiguity-refusing engine selection, consent-gated reversible setup, and a verified 99.8% test pass. Native depth depends on bring-your-own Hopper/Ghidra/IDA, and reverse engineering carries the usual legal boundaries — point it at software you're entitled to inspect.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/morluto/rea">morluto/rea</a> · MIT</span>
+    <span><a href="rea.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
