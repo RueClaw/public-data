@@ -1,143 +1,99 @@
 # TensorFold (ashhart/TensorFold)
 
 **Repo:** https://github.com/ashhart/TensorFold  
-**License:** MIT. Reusable with attribution. Parts are adapted from mlx-lm (MIT), Hugging Face transformers (Apache-2.0, license text shipped in `LICENSES/`), z-lab/dflash (MIT, vendored unmodified), and ExLlamaV3's EXL3 format (MIT). Model weights keep their own licenses. The optional GLM DFlash2 drafter is CC BY-NC-ND 4.0, so non-commercial only.  
-**Reviewed:** 2026-09-27 (commit `bb4b4a3`, v0.3.4.1)  
-**Stack:** Python 3.11+, MLX / mlx-lm with custom Metal kernels (macOS), PyTorch + Triton + CUDA C++ kernels (Linux/NVIDIA), stdlib `http.server`, Hugging Face Hub  
-**What it is:** A local LLM server behind an OpenAI-compatible endpoint. It uses speculative decoding (DFlash2 draft models, MTP heads, n-gram/context drafts) with per-family kernels written so that drafted output is **byte-identical** to one-token-at-a-time decoding. It runs on Apple Silicon (M1–M5) and on NVIDIA GPUs, with DGX Spark as the main CUDA target, including 2-node tensor parallel.
+**License:** Apache-2.0 (earlier code retains an MIT notice; model weights have separate licenses)
+**Reviewed:** 2026-10-10 (current commit `a6aa478`, v1.0.5)
+**Stack:** Zig 0.17 native runtime, Metal and CUDA kernels, OpenAI- and Anthropic-compatible HTTP APIs
+**What it is:** A hardware-specific local inference server for recent sparse and hybrid language models, with prompt caching, deterministic concurrent decode, multi-Mac serving, context compaction, and experimental persistent learning that writes facts into model weights.
+
+---
+
+## Update Notes
+
+**Prior review:** 2026-09-27, v0.3.4.1 (`bb4b4a3`)
+**Current review:** 2026-10-10, v1.0.5 (`a6aa478`)
+
+This is a material rewrite, not a routine version bump:
+
+- TensorFold moved from a Python/MLX + PyTorch/Triton runtime to a **132K-line native Zig engine and HTTP server**; Python is no longer required at runtime.
+- The license changed from MIT to Apache-2.0 for the current native line (earlier code retains its MIT notice).
+- API-key authentication, reloadable protected key files, Anthropic Messages, prompt caching, cancellation, metrics, dashboard, and native packaging were added.
+- The supported matrix changed to explicitly qualified model × hardware combinations, including Nemotron 3.5 Lightning on Apple M1–M5 and NVIDIA GB10.
+- **Living Weights** now teaches facts into Nemotron output-projection weights and persists them across restart and Metal/CUDA moves.
+- The prior “single author, no CI, no auth” assessment is stale: PR CI and robust API-key handling now exist, and the release credits 145 public contributors.
 
 ---
 
 ## Verdict
 
-📚 **Study, and ⚠️ worth trying if you run one of its exact checkpoints.** The core idea is well thought out and well documented. Sampling uses hash-seeded Gumbel-max per position, and the kernels are row-invariant, so a verify pass over N drafted rows gives each row the same bits as a one-row step. Draft acceptance then becomes plain equality, and speculation changes speed only, never text. That property is rare, and it's valuable for reproducible agent runs and eval replays. As a deployment target, though, it's very early: a single author, versions 0.3.2 through 0.3.4.1 all cut within one day, no CI, no API auth, and support for four model families pinned to specific (mostly third-party-converted) checkpoints. The speed tables are the author's own measurements, and I haven't reproduced them.
+⚠️ **Interesting — pilot it on a qualified machine; do not treat it as a general-purpose inference engine yet.** TensorFold is unusually serious about reproducible inference evidence: exact model/hardware qualification, explicit cache-state receipts, deterministic concurrency checks, conservative claims, and a native Zig server with no Python runtime. Its most novel feature, Living Weights, teaches facts into model weights and persists them across restarts and Metal/CUDA — but the project's own result is only **5/11 recall questions**, with **1/16 neighboring questions contaminated**, and there is no per-fact undo. The stable native line is days old and supports a narrow hardware/model matrix. Verified locally: the 17 model-free benchmark-evidence tests pass under Python 3.12; the full Zig suite could not run because this host lacks Xcode's optional Metal toolchain, not because of a source failure. Strong engineering and evidence discipline; narrow, new, and hardware-bound.
 
 ---
 
 ## What It Is
 
-`tensorfold serve <hf-repo>` downloads a checkpoint, picks a model-family package from `config.json`, loads it with that family's Metal or CUDA kernels, and serves `/v1/chat/completions` and `/v1/completions` on `127.0.0.1:8080`.
+TensorFold is a local LLM inference runtime optimized around specific combinations rather than broad compatibility. The 1.x line loads checkpoints, tokenizes, applies chat templates, executes Metal or CUDA kernels, and serves OpenAI chat/completions plus Anthropic Messages from one native process.
 
-```bash
-pip install git+https://github.com/ashhart/TensorFold.git
-tensorfold serve Vontra/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-MLX-4bit --context 65536
-```
-
-Supported families (tested checkpoints):
-
-| Family | Checkpoint | Mac | CUDA |
-|---|---|---|---|
-| Nemotron 3.5 Lightning 30B-A3B | `Vontra/...-MLX-4bit` (+ MTP head) | 32 GB+ | no CUDA engine yet |
-| Qwen3.8-27B | `Vontra/Qwen3.8-27B-MLX-4bit` + `z-lab/Qwen3.8-27B-DFlash2` | 32 GB+, fastest on M5 | 1 or 2 Sparks |
-| Qwen3.8 Flash Next | `Vontra/...-MLX-4bit-MTP` (113 GB) | 192 GB+ | 1 or 2 Sparks |
-| GLM-5.3-Flash | MLX 4-bit, experimental EXL3 | no | 2 Sparks |
-
-`tensorfold info MODEL` classifies an arbitrary checkpoint from `config.json` alone. Unsupported formats (NVFP4, GPTQ, AWQ) are refused before anything downloads.
+The qualified 1.0 matrix centers on Nemotron 3.5 Lightning on Apple M1–M5 and NVIDIA GB10, with narrower support for Qwen3.8 Flash Next, GLM-5.3-Flash paired across two M5 Ultra Macs, and Qwen3.5-2B. Unsupported combinations are not presented as generic compatibility.
 
 ## Stack
 
-| Layer | Tech |
-|-------|------|
-| CLI | `cli.py`: `serve`, `pull`, `models`, `info`, `update` |
-| HTTP | stdlib `BaseHTTPRequestHandler` (`server/http.py`, `cuda/server.py`) |
-| Engine | `engine/lane_engine.py` (lane batching/verify), `lane_family.py`, exact sampling, prefix snapshots, tool-call drafting |
-| Mac kernels | `kernels/qwen/dense/v1` (lane qmm/attention/GDN, row-exact matvec, simdgroup matmul), `kernels/qwen/flash_next/v1`, `kernels/nemotron/lightning/v1`, inline Metal via MLX |
-| CUDA kernels | `families/<name>/cuda/`: Triton + `.cu` sources built on first use with the container's nvcc; NCCL for 2-node TP |
-| Drafters | DFlash2 (vendored z-lab MLX model plus a PyTorch port), MTP heads, n-gram/context drafts |
-| Size | ~40k lines of Python across 198 files, 53 test files (~8.5k lines) |
+| Layer | Technology |
+|-------|------------|
+| Runtime | Zig 0.17.0; native checkpoint loading, tokenization and chat templates |
+| Apple backend | Metal kernels on Apple Silicon |
+| NVIDIA backend | CUDA, currently qualified on GB10 |
+| APIs | OpenAI chat/completions, Anthropic Messages/token counting, SSE streaming |
+| Operations | Health, metrics, dashboard, cancellation, API keys, prompt cache |
+| Packaging | Homebrew and release archives for macOS arm64/Linux aarch64 |
+| Verification | Zig no-GPU CI, benchmark receipt tooling, model-specific qualification gates |
 
 ## Key Features
 
-### Exactness as a contract
-Each token is `argmax(logit/T + g(seed, position, token))` over the top-k/top-p set, where `g` is Gumbel noise from a hash. That's an exact sample that depends only on the row's logits and its position. The kernels are written so a row's arithmetic doesn't depend on how many rows share the pass, and a load-time check disables drafting when the installed MLX/GPU combination breaks that. For example, on M5 with MLX 0.32.2, Nemotron falls back to serial decoding. Clients can send `"draft": false` to get the serial reference and diff it. The default seed is a hash of the prompt, so the same conversation gets the same reply.
+### Evidence-first performance claims
 
-### Row-invariant kernels on every Apple GPU
-Metal 4 tensor units (M5) drive the fast lane kernels. M1–M4 get a separate row-exact 4-bit matvec and simdgroup matmul, which verify windows of 2–8 rows, and a per-round draft count chosen from measured costs and live acceptance. The recipe book (`docs/recipes/README.md`) covers the "three ways to make projections row-invariant" and a "traps we hit" section. For anyone doing deterministic inference, this is the most useful document in the repo.
+Benchmark clients retain server-reported prompt/cached/output token counts, completion state, token and output fingerprints, and distinguish `cold`, `reused`, and `unverified`. Missing usage is never coerced to zero; missing fingerprints never become an exactness pass; incomplete replies do not enter decode rates. This is better benchmark hygiene than most inference repos.
 
-### Grid-aligned prompt caching
-In 0.3.4.1, prompts prefill through MLX's own forward in chunks on a fixed 2,048-token grid, and caches are kept only at grid points. A resumed conversation re-prefills from the last grid point, so it gets the same bits as the same conversation sent fresh. The system block is snapshotted to disk and reused across sessions and restarts.
+### Native, hardware-specific kernels
 
-### CUDA / DGX Spark engines
-These read the same MLX 4-bit checkpoints, run inside NVIDIA's PyTorch container, and split over two Sparks via `--tp 2 --rank R --master HOST`. The author reports 1.6–3.1× over vLLM with MTP=3 on the same OpenAI client. GLM greedy requests measure the MTP head against DFlash2 and keep whichever commits more tokens per millisecond.
+TensorFold does not promise every model on every accelerator. It publishes qualified model/hardware pairs and leaves slower or unequal ports outside the release. The narrow scope is a limitation, but it makes claims auditable.
 
-### Agent-oriented details
-Thinking budget (`--thinking-budget`), tool-call argument normalisation for chat templates, tool requests that draft as many tokens as pay, `priority: "background"` requests that yield to interactive traffic, and a `RUNBOOK.md` written for AI agents to do the install themselves.
+### Concurrency and prefix reuse
+
+Nemotron requests share decode rounds. The release notes report eight concurrent requests at 436.7 aggregate tok/s versus 262.8 for one request on an M5 Max, with each concurrent stream checked against its solo result. Treat these as maintainer measurements, not independently reproduced results.
+
+### Living Weights
+
+`--slide` extracts facts, trains small output-projection changes, validates on held-out and neighboring questions, rolls failed lessons back before writing, then persists accepted changes into safetensors. The model can be moved between qualified Metal and CUDA systems. The feature is experimental: one documented five-fact evaluation recalled 5/11 questions and contaminated 1/16 neighboring questions; accepted facts have no individual undo.
+
+### Operational security
+
+The server supports multiple API keys from CLI, environment, or a reloadable file. Keys are stored as SHA-256 digests and compared timing-safely. Key files are opened with `NOFOLLOW`, must be regular files unreadable by group/others, are size-limited, and fail closed after an unsafe reload. Authentication is optional, so deployments bound beyond loopback still need explicit key configuration and a TLS-aware reverse proxy.
 
 ## Architecture
 
-```
-cli.py serve → hub.py (HF download, family detection, checkpoint checks)
-  → families/<name>/ (forward pass, draft heads, KERNEL_PACKAGE)  ── Mac: kernels/<family>/v1 (Metal via MLX)
-                                                                   └ CUDA: families/<name>/cuda (Triton + .cu, NCCL)
-  → engine/lane_engine.py (draft → multi-row verify → equality accept) + exact_sampling + prefix_snapshots
-  → server/http.py + app.py (request queue, caches, streaming)  |  cuda/server.py (ThreadingHTTPServer)
-```
+The codebase separates native server concerns (`zig/src/server`), model families, Metal/CUDA backends, shared lane scheduling, checkpoint/tokenizer handling, and generated kernel assets. The build compiles Metal kernels and embeds the resulting libraries. CI runs host/no-GPU Zig tests on pull requests; performance and exactness are handled through model-specific receipts rather than pretending CPU unit tests validate accelerator behavior.
 
-Kernel packages are versioned (`.../v1`) and named by each family, so a kernel rewrite can live next to the old one. The code is dense and heavily commented with the reasoning behind numerics choices. Commit messages read like changelogs and include per-chip tok/s. Docs lag the code in places: README still carries a "known limit" about cache-dependent last bits, which the 0.3.4.1 commit says the new grid prefill removes.
+## Maturity and Risks
 
-## Security
+- **Very new native line:** v1.0.0 and current v1.0.5 arrived in October 2026.
+- **Narrow matrix:** model and hardware support is explicit and limited; CUDA learning is qualified only on GB10.
+- **Heavy build prerequisites:** pinned Zig 0.17 plus Xcode's separately downloaded Metal toolchain on macOS.
+- **Large low-level surface:** roughly 132K Zig lines and 695 Zig files, much of it hardware/kernel-specific.
+- **Living Weights is not a knowledge system:** no per-fact removal, modest recall, measurable bleed, and destructive checkpoint mutation requiring a copy.
+- **Model licenses remain separate:** Apache-2.0 covers TensorFold, not downloaded weights.
 
-- Binds `127.0.0.1:8080` by default. **There is no authentication at all**: no API key option, no Host/Origin checks. `--host 0.0.0.0`, which the DGX Spark instructions use, exposes an unauthenticated completion endpoint to the network. A local page could also reach it via DNS rebinding.
-- The HTTP layer trusts `Content-Length` with no body size cap. That's fine on localhost, but it's another reason not to expose the server directly.
-- `TENSORFOLD_REQUEST_LOG=path` appends every full request body to disk (opt-in, off by default). The DFlash drafter has an opt-in `pickle.dump` trace for offline studies. Both only write, and nothing is unpickled.
-- `serve` makes one request a day to the GitHub releases API (opt out with `--no-update-check` or `TENSORFOLD_NO_UPDATE_CHECK=1`). `tensorfold update` runs `pip install --upgrade git+https://github.com/ashhart/TensorFold.git@<tag>`, which trusts whatever the tag points to. Pin a commit if that matters to you.
-- The tested checkpoints come from a third-party conversion namespace (`Vontra`), not the original model vendors. Weights are safetensors (no pickle), but you're trusting that converter's fidelity.
-- No hardcoded secrets in a grep scan. No `shell=True`, `os.system`, or Python `eval`/`exec`. Every `eval(` hit is `mx.eval` (MLX graph evaluation). `subprocess` is used only in `update.py`, with list arguments.
-- No `.github/` directory, so no CI and no action-pinning surface.
+## Local Verification
 
-## Maturity
+- Downloaded the repository-pinned Zig 0.17.0 archive and verified its documented SHA-256.
+- **17/17** model-free benchmark-evidence tests passed with Python 3.12.
+- `zig build test` reached Metal kernel compilation, then stopped because the host lacks Xcode's optional Metal Toolchain (`xcodebuild -downloadComponent MetalToolchain`). The Zig suite is therefore **not verified here**.
+- No large checkpoint was downloaded and no throughput claim was independently benchmarked.
 
-- GitHub: 457 stars, 40 forks, 25 open issues. Created 2026-06-19; last push 2026-09-27. One contributor (18 commits). Releases v0.3.2, v0.3.3, v0.3.4 and v0.3.4.1 all landed within about 13 hours on 2026-09-26/27. The 0.3.4 commit calls itself a "work-in-progress snapshot".
-- `pyproject.toml` says Development Status 3 (Alpha). `mlx-lm` is pinned `<0.32` because the code builds on its model classes and caches, so expect breakage when mlx-lm moves.
-- Tests: 53 files, including GPU kernel oracle tests (skipped without an M5 or an NVIDIA GPU) and a `tests/cuda/` suite. There's no CI to run any of them.
+## Who Should Use It
 
-### Validation on 2026-09-27
-
-Linux x86_64, no GPU, Python 3.13, with numpy / huggingface-hub / tokenizers / safetensors / jinja2 / pytest (no MLX, no torch):
-
-```text
-pytest -q --ignore=tests/cuda --ignore=tests/test_alternating_kv.py --ignore=tests/test_dflash_tree_search.py
-```
-
-- **129 passed, 4 failed, 28 skipped.**
-- 17 modules skip cleanly via `importorskip("mlx.core")`. Two modules (`test_alternating_kv.py`, `test_dflash_tree_search.py`) import MLX unguarded and fail collection on Linux, so they were excluded.
-- All 4 failures are platform-only. Two need `mlx` inside the test body (`test_exact_sampling::test_nucleus_without_top_k...`, `test_hub_and_checks::test_every_family_names_an_importable_kernel_version`). One needs `torch` (`test_serve_finishes_a_config_only_cache_before_loading` routes to the CUDA engine on Linux). One expects a Mac-only context-window error but gets "Nemotron has no CUDA engine yet" because `--backend auto` picks CUDA off macOS (`test_context_override_cannot_exceed_model_window`). The tests assume a Mac host.
-- Passing areas include the OpenAI compat layer, streaming, tool-call normalisation, tool drafting, n-gram drafting, lane-engine scheduling with fakes, update logic, and CUDA CLI argument handling.
-
-Byte-identity claims and speed numbers were **not** reproduced. Doing that needs Apple Silicon or NVIDIA hardware and the checkpoints.
-
-## Comparison
-
-| Aspect | TensorFold | Splash | mlx-lm server | vLLM (DGX Spark) |
-|---|---|---|---|---|
-| Platform | Apple M1–M5 + NVIDIA (CUDA) | Apple M3+ only | Apple Silicon | NVIDIA (and more) |
-| Model breadth | 4 families, specific checkpoints | 2 families | Broad | Very broad |
-| Speculation | DFlash2 + MTP + n-gram, output byte-identical to serial | DFlash2, standard acceptance | Optional draft | MTP/EAGLE, stochastic acceptance |
-| Determinism | Seeded, draft-invariant by design | Per-lane RNG | Basic seeding | Not draft-invariant |
-| API | OpenAI Chat + legacy Completions | OpenAI Chat/Responses + Anthropic | OpenAI-ish | OpenAI (broad) |
-| Auth | None | Optional key, Host/Origin checks | None | Optional key |
-| Multi-node | 2-Spark TP over NCCL | No | No | Yes |
-| Maturity | Alpha, single author, no CI | Young but CI'd, multi-contributor | Mature | Mature |
-
-TensorFold's differentiator is exactness under speculation, plus the fact that it covers both Mac and Spark from one codebase. It is weaker than Splash on API surface, auth, and engineering process.
-
-## Self-Hosting Notes
-
-- Mac: Python 3.11+, 32 GB+ for the 27B/Nemotron checkpoints, 192 GB+ for Flash Next. The fastest 27B kernels need an M5-generation GPU. If Nemotron drafting shows as disabled on an M5, pin `mlx==0.31.2`.
-- NVIDIA: run inside `nvcr.io/nvidia/pytorch:26.07-py3` with `--network host`. For 2-node TP, add `--device /dev/infiniband --ulimit memlock=-1 --cap-add IPC_LOCK` and set `NCCL_SOCKET_IFNAME`/`NCCL_IB_HCA` if needed.
-- Don't use `--host 0.0.0.0` on a shared network without a reverse proxy that adds auth and TLS.
-- Pin a commit or tag rather than following `main`. Releases are frequent and self-described as work in progress.
-- Check model licenses per checkpoint, especially the non-commercial GLM DFlash2 drafter.
-
-## Reusable Patterns
-
-- **Hash-seeded Gumbel-max sampling per (seed, position, token).** An exact top-k/top-p sample that makes the sampled token a pure function of that row's logits. This lets speculative acceptance become an equality check.
-- **Row-invariant verify kernels plus a load-time self-check** that multi-row forwards reproduce one-row steps. Drafting is turned off automatically when the check fails, instead of silently returning different text.
-- **`"draft": false` as a built-in serial reference**, so users can diff drafted and serial output themselves.
-- **Grid-aligned prefix caches** (fixed 2,048-token boundaries), so resumed conversations are bit-identical to fresh ones.
-- **Versioned per-family kernel packages** (`kernels/<family>/<variant>/v1`) named from the family module.
-- **An agent-targeted runbook** (`RUNBOOK.md`) that gives install → pull → serve → a check request as explicit steps.
+Use TensorFold if you own one of the qualified Apple Silicon or GB10 configurations, run one of its supported models, and value native deployment, measurable cache/concurrency behavior, and auditable receipts. Use llama.cpp, MLX-LM, or vLLM when breadth, ecosystem integrations, commodity GPU support, or operational maturity matters more than TensorFold's specialized kernels.
 
 ---
 
-**Attribution:** ashhart/TensorFold, MIT (with mlx-lm MIT, transformers Apache-2.0, z-lab/dflash MIT and ExLlamaV3-format portions as noted in THIRD_PARTY_NOTICES)
+**Attribution:** TensorFold by ash hart and contributors, Apache-2.0; performance and learning measurements are repository-reported unless explicitly marked locally verified.
