@@ -79,15 +79,7 @@ Assess against our active projects and interests:
 ### Considerations
 - <Caveats, risks, things that would need adaptation>
 
-Active projects to evaluate against (non-exhaustive):
-- Marcos care agent (Parkinson's support, family coordination)
-- Homelab infrastructure (30+ ARM SBCs, Caddy, Docker, fleet management)
-- Agent infrastructure (event bus, orchestration, multi-agent coordination)
-- VOS (voice operating system)
-- Bluesun-Networks repos (middleman, GeoGuard, MarineChat, etc.)
-- Vault/knowledge tooling (Obsidian, search, sync)
-- Local inference (Tacocat, llamacpp, MLX)
-- Compliance/security tooling
+Use only project context explicitly authorized in the private session; this public template intentionally contains no private project inventory.
 
 ---
 
@@ -168,7 +160,7 @@ Briefly list patterns worth extracting to public-data, with source file paths.
 
 ## Research Index Row Format
 
-When updating `Homelab/lobsters/rue/workspace/research.md`, add a row:
+When updating the explicitly configured private research index, add a row:
 
 ```markdown
 | <org/repo-or-title> | <emoji> <verdict text> | <YYYY-MM-DD> | <brief notes> |
