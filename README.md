@@ -15,12 +15,18 @@ Curated patterns, prompts, architectural ideas, and repo reviews extracted from 
 - We respect that authors chose to share publicly. We honor that by sharing our analysis publicly too, with attribution.
 
 **License handling:**
-- Apache-2.0, MIT, BSD, CC-BY → extract freely, include attribution
+- Apache-2.0, MIT, BSD, CC-BY → check applicable terms, preserve required notices and attribution
 - AGPL/GPL → summarize and document patterns; do not embed in proprietary code
 - No license → note explicitly; treat as educational/personal use only; do not redistribute code itself
 - Always attribute: source repo, author, and license in each file
 
 ---
+
+## Review workflow
+
+Use the repository-owned [review skill](skills/review/SKILL.md) and its [publication policy](skills/review/references/publication-policy.md) for repositories, articles, guides, and papers. Public outputs are `reviews/<slug>.md`, a matching standalone HTML page, and one README row; summaries link to the published review. Authorized channel routing is configured privately by the operator, not by this repository.
+
+Load the `skills/` directory through the agent runtime's supported skill discovery. Keep the whole `skills/review/` directory together so relative template references resolve; avoid a duplicate copied skill that can drift. Confirm `review` appears in the target agent's skill list and can be read. Loading this skill does not itself enable Discord delivery or grant senders publication rights.
 
 ## Structure
 

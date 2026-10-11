@@ -11,6 +11,8 @@ These are PUBLIC — no internal project references, no PII, no secrets.
 **Repo:** <URL>
 **License:** <type> <brief implication note>
 **Reviewed:** <YYYY-MM-DD>
+**Revision:** <exact commit SHA/tag and reviewed path scope>
+**Verification:** <tests actually run/results, or static review only>
 **Stack:** <primary language>, <framework>, <key deps>
 **What it is:** <1-2 sentence description of what it does and for whom>
 
@@ -74,6 +76,8 @@ These are PUBLIC — no internal project references, no PII, no secrets.
 **Author:** <name / publication>
 **Date:** <publication date>
 **Reviewed:** <YYYY-MM-DD>
+**Retrieved:** <UTC date; content hash if available>
+**Verification:** <evidence checked and limitations>
 **Topic:** <brief topic categorization>
 
 ---
