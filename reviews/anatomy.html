@@ -1,22 +1,272 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Anatomy — Review</title><meta name="description" content="Review of Anatomy: an Agent Skill that builds crafted, interactive isometric figures of real machines to explain technical ideas — with a geometry audit that proves the drawing.">
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anatomy — Review</title>
+<meta name="description" content="Agent authoring workflow and geometry toolkit for interactive mechanical illustrations.">
 <style>
-:root{--bg:#090d12;--raised:#101720;--card:#151e29;--line:#263443;--text:#e8edf3;--dim:#9eacbb;--faint:#66798c;--accent:#62c4ff;--soft:#62c4ff1c;--verdict:#3fb96f;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box;margin:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.65}nav{position:sticky;top:0;z-index:9;display:flex;gap:5px;align-items:center;padding:10px 20px;background:#090d12e8;border-bottom:1px solid var(--line);backdrop-filter:blur(12px);overflow:auto}.brand{font:13px var(--mono);color:var(--faint);margin-right:auto;white-space:nowrap}nav a{color:var(--dim);text-decoration:none;font-size:13px;padding:6px 10px;border-radius:7px;white-space:nowrap}nav a:hover{color:var(--accent);background:var(--soft)}main{max-width:900px;margin:auto;padding:0 22px 100px}section{padding-top:72px;margin-top:-38px}.hero{padding:88px 0 48px;border-bottom:1px solid var(--line)}.kicker{font:12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}h1{font-size:clamp(38px,7vw,58px);line-height:1.05;letter-spacing:-.03em}.lede{max-width:720px;margin-top:16px;color:var(--dim);font-size:18px}.pill{display:inline-block;margin-top:22px;padding:8px 15px;border-radius:99px;color:var(--verdict);background:#3fb96f18;border:1px solid #3fb96f66;font-weight:700}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.chip{padding:5px 9px;border:1px solid var(--line);border-radius:6px;background:var(--raised);font:12px var(--mono);color:var(--dim)}a{color:var(--accent)}.stats{display:flex;flex-wrap:wrap;gap:35px;margin-top:28px}.num{font-size:25px;font-weight:750}.lbl{font:11px var(--mono);text-transform:uppercase;color:var(--faint)}h2{font-size:27px;margin-bottom:5px}.sub{color:var(--dim);margin-bottom:27px}.steps{display:grid;gap:15px}.step{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:22px;background:var(--card);border:1px solid var(--line);border-radius:13px;opacity:0;transform:translateY(12px);transition:.4s}.step.show{opacity:1;transform:none}.n{width:38px;height:38px;display:grid;place-items:center;border-radius:9px;background:var(--soft);border:1px solid #62c4ff44;color:var(--accent);font:bold 14px var(--mono)}h3{font-size:17px;margin-bottom:5px}.step p,.panel p,.panel li{color:var(--dim);font-size:15px}.tabs{display:flex;overflow:auto;border-bottom:1px solid var(--line);margin-bottom:24px}.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;color:var(--dim);font:600 14px var(--sans);cursor:pointer;white-space:nowrap}.tabs button[aria-selected=true]{color:var(--accent);border-color:var(--accent)}[hidden]{display:none!important}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}td:first-child{font-weight:650;color:var(--dim)}pre{background:#070a0e;border:1px solid var(--line);border-radius:10px;padding:15px;overflow:auto;margin:12px 0}code{font-family:var(--mono)}ul{padding-left:21px}.callout{padding:27px;border:1px solid #3fb96f66;border-radius:14px;background:#3fb96f0d}.callout strong{display:block;color:var(--verdict);font-size:22px;margin-bottom:7px}footer{margin-top:65px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--faint);font-size:13px}@media(max-width:600px){.step{grid-template-columns:1fr}.stats{gap:22px}}@media(prefers-reduced-motion:reduce){.step{opacity:1;transform:none;transition:none}}
-</style></head><body>
-<nav><span class="brand">review / anatomy</span><a href="#overview">Overview</a><a href="#points">Key points</a><a href="#dive">Deep dive</a><a href="#verdict">Verdict</a></nav>
-<main><section class="hero" id="overview"><div class="kicker">wheresryan22/anatomy · reviewed 2026-10-11</div><h1>Anatomy</h1><p class="lede">An Agent Skill that explains a technical idea by building it as a real, working machine — crafted isometric figures in SVG and WebGL, with a geometry audit that proves the drawing.</p><div class="pill">✅ Deploy candidate</div><div class="chips"><span class="chip">MIT</span><span class="chip">Agent Skill · Node · zero deps</span><span class="chip"><a href="https://github.com/wheresryan22/anatomy">repository ↗</a></span></div><div class="stats"><div><div class="num">1.7M</div><div class="lbl">Overlap checks, audit passed</div></div><div><div class="num">8</div><div class="lbl">Complete examples</div></div><div><div class="num">0</div><div class="lbl">Dependencies</div></div></div></section>
-<section id="points"><h2>Key points</h2><p class="sub">What matters, in order.</p><div class="steps">
-<div class="step"><div class="n">1</div><div><h3>The object is the explanation</h3><p>Don't draw boxes and arrows — invent a physical machine whose working <em>is</em> the concept. A cache key becomes a pin-tumbler lock; one GPU context becomes a gantry plotter visiting 16 wells. Every number shown comes from the same model that moves the parts.</p></div></div>
-<div class="step"><div class="n">2</div><div><h3>An audit that proves the geometry</h3><p><code>build.mjs --audit</code> verifies no part passes through another — at rest, apart, and in every replayed frame — plus mounts, bend quality, and depth order. Verified locally on the Raptor engine: 80 tubes, 267 solids, 1,119 depth states, 1.7M overlap checks, <strong>passed</strong>.</p></div></div>
-<div class="step"><div class="n">3</div><div><h3>WebGL inside the drawing</h3><p>Fire, water, caustics and lamp light render in a canvas between back and front SVG layers, in the figure's own isometric camera — effects live inside the illustration, and the SVG still reads without WebGL.</p></div></div>
-<div class="step"><div class="n">4</div><div><h3>Honest engineering</h3><p>Zero dependencies, committed built pages, CI rebuilding every example, evals shipped in-repo, 3D mode labeled beta, a documented limits section. Verified builds: dial-indicator 0.13 s, desk-computer 0.14 s.</p></div></div>
-</div></section>
-<section id="dive"><h2>Deep dive</h2><p class="sub">Format, kit, verification, and caveats.</p><div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-panel="stack">Stack</button><button role="tab" aria-selected="false" data-panel="examples">Examples</button><button role="tab" aria-selected="false" data-panel="verify">Verification</button><button role="tab" aria-selected="false" data-panel="caveats">Caveats</button></div>
-<div class="panel" id="stack"><table><tr><td>Format</td><td>Standard Agent Skill: SKILL.md + kit + references + examples + evals</td></tr><tr><td>Runtime</td><td>Node ≥20.10, zero npm dependencies</td></tr><tr><td>Output</td><td>Standalone HTML · lone SVG · React/Next.js components · light/dark</td></tr><tr><td>Figure kinds</td><td>SVG (core) · SVG+WebGL · 3D (beta)</td></tr><tr><td>Kit</td><td>iso-kit painter's order · lathe · tube · audit · shared GL</td></tr><tr><td>CI</td><td>macOS workflow rebuilding all examples on push/PR</td></tr></table></div>
-<div class="panel" id="examples" hidden><table><tr><td>dial-indicator</td><td>Smallest, ~300 lines; carriage + needle gauge</td></tr><tr><td>desk-computer</td><td>1984 computer, typeable keyboard, CRT in the case plane</td></tr><tr><td>arcade-cabinet</td><td>240 solids, coin rolls down the chute and trips the switch</td></tr><tr><td>raptor-engine</td><td>Reference for pipework + WebGL plume; the audit target</td></tr><tr><td>ripple-tank</td><td>Two WebGL layers driven by a dispersion/optics model</td></tr><tr><td>turning-dial</td><td>3D beta: ~90 parts re-projected per frame</td></tr></table></div>
-<div class="panel" id="verify" hidden><ul><li><code>dial-indicator</code> build: 0.125 s, page written.</li><li><code>desk-computer</code> build: 0.141 s, page written.</li><li><code>raptor-engine --audit</code>: 80 tubes · 267 solids · 478 items · 1,119 depth states · 1,707,702 overlaps · 4,292 order rules · <strong>audit passed</strong>, 3m21s.</li><li>No <code>eval(</code> or dynamic-code red flags in the kit.</li></ul></div>
-<div class="panel" id="caveats" hidden><ul><li>Three days old, single author.</li><li>Claude Code-shaped installs; standard SKILL.md loads elsewhere, but prompts assume a strong visual-generation model.</li><li>3D mode is beta; its audit is slow (documented).</li><li>Figure quality is model-dependent: the kit constrains geometry, but inventing the right machine is the model's job.</li></ul></div></section>
-<section id="verdict"><h2>Verdict</h2><p class="sub">The call.</p><div class="callout"><strong>✅ Deploy candidate</strong><p>The highest-craft generation skill we've reviewed: a real kit, eight complete examples, shipped evals, and a proof step for generated art — all verified locally. Install it for your agents; read <code>references/craft.md</code> even if you don't. The risk profile is a content-generation skill's: small.</p></div></section>
-<footer><span>Attribution: <a href="https://github.com/wheresryan22/anatomy">wheresryan22/anatomy</a> · MIT</span><span><a href="anatomy.md">full markdown review</a></span></footer></main>
-<script>const tabs=[...document.querySelectorAll('[role=tab]')];tabs.forEach((b,i)=>{b.onclick=()=>{tabs.forEach(x=>{const on=x===b;x.setAttribute('aria-selected',on);document.getElementById(x.dataset.panel).hidden=!on})};b.onkeydown=e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;const n=(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;tabs[n].focus();tabs[n].click()}});const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{threshold:.12});document.querySelectorAll('.step').forEach(x=>io.observe(x));</script></body></html>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / anatomy</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">wheresryan22/anatomy · reviewed 2026-10-12</div>
+    <h1>Anatomy</h1>
+    <p class="one-liner">Agent authoring workflow and geometry toolkit for interactive mechanical illustrations.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Node.js · SVG · WebGL · optional React</span>
+      <span class="chip"><a href="https://github.com/wheresryan22/anatomy">wheresryan22/anatomy ↗</a></span>
+      <a class="chip" href="anatomy.md">Evidence and limitations</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3822</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">300</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>More than a prompt</h3><p>World-shape recording, painter ordering, tubes, lathe geometry and shared-camera WebGL support a distinctive illustration workflow.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Audits are bounded evidence</h3><p>Finite states, recorded shapes and tolerances constrain what a passing geometry audit establishes. It is not a continuous-time or engineering proof.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Treat generated pages as code</h3><p>Capture and drive tools intentionally execute active content with local-file capabilities. Use disposable secret-free execution and review generated markup.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Implementation</td><td>Node.js · SVG · WebGL · optional React</td></tr><tr><td>Scope</td><td>root documentation, kit, scripts, tests, examples and CI</td></tr><tr><td>Revision</td><td>689dcf966e63d92be10a5d593c6e19e10acd4422</td></tr><tr><td>Verification</td><td>Static review only; no tests or benchmarks run.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>More than a prompt</h4><p>World-shape recording, painter ordering, tubes, lathe geometry and shared-camera WebGL support a distinctive illustration workflow.</p><h4>Audits are bounded evidence</h4><p>Finite states, recorded shapes and tolerances constrain what a passing geometry audit establishes. It is not a continuous-time or engineering proof.</p><h4>Treat generated pages as code</h4><p>Capture and drive tools intentionally execute active content with local-file capabilities. Use disposable secret-free execution and review generated markup.</p><h4>Evidence</h4><p><a href="anatomy.md">Full review with revision-pinned source citations and license details</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>An Agent Skill guides design and inspection while JS/TS geometry builds projected SVG, painter ordering, tubes and turned solids. Recorded world shapes feed geometry audits. Optional WebGL layers share the SVG camera; React output separates static art from client animation, and Chrome/CDP scripts inspect generated pages.</p><h4>Review boundary</h4><p>Previous review dated 2026-10-11 recorded no exact revision. This refresh changes Deploy candidate to Interesting, corrects absolute geometry-proof language, documents active-content/browser trust boundaries and current regression coverage, and does not reuse historical local build timings as verification of this SHA. Exact source deltas cannot be reconstructed from the prior unpinned review.</p><h4>Source</h4><p><a href="https://github.com/wheresryan22/anatomy/tree/689dcf966e63d92be10a5d593c6e19e10acd4422">Inspected revision</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Alternatives</td><td>Mermaid and Excalidraw suit simpler diagrams; Three.js/React Three Fiber suit substantial true 3D; isolated Playwright plus SVG offers conventional browser verification.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Node 20.10+ and Chrome/Chromium for verification; React is optional. Keep generation/build/browser execution isolated, run full applicable audits, inspect both themes and reduced motion, and preserve MIT notices in copied kit code.</p><p>Static inspection is not a deployment proof. No tests, generated pages, live providers or performance benchmarks were run.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Interesting for carefully supervised visual-authoring pilots. The kit and regression work are substantial, but geometry checks are sampled and generated JavaScript plus browser inspection require real isolation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/wheresryan22/anatomy">wheresryan22/anatomy</a> · MIT</span>
+    <span><a href="anatomy.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
