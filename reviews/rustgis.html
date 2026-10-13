@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RustGIS — Review</title>
+<meta name="description" content="Command-driven desktop/browser GIS with CLI, AI tools and WebAssembly plugins.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / rustgis</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">opengeos/RustGIS · reviewed 2026-10-13 UTC</div>
+    <h1>RustGIS</h1>
+    <p class="one-liner">Command-driven desktop/browser GIS with CLI, AI tools and WebAssembly plugins.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; separate asset/tool terms</span>
+      <span class="chip">Rust · egui · wgpu · wasmi</span>
+      <span class="chip"><a href="https://github.com/opengeos/RustGIS">opengeos/RustGIS ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">320</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">45</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>One engine, many interfaces</h3><p>GUI, CLI and assistant share command concepts. The external 1,000-plus-tool catalog is not a claim of 1,000 independently validated built-in algorithms.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Containment has limits</h3><p>WebAssembly plugins have fuel/memory limits, but host-call work is outside guest metering. Native GeoLibre runners remain trusted user-level executables.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local-first is conditional</h3><p>Enabled AI sends accessed data to the selected provider. Remembered keys are stored unencrypted; projected-distance approximations need reference validation.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Interface</td><td>egui/eframe desktop and browser</td></tr><tr><td>Core</td><td>geometry, data, analysis, engine</td></tr><tr><td>Automation</td><td>CLI and stdio MCP</td></tr><tr><td>Plugins</td><td>wasmi with guest resource limits</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>One engine, many interfaces: GUI, CLI and assistant share command concepts. The external 1,000-plus-tool catalog is not a claim of 1,000 independently validated built-in algorithms.</p><p>Containment has limits: WebAssembly plugins have fuel/memory limits, but host-call work is outside guest metering. Native GeoLibre runners remain trusted user-level executables.</p><p>Local-first is conditional: Enabled AI sends accessed data to the selected provider. Remembered keys are stored unencrypted; projected-distance approximations need reference validation.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Exact reviewed revision: 2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9. Static public-source inspection only; no repository code, tests, builds or installers executed. See the companion Markdown for commit-pinned evidence, license details, alternatives and full limitations.</p><p>⚠️ <strong>Interesting — evaluate on disposable datasets, not as a production GIS replacement yet.</strong> The implementation is substantial and its shared command engine is genuinely useful for reproducible automation. The unusually young public repository, approximate analysis choices and broad plugin/AI/native-runner trust surface call for controlled validation rather than accepting headline feature parity.</p><p>RustGIS combines familiar layers, tables, styling, layouts and map navigation with a command registry that can be driven by the GUI, CLI, automation and assistant. Native desktop and browser builds share much of the interface and engine. This is not merely a wrapper around an LLM: geometry, rendering, providers, analysis and project state are implemented in separate Rust crates.</p><p>The advertised 1,000-plus GeoLibre/Whitebox tools are external-suite integrations, not 1,000 independently reviewed built-in algorithms. Desktop use involves an optional native runner; browser integration has a separate adapter. Do not assume the two execution environments have identical capabilities or trust boundaries.</p><p>The layered workspace and engine expose the same command concepts to multiple interfaces. That is a strong foundation for repeatable map manipulation and integration tests, but a command being available does not establish that its numerical result is suitable for a particular scientific or surveying purpose. <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/Cargo.toml">Workspace</a>, <a href="https://github.com/opengeos/RustGIS/tree/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/crates/engine">engine</a>, <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/apps/rustgis-cli/src/main.rs">CLI</a>.</p><p>The plugin runtime rejects imports other than three RustGIS host functions, creates fresh instances and applies fuel, memory and table limits. The instance memory ceiling is 512 MiB, and inbound messages are capped at 128 MiB. This is meaningfully stronger than importing arbitrary native code.</p><p>However, host calls run outside WebAssembly instruction metering. The inspected reply path serializes a host result before assigning it to the reply buffer and does not apply the same explicit MAX_MESSAGE check there. Thus guest memory/fuel limits should not be described as a complete host-memory/latency bound. Tools also run on the command/UI thread; the source itself describes a runaway tool consuming roughly 15 seconds of release-build time. These are static resource-exhaustion concerns, not demonstrated exploits. <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/crates/plugins/src/runtime.rs">Runtime</a>.</p><p>The stdio MCP server denies file/network access by default, reserves user automation and plugin management, bounds batches, and limits map-image dimensions. Broad access can be enabled explicitly. Existing web-tile layers may still generate network traffic, as the source documents: default-denied commands do not mean a fully offline session. This is a local stdio service, not a reviewed HTTP deployment with authentication/CORS. <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/crates/assistant/src/mcp.rs">MCP policy</a>.</p><p>Assistant provider configuration permits HTTPS and selected local HTTP endpoints. Model use sends prompts and accessed data to the selected provider. The optional “remember key” setting stores keys unencrypted in application preferences/browser storage, and the UI explicitly warns about that. Prefer session-only keys or carefully controlled environments; local-first does not mean that an enabled assistant keeps data local. <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/crates/assistant/src/provider.rs">Provider</a>, <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/crates/ui-egui/src/assistantpane.rs">key storage UI</a>.</p><p>The workspace separates geometry/data, analysis/rendering, engine, plugins/assistant and GUI/application adapters. A layering check is present in CI. This is an appropriate way to keep the GIS domain independent from the presentation shell.</p><p>The analysis module explicitly describes work in Web Mercator with per-feature latitude scale corrections, giving approximately ground-distance buffers. That is not a substitute for validating geodesic behavior, high-latitude results, antimeridian cases and topology against established tools. The native GeoLibre runner is a trusted executable with user-level filesystem access, unlike sandboxed WebAssembly plugins. <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/crates/analysis/src/lib.rs">Analysis</a>, <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/crates/geolibre/src/lib.rs">GeoLibre boundary</a>, <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/apps/rustgis-web/src/geolibre.rs">browser adapter</a>.</p><p>Public API snapshot on review date: <strong>320 stars, 45 forks</strong>, created <strong>2026-10-10</strong>, pushed <strong>2026-10-13 04:33:54 UTC</strong>; four open API issue objects comprised three issues and one PR. The latest observed release was <a href="https://github.com/opengeos/RustGIS/releases/tag/v0.2.0">v0.2.0</a>, published 2026-10-13 02:55:16 UTC. Main&#x27;s reviewed SHA is not asserted to be that release&#x27;s exact source. Public repository age does not prove when all its code was authored. <a href="https://api.github.com/repos/opengeos/RustGIS">Metadata</a>.</p><p>CI defines linting, a wasm build, workspace tests and native release builds on Linux/macOS/Windows, plus a layering check. The inspected revision&#x27;s <a href="https://github.com/opengeos/RustGIS/actions/runs/38346084147">CI run</a> was still in progress when checked; no green result is claimed. Representative tests were read, not run. Release assets/checksums were listed but not downloaded or verified. <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/.github/workflows/ci.yml">Workflow</a>.</p><p>These are operational comparisons, not head-to-head benchmarks conducted here.</p><p>There is no required backend for the native application. Evaluate a pinned release using copies of data; compare representative projections, buffer areas, exports and project reloads with a trusted reference. Test desktop and web separately. Keep assistant/provider access and native runners disabled until needed; inspect plugin permissions, and do not expose the CLI through an unauthenticated network wrapper.</p><p>The <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/LICENSE">LICENSE</a> contains Apache-2.0 terms. <a href="https://github.com/opengeos/RustGIS/blob/2ad494e31e3b085a4c6a6f4a1da2c6f51cbd99f9/ATTRIBUTION.md">ATTRIBUTION.md</a> separately identifies Natural Earth public-domain data, CC0 CRS definitions and the Ubuntu Font Licence. External components and transitive dependencies need their own license review. No full dependency-license audit was performed.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>QGIS</td><td>Prefer established professional GIS interoperability and validation history.</td></tr><tr><td>GDAL / GRASS</td><td>Prefer mature processing pipelines where analytical accuracy dominates UI novelty.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Native app or browser build. Test copies of data against trusted analytical references; enable AI/native runners only deliberately.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Evaluate on disposable datasets, not as a production GIS replacement yet. The shared engine is promising; accuracy, young public history and execution boundaries still require validation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/opengeos/RustGIS">opengeos/RustGIS</a> · Apache-2.0; separate asset/tool terms</span>
+    <span><a href="rustgis.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

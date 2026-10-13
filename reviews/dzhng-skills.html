@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skills — Review</title>
+<meta name="description" content="Thirty agent skills for living specs, research, implementation, visual proof and review.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / dzhng-skills</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">dzhng/skills · reviewed 2026-10-13 UTC</div>
+    <h1>Skills</h1>
+    <p class="one-liner">Thirty agent skills for living specs, research, implementation, visual proof and review.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; retain separate retro notice and dependency terms</span>
+      <span class="chip">Markdown · Node.js · auxiliary video project</span>
+      <span class="chip"><a href="https://github.com/dzhng/skills">dzhng/skills ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1270</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">75</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Useful workflow knowledge</h3><p>Living specs, explicit architectural choices, independent verification and preserved research baselines are strong ideas. The harness supplies actual enforcement.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Do not import unsafe defaults</h3><p>Delegation skills recommend permission/sandbox bypasses for some work. Implementation can continue past unanswered human checkpoints; worktrees do not provide OS isolation.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>More than Markdown</h3><p>A Node installer overwrites selected destination folders; screenshot tooling relies on caller-project dependencies. This refresh replaces the older broad deployment recommendation.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Catalog</td><td>30 skills: engineering 21, visual 4, authoring 3, graphics 2</td></tr><tr><td>Installer</td><td>Node standard library; copy, rewrite links, symlink</td></tr><tr><td>Visual tooling</td><td>pngjs, pixelmatch and eval harness</td></tr><tr><td>Auxiliary video</td><td>React, Three.js, Remotion; separate lockfile</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Useful workflow knowledge: Living specs, explicit architectural choices, independent verification and preserved research baselines are strong ideas. The harness supplies actual enforcement.</p><p>Do not import unsafe defaults: Delegation skills recommend permission/sandbox bypasses for some work. Implementation can continue past unanswered human checkpoints; worktrees do not provide OS isolation.</p><p>More than Markdown: A Node installer overwrites selected destination folders; screenshot tooling relies on caller-project dependencies. This refresh replaces the older broad deployment recommendation.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Exact reviewed revision: ad5f2270a68dd6936e70f9c6386bc13e8457bda7. Static public-source inspection only; no repository code, tests, builds or installers executed. See the companion Markdown for commit-pinned evidence, license details, alternatives and full limitations.</p><p>⚠️ <strong>Interesting — adopt selected procedures only after a permission-policy review.</strong> The living-spec, experimental research and evidence-preservation patterns are useful. The current pack also recommends bypassing agent permission/sandbox controls and resolving unanswered human sign-off gates autonomously; a dedicated git worktree is not a security sandbox and user silence is not approval.</p><p>Checked 2026-10-13 against the prior review dated <strong>2026-07-05</strong>. The prior review recorded <strong>no exact revision</strong>, so a precise old-to-new commit diff cannot be established from that artifact. This update reuses the existing review rather than creating a duplicate.</p><p>Material differences from the older review: the current tree contains <strong>30 skills</strong>, not 16; there is no .claude-plugin/plugin.json; it adds a dependency-free local installer and a separate video project; a screenshot eval harness exists, making the prior blanket “no test suite” wording too strong. The old “only real code” claim is no longer true. The broad Deploy candidate verdict is downgraded because permission and human-approval behavior requires explicit qualification. Existing extracted patterns were not rewritten: the living-spec pattern remains useful, but it must not be interpreted as importing the pack&#x27;s bypass or silence-as-consent rules.</p><p>This is an instruction library, not an autonomous orchestration runtime. A compatible harness must supply models, tools, subagents, persistent goals, permissions and execution. The catalog currently divides into <strong>21 engineering, four visual, three authoring and two graphics skills</strong>.</p><p>The strongest theme is decomposing complex work into independently verifiable slices, maintaining current handoff state, and re-slicing when evidence invalidates the plan. Companion procedures cover experimental optimization, tests, performance, architectural choices, visual comparisons and skill evaluation. Portability of Markdown does not imply portability of every helper or CLI flag. <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/README.md">README</a>, <a href="https://github.com/dzhng/skills/tree/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills">catalog</a>.</p><p>write-spec and implement-spec describe named seams, independently verifiable work, maintained handoffs and iterative cleanup. audit-choices makes architectural decisions visible rather than leaving the user to infer them from a large diff. These are worth studying even without installing the pack. <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/write-spec/SKILL.md">write-spec</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/implement-spec/SKILL.md">implement-spec</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/audit-choices/SKILL.md">audit-choices</a>.</p><p>auto-research distinguishes correctness from optimization and preserves baselines, failed experiments and tradeoffs. Visual comparison treats difference metrics as diagnostics rather than declaring that lower pixel error always means better design. eval-skills separates blind runners from judging. These are well-chosen procedures, but their presence is not evidence that every skill reliably follows them in every model/harness. <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/auto-research/SKILL.md">Research</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/visual/compare-screenshots/SKILL.md">visual comparison</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/authoring/eval-skills/SKILL.md">skill evaluation</a>.</p><p>The local installer discovers skills, rejects flattened-name collisions, copies into the target&#x27;s .agents/skills tree, rewrites cross-category Markdown links, and creates relative .claude links. It supports selection, listing and dry-run. Root package.json has no runtime dependency list, so this installer is materially smaller than an opaque bootstrapper.</p><p>However, the non-dry-run path recursively removes each destination before copying, without a transactional backup/rollback. Local modifications to matching .agents skills can be lost. Existing real .claude skill directories are preserved, potentially leaving different content visible through the two harness locations. It also trusts the destination&#x27;s filesystem topology rather than treating parent symlinks as a containment boundary. Review the destination and back up selected folders first. <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/scripts/install-skills.mjs">Installer</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/package.json">manifest</a>.</p><p>The Codex skill recommends --dangerously-bypass-approvals-and-sandbox for browser verification/dev servers/full tests, qualified by a dedicated worktree, self-authored prompt and later diff review. The Claude skill similarly permits --dangerously-skip-permissions for broad autonomous work. Those qualifications improve task separation but do not prevent access to host credentials, arbitrary files or network destinations. Post-hoc diff review cannot undo exfiltration or external side effects. Do not import those defaults into a privileged environment. <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/codex/SKILL.md">Codex</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/claude/SKILL.md">Claude</a>.</p><p>The Claude read/review example also includes Bash: a tool allowlist that contains a general shell is not itself an OS read-only boundary. The actual harness permission configuration still matters.</p><p>implement-spec explicitly says human checkpoints never block, gives the user approximately five minutes, then lets the agent decide and continue without an answer. This may fit pre-authorized reversible work, but is unacceptable as a general rule for spending, publication, destructive operations, security changes or explicit sign-off requirements. Replace that behavior with actual approval gates in any adopted copy. <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/implement-spec/SKILL.md#L191-L200">Checkpoint text</a>.</p><p>The screenshot helper resolves pngjs/pixelmatch using the caller&#x27;s project/web package context; the root manifest does not pin or supply them. That is a reproducibility and dependency-trust issue, and open PRs address dependency/import portability. The auxiliary video directory is a separate dependency-bearing project, not required merely to read the skills. Treat project scripts and all downloaded skill instructions as active content. This is not a network service, so HTTP auth/CORS are not the main risks; execution permissions and outbound model access are. <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/visual/compare-screenshots/scripts/visual-parity-diff.mjs">Helper</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/visual/compare-screenshots/scripts/visual-parity-diff.eval.mjs">eval harness</a>, <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/video/package.json">video manifest</a>.</p><p>Unauthenticated metadata snapshot: <strong>1,270 stars, 75 forks</strong>, created <strong>2026-07-02</strong>, last pushed <strong>2026-10-12 08:31:58 UTC</strong>. The three open API issue objects were all PRs; release and tag lists were empty, and Actions returned zero runs. Stars and an author&#x27;s screenshot of a multi-day autonomous run are not independent quality or success-rate evidence. <a href="https://api.github.com/repos/dzhng/skills">Metadata</a>, <a href="https://github.com/dzhng/skills/pulls">PRs</a>.</p><p>The screenshot eval harness exists and was inspected, but no evals were run. No repository workflow files were found at this revision. No benchmark establishes improved coding quality or safety relative to another workflow, and model/harness compatibility remains untested here.</p><p>These are qualitative adoption choices, not evaluated performance rankings.</p><p>No server is needed. Begin with a pinned revision and manually reviewed, narrowly selected skills in a disposable secret-free environment. Preserve MIT notices and remove any permission-bypass or silence-as-consent rule that conflicts with required approvals. Check name collisions before enabling the catalog: generic names such as review can overlap a harness&#x27;s existing workflows. Keep helper dependencies pinned in a dedicated project and do not install the entire pack merely to borrow a planning pattern.</p><p>The actual <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/LICENSE">LICENSE</a> is MIT, copyright 2026 David Zhang. The copied retro skill retains <a href="https://github.com/dzhng/skills/blob/ad5f2270a68dd6936e70f9c6386bc13e8457bda7/skills/engineering/retro/LICENSE">Matt Pocock&#x27;s MIT notice</a>, which must be preserved when reusing that material. The repository&#x27;s MIT grant does not relicense third-party Remotion or other dependency code, fonts or external services; check their terms for the intended use. No full transitive-license audit was performed.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Superpowers</td><td>Broader methodology/integrations; requires its own trust-boundary review.</td></tr><tr><td>Project-local instructions</td><td>Smaller selected workflow surface makes authority easier to audit.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>No service. Review selected skills at a pinned revision; do not install or execute untrusted instructions automatically.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Adopt selected procedures only after reviewing execution policy. Strong planning and evidence patterns do not justify permission bypasses or treating unanswered sign-off requests as approval.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/dzhng/skills">dzhng/skills</a> · MIT; retain separate retro notice and dependency terms</span>
+    <span><a href="dzhng-skills.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

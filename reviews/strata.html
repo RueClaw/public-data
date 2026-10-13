@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strata — Review</title>
+<meta name="description" content="Keyboard-first Linux file manager with columns, previews, search and desktop integration.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / strata</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">lgse/strata · reviewed 2026-10-13 UTC</div>
+    <h1>Strata</h1>
+    <p class="one-liner">Keyboard-first Linux file manager with columns, previews, search and desktop integration.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Root MIT; GPL file-header conflict; third-party terms</span>
+      <span class="chip">Rust · GTK4 · GIO · Linux</span>
+      <span class="chip"><a href="https://github.com/lgse/strata">lgse/strata ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">791</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">75</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real desktop functionality</h3><p>Shared file operations support Columns, Icons and List views. Rich previews, remote locations and optional chooser integration go well beyond a cosmetic browser.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>License scope is unresolved</h3><p>The root declares MIT, while 18 tracked files carry GPL identifiers. Default RAR support introduces separate UnRAR terms; do not assume MIT-only redistribution.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Two verification paths differ</h3><p>The in-app updater verifies signed manifests. The shell installer proceeds with HTTPS/checksums if authenticated GitHub provenance verification is unavailable.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>UI/files</td><td>Rust 2024, GTK4, GLib/GIO</td></tr><tr><td>Media</td><td>GStreamer, Poppler and format parsers</td></tr><tr><td>Isolation</td><td>Workers, bubblewrap, Landlock/seccomp</td></tr><tr><td>Desktop</td><td>zbus/ashpd; optional portal and integrations</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Real desktop functionality: Shared file operations support Columns, Icons and List views. Rich previews, remote locations and optional chooser integration go well beyond a cosmetic browser.</p><p>License scope is unresolved: The root declares MIT, while 18 tracked files carry GPL identifiers. Default RAR support introduces separate UnRAR terms; do not assume MIT-only redistribution.</p><p>Two verification paths differ: The in-app updater verifies signed manifests. The shell installer proceeds with HTTPS/checksums if authenticated GitHub provenance verification is unavailable.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Exact reviewed revision: e7e43f2a1fc5d70522601e60d852e1451ded9e8a. Static public-source inspection only; no repository code, tests, builds or installers executed. See the companion Markdown for commit-pinned evidence, license details, alternatives and full limitations.</p><p>⚠️ <strong>Interesting — promising trial candidate with licensing and installer-verification caveats.</strong> The architecture goes well beyond a cosmetic file browser, and the preview/update defenses deserve credit. Do not treat the root MIT badge as a complete reuse answer or assume the shell installer always authenticates build provenance.</p><p>Strata targets Arch Linux and Omarchy while supporting compatible GTK4 Linux desktops. It combines columns, grid and list presentation with shared navigation/selection, recursive fuzzy filename search, local and GIO/GVfs locations, previews, file operations and device integration. Optional portal/file-manager integration can make it a system-wide chooser or folder handler.</p><p>The published binaries require glibc 2.39 or newer and GTK 4.12 or newer, with additional media/desktop libraries. This is a native desktop application, not a dependency-free static binary or a server to self-host. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/README.md">README</a>, <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/Cargo.toml">manifest</a>.</p><p>The implementation separates UI, browser/model work and services rather than rebuilding operations for each presentation. Cancellable enumeration, bounded streaming and incremental monitoring are particularly relevant to large or changing directories. Search indexes names/paths; it should not be sold as universal full-document content search. Remote shares are not included in global filename indexing at this revision. <a href="https://github.com/lgse/strata/tree/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src">Source tree</a>, <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/main.rs">main</a>, <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/README.md">README</a>.</p><p>Parser-backed previews run across process boundaries instead of treating every untrusted file as safe GTK input. The inspected browser worker requires fully enforced Landlock write restrictions, including truncate protection, and no-new-privileges; seccomp closes additional mutation paths. This is real defensive code, not merely a README claim. It does not establish that every parser, helper or desktop capability is fully sandboxed. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/sandbox/browser/worker.rs">Worker</a>, <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/sandbox/browser/process.rs">process boundary</a>.</p><p>Test hostile/truncated media and sandbox failure behavior in an isolated environment before making it the default file manager. A file browser necessarily holds broad access to the user&#x27;s files; parser containment is not a replacement for backups and explicit destructive-action confirmation.</p><p>The in-app update path parses bounded manifest/signature documents, uses bundled trusted keys, checks artifact size/hash and binds a package to its source commit. Archive and command-handling code has corresponding tests. These are positive static design signals; this review did not verify a downloaded release. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/services/update_install/manifest.rs">Manifest verification</a>, <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/services/update_install/archive.rs">archive handling</a>, <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/services/update_install/review_tests.rs">tests</a>.</p><p>In contrast, the shell installer&#x27;s verify_provenance function warns and returns successfully when GitHub CLI is absent or unauthenticated. Installation then proceeds after HTTPS plus a checksum downloaded alongside the archive. Checksums catch corruption but are not independent publisher authentication if both files are replaced. The README&#x27;s stronger provenance language therefore needs qualification. This is a confirmed control-flow discrepancy, not evidence of an actual compromised release. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/install.sh">Installer</a>.</p><p>- Custom actions and external providers are executable extensions: install only scripts whose authority you understand. Their existence is intentional functionality, not by itself a vulnerability. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/docs/custom-actions.md">Custom-action documentation</a>.
+- SMB/SFTP use desktop authentication integrations; the README describes explicit host-key decisions. Do not silently accept new host identities or assume remote operations have local-filesystem semantics.
+- Optional portal, folder-handler, keybinding and encrypted-volume integrations change desktop behavior. Evaluate them separately from opening the app, and preserve a rollback path.
+- Automatic update checks are on by default and can be disabled. This creates routine network activity even when local browsing is the main workload.
+- No reviewed HTTP server/auth/CORS surface is presented here. The relevant IPC and permissions are local desktop/D-Bus and subprocess boundaries. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/portal/dbus.rs">Portal interface</a>.</p><p>The actual <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/LICENSE">root LICENSE</a> is MIT, copyright 2026 LGSE Ltd., and Cargo.toml declares MIT. However, a tracked-file scan finds <strong>18 files with GPL SPDX identifiers</strong>. Representative compiled source files include <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/services/update_install/manifest.rs">update manifest</a>, <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/services/update_install/archive.rs">archive handling</a> and <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/src/ui/browser/dissolve_delete.rs">browser animation</a>, each carrying GPL-3.0-or-later headers.</p><p>This is an unresolved scope conflict, not proof of infringement and not sufficient evidence to assign one simple license to the entire binary. Ask the maintainers to reconcile the declarations before proprietary reuse or redistribution. Do not erase restrictive headers based on the root badge.</p><p>RAR support is enabled by default in the manifest and uses UnRAR components. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/data/licenses/UnRAR.txt">Bundled UnRAR terms</a> permit handling RAR archives but prohibit using that code to develop a compatible RAR archiver/recreate the proprietary compression algorithm, and impose notice requirements for modified source. The dependency stack therefore cannot be summarized as MIT-only. No exhaustive transitive-license audit was performed.</p><p>Public metadata observed on review date: <strong>791 stars, 75 forks</strong>, created <strong>2026-08-28</strong>, pushed <strong>2026-10-13 01:49:57 UTC</strong>. The 71 open API issue objects split into <strong>54 issues and 17 PRs</strong>. Latest observed stable release: <a href="https://github.com/lgse/strata/releases/tag/v1.0.0">v1.0.0</a>, published 2026-10-12 20:15:04 UTC. The reviewed main SHA is not asserted to be the exact release build source. <a href="https://api.github.com/repos/lgse/strata">Metadata</a>, <a href="https://api.github.com/repos/lgse/strata/releases?per_page=3">releases</a>.</p><p>CI defines containerized formatting/lint/build checks and test infrastructure; important actions are commit-pinned. Unit and end-to-end test sources exist. These are useful maturity signals, not verified pass results: no tests were run and no CI success claim is made. Six weeks of public repository history and a 1.0 version do not independently prove production reliability. <a href="https://github.com/lgse/strata/blob/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/.github/workflows/ci.yml">CI</a>, <a href="https://github.com/lgse/strata/tree/e7e43f2a1fc5d70522601e60d852e1451ded9e8a/tests">tests</a>.</p><p>No comparative performance benchmark was run.</p><p>There is no service to deploy. Trial a pinned binary/build with a disposable dataset and retain the existing file manager. Test copy/move conflicts, cancellation, trash/recovery, network disconnects, encrypted volumes and hostile previews before changing defaults. Require authenticated release verification rather than quietly relying on installer checksum fallback. Keep custom actions and system integrations opt-in during evaluation.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Nautilus / Dolphin</td><td>Established desktop file-management ecosystems; different navigation and integration priorities.</td></tr><tr><td>Yazi</td><td>Terminal-first keyboard workflow rather than a GTK chooser.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Native Linux desktop app, not a server. Trial with disposable files before changing system defaults; preserve rollback and verify publisher authentication.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Promising trial candidate, not an unqualified deployment or extraction recommendation. Resolve licensing inconsistencies and require authenticated installation before relying on it.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/lgse/strata">lgse/strata</a> · Root MIT; GPL file-header conflict; third-party terms</span>
+    <span><a href="strata.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
