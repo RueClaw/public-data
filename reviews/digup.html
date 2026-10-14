@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DigUp — Review</title>
+<meta name="description" content="Local multimodal file search for the Mac: find the page, scene, sound or code location.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / digup</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">ARahim3/DigUp · reviewed 2026-10-14</div>
+    <h1>DigUp</h1>
+    <p class="one-liner">Local multimodal file search for the Mac: find the page, scene, sound or code location.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Swift · SQLite FTS5 · llama.cpp</span>
+      <span class="chip"><a href="https://github.com/ARahim3/DigUp">ARahim3/DigUp ↗</a></span>
+      <span class="chip"><a href="digup.md">Full evidence &amp; limitations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2,555</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">184</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Meaning and exact strings belong together</h3><p>Shared 768-dimensional embeddings rank document, image and media segments. SQLite FTS5 rescues names and identifiers. Search scans all vectors, so large collections need real memory and latency measurements.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local does not mean secret-proof</h3><p>No upload path was found in inspected core code, but no traffic capture was performed. The ordinary SQLite index contains extracted text and paths. Secret filename filters are incomplete, and git-ignore filtering fails open if git cannot list files.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Good engineering signals, young release history</h3><p>Model hashes, native runtime commit pins and reference-vector tests are useful safeguards. The latter skip without models; the only checked-in GitHub Actions workflow distributes Homebrew releases, rather than running a test matrix.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>UI</td><td>SwiftUI/AppKit; Apple Silicon, macOS 14+</td></tr><tr><td>Model</td><td>EmbeddingGemma 2 Q8_0, llama.cpp/Metal</td></tr><tr><td>Storage</td><td>SQLite WAL, FTS5, float16 vectors</td></tr><tr><td>Extraction</td><td>ImageIO, PDFKit, AVFoundation, Vision OCR</td></tr><tr><td>Updates</td><td>Sparkle 2.10.0</td></tr><tr><td>Port work</td><td>Swift portable engine + Rust/Tauri; not established here as a supported release</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Location-aware retrieval</h4><p>PDF pages, document passages, 30-second audio windows and video frames retain page/time metadata. Long documents get staged completion. This is retrieval, not an answer-generating chatbot. See <a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Sources/DigUpKit/Indexer.swift">Indexer</a>.</p><h4>Separate code search</h4><p>Code is opt-in and stored in a second database. Notebook outputs are omitted; definition navigation uses text heuristics rather than compiler analysis. See <a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Sources/DigUpKit/CodeExtractor.swift">CodeExtractor</a>.</p><h4>Compatibility over needless rebuilding</h4><p>Model fingerprints and vector versions distinguish output changes from runtime upgrades. Reference tests require cosine agreement of at least 0.999 but skip when models are absent. See <a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Tests/LlamaRuntimeTests/ReferenceVectorTests.swift">reference tests</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Folders → crawler/rules → format readers → embedding helper → SQLite segments/FTS → full vector scan plus keyword scoring → results. <a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Sources/DigUpKit/Searcher.swift">Searcher</a> uses modality-adjusted semantic scores and word-coverage bonuses; it is not an ANN service.</p><h4>Trust boundaries</h4><p>Helpers use pipes and same-user processes, not an HTTP endpoint or adversarial sandbox. The ordinary SQLite database stores paths, excerpts and FTS text without application-layer encryption. <a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Sources/DigUpKit/Database.swift">Database</a> and <a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Resources/DigUp.entitlements">entitlements</a> show why OS permissions, disk encryption and backup policy matter.</p><p><a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Sources/DigUpKit/Rules.swift">Rules</a> filter filenames/extensions, not arbitrary secrets inside documents. <a href="https://github.com/ARahim3/DigUp/blob/f9b8106ffb8308b4f48b76149d270f7c2e6b4918/Sources/DigUpKit/Crawler.swift">Crawler</a> allows files when git cannot supply its kept-file list. Exclude sensitive folders explicitly.</p><h4>Supply chain and robustness</h4><p>Model downloads are revision/hash-pinned; llama.cpp is checked against an exact commit. Portable vendor downloads lack digest checks. The watchdog contains runaway indexing by ending helpers at memory/time thresholds, not by sandboxing parsers.</p><h4>Provenance and verification</h4><p>Reviewed f9b8106ffb8308b4f48b76149d270f7c2e6b4918, scope: core index/search/runtime, native app boundaries, manifests, tests and release scripts; limited portable-shell inspection. Public unauthenticated acquisition succeeded. Review date 2026-10-14 UTC.</p><p>Live GitHub metadata: 2,555 stars, 184 forks, 53 open issues/PRs combined. Created October 8; first release October 9; v0.6.1 October 12. Release notes describe fixes for IME, Unicode paths, indexing restarts, orphan helpers and PDF memory runaway. Those fixes were not runtime-verified.</p><p>No source execution, builds, tests or model downloads. Test source and eval inputs exist, but no pass result is claimed. Resource use, recall, release signing, network silence and cross-platform support remain unverified. HTML received structural checks, not browser rendering. See <a href="digup.md">full review</a> for pinned evidence and limitations.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>Prefer it for</th><th>Tradeoff</th></tr><tr><td>Spotlight</td><td>Integrated filename/text/metadata search</td><td>DigUp adds explicit multimodal embeddings and media locations</td></tr><tr><td>Recoll</td><td>Document full-text search</td><td>Not a like-for-like image/audio/video embedding workflow</td></tr><tr><td>ripgrep</td><td>Exact code/text matches</td><td>No persistent semantic index or scene/audio retrieval</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>A desktop app, not a server to expose. Start with a small, explicitly selected non-sensitive folder set; budget about 865 MB of model files plus index growth. Cloud-only placeholders are skipped.</p><p>Keep a lexical search tool alongside it. Protect derived indexes and backups like source documents. Source builds require the documented toolchain and native runtime; none were attempted. Linux/Windows source is port work, not proof of a supported release.</p><p>DigUp is MIT, copyright Abdur Rahim. Google DeepMind’s model card declares Apache-2.0; bundled dependencies have separate notices and terms.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot on small, non-sensitive folder sets. The hybrid retrieval and vector-compatibility design are thoughtful, but the public release is days old and exclusion heuristics are not a security boundary. Static review only: no builds, tests, model inference, performance or network behavior were independently exercised.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/ARahim3/DigUp">ARahim3/DigUp</a> · MIT</span>
+    <span><a href="digup.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

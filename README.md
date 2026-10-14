@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [digup.md](reviews/digup.md) [page](reviews/digup.html) | [ARahim3/DigUp](https://github.com/ARahim3/DigUp) | MIT | ⚠️ Interesting | Local multimodal Mac file search with hybrid retrieval; promising early release, heuristic privacy exclusions. |
 | [frankengit.md](reviews/frankengit.md) [page](reviews/frankengit.html) | [Dicklesworthstone/frankengit](https://github.com/Dicklesworthstone/frankengit) | MIT + OpenAI/Anthropic rider (source-available) | 📚 Study | Transactional Git/forge authority with real native paths, but unproven production readiness and restrictive reuse terms. |
 | [slowbooks-pro-2026.md](reviews/slowbooks-pro-2026.md) [page](reviews/slowbooks-pro-2026.html) | [VonHoltenCodes/SlowBooks-Pro-2026](https://github.com/VonHoltenCodes/SlowBooks-Pro-2026) | Custom Source Available v2.0 | ⚠️ Interesting | Local accounting with substantive ledger controls; solo-business pilot only pending reconciliation, restore and security validation. Not OSI open source. |
 | [rustgis.md](reviews/rustgis.md) [page](reviews/rustgis.html) | [opengeos/RustGIS](https://github.com/opengeos/RustGIS) | Apache-2.0 | ⚠️ Interesting | Command-driven Rust desktop/browser GIS. Promising shared engine and sandboxed plugins; static review flags approximate analysis, optional plaintext keys and external-runner trust. |
