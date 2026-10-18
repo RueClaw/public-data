@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [harness2.md](reviews/harness2.md) [page](reviews/harness2.html) | [google-research/harness2](https://github.com/google-research/harness2) | Apache-2.0 core; third-party terms | 📚 Study | Contrastive recursive harness editing; valuable evidence architecture, unsafe default execution and evaluation contamination risks. |
 | [digup.md](reviews/digup.md) [page](reviews/digup.html) | [ARahim3/DigUp](https://github.com/ARahim3/DigUp) | MIT | ⚠️ Interesting | Local multimodal Mac file search with hybrid retrieval; promising early release, heuristic privacy exclusions. |
 | [frankengit.md](reviews/frankengit.md) [page](reviews/frankengit.html) | [Dicklesworthstone/frankengit](https://github.com/Dicklesworthstone/frankengit) | MIT + OpenAI/Anthropic rider (source-available) | 📚 Study | Transactional Git/forge authority with real native paths, but unproven production readiness and restrictive reuse terms. |
 | [slowbooks-pro-2026.md](reviews/slowbooks-pro-2026.md) [page](reviews/slowbooks-pro-2026.html) | [VonHoltenCodes/SlowBooks-Pro-2026](https://github.com/VonHoltenCodes/SlowBooks-Pro-2026) | Custom Source Available v2.0 | ⚠️ Interesting | Local accounting with substantive ledger controls; solo-business pilot only pending reconciliation, restore and security validation. Not OSI open source. |

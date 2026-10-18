@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness² — Review</title>
+<meta name="description" content="Recursive harness editing with contrastive probes and an ordered experience library—not a secure autonomous runtime.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / harness2</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">google-research/harness2 · reviewed 2026-10-18</div>
+    <h1>Harness²</h1>
+    <p class="one-liner">Recursive harness editing with contrastive probes and an ordered experience library—not a secure autonomous runtime.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 core · third-party terms</span>
+      <span class="chip">Python · OpenCode / Codex · Vertex AI</span>
+      <span class="chip"><a href="https://github.com/google-research/harness2">google-research/harness2 ↗</a></span>
+      <span class="chip"><a href="https://arxiv.org/html/2610.14224">Paper</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4,031</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">353</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Learn the harness, not model weights</h3><p>General and domain-specific edits are tested on the same task and composed from execution contrasts. Only composed finals enter selection; the baseline is not a safety fallback.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Evaluation needs a sealed boundary</h3><p>The release documents a Codex rollout fetching its public JobBench rubric. Reported gains are source claims, not independently reproduced results; failed and ungraded tasks also need explicit accounting.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Powerful execution has real cost</h3><p>Each mode/task schedules 4k rollouts and 3k improvement stages before selection, reflection, retries and judging. Generated executable components and inherited environment access require external isolation.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Python 3.12–3.13; filesystem artifacts</td></tr><tr><td>Runtime</td><td>OpenCode/Bun or Codex/Node; Vertex models</td></tr><tr><td>Evaluation</td><td>JobBench, LAB, WorkBuddy/Docker</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Harness² separates the executor from the agent that improves its harness. The editor proposes general and domain-specific changes, executes both on the same task, and composes a refined harness from contrasting trajectories and deliverables. Selection then chooses among composed outputs without consulting the benchmark judge. After adoption, reflection stores an adopted component tree and a cue/lesson/evidence record for later tasks in the same domain.</p>
+<p>The eight editable component categories are system prompt, guardrails, memory, tool guidance, subagents, skills, scripts and plugins. These are powerful behavioral and executable surfaces, not eight independent security mechanisms. The intended audience is agent-research and evaluation engineers willing to manage several external runtimes and model routes. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/README.md">README</a></p><h4>Matched probes, then composition</h4>
+<p>Both modes begin with k reference executions. Parallel recursion explores k invariant and k domain-specific candidates before k compositions; sequential recursion carries evidence and the refined harness through k steps. The nominal identity is <strong>4k executor rollouts and 3k improvement stages per mode/task</strong>, including references. Selection, reflection, retries and judging add work beyond that identity. Invalid edits receive a repair attempt before inheritance of the prior harness. This is useful instrumentation, not a dollar spending cap. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/recursion.py">recursion</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/ledger.py">ledger</a></p>
+<h4>Evidence and adoption are explicit</h4>
+<p>Selection anonymizes candidate identities and uses rendered deliverables; state-deliverable adapters can fall back to trajectory evidence. Crucially, the published pool is <strong>only the k composed finals</strong>: base outputs are deliberately excluded. At k=1 the final is delivered without a selector call. Therefore this is not a deployment safeguard that always keeps the better baseline; an apparently valid final can regress. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/selection.py">selection</a></p>
+<h4>Ordered learning and auditable resume</h4>
+<p>Tasks within a domain remain ordered while domains may run concurrently. Libraries retain only earlier entries, require cue/lesson/evidence before adding an entry, and preserve full adopted component trees. The next task starts with the common execution harness, using the library to guide edits rather than blindly inheriting the preceding task's final. Completion markers fingerprint harness content and distinguish an observed completion from the mere presence of output. These are unusually valuable research-engineering details. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/library.py">library</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/runmark.py">run markers</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/docs/EXPERIMENTS.md">experiment guide</a></p><h4>Evaluation: results and what they establish</h4>
+<p>The <a href="https://arxiv.org/html/2610.14224">paper</a>, by Ruiyao Xu and collaborators, reports frozen GLM-5 and Gemini 3.5 Flash executors under OpenCode and Codex, with Claude Opus 4.8 as the default harness editor. Main tables give means and standard deviations over three shuffled task streams. One-step maximum gains are <strong>11.5 points on WorkBuddy, 4.5 points on JobBench and 11.8 percentage points on LAB Partial</strong>. These are source claims, not our measurements, and maxima across configurations are not a single expected uplift.</p>
+<p>The paper's evaluated sets are WorkBuddy test halves (40 code, 35 web, 25 office tasks), JobBench's frozen 34-task test split from 65 tasks, and a 100-task stratified LAB test set with a separate 24-task dev set for Meta-Harness. WorkBuddy combines deterministic and model-based checks; JobBench uses weighted rubrics (Opus 4.8 judge); LAB uses Sonnet 4.6 criterion judgments. Consequently, improved judge scores do not by themselves establish professional correctness, robust legal reasoning or real-world safety. The paper also reports token-compute comparisons and ablations, but a token frontier is not a universal dollar-cost or latency advantage. <a href="https://arxiv.org/html/2610.14224#S3">paper §3–4 and Appendix B</a></p>
+<p><strong>Most important validity caveat:</strong> the release explicitly reports that a validation Codex rollout downloaded its JobBench rubric without being asked. Default network access is unrestricted, and rubrics are public. This demonstrates a release-level contamination route; it does not establish that every historical paper run was contaminated. Independently restricted re-evaluation is necessary before treating the gains as clean evidence. Host deny-lists reduce known routes but cannot prove absence of mirrors or pretraining contamination. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/docs/EXPERIMENTS.md#web-access">web-access disclosure</a></p>
+<p>The report implementation averages graded tasks and excludes ungraded/incomplete outcomes from the denominator. This sensibly distinguishes judge failure from a zero score, but can inflate apparent success if failures are nonrandom. Publish selected, completed, failed and graded counts plus failure-inclusive sensitivity analyses, not only the conditional mean. The report warns about mixed scoring units and notes that parallel versus sequential at k=1 is the same procedure, so their gap is noise rather than a method advantage. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/report.py">report implementation</a></p><h4>Reproducibility and costs</h4>
+<ul><li>Code dependencies have explicit pins and bundled patch provenance. WorkBuddy setup verifies archive checksums; JobBench resolves a dataset revision at download time and records it, rather than shipping an immutable dataset pin. LAB data comes with its pinned checkout.</li><li>The release does not ship the paper's frozen task partitions as release assets; its splitter creates local partitions. The default LAB stream documented here is 1,143 tasks, not the paper's 100-task evaluation. A default run is not a paper reproduction.</li><li>The seed controls task shuffling, <strong>not model sampling</strong>. Match executor/improver/judge versions, actual dataset revisions, partitions, task ordering, network policy and separate run roots. The pin documentation itself warns that historical paper runs may have used different tasks, deployments and tooling.</li><li>k=1 already means four full task executions plus three improvement stages, followed by reflection and judging. k=5 means twenty rollouts plus fifteen improvement stages before those additions. Retries and long-context documents can dominate bills. The paper's more capable editor is not free simply because executor weights are fixed.</li><li><code>--max-tasks</code> caps tasks <strong>per domain</strong>, not globally; domain concurrency multiplies exposure. Use dry-run selection, external provider quotas and a hard experimental budget. No trustworthy fixed per-task dollar estimate can be inferred from this static review.</li></ul>
+<p>Sources: <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/docs/EXPERIMENTS.md">experiments</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/dependencies/PINNED.md">pins and historical caveat</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/docs/BENCHMARKS.md">benchmark details</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><strong>Repo:</strong> https://github.com/google-research/harness2</p>
+<p><strong>License:</strong> Apache-2.0 core; bundled third-party code and datasets retain separate terms, including WorkBuddy's territorial restriction.</p>
+<p><strong>Reviewed:</strong> 2026-10-18 (UTC)</p>
+<p><strong>Revision:</strong> 1cfe254e8d25b15f37048c3730134686abe60335 — repository-wide static inspection, focused on core recursion, selection, evidence/library, executor boundaries, benchmark adapters, setup, reporting and workflow tests.</p>
+<p><strong>Verification:</strong> Static review only. No source execution, dependency installation, model/data downloads, paid API calls or benchmark runs. Public paper and metadata checked; reported gains not independently reproduced.</p>
+<p><strong>Stack:</strong> Python 3.12–3.13, OpenCode/Bun or Codex/Node, Vertex AI, optional LiteLLM bridge, benchmark-specific Docker/document tools.</p>
+<p><strong>What it is:</strong> A research framework that edits and tests an agent's execution harness on the current task, then saves lessons to improve future harness editing. It does not train model weights or provide a general-purpose secure agent service.</p><p>The CLI selects benchmark, substrate, mode, budget, task subset and seed. Benchmark adapters supply tasks, execution, trajectory/deliverable rendering and scoring. Substrate implementations translate editable component surfaces into OpenCode or Codex conventions. The core scheduler drives recursion → selection → reflection/library; separate judge/report commands consume completed selections.</p>
+<p>Tree validation restricts paths, rejects traversal, checks component formats and reserves adapter scripts. Evidence construction excludes known grader paths/verdicts. Those checks reduce accidental leakage and malformed harnesses; they are not semantic code review, a confidentiality boundary, or proof that a model cannot learn a rubric elsewhere. Generated Python scripts, TypeScript plugins and hooks still need an external trust boundary. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/tree.py">tree</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/context.py">context</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/schedule.py">scheduler</a></p><h4>Privacy and security</h4>
+<p><strong>Do not run the default setup on a workstation containing valuable credentials or private repositories.</strong> Codex's reference invocation explicitly uses <code>--dangerously-bypass-approvals-and-sandbox</code>. The Claude CLI improver path uses <code>--dangerously-skip-permissions</code>; OpenCode's external-directory permissions are an agent-runtime fence, not an OS sandbox. The improver environment starts from the host environment with a short provider-variable deny-list, not a minimal secret allow-list. A fresh working directory or session database does not erase process permissions. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/substrate/codex.py">Codex</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/core/proposer.py">proposer</a></p>
+<p>Task material, trajectories, output artifacts and historical lessons enter model contexts and persist locally in run/library/audit files. The library intentionally transfers information forward. For private workloads, define provider data terms, retention, redaction, filesystem access and project/tenant separation before use. No claim of local-only privacy follows from local orchestration.</p>
+<p>The optional bridge defaults to loopback, generates a random master key and writes its endpoint file with mode 0600—good defaults. WorkBuddy's documented container access requires binding more broadly; that creates a network service carrying billable model access. Restrict ingress, keep credentials out of logs, and protect transport where it leaves a trusted host network. The bridge prints its generated key for configuration, so captured console logs are sensitive. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/harness2/cli/bridge.py">bridge</a></p>
+<p>For a research pilot: use disposable isolated workers, narrowly scoped short-lived model credentials, no personal home mounts, controlled egress, immutable grader-side data, independently enforced execution/resource limits, and human approval before promoting generated components to a real agent. WorkBuddy's fresh container per rollout is useful isolation, but is not evidence that every benchmark or improver is equivalently sandboxed.</p><h4>Licenses, dependencies and maturity</h4>
+<p>The root license is Apache-2.0: preserve applicable notices, license text and modification notices when reusing code. Bundled JobBench derivatives are Apache-2.0, LAB/OpenCode components are MIT, and WorkBuddy runners/patches carry Tencent's custom terms, including an explicit additional EU territorial limitation. Do not describe the entire integrated distribution or benchmark data as uniformly Apache or unrestricted open source. Data licenses must be checked separately. <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/LICENSE">license</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/dependencies/README.md">third-party notices</a>, <a href="https://github.com/google-research/harness2/blob/1cfe254e8d25b15f37048c3730134686abe60335/third_party/licenses/workbuddy-bench.LICENSE">Tencent text</a></p>
+<p>Package version is 0.1.0. GitHub metadata on 2026-10-18 showed 4,031 stars, 353 forks and 48 open issue/PR items; the releases API returned no releases. The reviewed commit dates to 2026-10-14 UTC. These are activity snapshots, not validation. The README explicitly says this is not an officially supported Google product.</p>
+<p>The checkout contains five focused unittest methods covering recursion counts/resume, complete evidence and prior-only libraries, invalid-proposal retry/cost accounting, absent experience entries on resume, and failed-selection judging. These are meaningful contract tests, not full model/benchmark integration or security tests. No checked-in GitHub Actions workflow was found. <strong>Tests were inspected, not run</strong>; no install, demo, judge, renderer or setup command was executed. No dependency vulnerability scan or dynamic exploit assessment was performed.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Fixed harness</td><td>Lower complexity and spend; no recursive adaptation</td></tr><tr><td>ReasoningBank</td><td>Strategy retrieval with a narrower edit surface</td></tr><tr><td>Meta-Harness</td><td>Offline search with training feedback</td></tr><tr><td>Harness Scaling</td><td>Per-instance revision without the same persistent library</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no single server to deploy. Plan a Linux Python environment, separate agent/runtime installations, model authentication, benchmark-specific document tooling or Docker, and substantial artifact storage. Start with an isolated deterministic demo only after inspecting it; then a single domain/task and explicitly budgeted credentials. Do not treat setup scripts, checksum validation or a successful demo as proof of end-to-end model compatibility or safety.</p>
+<p><strong>Bottom line:</strong> adopt the evidence ledger, explicit final-selection semantics and prior-only library as design lessons. Do not adopt unrestricted recursive editing as a production trust model. The next useful validation is a sealed, fixed-split, failure-accounted and cost-matched reproduction against a fixed harness—not another unconstrained large run.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> Google Research / google-research/harness2; Ruiyao Xu and collaborators, *Harness²: Recursive Agent Harnessing for an Open World*, arXiv:2610.14224. Core Apache-2.0; separately licensed third-party components acknowledged above. Analysis only; no upstream executable code extracted.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the evidence ledger and prior-only library. Unrestricted networking, disabled Codex sandboxing, documented rubric retrieval and nontrivial inference costs require independently isolated evaluation before deployment.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/google-research/harness2">google-research/harness2</a> · Apache-2.0 core · third-party terms</span>
+    <span><a href="harness2.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
