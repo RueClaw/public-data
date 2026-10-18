@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [timestral.md](reviews/timestral.md) [page](reviews/timestral.html) | [mistralai/timestral](https://github.com/mistralai/timestral) | Apache-2.0 code; restricted weights | ⚠️ Interesting | Multivariate quantile forecasting; promising reported scores, unverified data exclusions and revenue-gated weights |
 | [laya.md](reviews/laya.md) [page](reviews/laya.html) | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya) | Apache-2.0 | ⚠️ Interesting | Local typed-decision encoder with checkpoint routing and calibration; promising bounded classifier, not a security gate. Static review; opt-in server auth and unmatched benchmark comparisons. |
 | [harness2.md](reviews/harness2.md) [page](reviews/harness2.html) | [google-research/harness2](https://github.com/google-research/harness2) | Apache-2.0 core; third-party terms | 📚 Study | Contrastive recursive harness editing; valuable evidence architecture, unsafe default execution and evaluation contamination risks. |
 | [digup.md](reviews/digup.md) [page](reviews/digup.html) | [ARahim3/DigUp](https://github.com/ARahim3/DigUp) | MIT | ⚠️ Interesting | Local multimodal Mac file search with hybrid retrieval; promising early release, heuristic privacy exclusions. |

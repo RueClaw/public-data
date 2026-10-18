@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timestral — Review</title>
+<meta name="description" content="Local multivariate probabilistic forecasting with a promising architecture and important evidence and licensing limits.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / timestral</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">mistralai/timestral · reviewed 2026-10-18</div>
+    <h1>Timestral</h1>
+    <p class="one-liner">Local multivariate probabilistic forecasting with a promising architecture and important evidence and licensing limits.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 code · revenue-restricted weights</span>
+      <span class="chip">Python · PyTorch · safetensors</span>
+      <span class="chip"><a href="https://github.com/mistralai/timestral">mistralai/timestral ↗</a></span>
+      <span class="chip"><a href="timestral.md">Full evidence and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">332</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">24</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real forecasting architecture</h3><p>Patch-based time/variate attention, role-aware covariates and 21 ordered quantiles. Median rollout and two-pass symmetric averaging matter for uncertainty and latency.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Reported leadership, incomplete audit trail</h3><p>Strong published GIFT-Eval, TIME and fev-bench scores, but no bundled benchmark runner or training-data exclusion audit. Static review only; no tests or inference run.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Read the actual weight license</h3><p>The 209M Modified MIT license denies rights above US$20 million in company or employer global consolidated revenue for the preceding month. Apache-2.0 applies to code, not the weights.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Python ≥3.10; PyTorch ≥2.4; NumPy</td></tr><tr><td>Checkpoint</td><td>JSON + safetensors; local directory or Hugging Face cache</td></tr><tr><td>Source SHA</td><td>a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff</td></tr><tr><td>Verification</td><td>Static inspection only; no execution or downloads of weights</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4>
+<p>Timestral forecasts numeric arrays for demand, telemetry and other regularly aligned time-series workloads without per-dataset training. Four advertised sizes span 5M, 28M, 123M and 209M parameters. Inputs are series × variates × time, with optional numeric and categorical covariates; outputs are 21 quantiles per target and forecast step. It accepts up to 32,768 context steps by default and rolls beyond a 1,024-step decode block using predicted medians. <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/README.md">README</a></p>
+<p>The repository contains inference and small synthetic tests. It does not contain the training pipeline, synthetic-data generator, training corpus, benchmark runner or a complete anomaly-detection application. The launch article's industrial agent workflows and Forge adaptation offering are broader product descriptions, not features implemented here. <a href="https://mistral.ai/news/timestral/">Launch article</a></p>
+<h4></h4>
+<h4>Genuine multivariate and covariate routing</h4>
+<p>Attention can mix target variates within each series. Target, past-only covariate and known-future covariate roles drive attention masks. Known-future rows have bidirectional context/horizon visibility; covariates cannot read targets, and bidirectional rows cannot read causal rows. These are concrete information-flow safeguards, not proof that a caller's supplied future covariates were actually available at forecast time. <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/masks.py">Masks</a></p>
+<h4>Ordered quantiles, not guaranteed calibrated uncertainty</h4>
+<p>The head expands upward/downward from a free median through positive softplus increments weighted by quantile spacing. This enforces ordering in the model head. It does not establish empirical interval coverage, a calibrated joint distribution across variables, coherent scenario samples, or decision-risk guarantees. Median feedback between blocks discards trajectory uncertainty; longer horizons need separate coverage checks. <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/model.py">Model</a></p>
+<h4>Defaults matter to accuracy and speed</h4>
+<p>The forecaster runs both the original and negated inputs and averages reflected quantiles by default. This is two-pass test-time augmentation, even though the launch article describes a single checkpoint “without ensembling.” It also clips forecasts to zero when the observed context is entirely nonnegative, caps extreme quantiles relative to context statistics and replaces extreme feedback medians. Disable or evaluate these heuristics explicitly for signed targets and regime changes; do not equate one checkpoint with one network pass. <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/forecaster.py">Forecaster</a></p>
+<h4>Categorical support has a multivariate caveat</h4>
+<p>Univariate targets get smoothed target-mean encoding against the forward-filled context, with unseen categories mapped to the series mean. Multivariate targets instead receive raw numeric category codes. Thus category relabeling can matter for multivariate inputs; this is not universal category-order invariance. Refit encodings inside each rolling-origin cutoff, never on held-out target values. <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/covariate_encoding.py">Encoding</a>, <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/forecaster.py">forecaster</a></p>
+<h4></h4>
+<p>The following are <strong>publisher-reported model-card results, not reproduced measurements</strong>:</p>
+<table><tbody><tr><td>Benchmark</td><td>Timestral-209M</td><td>Closest listed comparison</td></tr><tr><td>GIFT-Eval</td><td>MASE 0.658; CRPS 0.446</td><td>t0-gamma: 0.661; 0.452</td></tr><tr><td>TIME</td><td>MASE 0.626; CRPS 0.522</td><td>t0-gamma: 0.637; 0.534</td></tr><tr><td>fev-bench</td><td>SQL skill 50.39; MASE skill 39.49</td><td>t0-gamma: 49.42; 37.99</td></tr></tbody></table>
+<p>The <a href="https://huggingface.co/mistralai/Timestral-209M/blob/9874d252ab0aae16f7f7c999f98f98d6ad7d8365/README.md">model card</a> also compares TimesFM-3, Toto-2.0-2.5B and Chronos-2. Lower is better for the first two benchmarks; higher is better for the reported skill scores. These are different metrics/aggregations, not directly interchangeable scores. The launch article says results were submitted to GIFT-Eval and TIME; this review did not independently audit leaderboard runs or establish the current ranking.</p>
+<p>The README specifies 97 GIFT-Eval configurations using past dynamic-real covariates, 100 fev-bench tasks using past/known covariates and target encoding, and 98 TIME tasks without covariates. It uses forecaster defaults and full history capped at 32,768 steps. That is useful protocol disclosure, but there are no bundled benchmark adapters, per-task predictions, rerun scripts, confidence intervals or matched hardware traces in this checkout. Context length, covariate access, test-time augmentation and preprocessing must be matched before interpreting small aggregate margins as model superiority. The card's GIFT MASE advantage over t0-gamma is only 0.003.</p>
+<p>The <a href="https://mistral.ai/news/timestral/">launch article</a> describes synthetic-only pretraining at 8,192 context, followed by mixed real/synthetic post-training at four times that context, with pinball loss over 21 quantiles. A technical report is still promised. The inspected material does not provide the real-data inventory, per-dataset cutoffs or test-window exclusion audit needed to independently verify contamination-free zero-shot evaluation. <a href="https://github.com/mistralai/timestral/issues/3">Issue #3</a> asks those questions and had no comments at review time. <strong>This is an evidence gap, not a finding that leakage occurred.</strong></p>
+<p>Architecture-level causality and corpus-level contamination are different questions. Known-future weather should mean an archived forecast available at the origin, not realized future weather; revised business data and target encoding can leak even with correct attention masks. Require rolling-origin evaluation with as-of covariates, seasonal-naive and local statistical baselines, matched foundation-model baselines, interval coverage by horizon/subgroup, and latency/peak-memory measurements before adoption.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4>
+<p>1. The loader resolves a local directory or downloads only config.json and model.safetensors, constructs the configured network, loads its state strictly, and defaults to CPU float32.<br>2. The forecaster validates array shapes, creates observation masks, prepares covariates, forward-fills target values while retaining masks, truncates context and pads to patches.<br>3. Patch embeddings combine values and missing indicators. Causal patch statistics and optional asinh scaling stabilize numeric ranges; known-future covariates deliberately use whole-row statistics because their horizon is available.<br>4. Decoupled Horizon Forecasting separates observed encoder patches from learned prediction-query tokens. Time and variate attention use role-aware masks, gated SDPA and residual MLPs. The 209M config specifies 24 blocks, width 768, 12 heads, patch size 32 and time-plus-variate attention every fourth block.<br>5. Quantile outputs are denormalized and refined into advancing frames using prior predicted medians. Longer horizons rerun blocks with median feedback and a rolling context.</p>
+<p>Sources: <a href="https://huggingface.co/mistralai/Timestral-209M/blob/9874d252ab0aae16f7f7c999f98f98d6ad7d8365/config.json">config</a>, <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/layers.py">layers</a>, <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/model.py">model</a>, <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/scaler.py">scaler</a>, <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/loading.py">loading</a>.</p>
+<p>A scalability caveat is visible in the implementation: rows from the whole batch are packed together, and variate attention builds dense row-by-row masks, even though cross-series attention is forbidden. Memory can therefore grow quadratically in total packed rows, not just variates in one series. Time masks also grow quadratically in patch sequence length. Microbatching and bounding covariate count are important; parameter count alone does not describe runtime cost.</p>
+<h4></h4>
+<p>The single 102-line test module has four test functions, one parametrized over three cases: shapes/finite and ordered outputs, reflected-forecast symmetry with covariates, category-encoding equivalence, and local/mocked-Hub loading. These use tiny random-weight models, not released checkpoints. There are no explicit tests here for causal leakage, batch isolation, future-covariate availability, calibration, hardware parity or benchmark reproduction. No tracked GitHub Actions workflow was found. <strong>Tests were inspected, not run.</strong> <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/tests/test_forecaster.py">Tests</a></p>
+<p>Public metadata on 2026-10-18 showed 332 stars, 24 forks, four open issues, last push 2026-10-15, and no GitHub releases; the package says 1.0.0. These are a young release's metadata, not production validation. <a href="https://api.github.com/repos/mistralai/timestral">Repository metadata</a>, <a href="https://api.github.com/repos/mistralai/timestral/releases">releases</a>. The shallow checkout establishes the reviewed snapshot, not a full historical maintenance audit.</p>
+<p>The <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/CONTRIBUTING.md">contribution policy</a> declines pull requests, offers best-effort issue responses and commits to fixing major bugs/security vulnerabilities. That gives a clear owner but limits community repair throughput. <a href="https://github.com/mistralai/timestral/issues/4">Issue #4</a> raises MPS support; the code's float64 statistics are an additional reason not to assume “GPU” implies Apple MPS compatibility.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Foundation models</td><td>Compare Chronos-2, TimesFM-3 and Toto with matched covariates and context; no independent winner established.</td></tr><tr><td>Local baselines</td><td>Seasonal naive and StatsForecast ARIMA/ETS remain essential low-cost controls.</td></tr><tr><td>Workflow</td><td>AutoGluon TimeSeries and fev supply broader model-selection/evaluation workflows.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Licenses and Reuse</h4>
+<p>- <strong>Code:</strong> <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/LICENSE">Apache-2.0</a>, covering the package and tests. Commercial reuse is allowed subject to applicable license/notice and modification requirements; the code license does not grant rights to separately distributed weights or datasets.<br>- <strong>Weights:</strong> the actual <a href="https://huggingface.co/mistralai/Timestral-209M/blob/9874d252ab0aae16f7f7c999f98f98d6ad7d8365/LICENSE">209M Modified MIT license</a> preserves attribution and permission notices, but denies exercise of license rights when the company's <strong>or employer's global consolidated revenue exceeds US$20 million in the preceding month</strong>. It explicitly extends the restriction to derivatives, modifications and combined works. A separate commercial license may be requested at the publisher's discretion. This is not ordinary MIT and should not be represented as unrestricted open-source weights. The README links separate licenses for all four checkpoints; only the 209M license was independently inspected here.<br>- <strong>Training/evaluation data:</strong> no training corpus or dataset license grant is bundled. “Synthetic-first” does not establish rights for the real-data portion. Evaluation datasets and downstream inputs retain their own terms. Model-card usage language also warns against third-party-rights violations.</p>
+<h4></h4>
+<p>The inspected inference path runs tensors locally, with no apparent forecast-upload or telemetry call. The network boundary is checkpoint acquisition through huggingface_hub; offline use is supported after provisioning. Pin both source SHA and Hub revision, use a vetted local checkpoint or local_files_only/HF_HUB_OFFLINE, and set token=False when anonymous downloading is intended rather than inheriting cached Hub authentication.</p>
+<p>Safetensors avoids the usual Python-pickle checkpoint execution path; no trust_remote_code or dynamic Hub Python import is required. Strict state loading and rejection of unknown config keys help detect incompatibility. They do not make arbitrary files safe: JSON dimensions can trigger large allocations, several validations use assertions removable with optimized Python, and PyTorch/native dependencies remain part of the trust boundary. Do not allow untrusted callers to choose model paths, revisions or unbounded tensor sizes. Cap request dimensions/horizons, validate finite numeric inputs, isolate workers and keep dependencies patched. <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/loading.py">Loader</a>, <a href="https://github.com/mistralai/timestral/blob/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff/src/timestral/config.py">configuration</a></p>
+<p>There is no hosted service to audit for auth or CORS here. Any serving wrapper must supply authentication, quotas, request isolation, data-retention rules and secure checkpoint/cache permissions. Bug reports should use synthetic/redacted inputs rather than private telemetry. No exploit testing or dependency vulnerability scan was performed.</p>
+<h4></h4>
+<p>No paid API is necessary for the inference library. Start with a license-eligible, pinned small checkpoint in an isolated environment. CPU float32 is the default and the loader says inference was validated in float32; reduced precision should be tested rather than assumed equivalent. The README lists fp32 weight files of 21, 111, 490 and 837 MB, which are <strong>not</strong> peak RAM/VRAM estimates. Model construction, checkpoint loading, masks, activations and outputs add overhead; GPU loading also stages on CPU.</p>
+<p>The publisher reports 10 ms for 5M and 140 ms for 209M on an eight-thread server CPU for one day ahead from three weeks of 15-minute history. This is a specific workload claim, not measured here or a guarantee for 32K contexts, many variates or large batches. There is no validated minimum RAM/VRAM or universal throughput figure in this review. Long horizons recompute blocks, and symmetric averaging adds a second forecast pass.</p>
+<p>Production gating should include frozen artifacts and provenance, leakage-safe backtests, domain-specific calibration, category-relabeling checks for multivariate inputs, memory/latency profiling, drift monitoring and a fallback forecast. Nothing was deployed or executed for this review.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A strong evaluation candidate, not a verified production recommendation. Ordered quantiles and covariate-aware attention are substantive; benchmark reproduction, training-data exclusions and calibration remain unverified. The weights have a US$20M preceding-month company/employer revenue gate.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/mistralai/timestral">mistralai/timestral</a> · Apache-2.0 code · revenue-restricted weights</span>
+    <span><a href="timestral.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
