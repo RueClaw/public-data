@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [laya.md](reviews/laya.md) [page](reviews/laya.html) | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya) | Apache-2.0 | ⚠️ Interesting | Local typed-decision encoder with checkpoint routing and calibration; promising bounded classifier, not a security gate. Static review; opt-in server auth and unmatched benchmark comparisons. |
 | [harness2.md](reviews/harness2.md) [page](reviews/harness2.html) | [google-research/harness2](https://github.com/google-research/harness2) | Apache-2.0 core; third-party terms | 📚 Study | Contrastive recursive harness editing; valuable evidence architecture, unsafe default execution and evaluation contamination risks. |
 | [digup.md](reviews/digup.md) [page](reviews/digup.html) | [ARahim3/DigUp](https://github.com/ARahim3/DigUp) | MIT | ⚠️ Interesting | Local multimodal Mac file search with hybrid retrieval; promising early release, heuristic privacy exclusions. |
 | [frankengit.md](reviews/frankengit.md) [page](reviews/frankengit.html) | [Dicklesworthstone/frankengit](https://github.com/Dicklesworthstone/frankengit) | MIT + OpenAI/Anthropic rider (source-available) | 📚 Study | Transactional Git/forge authority with real native paths, but unproven production readiness and restrictive reuse terms. |
