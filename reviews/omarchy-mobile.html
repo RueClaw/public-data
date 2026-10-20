@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omarchy Mobile — Review</title>
+<meta name="description" content="Native Arch and Omarchy on Pixel hardware: a pocket-computer prototype, not yet a daily-driver phone.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omarchy-mobile</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">derekross/omarchy-mobile · reviewed 2026-10-20</div>
+    <h1>Omarchy Mobile</h1>
+    <p class="one-liner">Native Arch and Omarchy on Pixel hardware: a pocket-computer prototype, not yet a daily-driver phone.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT + file/dependency exceptions</span>
+      <span class="chip">Arch ARM · Hyprland · QML · systemd</span>
+      <span class="chip"><a href="https://github.com/derekross/omarchy-mobile">derekross/omarchy-mobile ↗</a></span>
+      <span class="chip"><a href="omarchy-mobile.md">Full evidence and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">140</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">20</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real touch integration, narrow hardware scope</h3><p>Pixel 7 Pro is the main target. Fold, Pixel 6 and Pixel 4 are separate bring-up stages, not equivalent supported phones. Waydroid remains a goal.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Phone fundamentals still block adoption</h3><p>No SIM validation of registration, SMS, data or calls. Reported s2idle draw is 312 mA versus 32–50 mA in stock deep sleep; suspend is not on by default.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Guarded flashing is still destructive</h3><p>The installer constrains writes and checks device identity, but erases userdata. Widget approvals are not a sandbox; root SSH and unauthenticated-by-default USB mirroring deserve explicit trust decisions.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Install / recovery</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>System</td><td>Arch Linux ARM, patched kernel, Hyprland</td></tr><tr><td>UI</td><td>Omarchy/Quickshell QML, squeekboard</td></tr><tr><td>Hardware</td><td>D-Bus, PipeWire, libcamera, vendor bridges</td></tr><tr><td>Revision</td><td>f1885a79a1709c8387ad32798c00cfc8f16afabd</td></tr><tr><td>Verification</td><td>Static only; no source execution or hardware tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>These are <strong>upstream reports at the reviewed revision</strong>, not our hardware tests.</p>
+<table><tbody><tr><td>Device</td><td>Implemented/reported state</td><td>Not established</td></tr><tr><td>Pixel 7 Pro / cheetah</td><td>Main target: 120 Hz display, GPU, touch/buttons, USB networking, Wi-Fi, Bluetooth audio, charging, sensors/rotation, GNSS, NFC, opt-in fingerprint</td><td>Cellular registration/SMS/data/calls; production standby; polished audio/cameras</td></tr><tr><td>Pixel Fold / felix</td><td>Community bring-up: cover-screen simplefb console, USB networking, guarded storage</td><td>Usable touch desktop, GPU, inner display/folding and most hardware</td></tr><tr><td>Pixel 6 / oriole</td><td>Descriptor and boot images built</td><td>Matrix says not yet booted</td></tr><tr><td>Pixel 4 / flame</td><td>Temporary read-only RAM probe and separate software-desktop payload; touch/PIN and scan-level Wi-Fi tests reported</td><td>Installer parity, normal accelerated desktop, Wi-Fi association and mature phone support</td></tr><tr><td>Other Pixels</td><td>Wishlist/starting points</td><td>Brand or Tensor family does not imply compatibility</td></tr></tbody></table>
+<p>The cheetah modem boots firmware and answers IPC, but the matrix explicitly says no SIM test has happened. A ModemManager-shaped API and Calls/Chatty integration do not prove calls, SMS, data or emergency calling. Four cameras have image paths, but telephoto focus is unresolved and quality is basic. Audio is quiet/thin with occasional static. Sources: <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/README.md">README</a>, <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/docs/DEVICES.md">matrix</a>.
+</p><h4>A genuine mobile session</h4>
+<p>The <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/packages/omamobile-shell/README.md">shell package</a> provides status bar, quick settings, home pages/widgets, drawer, recent-app switcher, permission sheet, keyboard controls and fingerprint UI. <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/packages/omamobile-shell/hypr/phone.lua">phone.lua</a> maximizes ordinary windows, handles power/volume/screenshot gestures and arranges keyboard/fingerprint surfaces above the session lock. The session auto-logs in then requests a lock when configured: not boot-time encryption, and lock startup/failure behavior needs adversarial testing.</p>
+<p><a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/packages/omamobile-sensors/README.md">Sensor integration</a> adapts AoC sensors to the iio-sensor-proxy D-Bus API and transforms both display and touchscreen during rotation. That avoids the obvious input-coordinate mismatch. Full-screen placement does not make every desktop application touch-friendly.</p>
+<h4>Power remains a practical blocker</h4>
+<p>The matrix reports 31/31 Wi-Fi-connected s2idle cycles, but screen-off suspend is not on by default. Reported screen-off consumption is <strong>434 mA awake, 312 mA in s2idle, versus 32–50 mA in stock deep sleep</strong>. Deep sleep is not started. These are project measurements, not independently controlled benchmarks or a universal battery-life estimate. Charging has a temperature guard; USB Type-C/role switching remains unfinished. Screen-off is not phone-grade standby.</p>
+<h4>Widget approvals are not OS isolation</h4>
+<p>OWL exposes command, HTTP, file and Linux-adapted device sources. <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/packages/omamobile-shell/plugins/omamobile.home/OwlPhoneHost.qml">OwlPhoneHost.qml</a> checks approvals/network settings and executes commands through timeout and bash -c in the user's session. Network classification uses command capability analysis, not a separate network namespace. Approval sheets and risk heuristics therefore should not be sold as strong isolation for hostile code. Approved widgets exercise user authority; AI-created or arbitrary QML widgets require code-review-level trust.</p>
+<p>Limits and conformance fixtures are good engineering, but output truncation is not a full process/memory sandbox. Widget web requests and optional location-based weather disclose data to selected services. The README describes an AI-agent chooser with no agent preinstalled; provider credentials, terms and costs remain separate choices.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>This is an integration layer around moving upstreams, not one self-contained app. Descriptors feed build/flash tooling; rootfs construction installs regular and patched packages; firstboot creates the owner and enables services; shell packages seed per-user profiles. Hardware bridges expose standard desktop interfaces where possible.</p>
+<p>The design is coherent but maintenance-heavy: patched Mesa/Hyprland/libcamera, Omarchy patch reapplication, external kernel, vendor firmware and separate omacam versions must remain compatible. <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/rootfs/pacman.conf">pacman.conf</a> gives mobile packages precedence and requires package signatures (database signatures optional; local-file signatures optional). <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/packages/omacam/PKGBUILD">omacam's PKGBUILD</a> pins an archive checksum and locked Cargo fetch/offline build. Good hygiene does not prove whole-OS reproducibility or security.
+</p><h4>Security and permissions</h4><ul><li><strong>Boot/data protection:</strong> unlocked bootloader; inspected <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/initramfs/init">initramfs</a> directly mounts an ext4 root, with no encrypted-root unlock flow found in that path. A PIN/session lock is not Android-equivalent at-rest protection or verified boot. Full hardening was not audited.</li><li><strong>Credentials:</strong> installer uses SHA-512 crypt, restrictive firstboot-file permissions and normal-exit cleanup of temporary config/image copies. Wi-Fi secrets temporarily reside in provisioning data. This is not secure-erasure proof after crashes. Any nonempty PIN/password is accepted; choose a strong one.</li><li><strong>SSH/firewall:</strong> <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/packages/omamobile-firstboot/bin/omamobile-firstboot">firstboot</a> installs the supplied public key for root and owner; its SSH drop-in disables password authentication. It allows SSH on USB but also <strong>TCP/UDP 53317 without interface restriction</strong>, and permits outbound traffic. USB-only SSH does not mean every inbound service is USB-only. Verify actual listeners/rules.</li><li><strong>Mirroring:</strong> <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/packages/omamobile-mirror/README.md">wayvnc integration</a> is on-demand, USB-bound, session-scoped and has no password by default; optional password/RSA-AES is available. An active mirror grants screen/input access to the connected host. Do not assume authenticated encryption by default; runtime binding/firewall behavior was not tested.</li><li><strong>Permissions:</strong> portal consent improves portal-aware apps, not isolation of every native app or direct hardware access. Sensor docs permit any local user to claim gyro data. Vendor chroots, firmware and fingerprint bridge add privileged attack surface despite the mainline-kernel label.</li><li><strong>Network/privacy:</strong> GNSS assistance options, widget endpoints, NFC-opened links and ordinary native applications create network boundaries to assess. No traffic instrumentation or exhaustive daemon/parser/polkit/dependency audit was performed.</li></ul><h4>Tests and maturity</h4><p><a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/tests/all">tests/all</a> defines syntax checks, fake-fastboot installer tests, provisioning tests, initramfs/storage-guard/image-layout tests, firstboot checks and optional rootfs smoke tests. Package suites cover shell models, permissions, launch and widgets; OWL includes conformance/rendering fixtures. <strong>None ran here</strong>: test existence does not establish current pass status or hardware safety. No tracked GitHub Actions workflow was found at this SHA.</p>
+<p>GitHub metadata retrieved 2026-10-20: created 2026-10-12, last push 2026-10-20T02:06:23Z, <strong>140 stars, 20 forks, 9 open issues/PRs combined</strong>. The releases endpoint returned an empty list. Bundle tooling does not establish a published stable release. An open PR addresses Omarchy-version/pacman migration compatibility (<a href="https://github.com/derekross/omarchy-mobile/pull/19">#19</a>); unmerged proposals are not implemented support. Popularity is not a support lifetime or safety guarantee.</p>
+<p>Documentation is candid but snapshots lag: the historical OWL review document retains pre-phone/staging language while current README describes shipped built-ins; camera narratives also advance at different rates. Prefer exact revisions, package versions and linked hardware gates. External kernel implementation, emergency calling, long-term reliability, accessibility, lock robustness and restore success were not independently verified.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Omarchy Mobile</td><td>Arch/Omarchy Pixel research</td></tr><tr><td>Phosh / Plasma Mobile</td><td>Mobile-first Linux ecosystems; device support still matters</td></tr><tr><td>Supported Android</td><td>Daily phone and Android applications</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is an unlocked-phone firmware/root-image workflow, not a casual desktop add-on. The documented host needs Arch/Omarchy, Docker, android-tools and e2fsprogs, plus the owner's factory image. Nothing was installed for this review.</p>
+<p><a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/tools/install-phone">install-phone</a> parses descriptors as restricted data instead of sourcing shell, checks one fastboot device, codename, unlocked status, matching bootloader-slot versions, checksums and some kernel/module consistency. Bundle mode checks a signed checksum manifest against a pinned fingerprint unless explicitly allowed unsigned. A narrow flash function accepts descriptor-approved slot-B boot images and userdata, gated by typed codename. These are meaningful safeguards, not authentication of an untrusted installer itself; repository mode and signed-bundle verification differ.</p>
+<p><strong>Installation erases userdata, including Android data.</strong> Slot A boot images survive, but Android needs a factory reset on return. The <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/device/cheetah/REINSTALL-RUNBOOK.md">reinstall runbook</a> documents recovery and one clean reinstall on 2026-10-13, including subsequently fixed missing firmware/services. This is not transactional installation or nondestructive uninstall. Old userdata survives only in backups. The generic installer refuses non-android-v4 boot methods: do not apply cheetah instructions indiscriminately to Pixel 4 probes.</p>
+<p>The installer's narrow write scope is not a blanket no-sensitive-writes guarantee. The <a href="https://github.com/derekross/omarchy-mobile/blob/f1885a79a1709c8387ad32798c00cfc8f16afabd/docs/DEVICES.md">matrix</a> says boot-success marking writes slot flags in devinfo; fingerprint startup writes Trusty secure storage/RPMB. Fingerprint is appropriately opt-in and the runbook calls that step irreversible. These lifecycle exceptions qualify the README's broad partition-safety language.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantial mobile integration, but cellular service is unverified, standby draw remains high, and installation erases userdata. Spare-device research only. Static review: no tests or hardware experiments run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/derekross/omarchy-mobile">derekross/omarchy-mobile</a> · MIT + file/dependency exceptions</span>
+    <span><a href="omarchy-mobile.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
