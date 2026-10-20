@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clairic: typed extraction, unproven general gains — Review</title>
+<meta name="description" content="A hosted extraction and regression preview with useful typed outputs and limited public performance evidence.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / cloudflare-clairic</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Cloudflare · Reneau, Chen & Flansburg · reviewed 2026-10-20</div>
+    <h1>Clairic: typed extraction, unproven general gains</h1>
+    <p class="one-liner">A hosted extraction and regression preview with useful typed outputs and limited public performance evidence.</p>
+    <div class="verdict-pill">⚠️ Interesting but verify</div>
+    <div class="chips">
+      <span class="chip">Hosted preview · weights license not established</span>
+      <span class="chip">Article · published 2026-10-19</span>
+      <span class="chip"><a href="https://blog.cloudflare.com/clairic-extraction-model/">Cloudflare · Reneau, Chen & Flansburg ↗</a></span>
+      <a class="chip" href="cloudflare-clairic.md">Full evidence and provenance</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">$0.10/M</div><div class="lbl">Input token price</div></div>
+      <div class="stat"><div class="num">21 days</div><div class="lbl">Vendor forecast demo</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Useful contract, not guaranteed truth</h3><p>Spans, null handling and uncertainty aid auditability. Typed values and bounded estimates can still be wrong; recompute arithmetic and gate consequential actions.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Vendor demos, not a broad benchmark</h3><p>Reported cascade savings are 69% latency and 49% cost against three GLM calls. No representative extraction dataset, matched cheap baselines or independent replication establishes general superiority.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Preview integration needs verification</h3><p>The docs list 65,536 context tokens but describe 8,192-token passes. Schema overhead and repeated state matter; open weights are a promise, not a current self-hosting option.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Claims, methods, deployment and evidence.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Summary</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Evidence audit</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operations & limits</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Source</td><td>Cloudflare Blog; Alex Reneau, Michelle Chen and Kevin Flansburg</td></tr><tr><td>Reviewed</td><td>2026-10-20 UTC; static public-source analysis</td></tr><tr><td>Verification</td><td>No inference, downloads or independent benchmark</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Cloudflare introduces <strong>Clairic</strong>, served as <code>@cf/cloudflare/clairic</code> on Workers AI. It is not Clef, a classifier over enumerated choices, and not a general text-generating assistant. Its advertised single-forward-pass design predicts text spans, typed scalar/list values, bounded estimates and forecast sequences from text and up to four images. “System One” is the authors' product taxonomy, not a disclosed architecture specification or proof of a new general ML capability. Parameter count, backbone, training recipe and detailed prediction-head design are not provided in the reviewed material.</p>
+<p>The strongest idea is the output contract: source offsets for extracted text, explicit nullability, confidence, and p10–p90 intervals for predictions. These make routing and auditing easier than parsing free-form prose. Extraction, arithmetic and prediction remain different problems: an invoice identifier may be copied from the source; a total must be computed correctly; repair cost is an uncertain outcome rather than a fact waiting to be extracted.</p>
+<p>Evidence consists principally of worked email, receipt and property examples, a 21-day TSA forecasting exercise, and a three-stage customer-support comparison. The headline claims of higher accuracy, lower latency and lower cost are vendor claims, with concrete numbers only for limited demonstrations—not a broad extraction benchmark. The article usefully acknowledges weak multi-step arithmetic, table aggregation, unfamiliar-domain calibration and basic forecasting.</p>
+<p>Operationally, this is a hosted preview with a documented $0.10 per million input tokens and no output-token charge. Its near-term value is reducing unnecessary generation in narrow pipelines. Reproducible model evaluation, self-hosting rights and broad accuracy comparisons remain unresolved.</p><p>- Concrete typed API with offsets, nulls and uncertainty is easier to integrate and audit than free-form answers.
+- Clear separation between extracting facts, predicting unknowns and generating language helps avoid paying for generation everywhere.
+- Public schema and pricing allow preliminary integration planning without buying access.
+- The preview section explicitly admits arithmetic, calibration and forecasting weaknesses; these caveats are more defensible than the opening comparative claims.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Extraction and estimation</h4>
+<p>The article shows one support email, one photographed receipt and a small comparable-property table. There is no released representative corpus, split manifest, annotation policy, missing-field prevalence, OCR breakdown, language coverage, long-document test or numerical tolerance definition. A receipt demonstration does not quantify performance on scans, multi-page forms or ambiguous layouts. The property estimate lacks a realized sale price against which to score it. Its prose also mentions days-on-market intervals absent from the shown request/response, a presentation inconsistency rather than extra evidence.</p>
+<p>The support task names GLM-5.3 as the full-pipeline baseline. Gemma 4 and Qwen failures are described without sufficient variants, settings or per-case outputs. Inability to infer a repair price from a sparse email is not itself failed extraction: that price is not present as a fact. A stable repeated estimate demonstrates repeatability on that example, not accuracy against actual repair invoices.</p>
+<p>There are no comparisons with schema-constrained non-reasoning generation, specialized span extractors, OCR plus deterministic parsers, or direct arithmetic after extraction. The implication that LLM outputs necessarily lack schema guarantees overlooks constrained-output approaches. Such approaches do not guarantee truth either; their omission makes a categorical superiority argument too broad.</p>
+<h4>Pipeline speed and cost</h4>
+<p>The cascade uses Clairic → Clef → GLM-5.3, versus GLM-5.3 at all three stages. Reported extraction is 0.46 versus 16.1 seconds; decision is 0.22 versus 21.9; final writing is 18.6 versus 16.4. Final generation dominates the faster pipeline. Stage times sum to approximately 19.28 and 54.4 seconds; the stated all-LLM end-to-end total is 61.7 seconds. The unexplained 7.3-second gap could reflect overhead or aggregation, but the article does not reconcile it.</p>
+<p>The article mentions three repair estimates, but supplies no complete run logs, trial count for each metric, hardware/region, warm-up, concurrency, caching, tokenization/reasoning settings, tail latencies or uncertainty bands. The cost table itemizes input/output charges, which is helpful; it does not establish production throughput, SLA or total operating cost. Compare against one combined extraction/decision call and ordinary policy code as well as the intentionally three-call baseline.</p>
+<h4>Forecasting, baselines and leakage</h4>
+<p>The TSA example describes sequential next-day forecasts using prior observed counts for 21 days, with one shown target of October 14, 2026. Three of four interval misses occur over Columbus Day weekend. That is a useful failure case: recent numeric history need not encode calendar events. The public TSA data link supplies a potential ground-truth source, not a reproducible experiment bundle; this review did not independently reconstruct those daily observations.</p>
+<p>No complete dated predictions, model checkpoint, training cutoff, series selection rationale, full scoring script or frozen pre-outcome forecast log is provided. Thus actual prospective forecasting versus retrospective replay cannot be independently established, and training/test contamination cannot be ruled in or out. There is no evidence here that leakage happened. A seasonal-naive same-weekday baseline, simple statistical forecast and a specialist time-series model are missing. Report interval width and proper probabilistic scores as well as coverage; arbitrarily wide intervals can cover well without being useful. Test rolling origins, multiple series, holidays and longer horizons, with time-based splits and leakage controls.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Extraction alternatives</td><td>Constrained-output small LLM; OCR/parser; span extractor plus deterministic arithmetic. No matched comparison is supplied.</td></tr><tr><td>Forecast alternatives</td><td>Seasonal-naive, statistical and specialist time-series baselines are absent. 17/21 interval coverage is too little to establish calibration.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><strong>Integration:</strong> Workers AI binding or authenticated REST, with application-side validation and review gates. The input schema requires <code>model</code> and fields, although the blog's binding examples omit the model property; the model reference includes it. Confirm actual binding behavior rather than assuming snippets are interchangeable.</p>
+<p><strong>Context ambiguity:</strong> The model-info table says 65,536 tokens, while both the field description and input schema refer to an 8,192-token pass. The relationship is not explained. The response exposes a truncation flag and pass/token accounting. Confirm effective state limits and fail closed on truncation before trusting long-document results.</p>
+<p><strong>Images and forecasts:</strong> The schema permits four embedded PNG/JPEG/WebP images, 4 MiB each, 8 MiB decoded total and a 16 MiB request body; remote image URLs are not accepted. Forecast horizon is 1–64 steps. This is not documented PDF ingestion. Image-to-span provenance deserves testing rather than assuming offsets reference original image geometry.</p>
+<p><strong>Pricing:</strong> At the listed $0.10/M input tokens, one million requests billed at 1,000 input tokens each would cost $100 for Clairic inference alone—illustrative arithmetic, not a measured workload. Count schemas, image tokens, pass duplication, retries, Workers/Gateway/storage and downstream models. The reference example reports 61 state tokens, 472 schema tokens, 655 total input tokens and three passes, illustrating why source-text length alone is insufficient.</p>
+<p><strong>Privacy:</strong> The Workers AI data policy states no training on Customer Content and zero retention for standard stateless inference after processing/delivery, subject to legal/security exceptions. Stateful services and enabled Gateway/application logging or caching can retain content; operational metadata can also remain. These are provider commitments, not independently audited findings. Hosted processing still sends document content to Cloudflare. Verify contracts, residency needs and logging settings for invoices or sensitive records; no local-only deployment is established by an unreleased weights promise.</p>
+<p><strong>Safety:</strong> Source spans can contain adversarial text, and a typed scalar can authorize the wrong action. Separating the final LLM from the original email reduces exposure but does not prove prompt-injection resistance. Use deterministic policy checks, allowlisted actions, verified identifiers and human approval for consequential operations. Never substitute a returned guess for a null value. The example cascade dereferences values with methods such as toFixed/join without showing null handling; it is a demonstration, not production-safe error handling.</p>
+<p><strong>Availability and rights:</strong> Reviewed model terms describe service access as AS IS/AS AVAILABLE, permit withdrawal, and disclaim guarantees/indemnification. “Open weights soon” is future intent, not present permission to download, redistribute or modify weights. No source or weights license is established. This review summarizes rather than republishes model code or article assets.</p><h4>Adoption checklist</h4>
+<p>Build a consented, representative held-out set with exact field labels, difficult negatives, OCR corruption, multilingual text and malicious instructions. Measure per-field correctness, null precision/recall, numerical tolerance, list completeness, confidence reliability and accuracy-versus-abstention. Recompute totals and dates in code. For estimates, require actual outcomes and evaluate bias, coverage and interval sharpness across domains. Compare suitable cheap baselines at matched quality, then record p50/p95 latency, pass/token usage and total successful-document cost. Pin a checkpoint if available and monitor changes to the preview endpoint.</p><h4>Verification limits</h4>
+<p>All performance numbers above originate with Cloudflare; none were independently reproduced. Public documents establish what the provider advertises and documents, not that the service always implements it. The full article body was read, but receipt pixels and graph data were not independently scored. No credentials, paid API calls, model binaries or demo inference were used. Code/weights availability conclusions are scoped to the reviewed primary sources, not an exhaustive registry search. A preview can change after this retrieval.</p><h4>Evidence links</h4>
+<p>1. <a href="https://blog.cloudflare.com/clairic-extraction-model/">Article and embedded publication metadata</a>.
+2. <a href="https://blog.cloudflare.com/author/michelle/">Public author archive confirming the three-person byline</a>.
+3. <a href="https://developers.cloudflare.com/workers-ai/models/clairic/">Clairic model reference, pricing and hosted terms</a>.
+4. <a href="https://developers.cloudflare.com/workers-ai/models/clairic/schema-input.json">Raw input schema</a>.
+5. <a href="https://developers.cloudflare.com/workers-ai/concepts/extraction-models/">Extraction-model concepts and limitations</a>.
+6. <a href="https://developers.cloudflare.com/workers-ai/platform/data-usage/">Workers AI data usage policy</a>.
+7. <a href="https://www.tsa.gov/travel/passenger-volumes">TSA passenger volumes</a>, linked by the article; underlying observations not independently reconstructed here.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting but verify</div>
+      <p>⚠️ Interesting but verify: a useful extraction interface, not yet a demonstrated general accuracy breakthrough. Read this for a practical alternative to repeatedly generating JSON with large reasoning models. Trial it on low-risk, measured workloads; do not treat type validity, confidence scores or a small vendor demo as evidence that payments, estimates or forecasts are correct.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://blog.cloudflare.com/clairic-extraction-model/">Cloudflare · Reneau, Chen & Flansburg</a> · Hosted preview · weights license not established</span>
+    <span><a href="cloudflare-clairic.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

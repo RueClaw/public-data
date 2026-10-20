@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [cloudflare-clairic.md](reviews/cloudflare-clairic.md) [page](reviews/cloudflare-clairic.html) | [Cloudflare Clairic](https://blog.cloudflare.com/clairic-extraction-model/) | N/A (article) | ⚠️ Interesting | Typed extraction preview; useful interface, limited vendor benchmarks and unresolved context/weights details. |
 | [oma-cast.md](reviews/oma-cast.md) [page](reviews/oma-cast.html) | [typecraft-dev/oma-cast](https://github.com/typecraft-dev/oma-cast) | No license specified | ⚠️ Interesting | Omarchy-native Raycast-style launcher; shell compatibility blocker, executable menu trust and plaintext history. Static review. |
 | [timestral.md](reviews/timestral.md) [page](reviews/timestral.html) | [mistralai/timestral](https://github.com/mistralai/timestral) | Apache-2.0 code; restricted weights | ⚠️ Interesting | Multivariate quantile forecasting; promising reported scores, unverified data exclusions and revenue-gated weights |
 | [laya.md](reviews/laya.md) [page](reviews/laya.html) | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya) | Apache-2.0 | ⚠️ Interesting | Local typed-decision encoder with checkpoint routing and calibration; promising bounded classifier, not a security gate. Static review; opt-in server auth and unmatched benchmark comparisons. |
