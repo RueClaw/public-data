@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>drama-tensorfold — Review</title>
+<meta name="description" content="Fish Audio Drama 3 speech on a native Zig/CUDA engine for NVIDIA GB10.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / drama-tensorfold</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">plotarmordev/drama-tensorfold · reviewed 2026-10-21</div>
+    <h1>drama-tensorfold</h1>
+    <p class="one-liner">Fish Audio Drama 3 speech on a native Zig/CUDA engine for NVIDIA GB10.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 code · FACL v1.0 weights</span>
+      <span class="chip">Zig · CUDA 13 · Python · GB10</span>
+      <span class="chip"><a href="https://github.com/plotarmordev/drama-tensorfold">plotarmordev/drama-tensorfold ↗</a></span>
+      <span class="chip"><a href="drama-tensorfold.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">82</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">4</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real native inference engineering</h3><p>59 patches implement the hybrid backbone, temporal codebook tower, codec and streaming server. Custom GEMV is guarded by hardware/library checks and initialization probes.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Faster is not numerically qualified</h3><p>The reported 1.48× RTF advantage predates an accuracy patch costing about 5%. Backbone, one-frame codec and tower gates still fail; raw benchmark captures are not published.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Evaluate locally, not as a turnkey service</h3><p>About 88 GiB admission memory and 39 GiB checkpoint storage are required. Apache-2.0 covers code, not weights; hosted speech generation has separate FACL restrictions.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a</td></tr><tr><td>Verification</td><td>Static review; 59 patch checksums verified; no build or inference.</td></tr><tr><td>Layer</td><td>Technology and boundary</td></tr><tr><td>Native engine</td><td>TensorFold at c7137bb31a7dad924fb541a7068422127b9a94b2 plus 59 patches</td></tr><tr><td>Reference runtime</td><td>SGLang-Omni ab095ef9e779e56af33b6ed2c863645c9903372d</td></tr><tr><td>Checkpoint</td><td>fishaudio/drama-3 e0a9218aa48888270f06ef1ed9ea67622c0e17d2; 41,474,674,072 weight/codec bytes</td></tr><tr><td>Kernels</td><td>Zig host orchestration, CUDA, BF16/FP8 operations, cuBLASLt; GB10 sm_121 optimization</td></tr><tr><td>Serving</td><td>OpenAI-style audio route, mono PCM16 at 44.1 kHz, WAV or chunked raw PCM</td></tr><tr><td>Evaluation</td><td>Python standard-library benchmark tools; NumPy/Torch/reference environment for numerical qualification</td></tr><tr><td>Optional voice preparation</td><td>NumPy, soundfile; optional locally supplied Whisper model for transcription</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Native speech pipeline, not an API wrapper</h4>
+<p>Patch 0002 implements a 40-layer hybrid backbone: 30 Gated DeltaNet layers and 10 gated full-attention layers, with 256-expert top-8 block-FP8 MoE and a shared expert. It uses chunked GDN prefill, recurrent decode, Q/K normalization, partial NeoX RoPE and dynamic 1×128 FP8 activation quantization. Stored weights are not requantized. Patch 0003 adds a 13-layer temporal tower producing ten codebook values per frame; its sampler applies temperature, nucleus selection over the vocabulary, then top-k. Patch 0004 decodes codes through a native codec. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0002-drama-the-Drama-3-text-backbone-on-CUDA.patch">Backbone</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0003-drama-the-temporal-codebook-tower.patch">tower</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0004-drama-the-speech-codec-with-codec.pth-read-without-P.patch">codec</a>.</p>
+<h4>Streaming with explicit failure semantics</h4>
+<p>Incremental codec decoding retains causal context and writes only newly available output rows. This aims at chunk/whole byte identity, not merely perceptual similarity. Speech replies report stop, length or silence; non-stop streamed finishes use trailers. The single engine slot returns 503 when busy, so this is not evidence of multi-user throughput. A 10-second -40 dBFS guard cuts stalled/sustained low-level output; it does not make the model finish missing speech. Consumers must inspect finish metadata, including trailers, rather than treating HTTP 200 as successful narration. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0013-drama-incremental-codec-decode-bit-identical-to-the-.patch">Incremental codec</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/README.md">current contract</a>.</p>
+<h4>Optimizations with limited, explicit invariants</h4>
+<p>The series stages weights, fuses glue operations, specializes one-row GEMV, uses a stable radix sampler and programmatic dependent launch. Patch 0029 gates its custom tower GEMV on GB10/cuBLASLt version and per-projection initialization probes, falling back to cuBLASLt if qualification does not succeed. This is a good compatibility pattern; finite probes are not proof for every future input. Maintainer-reported byte identity covers 46 normal replies across the speed patches, not equivalence to SGLang-Omni and not every later change. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0029-drama-the-tower-s-one-row-projections-on-drama_tower.patch">GEMV qualification</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/results/speed-stages.json">speed ledger</a>.</p><h4>Benchmark evidence</h4><table><tbody><tr><td>Claim</td><td>Published measurement</td><td>Interpretation</td></tr><tr><td>Faster generation</td><td>Warm RTF 0.939 reference vs 0.634 native, approximately 1.48×</td><td>One GB10, 24 English texts, concurrency 1, 3 warm passes; outputs have different lengths</td></tr><tr><td>Lower whole latency</td><td>7.93 s vs 4.89 s p50, approximately 1.62×</td><td>Not the same generated audio; RTF is the better duration-normalized comparison</td></tr><tr><td>Faster first audio</td><td>0.521 s vs 0.141 s p50, approximately 3.7×</td><td>Stream latency, not total completion or perceived quality</td></tr><tr><td>Faster startup</td><td>254.1 s vs 6.4 s</td><td>One start each, reused caches and different admission/page-cache conditions; not disk-cold benchmark evidence</td></tr><tr><td>Current attention change</td><td>RTF 0.642–0.650 → 0.682 in a same-session capture</td><td>About 5% cost; headline speed table predates this accuracy change</td></tr></tbody></table>
+<p>The benchmark includes failures in denominators and discloses clipped replies (six reference, three native). The reference continued despite a supplementary admission refusal; the current runner now stops on that condition. The reported startup ratio is therefore particularly confounded. A cutoff-free cohort of 19 items is useful supplementary analysis, not a replacement for the full workload. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/results/before-after-02/README.md">Protocol/results</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/bench/README.md">benchmark tools</a>.</p>
+<p>The public evidence consists of curated JSON summaries, not raw audio, per-request original samples or server logs. This review checked the implementation and published numbers, not the claimed independent review or the experiments themselves. Re-running provided tools could produce new evidence, but the curated repository omits the codec gate, its streaming verifier, tower full-context and real-input replay tools/fixtures. A one-rater, five-pair listening preference (one unblinded pair) is not a credible quality superiority result. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/results/README.md">Evidence availability</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/qualification/README.md">omitted qualification tools</a>.</p>
+<p>Two static tooling weaknesses deserve repair before treating green output as a gate:<br>- <strong>compare_gate.py derives the expected passes/items from NEW</strong>, rather than requiring the complete baseline/corpus set. An entire omitted normal item or pass can escape coverage checks; hash/status equality also does not independently require successful normal replies. It compares recorded hashes, not rehashed audio files. This does not prove the published captures were incomplete, but makes the generic identity gate weaker than its name suggests. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/bench/compare_gate.py">Code</a>.<br>- <strong>rescore-native.py returns 0 even when its report says passed=false.</strong> A shell pipeline relying only on exit status could wrongly treat numerical failure as successful qualification; consumers must parse the report. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/qualification/rescore-native.py">Code</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The numerical issue is substantive. Patch 0040 changes attention from per-key/warp accumulation to the reference's absolute 64-key tiles, approximate exponentiation, division and fused multiply-add schedule. This improves the 182-token text fixture, while a voice-reference prompt does not similarly improve. Decode deliberately shares the native arithmetic rather than reproducing the reference's split-KV decode kernel. Bitwise identity across native chunk sizes is a different property from reference fidelity. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0040-drama-backbone-attention-runs-the-reference-s-64-key.patch">Attention implementation</a>.</p>
+<p>Latest reported backbone values are relative L2 <strong>0.0528</strong> against a ≤0.05 gate, all-row cosine <strong>0.99860</strong> against ≥0.999 and last-row cosine <strong>0.99809</strong> against ≥0.999. Semantic KL improves to 0.0062 and top-30 overlap to 0.933, both passing. One-frame codec SNR remains <strong>33.086 dB</strong> versus 40 dB; a tower top-1 differs at tied logits; long-05 fails to reach natural end of speech. The latest backbone measurements must not be confused with older failures retained in qualification.json. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/results/README.md">Current ledger</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/results/backbone-attention-tiles.json">post-0040 results</a>.</p>
+<p>The revised worst-row cosine threshold (0.995 → 0.8712518909203973) is explicitly derived from the reference's own co-batching variance before native re-scoring. That is preferable to silently tuning a gate to native, but it rests on one 182-token fixture, eight two-request views, eager execution and one run. It permits appreciable isolated-row error; it is not a universal fidelity guarantee. The reference's row-shape-dependent arithmetic explains why exact parity under a row-invariance requirement can fail, not why every native discrepancy is harmless. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/qualification/README.md">Method and limitations</a>.</p>
+<p>Voice preparation uses empirical timbre clustering, not a robust speaker-identification system. The project documents missed close-timbre/band-limited mixtures and false rejections when one speaker changes timbre. Multi-reference voices and long-form history improve conditioning, but segment joins can reset prosody by a reported 2–5 semitones. Native voice-encoder semantic codes differ from the reference on 2.46–2.95% of three tested clips. These small studies do not establish arbitrary-speaker or multilingual equivalence. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/README.md">Voice and long-form documentation</a>.</p><h4>Security, privacy and licensing</h4><p>The launcher defaults to loopback, clears inherited environment variables, uses HF offline mode, a shared GPU lock, memory admission, allocator limits, cgroup MemoryMax and a low-memory abort monitor. These are useful resource controls, <strong>not a secret-free security sandbox</strong>: HOME remains available and there is no filesystem/network isolation in the shown systemd command. Extra server flags and direct engine launches still require operator review. Do not expose the example unchanged as a public service; this review did not audit all upstream authentication, CORS or HTTP parser behavior. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/recipe/pilot.py">Launcher</a>.</p>
+<p>Speech input is validated for JSON shape, fields, UTF-8, length (4096 codepoints) and prompt limits. The codec loader implements a restricted tensor-state pickle VM that rejects unknown globals/opcodes rather than executing arbitrary Python, including an explicit test rejecting os.system. This reduces an important deserialization hazard, but is not an exhaustive archive-parser security audit. Use only pinned, checksum-verified checkpoints and a dedicated build directory. The build script sources its upstream settings and invokes downloaded build code; a clean environment alone does not make arbitrary sources safe. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0007-server-POST-v1-audio-speech.patch">Route validation</a>, <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/engine/patches/0004-drama-the-speech-codec-with-codec.pth-read-without-P.patch">codec loader</a>.</p>
+<p>Text, generated audio, voice references and benchmark capture bodies are sensitive local data. Voice files require an ownership/consent source annotation, but it is self-attestation, not consent verification. Git-ignoring clips and voices does not encrypt or delete them. Establish access controls, retention and consent handling separately; do not upload private captures as benchmark evidence.</p>
+<p>The actual Apache-2.0 LICENSE and NOTICE separate repository code from model rights, and retain MIT attribution for flash-linear-attention-derived kernels. Reusing code still requires applicable notices. The pinned <a href="https://huggingface.co/fishaudio/drama-3/blob/e0a9218aa48888270f06ef1ed9ea67622c0e17d2/LICENSE">FACL v1.0 text</a> grants research/noncommercial use and limited commercial use below USD 500,000 aggregate annual revenue, with additional client conditions. Hosted Services require a separate license regardless of revenue, subject to defined exceptions (including qualifying noncommercial demos, operator-directed finished-output production, and controlled/product-generated content). Attribution, voice rights/consent and model-training restrictions also apply. <strong>Apache-licensed inference code does not make these weights unrestricted open-source assets.</strong> Read the actual terms for a concrete deployment; this is not legal advice. <a href="https://github.com/plotarmordev/drama-tensorfold/blob/44e7eb9d4cb09c04cf0a4241c5da8e75673e3a5a/NOTICE">Notices</a>.</p><h4>Tests and maturity</h4><p>There are numerous Zig unit/oracle tests embedded in patches, including request validation, nonfinite audio rejection, WAV layout, convolution and weight rounding, pickle-global refusal, streaming and GEMV qualification. There is no checked-in GitHub Actions workflow in this repository; .github contains only a pull-request template. The public repository is five days old at review, with no releases. The 59-patch dependency chain and fast-moving toolchain increase maintenance and upstream-integration cost.</p>
+<p>Independent checks performed: public unauthenticated acquisition; exact SHA and dependency pins; local and fresh-remote deduplication; all 59 patch checksums against SHA256SUMS; static inspection of core implementation and gate scripts. <strong>Tests were not run, patches were not built, and reported speed, audio identity, SNR, listening quality and hardware portability were not independently reproduced.</strong> No safe secret-free GPU sandbox was established, so source execution was intentionally avoided.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff</td></tr><tr><td>This port</td><td>GB10 kernel/streaming investigation; local controlled experiments</td><td>Lower reported latency, but unqualified numerics, narrow hardware evidence and patch maintenance</td></tr><tr><td><a href="https://github.com/sgl-project/sglang-omni">SGLang-Omni</a> pinned Drama 3 reference</td><td>Behavioral baseline and reference integration</td><td>Same model-license restrictions; slower in this workload and itself subject to schedule variance/stalls</td></tr><tr><td><a href="https://huggingface.co/hexgrad/Kokoro-82M">Kokoro-82M</a></td><td>Evaluate a much smaller TTS model when memory matters more than Drama 3 compatibility</td><td>Different model and voice capabilities; not an equivalence or speed baseline here</td></tr><tr><td><a href="https://github.com/OHF-Voice/piper1-gpl">Piper</a></td><td>Evaluate CPU-oriented local speech with simpler hardware needs</td><td>Different voice/expression capabilities; engine and voice-model licenses must be checked separately</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The documented recipe requires Linux user systemd, CUDA 13, Zig 0.17.0, approximately 88 GiB free/available memory at admission and about 39 GiB checkpoint storage alone; the server cgroup cap is 54 GiB. A larger frame cap increases codec buffers (documented roughly 4.75 GiB at 4096 frames). This is not a lightweight desktop dependency. Keep loopback binding, coordinate the lock with every GPU job, verify all hashes and inspect stop/length/silence outcomes. Do not run benchmark scripts on arbitrary endpoints: they send corpus text and save bodies.</p>
+<p>For a serious adoption decision, first rerun the complete current-revision benchmark and qualification suite on the intended GPU/library versions, publish sufficient replay artifacts, tighten gate completeness/exit status, and test consented voices, long text, multilingual input and failure behavior. Production approval should require an explicit error/quality budget and license review, not merely beating the reference p50.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A serious GB10 engineering experiment, not a qualified production replacement. Reported speed gains coexist with failed fidelity gates, incomplete replay evidence and restrictive model licensing. Static review only; no inference or tests run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/plotarmordev/drama-tensorfold">plotarmordev/drama-tensorfold</a> · Apache-2.0 code · FACL v1.0 weights</span>
+    <span><a href="drama-tensorfold.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
