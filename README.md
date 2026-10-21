@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [underdog-bark.md](reviews/underdog-bark.md) [page](reviews/underdog-bark.html) | [Underdog Bark 3.0](https://underdog.ai/bark) | CC-BY-4.0 model; proprietary app | ⚠️ Interesting | Compact English ASR; real loaders, vendor-only scores, runtime-memory and app-privacy caveats. Static review. |
 | [omarchy-mobile.md](reviews/omarchy-mobile.md) [page](reviews/omarchy-mobile.html) | [derekross/omarchy-mobile](https://github.com/derekross/omarchy-mobile) | MIT + exceptions | ⚠️ Interesting | Native Pixel Linux/Omarchy prototype; cellular unverified, destructive install, spare-device use only |
 | [cloudflare-clairic.md](reviews/cloudflare-clairic.md) [page](reviews/cloudflare-clairic.html) | [Cloudflare Clairic](https://blog.cloudflare.com/clairic-extraction-model/) | N/A (article) | ⚠️ Interesting | Typed extraction preview; useful interface, limited vendor benchmarks and unresolved context/weights details. |
 | [oma-cast.md](reviews/oma-cast.md) [page](reviews/oma-cast.html) | [typecraft-dev/oma-cast](https://github.com/typecraft-dev/oma-cast) | No license specified | ⚠️ Interesting | Omarchy-native Raycast-style launcher; shell compatibility blocker, executable menu trust and plaintext history. Static review. |
