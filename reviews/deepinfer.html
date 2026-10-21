@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepInfer — Review</title>
+<meta name="description" content="DeepSeek’s specialized offline inference engine: valuable systems code, not a complete serving service.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / deepinfer</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">deepseek-ai/DeepInfer · reviewed 2026-10-21</div>
+    <h1>DeepInfer</h1>
+    <p class="one-liner">DeepSeek’s specialized offline inference engine: valuable systems code, not a complete serving service.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 framework · MIT checkpoint</span>
+      <span class="chip">Python · C++ · CUDA/TileLang · Ascend</span>
+      <span class="chip"><a href="https://github.com/deepseek-ai/DeepInfer">deepseek-ai/DeepInfer ↗</a></span>
+      <span class="chip"><a href="https://github.com/deepseek-ai/DeepInfer/tree/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9">Reviewed source SHA</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">15,486</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1,521</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>An engine, not the whole service</h3><p>Offline batch inference is released. Persistent KV service, online API wrapper, disaggregated deployment and replica load balancing are not a turnkey part of this checkout.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Read the benchmark denominator</h3><p>Fixed-length decode credits all draft tokens; plotted acceptance is an input assumption. Load-balancing flush intervals are excluded, so charts are not inclusive production latency or accepted-token throughput.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Keep trust boundaries explicit</h3><p>The optional profiler binds all interfaces without authentication. Distributed transport uses pickle; evaluation executes checkpoint Python and can send outputs to a judge service.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Python 3.12, PyTorch, C++/pybind11</td></tr><tr><td>NVIDIA</td><td>SM100, Linux, GCC ≥13, CUDA 13</td></tr><tr><td>Ascend</td><td>950, CANN 9.2</td></tr><tr><td>Kernels</td><td>FlashMLA, DeepGEMM, DeepEP, DeepSelect, TileKernels, TileLang</td></tr><tr><td>Source revision</td><td>9bd9cf243fc53ef9afbf8f04d391d989117d6ab9</td></tr><tr><td>Verification</td><td>Static only; no tests, model downloads or benchmarks run</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>CPU/device overlap is a real implementation, not just a slogan</h4>
+<p>The Python entry point constructs LLMEngine, queues inputs, repeatedly steps the engine, then drains in-flight results. The C++ ZOS preparation path distinguishes fresh rows from rows remapped to previous device outputs, validates tensor metadata and uses pinned CPU tensors. Workers and graph runners connect this metadata to accelerator execution. “Zero-overhead scheduler” is the project's terminology: the intended optimization is overlapping scheduling/postprocessing with device work, not literally eliminating CPU work. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/entrypoints/llm.py">API</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/csrc/engine/zos.cpp">ZOS</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/worker/model_runner.py">worker</a></p>
+<h4>Model-specific distributed execution</h4>
+<p>Attention DP / balanced CP and MoE expert parallelism are coupled to expert load balancing. FusedExperts distinguishes logical, redundant and physical experts; physical expert count must divide EP size, and local weights are partitioned accordingly. V4 attention calls DeepGEMM and FlashMLA; these are optimized specialist dependencies rather than generic Transformers dispatch. Redundant experts and topology affect both memory needs and benchmark comparability. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/model_executor/models/v4_modules/moe.py">MoE</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/model_executor/models/v4_modules/attn.py">attention</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/model_executor/eplb/">EPLB</a></p>
+<h4>Speculation, replay and reproducibility have conditions</h4>
+<p>DSpark confidence scheduling distributes a query-token budget using cumulative draft confidence and global rank selection; the in-tree module includes a Torch reference and accelerator operation. That is a useful executable-specification pattern, but was not run here. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/model_executor/layers/tilelang_ops/schedule_mtp_varlen.py">Confidence scheduler</a></p>
+<p>Decoder SWA bounded replay retains only a suffix; the deployment Q&amp;A describes reconstruction as <strong>approximate</strong>, not full-context equivalence. Mask-versus-compact regression is a narrower property than proving unchanged model quality against full replay. Batch-invariant inference is documented as NVIDIA-only; deterministic sampling additionally requires a fixed sequence seed and variable-length MTP disabled. Structured-output constraints are grammar enforcement, not semantic validation or safe tool execution. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/README.md">README</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/examples/yoco/README.md">replay checks</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/doc/inference_deployment_qa.md">deployment Q&amp;A</a><br></p><h4>Performance Claims and Benchmark Fairness</h4>
+<p>The README charts use <strong>4 SM100 GPUs for prefill and 64 for decode</strong>, each within a scale-up domain. These are distinct experimental configurations, not a single four-GPU service result. The supplied sweep runner, JSONL output, configuration checks and profiler separation are good reproducibility aids. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/examples/README.md">Benchmark documentation</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/examples/benchmark.py">runner</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/examples/sweep/run_sweep.sh">sweep</a></p>
+<p>Important measurement limits are directly visible in the code and documentation:</p>
+<p>- The default fixed-length decode metric counts <strong>1 + nextn tokens per request per step regardless of actual acceptance</strong>. With default nextn=5, six credited tokens are not proof of six emitted accepted tokens.<br>- The plotter scales step rate with <strong>τ = 1 + nextn × supplied draft_acceptance</strong> (example 0.75), and refuses variable-length records under that plotting convention. This is an acceptance assumption, not a measured workload acceptance distribution. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/examples/sweep/plot_pareto.py">Plotter</a><br>- Measurement discards intervals overlapping expert-load-balancing statistics flushes and excludes warmup, regular logging and profiler overhead. This is a clean steady-state kernel/engine comparison, not inclusive production accounting. The benchmark contains explicit filtering of these intervals.<br>- Requests reuse a shared cached prefix; prefill and decode batch sizes are decoupled. Encoder sweeps exclude CPU preprocessing and host-to-device transport. Results therefore do not establish cold-request TTFT, network overhead, request-arrival behavior, p95/p99 latency or multitenant fairness.<br>- No checked-in sweep JSONL was found in the reviewed tree. Charts and scripts alone do not supply independent reruns, uncertainty estimates or version-matched competitor baselines.</p>
+<p>A fair adoption experiment should pin framework, all kernel revisions and checkpoint revision; report GPU SKU, memory, topology, precision, context/cache-hit distribution, redundant experts and speculation settings; measure actual accepted tokens with request latency percentiles; retain LB/communication costs; and compare a version-pinned alternative under the same quality and resource budget. No such experiment was performed for this review.</p>
+<p>The evaluation suite reports reference Pass@1 of AIME 99.9%, GPQA Diamond 93.4%, HLE-Full 42.6%. Its separation of generation and scoring, run metadata and coverage_complete check are useful. These remain author reference scores: judging uses a configurable LLM service by default, and HLE judging includes fallback text heuristics. Judge protocol/model differences and sample counts matter; this is not independent validation of model capability. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/eval/README.md">Evaluation</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/eval/common/judge.py">judge</a><br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><br>The public repository is genuinely owned by <strong>deepseek-ai</strong>, is not a fork, and describes itself as the engine behind DeepSeek production services. Its documented supported model is DeepSeek-V4.1-Flash and its default checkpoint is DeepSeek-V4.1-Flash-1017. The production provenance is an author claim, not something this review independently establishes. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/README.md">README</a></p>
+<p>The important boundary is explicit: the release supplies offline inference, not the full KV cache service, vision/prefill/decode disaggregation deployment, or cross-replica load balancers. In-memory KV allocation and engine hooks exist; that does <strong>not</strong> mean the external persistent cache and orchestration system have been released. The engine class explicitly says there is no online-serving wrapper. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/engine/llm_engine.py">Engine</a><br></p><p><br>The operational path is: batch API → engine/sequence scheduler → native metadata and block management → workers/model runner → V4 attention, MoE and speculative model → sampler/structured-output masks → output processing. Python handles orchestration and configuration; C++ moves scheduling and metadata hot paths out of Python; accelerator libraries and TileLang cover numerical work. Vision preprocessing and model modules are present, but the production E/P/D routing and persistent-cache services are a separate integration burden.</p>
+<p>The public Q&amp;A is valuable architecture documentation, but its 155-trillion-token/day, $38/GPU-hour revenue, ~80% online/offline efficiency, large cache-retention infrastructure and internal-versus-public performance statements are <strong>operator-reported claims</strong>, not reproducible outcomes of this checkout. It even describes internal kernel/draft differences. Do not price a deployment by extrapolating those numbers.<br></p><h4>Tests, CI and Maturity</h4>
+<p>The package labels itself <strong>0.1.0 / Beta</strong>. Tests cover sequence behavior, distributed broadcast/expert shuffling, samplers, EPLB, batch invariance, multimodal metadata, state cache and offline PPL/structured outputs; TileLang modules also include reference tests. Exact per-sample PPL baselines and long-context regression are useful quality signals, not a substitute for cross-platform execution.</p>
+<p>No checked-in GitHub Actions workflow or other obvious public CI definition was found; pytest ci/ci_npu markers do not prove a publicly running pipeline. The releases endpoint returned no releases. Public API metadata at retrieval reported creation on 2026-10-16, last push 2026-10-21T04:55:44Z, 15,486 stars and 1,521 forks. Issues were disabled; the API open_issues_count includes PR-related counts and should not be presented as 165 ordinary issue reports. A very new public release and rapid popularity do not establish support quality or long-term API stability.<br></p><h4>Verification and Limits</h4>
+<p>Confirmed public identity and exact source SHA through unauthenticated HTTPS acquisition; inspected the source paths cited above and live public metadata/model license. No source scripts executed, dependencies installed, models fetched, tests run or accelerators used. Kernel internals in vendor submodules, numerical correctness, latency, security exploitability and full production behavior remain unverified. This is a static technical review, not a deployment certification.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> DeepSeek-AI / deepseek-ai/DeepInfer, Apache-2.0; upstream derivation acknowledged by the project. Public source and metadata retrieved 2026-10-21 UTC.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>DeepInfer</td><td>Specialized DeepSeek engine; assemble service infrastructure yourself</td></tr><tr><td>vLLM / SGLang</td><td>Evaluate general serving ecosystems; verify exact model support</td></tr><tr><td>TensorRT-LLM</td><td>NVIDIA-focused alternative with different build/integration tradeoffs</td></tr><tr><td>Limits</td><td>No version-matched comparative benchmarks or alternative-source audits performed</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><br>The build is not a lightweight pip-only install: it installs backend-specific dependencies, reinstalls NCCL 2.32.3 on NVIDIA, initializes pinned submodules and builds vendor wheels plus the native extension. Most runtime requirements are version pinned, but no complete hash-locked transitive environment is established. Use a disposable build environment and preserve the exact source/kernel manifest. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/build.sh">Build</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/scripts/build_vendor.sh">vendor build</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/.gitmodules">submodules</a></p>
+<p>Published performance assumes expensive scale-up hardware. The Q&amp;A recommends wide EP64–128 decode and calls 64 prefill + 64 decode GPUs its smallest <strong>efficient production unit</strong>; this is a production recommendation, not proof that offline inference needs 128 GPUs. Smaller examples exist. Memory fit and interconnect requirements still need measurement; no general minimum VRAM guarantee is established here.</p>
+<h4>Security and privacy boundaries</h4>
+<p>1. <strong>Do not expose the optional profiler.</strong> It is disabled by default, but enabling it binds HTTP to all interfaces. GET/POST /profile has no authentication in the inspected implementation, accepts output_dir and writes trace files under process permissions. Step counts are bounded (1–50), but callers can cause profiling overhead and choose writable trace directories. Keep it disabled or on an authenticated, restricted management network. This is a static exposure finding, not a demonstrated exploit. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/engine/profile_server.py">Profiler</a><br>2. <strong>Distributed peers are trusted.</strong> The shared-memory/ZeroMQ broadcast path deserializes pickle, and remote publishing binds a wildcard TCP address. No transport authentication/encryption is visible in that module. Do not place these ports or writable IPC resources in an untrusted tenant network; untrusted pickle input is unsafe. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/distributed/shm_broadcast.py">Transport</a><br>3. <strong>Checkpoint code is code.</strong> The main LLM API defaults trust_remote_code to false and weight loading uses safetensors with shape/coverage checks, which are positives. Nevertheless, evaluation explicitly executes checkpoint encoding/encoding.py via importlib; that path is not made safe by safetensors or the API default. Default example resolution calls snapshot_download without a revision pin. Review and pin artifacts before use. <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/deepinfer/hugging_face/loading.py">Loader</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/eval/common/encoder.py">encoder import</a>, <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/examples/_config.py">example resolver</a><br>4. <strong>Offline inference is not a blanket no-egress promise.</strong> Examples download the default model unless a local copy is selected. LLM judging sends question, reference answer and model response to the configured service; evaluation writes raw outputs to disk. Configure storage retention and egress deliberately. No judge service was called here.<br>5. <strong>Bring a service security layer.</strong> API authentication, tenant authorization, quotas, TLS termination, input bounds, cancellation policy and cache isolation belong in the missing service wrapper. Long-lived KV retention described for the production system creates privacy obligations; those retention settings are not automatically provided by this offline release.<br></p><h4>License, Dependencies and Model Terms</h4>
+<p>The root <a href="https://github.com/deepseek-ai/DeepInfer/blob/9bd9cf243fc53ef9afbf8f04d391d989117d6ab9/LICENSE">LICENSE</a> is Apache-2.0: preserve license/notices, identify changes when redistributing, and respect patent/trademark limitations. Source attribution explicitly acknowledges vLLM derivation and SGLang/TensorRT-LLM inspiration; preserve inherited notices. The default checkpoint's public <a href="https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/main/LICENSE">LICENSE</a> was separately checked on 2026-10-21 and is MIT, requiring preservation of its copyright/permission notice. This model-license check was against the live public file, not a pinned checkpoint download.</p>
+<p>Vendor submodules are pinned gitlinks, but their complete license trees and transitive dependencies were not audited here. The framework's Apache license does not relicense CUDA/CANN tooling, other packages, model artifacts or evaluation datasets. HLE and GPQA sources may require gated access/terms; obtain those permissions independently. No source component was extracted for redistribution.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the scheduler, expert parallelism and confidence-budgeted speculation. Supported scale-up hardware and missing service infrastructure limit direct adoption; benchmark token accounting is not production throughput.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/deepseek-ai/DeepInfer">deepseek-ai/DeepInfer</a> · Apache-2.0 framework · MIT checkpoint</span>
+    <span><a href="deepinfer.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

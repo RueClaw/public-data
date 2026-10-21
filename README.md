@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [deepinfer.md](reviews/deepinfer.md) [page](reviews/deepinfer.html) | [deepseek-ai/DeepInfer](https://github.com/deepseek-ai/DeepInfer) | Apache-2.0 | 📚 Study | Specialized DeepSeek offline inference engine; incomplete service stack and acceptance-adjusted benchmark caveats. |
 | [drama-tensorfold.md](reviews/drama-tensorfold.md) [page](reviews/drama-tensorfold.html) | [plotarmordev/drama-tensorfold](https://github.com/plotarmordev/drama-tensorfold) | Apache-2.0 code; FACL v1.0 weights | ⚠️ Interesting | Native Drama 3 speech on GB10: useful CUDA engineering and reported speed gains, but unqualified accuracy and restricted model licensing. |
 | [underdog-bark.md](reviews/underdog-bark.md) [page](reviews/underdog-bark.html) | [Underdog Bark 3.0](https://underdog.ai/bark) | CC-BY-4.0 model; proprietary app | ⚠️ Interesting | Compact English ASR; real loaders, vendor-only scores, runtime-memory and app-privacy caveats. Static review. |
 | [omarchy-mobile.md](reviews/omarchy-mobile.md) [page](reviews/omarchy-mobile.html) | [derekross/omarchy-mobile](https://github.com/derekross/omarchy-mobile) | MIT + exceptions | ⚠️ Interesting | Native Pixel Linux/Omarchy prototype; cellular unverified, destructive install, spare-device use only |
