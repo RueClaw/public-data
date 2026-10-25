@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [polars.md](reviews/polars.md) [page](reviews/polars.html) | [pola-rs/polars](https://github.com/pola-rs/polars) | MIT | ✅ Deploy candidate | Multithreaded columnar DataFrame query engine with lazy optimization and streaming execution. Static review. |
 | [thesysdev-openui.md](reviews/thesysdev-openui.md) [page](reviews/thesysdev-openui.html) | [thesysdev/openui](https://github.com/thesysdev/openui) | MIT | ⚠️ Interesting | Streaming generative-UI language and component runtimes with library-derived prompts. Static review. |
 | [cleanyourtv.md](reviews/cleanyourtv.md) [page](reviews/cleanyourtv.html) | [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | MIT; Outfit font SIL OFL-1.1 | ⚠️ Interesting | Android TV cleanup tools and a small native Apple-TV-style launcher, with recorded restoration. Static review. |
 | [samsung-tv-root.md](reviews/samsung-tv-root.md) [page](reviews/samsung-tv-root.html) | [chris-ritsen/samsung-tv-root](https://github.com/chris-ritsen/samsung-tv-root) | Unlicense | 📚 Study | Model- and firmware-sensitive Samsung Tizen root research and host-side TV control. Static review. |
