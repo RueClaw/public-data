@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [thesysdev-openui.md](reviews/thesysdev-openui.md) [page](reviews/thesysdev-openui.html) | [thesysdev/openui](https://github.com/thesysdev/openui) | MIT | ⚠️ Interesting | Streaming generative-UI language and component runtimes with library-derived prompts. Static review. |
 | [cleanyourtv.md](reviews/cleanyourtv.md) [page](reviews/cleanyourtv.html) | [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | MIT; Outfit font SIL OFL-1.1 | ⚠️ Interesting | Android TV cleanup tools and a small native Apple-TV-style launcher, with recorded restoration. Static review. |
 | [samsung-tv-root.md](reviews/samsung-tv-root.md) [page](reviews/samsung-tv-root.html) | [chris-ritsen/samsung-tv-root](https://github.com/chris-ritsen/samsung-tv-root) | Unlicense | 📚 Study | Model- and firmware-sensitive Samsung Tizen root research and host-side TV control. Static review. |
 | [omarchytv.md](reviews/omarchytv.md) [page](reviews/omarchytv.html) | [piermark/omarchytv](https://gitlab.com/piermark/omarchytv) | MIT; bundled font and media exceptions | ⚠️ Interesting | Omarchy-style Android TV launcher with paired desktop control, MCP and an AI CLI bridge. Static review. |
