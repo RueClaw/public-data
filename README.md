@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [stablyai-orca.md](reviews/stablyai-orca.md) [page](reviews/stablyai-orca.html) | [stablyai/orca](https://github.com/stablyai/orca) | MIT | ⚠️ Interesting | Desktop control plane for parallel coding agents, worktrees, terminals, review and remote sessions. Static review. |
 | [polars.md](reviews/polars.md) [page](reviews/polars.html) | [pola-rs/polars](https://github.com/pola-rs/polars) | MIT | ✅ Deploy candidate | Multithreaded columnar DataFrame query engine with lazy optimization and streaming execution. Static review. |
 | [thesysdev-openui.md](reviews/thesysdev-openui.md) [page](reviews/thesysdev-openui.html) | [thesysdev/openui](https://github.com/thesysdev/openui) | MIT | ⚠️ Interesting | Streaming generative-UI language and component runtimes with library-derived prompts. Static review. |
 | [cleanyourtv.md](reviews/cleanyourtv.md) [page](reviews/cleanyourtv.html) | [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | MIT; Outfit font SIL OFL-1.1 | ⚠️ Interesting | Android TV cleanup tools and a small native Apple-TV-style launcher, with recorded restoration. Static review. |
