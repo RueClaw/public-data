@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [samsung-tv-root.md](reviews/samsung-tv-root.md) [page](reviews/samsung-tv-root.html) | [chris-ritsen/samsung-tv-root](https://github.com/chris-ritsen/samsung-tv-root) | Unlicense | 📚 Study | Model- and firmware-sensitive Samsung Tizen root research and host-side TV control. Static review. |
 | [omarchytv.md](reviews/omarchytv.md) [page](reviews/omarchytv.html) | [piermark/omarchytv](https://gitlab.com/piermark/omarchytv) | MIT; bundled font and media exceptions | ⚠️ Interesting | Omarchy-style Android TV launcher with paired desktop control, MCP and an AI CLI bridge. Static review. |
 | [deepinfer.md](reviews/deepinfer.md) [page](reviews/deepinfer.html) | [deepseek-ai/DeepInfer](https://github.com/deepseek-ai/DeepInfer) | Apache-2.0 | 📚 Study | Specialized DeepSeek offline inference engine; incomplete service stack and acceptance-adjusted benchmark caveats. |
 | [drama-tensorfold.md](reviews/drama-tensorfold.md) [page](reviews/drama-tensorfold.html) | [plotarmordev/drama-tensorfold](https://github.com/plotarmordev/drama-tensorfold) | Apache-2.0 code; FACL v1.0 weights | ⚠️ Interesting | Native Drama 3 speech on GB10: useful CUDA engineering and reported speed gains, but unqualified accuracy and restricted model licensing. |
