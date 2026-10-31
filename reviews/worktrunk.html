@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Worktrunk — Review</title>
+<meta name="description" content="Branch-first Git worktree management for parallel development—not agent containment.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--deploy);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / worktrunk</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">max-sixty/worktrunk · reviewed 2026-10-31</div>
+    <h1>Worktrunk</h1>
+    <p class="one-liner">Branch-first Git worktree management for parallel development—not agent containment.</p>
+    <div class="verdict-pill">✅ Deploy candidate</div>
+    <div class="chips">
+      <span class="chip">MIT OR Apache-2.0</span>
+      <span class="chip">Rust · Git · shell wrappers</span>
+      <span class="chip"><a href="https://github.com/max-sixty/worktrunk">max-sixty/worktrunk ↗</a></span>
+      <a class="chip" href="worktrunk.md">Full Markdown</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">9,665</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">344</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Useful lifecycle automation</h3><p>Branch-addressed worktrees, rich status, hooks and cache copying remove repetitive work. Shared Git state and OS privileges mean this is not a sandbox.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Preservation has explicit limits</h3><p>Expected-SHA ref operations and squash backups help protect work. Default merge stages all and rewrites history; ignored files can be overwritten, and removal trash is temporary.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Approval is not policy enforcement</h3><p>Frozen hook selections resist configuration changes between approval and execution. Declining hooks can still allow the operation, and approving a script command does not freeze script contents.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Rust 2024; Git 2.43+; Rust 1.98 for builds</td></tr><tr><td>UI/config</td><td>clap, skim/ratatui, TOML, MiniJinja</td></tr><tr><td>Revision</td><td>2c04fb3704275aab69237db0bc322e33b3775b6a</td></tr><tr><td>Verification</td><td>Static only; tests/CI inspected, not executed</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Creation, navigation and cleanup</h4><p>Native linked worktrees with branch/path resolution, shell directory switching and structured outcomes. Use foreground removal when automation needs completed—not deferred—results.</p><h4>Opinionated local merge</h4><p>Default staging, squash, rebase, checks, target advancement and cleanup. No automatic remote fetch/publication. Keep prepared history with both --no-commit and --no-rebase.</p><h4>Ignored files and AI</h4><p>copy-ignored copies all ignored files without an include list; use --require-include for fail-closed selection. Optional LLM messages and summaries pass diffs to your configured external command.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Complete analysis and evidence</h4><p>The complete review below includes pinned source evidence, trust boundaries, data preservation, privacy, tests and platform limitations.</p><h4>Worktrunk (max-sixty/worktrunk)</h4>
+<p style="white-space:pre-wrap"><strong>Repo:</strong> https://github.com/max-sixty/worktrunk</p>
+<p style="white-space:pre-wrap"><strong>Author:</strong> Maximilian Roos (max-sixty) and contributors</p>
+<p style="white-space:pre-wrap"><strong>License:</strong> MIT OR Apache-2.0; choose either, retaining the applicable notices and conditions. The combined LICENSE is authoritative despite GitHub's generic “Other” classification.</p>
+<p style="white-space:pre-wrap"><strong>Reviewed:</strong> 2026-10-31 (UTC)</p>
+<p style="white-space:pre-wrap"><strong>Revision:</strong> <code>2c04fb3704275aab69237db0bc322e33b3775b6a</code>, repository-wide architectural review with targeted CLI, Git, hooks, shell, copy, LLM and test inspection. Commit dated 2026-10-31 UTC.</p>
+<p style="white-space:pre-wrap"><strong>Verification:</strong> Static source review only. No builds, application tests, installations, shell edits, agent launches, provider calls or real-repository mutations.</p>
+<p style="white-space:pre-wrap"><strong>Stack:</strong> Rust 2024, Git subprocesses, clap, serde/TOML, MiniJinja, rayon, skim/ratatui, shell wrappers.</p>
+<p style="white-space:pre-wrap"><strong>What it is:</strong> A local Git-worktree lifecycle CLI, primarily for developers running several coding agents or feature branches at once. It is not an agent runtime or a security sandbox.</p>
+<hr>
+<h4>Verdict</h4>
+<p style="white-space:pre-wrap">✅ <strong>Deploy candidate for trusted local development, not agent containment.</strong> Worktrunk substantially improves everyday worktree creation, navigation, inspection and cleanup, with unusually explicit Git preservation and approval machinery. Adopt incrementally: begin with switch/list, review project hooks, keep human-controlled integration, and test destructive workflows on disposable repositories before relying on them. Its defaults are convenient but consequential: merge stages all changes and rewrites history, remove destroys working directories, and optional AI summaries transmit diffs through your chosen command.</p>
+<h4>What It Is</h4>
+<p style="white-space:pre-wrap">The canonical project is <strong>max-sixty/worktrunk</strong>, distributed as <strong>wt</strong> (also git-wt), with documentation at <a href="https://worktrunk.dev">worktrunk.dev</a>. It wraps Git's linked worktrees rather than replacing Git storage. Each branch can have its own working directory and index while sharing the object database and refs. That avoids agents overwriting each other's ordinary working files, without granting separate OS identities or restricting filesystem/network access.</p>
+<p style="white-space:pre-wrap">The central workflow is branch-addressed creation/navigation, rich status inspection, then either ordinary PR delivery or local integration and cleanup. Hooks can install dependencies, copy caches, start servers and run checks. Agent plugins add activity markers; lifecycle integration differs by harness. The current documentation lists worktree lifecycle integration for Claude Code and OpenCode, while other supported agents use explicit CLI operations. This is workflow automation, not a durable multi-agent scheduler or policy-enforcing supervisor. [E1, E8]</p>
+<h4>Stack</h4>
+<p style="white-space:pre-wrap">| Layer | Technology / responsibility |
+|---|---|
+| CLI | clap parsing in src/main.rs and src/cli; command orchestration in src/commands |
+| Git | Repository/WorkingTree abstractions invoke installed Git; refs and files remain native Git state |
+| Config / trust | serde/TOML user and project config; MiniJinja templates; separate persistent approvals |
+| Terminal | skim/ratatui picker, crossterm, JSON outputs, streaming status and previews |
+| Filesystem / parallelism | rayon, reflink-copy, renamore, fs2, rustix; platform-specific handling |
+| Optional AI / forge | User-configured shell command over stdin; forge CLIs such as gh |
+| Storage | Git refs/reflogs plus local .git/wt caches, state, logs and transient trash; no service database |</p>
+<p style="white-space:pre-wrap">The manifest declares version 0.81.0 and Rust 1.98 minimum. Git 2.43+ is explicitly enforced. CLI dependencies are feature-gated so library consumers can omit the picker/UI; the library itself explicitly disclaims a stable API. Cargo.lock is present. This is a substantive dependency graph, not a dependency-free wrapper. No dependency advisory scan or full transitive-license audit was run. [E2, E9]</p>
+<h4>Key Features</h4>
+<h4>Branch-first worktree lifecycle</h4>
+<p style="white-space:pre-wrap">Switch resolves branches or worktree paths, creates branches/worktrees, computes configurable paths, and can execute a supplied agent command. The source separates planning/validation from execution. Existing-path clobbering uses a move-aside backup rather than an unconditional recursive deletion; the dependency notes describe atomic no-overwrite renames. The optional parent-shell wrapper performs the actual directory change. List/picker surfaces branch status, changes, integration state and optional forge information. These are useful affordances even without AI. [E1, E3]</p>
+<h4>Merge is an opinionated local pipeline</h4>
+<p style="white-space:pre-wrap">Unlike git merge's familiar direction, wt merge integrates the source branch into a target, defaulting to the default branch. The documented default pipeline stages <strong>all</strong> ordinary untracked and unstaged changes, squashes, rebases, runs pre-merge checks, advances the target, then removes the source worktree/branch. It does not fetch and does not publish to a remote. A successful local merge does not prove remote integration, CI approval or code review. [E4]</p>
+<p style="white-space:pre-wrap">Important controls are --stage=tracked or --stage=none, --no-squash, --no-remove, and --no-commit <strong>together with</strong> --no-rebase when the exact prepared graph must survive. --no-commit alone still permits a rebase. A rebase conflict remains open in the source worktree for resolution/abort. Later failure does not undo every earlier pipeline effect; this is not an all-or-nothing transaction.</p>
+<p style="white-space:pre-wrap">Before a squash absorbs staged changes, the implementation writes a backup commit and <code>refs/wt-backup/&lt;branch&gt;</code> reflog. The backup contains the index and has the prior HEAD as parent; it is <strong>not a complete filesystem snapshot</strong>, and does not capture remaining unstaged/untracked/ignored files. Default staging may first move ordinary untracked changes into that index. This is valuable recovery machinery, not a reason to skip backups. [E5]</p>
+<h4>Preservation is deliberate, but bounded</h4>
+<p style="white-space:pre-wrap">Target advancement uses an expected-old-SHA update-ref, then read-tree -m -u to synchronize a checked-out target. Nonoverlapping dirty/staged paths are preserved; overlapping ordinary modifications/untracked paths are refused. A failed sync attempts a compare-and-swap ref rollback. The code also checks for a target moving during sync and warns. It explicitly acknowledges partial filesystem writes on I/O failure and concurrency windows: do not let multiple agents integrate into the same target simultaneously. [E6]</p>
+<p style="white-space:pre-wrap"><strong>Ignored files are an important exception:</strong> an incoming tracked path may overwrite an ignored target file, matching Git's own semantics. Keep valuable local databases, generated credentials and unique artifacts outside disposable worktrees or independently backed up. Native Git safety is not universal data preservation.</p>
+<h4>Removal has separate worktree and branch force controls</h4>
+<p style="white-space:pre-wrap">Normal removal gates dirty worktrees and locked/nested/foreign-worktree cases. --force permits discarding staged, modified and ordinary untracked files; -D separately permits deleting an unmerged branch. --no-delete-branch retains the branch, not its uncommitted files. Integration detection includes identical commits, ancestry, empty diffs, matching trees, simulated merge and a bounded patch-id fallback for squash workflows. Content equivalence is not preservation of every original commit identity. [E7]</p>
+<p style="white-space:pre-wrap">Branch deletion uses expected-SHA compare-and-swap protection against concurrent writers. Removal normally renames into .git/wt/trash and drains it asynchronously; a rename failure can fall back to direct Git removal. <strong>This trash is a deletion staging area, not a user recovery bin.</strong> Ignored files are not protected by the ordinary clean-status gate. For automation, use foreground completion and inspect the structured branch outcome rather than interpreting an immediate return or deferred result as proof of deletion. The symlink-safe directory walker avoids following links/junctions outside the tree, but cleanup errors can leave residue. Experimental --reap kills qualifying detached processes by working directory on Unix; it is not a general agent shutdown protocol. [E7]</p>
+<h4>Architecture and Trust Boundaries</h4>
+<h4>Approvals bind command text, not the entire execution environment</h4>
+<p style="white-space:pre-wrap">Project .config/wt.toml commands require approval; user hooks are trusted configuration. Approvals live separately from portable config, indexed by project identity and normalized command template. Command changes require fresh approval, and explicit wildcard entries can widen scope. --yes bypasses prompting. Critically, declining skips project commands and continues the operation: declining a test hook is <strong>not</strong> a merge-denial policy. --no-hooks likewise removes checks. Keep mandatory integration gates outside discretionary local hooks. [E10]</p>
+<p style="white-space:pre-wrap">A standout design is ApprovedHookPlan: operation-driven hook selections are frozen at the approval boundary, then rendered/executed from that plan after Git mutations. This addresses the risk of a rebase or checkout replacing approved config with different commands. Template values are shell-escaped. These controls are meaningful, but approving npm test or a repository script does not freeze its subsequently modified implementation, dependencies, executable resolution or input data. Hooks and aliases still run arbitrary code with the invoking user's authority. [E10]</p>
+<p style="white-space:pre-wrap">Pre-hooks block; post-hooks run in the background. Concurrent hook-table entries can race on files or Git operations; ordered pipeline blocks are required for dependencies. A launched post-hook is not a passed check. Logs may contain paths, command arguments, build output or secrets printed by child tools.</p>
+<h4>Shell integration is not stdout evaluation</h4>
+<p style="white-space:pre-wrap">The wrapper uses a temporary directive file for a raw destination path and a quoted builtin cd, instead of evaluating arbitrary command output. The Bash template also preserves prompt/trap behavior; its internal eval usage for shell bookkeeping is distinct from interpreting the destination as code. Security tests explicitly exercise directive-like branch names, messages and errors. Nevertheless shell initialization executes trusted generated wrapper code, and installers modify startup/profile or function files. Review those edits and pin the executable you trust. No integration was installed in this review. [E11]</p>
+<h4>Parallel working copies are not isolation</h4>
+<p style="white-space:pre-wrap">Agents share OS privileges, repository refs/objects/config and potentially caches, environment credentials, ports and external services. A process can still reach sibling worktrees. Copy-on-write caches reduce storage/copy cost on supporting filesystems; they do not isolate secrets or resource contention. copy-ignored copies <strong>all ignored files without a .worktreeinclude</strong>, so it can copy .env files as well as node_modules. Use an explicit include list and --require-include when absence must mean “copy nothing.” Reflinks fall back to ordinary copying where unsupported, and copied symlinks may retain external targets. Port hashing is a convenience, not guaranteed collision-free allocation. Use containers/VMs or separate restricted identities when agents are untrusted. [E8, E12]</p>
+<h4>Privacy, Providers and Credentials</h4>
+<p style="white-space:pre-wrap">The core workflow is local and does not require an LLM account. Without generation configuration, commit messages have deterministic fallbacks. AI commits and opt-in branch summaries construct prompts containing diffs, repository/branch context and commit information, then pipe them to a configured external command. Provider credentials/authentication remain the responsibility of that command and its environment; Worktrunk is not a secret broker or an egress/redaction boundary. Costs and retention follow the selected provider. Do not send sensitive diffs merely because the top-level tool is local. [E13]</p>
+<p style="white-space:pre-wrap">The supplied Claude recipe disables tools and uses safe mode/user-only settings while retaining normal authentication; the Codex recipe disables several capabilities and uses a read-only sandbox. These are version-sensitive recipes, not guarantees for arbitrary commands. Project prompt append fragments also have an approval gate, but diff contents remain untrusted model input. Review generated messages. Verbose subprocess logging and cached summaries deserve retention/access controls; no claim of universal secret redaction is warranted.</p>
+<p style="white-space:pre-wrap">Forge status/previews use external CLIs (the GitHub implementation invokes gh for PRs/checks/comments), inheriting those tools' authentication and contacting their configured services. Git remote operations likewise use Git transport credentials. Hooks can contact anything the host can. There is no exposed web server, multi-user authentication or CORS layer to assess in this CLI deployment model. No network privacy trace was performed. [E13, E14]</p>
+<h4>Maturity, Tests and Platform Constraints</h4>
+<p style="white-space:pre-wrap">Public GitHub metadata on 2026-10-31 reported 9,665 stars, 344 forks and 62 open issues/PRs combined; repository creation was 2025-10-17 and latest push was 2026-10-31. The latest release endpoint reported <strong>v0.81.0, published 2026-10-20</strong>, targeting a different commit from this reviewed main SHA. Those numbers indicate adoption/activity, not correctness. This review is of main, not a proof that every behavior described is in the packaged release.</p>
+<p style="white-space:pre-wrap">There are substantial integration and snapshot suites for merge, removal, approvals, security, shell wrappers, foreground jobs, copying, PR status and documentation synchronization. Inspected tests cover moved-ref deletion, dirty target preservation, foreign-repository refusal, force removal and shell directive injection. CI defines Linux, macOS and Windows test legs, feature-boundary checks, lockfile/doctest/rustdoc checks and clean-working-tree checks after tests. Nightly includes minimum-Git coverage. Many Actions references use version tags rather than immutable SHAs. These are <strong>checked-in testing mechanisms</strong>, not independently observed passing results at this revision. [E15]</p>
+<p style="white-space:pre-wrap">Bash, Zsh, Fish, PowerShell and experimental Nushell integration are documented; Nushell requires 0.113+. Windows has a wt name collision with Windows Terminal, and shell commands use Git Bash there. Some process-management features are Unix-only. Copy-on-write gains depend on filesystem capabilities. Rust 1.98 and optional tree-sitter C compilation matter for source builds. Benchmark/demo claims were not reproduced. This is mature-looking pre-1.0 tooling with an explicitly unstable library API; validate the exact release and shell/platform combination you adopt.</p>
+<h4>Comparison</h4>
+<p style="white-space:pre-wrap">| Option | Best fit | Tradeoff against Worktrunk |
+|---|---|---|
+| <a href="https://git-scm.com/docs/git-worktree">Native git worktree</a> | Few parallel branches; explicit, minimal tooling | More path/cleanup bookkeeping; no Worktrunk hook/summary/picker layer |
+| <a href="https://github.com/ThePrimeagen/git-worktree.nvim">git-worktree.nvim</a> | Neovim-centered navigation | Editor-local workflow rather than a cross-shell lifecycle CLI |
+| <a href="https://github.com/git-town/git-town">git-town</a> | Branch/stack and delivery-workflow automation | Broader branch workflow emphasis; evaluate integration semantics separately |
+| <a href="stablyai-orca.md">Orca</a> | Desktop view of parallel agents, terminals and review | Larger application/control-plane surface; Worktrunk is more composable for terminal users |
+| Containers or VMs plus Git | Untrusted code/agent execution | Real isolation controls require additional setup; not replaced by a worktree manager |</p>
+<p style="white-space:pre-wrap">These are positioning comparisons, not head-to-head executed benchmarks. Use native Git if worktree friction is small; use Worktrunk when repeated lifecycle work dominates. It complements rather than replaces a sandbox, code review, remote CI or agent orchestrator.</p>
+<h4>Local Adoption Notes</h4>
+<p style="white-space:pre-wrap">No server or hosted deployment is required. Start with trusted repositories and switch/list before enabling hooks or automatic merging. Review project commands and their called scripts, avoid blanket --yes for unfamiliar repositories, restrict copied ignored files, and keep secrets outside disposable trees. Separate agent branches and serialize target integration. For automation, prefer explicit stage/history options, structured output and foreground removal, then verify refs/files and required checks. Treat background logs and backup refs as sensitive local artifacts. No source code was extracted in this review.</p>
+<h4>Evidence and Verification Limits</h4>
+<p style="white-space:pre-wrap">All source links below are pinned to the reviewed SHA. Documentation describes intent; implementation and test inspection support the specific findings, but were not executed. No vulnerability-free claim, production certification, measured speedup or exhaustive concurrency audit is made.</p>
+<p style="white-space:pre-wrap">- <strong>E1:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/README.md">README.md</a>
+- <strong>E2:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/Cargo.toml">Cargo.toml</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/LICENSE">LICENSE</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/lib.rs">src/lib.rs</a>
+- <strong>E3:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/worktree/switch.rs">src/commands/worktree/switch.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/backup.rs">src/commands/backup.rs</a>
+- <strong>E4:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/docs/src/content/docs/merge.md">docs/src/content/docs/merge.md</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/merge.rs">src/commands/merge.rs</a>
+- <strong>E5:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/step/squash.rs">src/commands/step/squash.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/git/repository/working_tree.rs">src/git/repository/working_tree.rs</a>
+- <strong>E6:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/worktree/push.rs">src/commands/worktree/push.rs</a>
+- <strong>E7:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/docs/src/content/docs/remove.md">docs/src/content/docs/remove.md</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/git/remove.rs">src/git/remove.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/git/ref_deletion.rs">src/git/ref_deletion.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/remove_dir.rs">src/remove_dir.rs</a>
+- <strong>E8:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/docs/src/content/docs/claude-code.md">docs/src/content/docs/claude-code.md</a>
+- <strong>E9:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/git/version.rs">src/git/version.rs</a>
+- <strong>E10:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/config/approvals.rs">src/config/approvals.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/hook_plan.rs">src/commands/hook_plan.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/docs/src/content/docs/hook.md">docs/src/content/docs/hook.md</a>
+- <strong>E11:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/templates/bash.sh">templates/bash.sh</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/docs/src/content/docs/shell-integration.md">docs/src/content/docs/shell-integration.md</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/tests/integration_tests/security.rs">tests/integration_tests/security.rs</a>
+- <strong>E12:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/step/copy_ignored.rs">src/commands/step/copy_ignored.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/copy.rs">src/copy.rs</a>
+- <strong>E13:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/docs/src/content/docs/llm-commits.md">docs/src/content/docs/llm-commits.md</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/llm.rs">src/llm.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/config/project.rs">src/config/project.rs</a>
+- <strong>E14:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/src/commands/list/ci_status/github.rs">src/commands/list/ci_status/github.rs</a>
+- <strong>E15:</strong> <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/.github/workflows/ci.yaml">.github/workflows/ci.yaml</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/.github/workflows/nightly.yaml">.github/workflows/nightly.yaml</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/tests/integration_tests/remove.rs">tests/integration_tests/remove.rs</a>; <a href="https://github.com/max-sixty/worktrunk/blob/2c04fb3704275aab69237db0bc322e33b3775b6a/tests/integration_tests/approvals.rs">tests/integration_tests/approvals.rs</a>
+- <strong>Public metadata:</strong> <a href="https://api.github.com/repos/max-sixty/worktrunk">repository API</a>, <a href="https://github.com/max-sixty/worktrunk/releases/tag/v0.81.0">latest release</a>, retrieved 2026-10-31 UTC.</p>
+<hr>
+<p style="white-space:pre-wrap"><strong>Attribution:</strong> max-sixty/worktrunk, Maximilian Roos and contributors; MIT OR Apache-2.0. Independent analysis, no upstream code extraction.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>Fit / tradeoff</th></tr><tr><td>Native Git</td><td>Minimal tooling; more manual lifecycle bookkeeping</td></tr><tr><td>git-worktree.nvim</td><td>Editor-centered rather than cross-shell workflow</td></tr><tr><td>git-town</td><td>Broader branch/stack workflow emphasis</td></tr><tr><td>Containers / VMs</td><td>Actual isolation; complements Worktrunk</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>No hosted service required. Use trusted repositories, narrow hook approval, explicit ignored-file includes and serialized integration. Windows naming and shell constraints, experimental Nushell support and filesystem-dependent reflinks need release-specific testing. No installations or builds were performed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">✅ Deploy candidate</div>
+      <p>A strong candidate for trusted local workflows, with deliberate preservation and approval machinery. Start with switch/list; keep integration serialized, review hooks, and protect ignored files. Static main-branch review only: no application tests or provider calls.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/max-sixty/worktrunk">max-sixty/worktrunk</a> · MIT OR Apache-2.0</span>
+    <span><a href="worktrunk.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
