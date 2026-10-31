@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context Doctor — Review</title>
+<meta name="description" content="Offline instruction-file lint with transparent heuristics—not measured agent-performance optimization.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / context-doctor</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">michal-franc/context-doctor · reviewed 2026-10-31</div>
+    <h1>Context Doctor</h1>
+    <p class="one-liner">Offline instruction-file lint with transparent heuristics—not measured agent-performance optimization.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Go 1.25.4 · YAML rules · local CLI</span>
+      <span class="chip"><a href="https://github.com/michal-franc/context-doctor">michal-franc/context-doctor ↗</a></span>
+      <span class="chip"><a href="context-doctor.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">18</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Transparent rules, not a model</h3><p>38 embedded checks plus custom YAML, recursive Markdown references and JSON reports. The CLI does not call providers, ingest session transcripts or edit context files.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>A higher score is not a proven improvement</h3><p>English-prefix counts, fixed penalties and Git-age scores are heuristics. No controlled before/after task evaluation or calibration was found; scoped context files can be legitimate.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Read-only is not filesystem confinement</h3><p>References allow parent traversal and symlink reads without a root boundary or explicit resource budget. Reports can expose instruction snippets. CI must check JSON findings and completeness, not just exit status.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Go standard library; yaml.v3 v3.0.1</td></tr><tr><td>Storage / providers</td><td>No database or model provider</td></tr><tr><td>Revision</td><td>764159eb52170a138b6e29ab141ed8fae09e01ea</td></tr><tr><td>Verification</td><td>Static source review; 92 test functions present, not executed</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Context Doctor discovers CLAUDE.md and AGENTS.md in a directory, or analyzes an explicitly supplied file. It checks length, estimated instruction count/density, generic advice, formatter-style rules, progressive disclosure, missing/stale referenced documentation and repeated instruction text. It also detects stack marker files and suggests appropriate starter templates when no context file exists.</p>
+<p>The advertised self-reinforcing loop is an external coding agent running the CLI, reading its report, and editing files. The binary itself does not invoke an agent, rewrite context, repair files, compact conversations, measure token usage, or evaluate downstream task success. “Fix any issues” is workflow advice, not an implemented autofix mode; autofix and conflict detection remain open feature requests.</p><h4>Features and CI contract</h4><h4>Inspectable policy rather than a hidden judge</h4>
+<p>The rule catalog is easy to inspect and extend without a provider account. Primary-only rules distinguish instruction entry points from referenced human-facing documentation. Suppression and explicit agent roots are important escape hatches for knowledge repositories and deliberately layered context.</p>
+<h4>Repository and reference visibility</h4>
+<p>Git-backed discovery includes tracked and untracked nonignored context files. Non-Git fallback walks skip hidden directories, node_modules and vendor; that is not equivalent to full gitignore semantics. References are followed recursively, with missing targets, age and secondary-rule findings reported. Orphan reporting inventories other Markdown filenames; it does not make every Markdown file an agent input.</p>
+<h4>Structured reports, but no automatic enforcement</h4>
+<p>JSON separates files, references, duplicates, structureIssues and summary. Filters affect violation lists rather than recomputing scores/counts. Ordinary lint findings do not cause a failing exit status. CI must parse the appropriate single-file or repository schema, including structureIssues and any desired reference findings. Also inspect command success and valid JSON: analyzeFile prints an analysis error then returns without a nonzero exit, and repository mode can skip failed files while reporting the rest. A report is not necessarily proof of complete coverage.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>main.go discovers files and config, loads embedded plus custom rules, reads content, builds metrics, resolves references, adds stack/activity information, evaluates primary and secondary rules, then formats results. rules/actions.go is a fixed registry of data predicates, not an arbitrary shell action system. templates/ embeds starter text; suggestions are printed, not written to disk.</p>
+<p>This decomposition is straightforward and substantially tested in source, although the CLI/report orchestration remains a roughly 1,100-line main.go. Invalid custom-rule files warn and continue; unknown actions return false and invalid regex patterns can be silently skipped. Since problem rules use a match to mean a violation, malformed policy may disappear from findings rather than fail closed. Treat repo-owned rules and suppression config as policy inputs requiring review, not an independent security authority.</p><h4>Diagnostic Methodology: What the Numbers Actually Mean</h4><p>- <strong>Instruction count is a lexical estimate.</strong> Imperative English prefixes and sufficiently long bullet/numbered lines are counted, without Markdown AST, code-fence exclusion, semantic intent or tokenizer. It can count examples as instructions and miss non-English or paraphrased directives. Text reporting adds a hard-coded “+50 Claude” even though AGENTS.md is supported.<br>- <strong>Thresholds are hand-set.</strong> The catalog flags over 100/300 lines and over 50/100 estimated instructions; density flags require more than 20 lines and over 50%/80% directives. Stronger and weaker rules can both fire. Whitespace and rephrasing can change scores without improving behavior.<br>- <strong>Scores are a rubric, not accuracy.</strong> Dimensions start at 100, subtract 15/5/2 for error/warning/info matches and add 5 for positive rules, then clamp. Overall weights are correctness 40%, style 20%, compliance 20%, freshness 20%. “Correctness” mostly means structural checks; “compliance” is not observed model compliance.<br>- <strong>Freshness is mostly age.</strong> Git file age maps to 100 within seven days and zero after a year; missing Git history yields 75. A separate staleness rule considers scope activity, but the numerical freshness component still penalizes old, potentially correct instructions. Reference age falls back to mtime, so copying files and shallow history affect interpretation.<br>- <strong>Duplicates are normalized text, not contradictions.</strong> The implementation lowercases and strips leading bullets, compares imperative-looking lines of at least 15 characters, and does not reason about scope or meaning. It cannot establish that two instructions conflict.<br>- <strong>Single-root policy is optional opinion.</strong> Multiple nonexempt context files incur CD060 and a 30-point repository penalty. Hierarchical AGENTS.md/CLAUDE.md layouts can be intentional; use agent-roots or suppress this rule rather than consolidate automatically.</p>
+<p>The README cites HumanLayer guidance and Lost in the Middle as motivation for lean context. Neither establishes the exact rule weights, universal 150–200 instruction ceiling, or predictive validity of this score for current models/harnesses. No controlled before/after task benchmark, compliance dataset, false-positive calibration or token/cost improvement experiment was found in the reviewed tree. Example “bad” and “good” reports demonstrate the rubric, not independent improvement. Tests of the engine establish expected software behavior, not causal gains in coding quality.</p><h4>Privacy, Filesystem and Execution Boundaries</h4><p><strong>Local by design:</strong> inspected runtime source contains no model/provider SDK, HTTP client/server, telemetry transport, account login or credential lookup. It reads the target files, discovered rule/config files, recursively referenced Markdown, filesystem metadata/stack markers, and local Git listings/history. No transcript-directory ingestion was found. Auth/CORS are inapplicable to a CLI with no service endpoint. Build-time dependency/toolchain downloads and manual binary acquisition are separate network boundaries.</p>
+<p><strong>Read-only is not root-confined:</strong> rules/refs.go joins reference paths to the current file directory, allows ../ traversal, follows os.Stat/os.ReadFile symlinks, and has no repository-containment check. gitignore restricts discovery, not explicit linked-file reads. Its visited set uses absolute lexical paths, not resolved symlink identity; no explicit depth, file-size or total-byte budget is present. A malicious or simply expansive reference tree can cause out-of-tree reads or excessive work. These are static code findings, not reproduced exploits.</p>
+<p><strong>Reports can carry sensitive data:</strong> duplicate records include instruction text and filenames; custom rules supply messages, suggestions and links. There is no redaction layer. Keep reports private unless reviewed, and do not treat source-controlled report prose as trusted instructions when handing it to an agent. Scanning is local, but a subsequent hosted coding-agent interaction may upload report/context content under that agent's own provider settings.</p>
+<p><strong>Subprocess boundary:</strong> Git is invoked with argument arrays, not shell-concatenated commands; runtime source does not execute build/test commands mentioned in context. Git still inherits the process environment and local configuration, and calls lack explicit deadlines. Use a trusted Git executable and a secret-free, read-only sandbox with only intended files mounted for untrusted scans. The standalone CLI is not a sandbox.</p>
+<p><strong>Modification boundary:</strong> normal analysis and template suggestion paths do not write project files. Installation targets copy/chmod binaries; external agents implementing suggestions can edit anything their own permissions allow. Never automatically delete safety constraints merely to raise a score.</p><h4>Correctness Caveats Worth Testing Before Adoption</h4><p>1. Reference extraction uses several overlapping regexes, not a Markdown parser. A docs/ suffix inside a longer link can become an extra target; upstream issue #38 independently reports this false-positive class. Common Markdown forms outside the regex grammar may be missed.<br>2. Orphan detection iterates immediate fa.Refs and uses ref.Path rather than a fully normalized flattened resolved graph. Nested linked documentation and references relative to nested context files can therefore be mislabeled orphaned.<br>3. Primary duplicate accumulation does not deduplicate a repeated line within that file before checking for two entries; “cross-file” duplicate results can include a same-file repeat. Shared references can also be counted repeatedly across separately analyzed roots in repository totals.<br>4. Primary dimension scores do not directly aggregate secondary-document rule findings; reports expose more than the headline score. Inspect detailed findings instead of ranking repositories by score.</p>
+<p>These observations follow the implementation at the pinned revision. They were not dynamically validated; they are concrete test targets, not claims of an exercised exploit or a measured failure rate.</p><h4>Maturity, License and Verification</h4><p>Public GitHub metadata retrieved 2026-10-31 showed 18 stars, one fork, 16 open issues, creation on 2026-01-17 and last push on 2026-10-24. These are adoption/activity signals, not quality evidence. The newest listed release was v0.3.3, published 2026-05-29; reviewed master is explicitly marked unreleased after v0.3.3. Do not assume a latest-release binary contains all reviewed features.</p>
+<p>The tree contains 92 top-level Go Test functions covering predicates, scoring, config, references, discovery-related helpers, templates and JSON contracts. CI builds, lints and runs make test (go test -v ./...). Tests were inspected, not executed; coverage percentage and present CI success were not independently verified. No install, dependency vulnerability scan, release-binary verification, real-user data scan or agent-performance evaluation was performed.</p>
+<p>README source prerequisites and release workflow still say/use Go 1.21 while go.mod requires 1.25.4; CI correctly reads go.mod. Automatic toolchain selection may bridge this, but the published prerequisite is stale. Release automation builds Linux/macOS amd64/arm64 and Windows amd64 binaries; actions use mutable major tags and the workflow has no explicit signing/attestation step. Pin a revision/release and verify artifact provenance rather than blindly following latest-download-and-sudo examples.</p>
+<p>The actual root LICENSE is MIT, copyright 2026 Michal Franc. yaml.v3 is a separate dependency with its own upstream terms; no dependency code was copied or license/vulnerability audit performed. This review extracts no source components.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Need</th><th>Fit</th></tr><tr><td>Agent-file hygiene</td><td>Context Doctor; markdownlint / Vale for general document rules</td></tr><tr><td>Outcome evidence</td><td>Inspect AI or a held-out baseline/candidate task suite</td></tr><tr><td>Live context reduction</td><td>Context Governor solves a different proxy problem</td></tr><tr><td>Semantic conflicts</td><td>Human review and dedicated evaluation; not this lexical linter</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no server to host, database, provider subscription or GPU requirement. If trialing the CLI, begin with a pinned source revision or verified binary and synthetic fixtures, not private home-directory context. Match build tooling to go.mod. Use advisory JSON reports first; independently validate complete analysis before enabling CI gates. Declare intentional agent roots, tune suppressions, inspect recursive reads, and retain human review of proposed edits. Measure real task outcomes separately before calling score increases an optimization.</p><h4>Evidence</h4><p><a href="https://github.com/michal-franc/context-doctor/tree/764159eb52170a138b6e29ab141ed8fae09e01ea">Pinned source</a> · <a href="context-doctor.md">Full review with source evidence map</a></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful advisory lint for CLAUDE.md and AGENTS.md. Scores are an opinionated rubric, not measured correctness or compliance. Review fixes, tune nested-root policy, and sandbox untrusted reference trees. Static review only; tests not run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/michal-franc/context-doctor">michal-franc/context-doctor</a> · MIT</span>
+    <span><a href="context-doctor.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
