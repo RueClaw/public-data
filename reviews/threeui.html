@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ThreeUI Community — Review</title>
+<meta name="description" content="Authored React graphics and interactive scenes, with selective production adoption rather than blanket readiness.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / threeui</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">MengTo/threeui · reviewed 2026-10-31</div>
+    <h1>ThreeUI Community</h1>
+    <p class="one-liner">Authored React graphics and interactive scenes, with selective production adoption rather than blanket readiness.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code · OFL fonts · external media exceptions</span>
+      <span class="chip">React · TypeScript · Three.js · WebGL</span>
+      <span class="chip"><a href="https://github.com/MengTo/threeui">MengTo/threeui ↗</a></span>
+      <span class="chip"><a href="https://github.com/MengTo/threeui/tree/68802d5428071ada5c20db8094b1649e6bb770ed">Reviewed revision</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">6,977</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">657</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A visual catalog, not a design system</h3><p>Package 1.2.0 and the generated report expose 43 parent components, 104 routes and 163 variants. README counts drift; Community does not need the Pro CLI or a model API.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Good boundaries, uneven renderers</h3><p>Source hashes, generated exports and paid-tier tests are valuable. Sampled Warp Field code has frame-dependent timing, no reduced-motion handling and a possible hidden-tab resume gap.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Optional installer deserves care</h3><p>PKCE and owner-only auth files are positives. Lexical path checks do not contain symlink ancestors, and endpoint overrides can redirect authenticated requests. These are static findings, not tested exploits.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Catalog</td><td>React 19, Vite 7, TypeScript 5.9</td></tr><tr><td>Package</td><td>ESM, types, CSS, asset and component subpath exports; React 18–19 peers</td></tr><tr><td>Rendering</td><td>Three.js peer plus 0.128/0.165 aliases, WebGL, Canvas 2D, sandboxed HTML scenes</td></tr><tr><td>Verification</td><td>Static review only; no install, build, tests, browser or dependency audit</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Source and package distribution</h4>
+<p><a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/package.json">package.json</a> exports ESM, types, shared CSS, assets and component subpaths. <a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/vite.lib.config.js">The library config</a> preserves modules and externalizes React and the Three.js variants. This provides a small-import path, but does not establish a measured bundle budget: multiple Three.js versions can coexist, and authored HTML/runtime assets add costs outside the JS import graph.</p>
+<h4>Public subset validation</h4>
+<p><a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/scripts/public-boundary.test.mjs">Boundary tests</a> compare catalog/report counts, check variant/control parity, validate source bundle hashes, exclude paid entries and inspect runtime documents. Release tests cover semver classification; CLI tests exercise PKCE, path rejection, auth persistence, byte-preserving downloads and overwrite refusal. This is stronger packaging evidence than a screenshots-only collection, but self-consistency with a generated report is not proof of renderer correctness or private-tree completeness. See the existing <a href="../patterns/public-subset-boundary-audit.md">public subset pattern</a>.</p>
+<h4>Heterogeneous rendering</h4>
+<p><a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/src/shaders/woven-cloth/WovenCloth.tsx">WovenCloth</a> uses titled, <code>allow-scripts</code>-only sandboxed <code>srcDoc</code> iframes for companion variants. This avoids granting parent same-origin privileges. It is not an offline or no-network boundary: scene code can still fetch libraries/assets, and restrictive CSP/CORS policies may break individual scenes.</p>
+<p><a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/src/shaders/warp-field/WarpFieldBackground.tsx">WarpFieldBackground</a> instead owns a canvas renderer, resize/intersection observers and an animation loop, disposing resources on unmount. Its <a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/src/shaders/warp-field/warpFieldRenderer.ts">renderer</a> caps DPR at 2, shares some geometry/materials and explicitly disposes textures and layers. Those are concrete engineering positives, not a library-wide FPS or memory guarantee.</p><h4>Rendering and accessibility</h4><ul><li><strong>Motion is component-specific.</strong> Search preview videos respect reduced-motion preference and use buttons with descriptive labels. The sampled Warp Field host has no reduced-motion check, and its canvas has no explicit accessible description or decorative hiding. Supply semantic alternatives or mark truly decorative visuals appropriately.</li><li><strong>A lifecycle edge needs testing.</strong> Warp Field schedules its next frame only when intersecting and the document is visible. If a callback observes <code>document.hidden</code>, the loop stops, but the host has no <code>visibilitychange</code> restart listener. Returning to an unchanged viewport can therefore leave it paused until an intersection transition. This is static control-flow evidence, not a reproduced browser bug.</li><li><strong>Timing is frame-dependent.</strong> The sampled renderer advances elapsed time by 1/60 and position by a fixed step each render, rather than real delta time. Refresh rate can change apparent speed. It also captures variant at construction while the React effect has no dependencies; changing the variant prop without remounting does not rebuild the chosen scene.</li><li><strong>Modal semantics are incomplete evidence.</strong> <a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/src/components/SearchDialog.tsx">SearchDialog</a> declares dialog/aria-modal, initially focuses the input, supports Escape there and labels results. No focus trap or focus restoration is implemented in that component, and the input has placeholder text without an explicit label. No screen-reader or keyboard traversal audit was run.</li><li><strong>Do not generalize visual polish into platform support.</strong> WebGL, observer APIs, GPU limits, root-relative assets, iframe origin rules and client execution matter. SSR/framework integration, context-loss recovery, touch behavior, low-end mobile thermals, contrast and memory stability remain untested.</li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>
+The main flow is <code>src/main.tsx → App.tsx → catalog/docs → selected renderer</code>. Generated <code>src/data/shaders.tsx</code>, <code>src/index.ts</code> and <code>src/package-components/</code> connect the catalog to package entry points. <code>public/source-code.json</code> supplies the code tab. Synchronization from a separately held upstream snapshot filters access tiers and copies public source/assets; consumers do not need that private snapshot to use the checked-in tree.</p>
+<p>Site and library have separate Vite builds. A third surface, <code>packages/cli</code>, handles optional authenticated Pro downloads. Keep those trust domains separate: a login-free Community renderer does not require installing or authenticating that CLI.</p><h4>Security and privacy</h4><p>
+Community needs no model provider, API key or paid service. That does <strong>not</strong> mean zero outbound traffic: asset notices document ThreeUI-hosted previews/media and public CDN resources. A self-hosted copy still needs a per-scene request inventory and licensing/CSP decisions. The hosted service/backend was not audited.</p>
+<p>The optional <a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/packages/cli/src/oauth.mjs">OAuth implementation</a> uses random state and S256 PKCE, a loopback browser callback, atomic auth-file replacement and owner-only modes when creating files/directories. Refreshable bearer credentials live in a local JSON file, not an OS credential vault. Server-side entitlement enforcement is a README claim outside this public tree’s verification scope.</p>
+<p>The <a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/packages/cli/src/install.mjs">installer</a> rejects absolute/traversal paths and duplicates, and refuses changed-file overwrites unless forced. <strong>Containment is lexical, not filesystem-real:</strong> it does not resolve/reject symlink ancestors before mkdir/writeFile. A pre-existing linked directory can redirect writes outside the intended destination. This is a static risk, not a tested exploit. Use a fresh trusted destination; add real-path/no-follow safeguards before accepting hostile bundles or working trees. Writes are sequential rather than transactional, and remote bundles have no explicit size budget or independent signature check here.</p>
+<p>The <a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/packages/cli/src/index.mjs">CLI entry point</a> allows development API/metadata overrides without an HTTPS/origin allowlist. An existing valid session can be reused while the API endpoint is overridden; an untrusted command line can therefore redirect an authenticated download request. Treat those flags as credential-routing authority. Downloaded source is not automatically installed/executed by this installer, but becomes executable when incorporated into a project. The CLI can launch a system browser; none of it was run for this review.</p>
+<p>The public audit is a useful heuristic, not a security scanner. Its <a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/scripts/audit-public.mjs">text-extension allowlist</a> omits .ts/.tsx, so sensitive-assignment scanning does not cover the primary TypeScript files. Build auditing checks selected signatures and source maps, not arbitrary secrets or hostile logic. No fresh dependency vulnerability assessment was performed; the old review’s clean audit is not today’s result.</p><h4>CI and maturity</h4><p>
+<a href="https://github.com/MengTo/threeui/blob/68802d5428071ada5c20db8094b1649e6bb770ed/.github/workflows/ci.yml">CI</a> declares clean install, tests/typecheck/site and library builds, audits and anonymous package-install smoke checks on Linux/Node 24. npm publishing uses provenance/OIDC and an environment, but is a separate workflow; public configuration alone does not prove publishing waits for every verification job. Actions are version-tagged, not immutable SHA-pinned. The inspected tests emphasize packaging/boundary/release/CLI behavior, not automated browser accessibility or rendering benchmarks.</p>
+<p>GitHub’s public API on 2026-10-31 reported 6,977 stars, 657 forks, eight open items (issues plus pull requests), creation on 2026-08-21 and last repository push on 2026-09-03. The reviewed commit is dated 2026-09-01 UTC. The releases endpoint returned no GitHub Releases. These are activity/popularity snapshots, not reliability evidence.</p>
+<p><a href="https://github.com/MengTo/threeui/issues/43">Issue #43</a> reports unsupported static routes falling through to the first shader. App.tsx maps only pricing/oauth-consent to not-found before casting other page values; this supports the reported coverage concern, but routes were not exercised. <a href="https://github.com/MengTo/threeui/pull/42">PR #42</a> concerns sandboxed Sylva font loading; the latest returned PR CI run <a href="https://github.com/MengTo/threeui/actions/runs/35340205232">failed</a>. That does not establish that reviewed main fails; main CI status and failure cause were not independently established.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>React Bits</td><td>Comparable animated React effects; check exact component terms and dependencies</td></tr><tr><td>React Three Fiber + Drei</td><td>Compose custom scenes rather than import finished specimens</td></tr><tr><td>Radix Primitives</td><td>Product interactions and accessible semantics, not shader backgrounds</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+Use locked dependencies and a supported Node version when validating later; this review installed nothing. The site is a static Vite app with <code>base: &quot;/&quot;</code>, root-relative assets and browser routing. Configure SPA deep-link fallback deliberately; do not assume arbitrary subdirectory hosting works unchanged. Package consumers need shared CSS, a sized parent and any required runtime documents at the documented public paths or supported URL overrides.</p>
+<p>Before production adoption: qualify the selected renderer on target devices; add reduced-motion/semantic fallback; test hidden-tab resume and unmount; inventory requests; measure loaded assets/frame time/memory; audit dependencies; validate routes and CSP; avoid Pro CLI unless needed. A selected effect is a reasonable pilot; wholesale production endorsement is unsupported by this static review.</p><h4>Revision and limits</h4><p>68802d5428071ada5c20db8094b1649e6bb770ed; public repository root and representative renderers. No current performance, accessibility, vulnerability or platform guarantee.</p><p>
+This replaces the 2026-08-26 review in place. That review reported package 1.1.0 and successful local build/audit checks but recorded no exact source SHA, so a reliable commit-to-commit comparison is unavailable. The current manifest is 1.2.0, the sync report is dated 2026-08-31, and this refresh adds revision-pinned evidence, renderer/accessibility and CLI boundary analysis, closer alternatives, and a standalone page. Prior build/audit results are historical, not current validation. The rating is narrowed from Deploy candidate to Interesting on the evidence below.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful public source/export and paid-tier boundary engineering. Qualify each effect for motion, accessibility, lifecycle and network use; the optional Pro installer needs trusted destinations and credential-routing care. Static review only; no tests or builds run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/MengTo/threeui">MengTo/threeui</a> · MIT code · OFL fonts · external media exceptions</span>
+    <span><a href="threeui.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
