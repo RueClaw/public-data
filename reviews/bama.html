@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAMA — Review</title>
+<meta name="description" content="21 agent skills and a native SwiftUI scaffold: useful development discipline, not a proven unattended app factory.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / bama</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">daveebbelaar/bama · reviewed 2026-10-31</div>
+    <h1>BAMA</h1>
+    <p class="one-liner">21 agent skills and a native SwiftUI scaffold: useful development discipline, not a proven unattended app factory.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Swift 6.2 · SwiftUI · SwiftData · zsh</span>
+      <span class="chip"><a href="https://github.com/daveebbelaar/bama">daveebbelaar/bama ↗</a></span>
+      <span class="chip"><a href="https://github.com/daveebbelaar/bama/tree/f0c2cdbf9e41d838c14d8b7596729581dd4833c0">reviewed source ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,037</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">146</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A concrete UI evidence loop</h3><p>Stories connect to light/dark window captures, seeded data, layout probes and logic tests. These are real helper implementations, but the host agent still decides whether the acceptance criteria pass.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Safety claims exceed enforced boundaries</h3><p>Build and signing errors can be suppressed. APP_STORE being nonempty is treated as disposable-store isolation. Same-user socket callers can mutate app data; negative pagination inputs lack bounds.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local storage is not local inference</h3><p>The app template stores records locally, while model credentials and screenshot transmission belong to the external agent. macOS 26+, Xcode 26+ and sensitive capture permissions constrain adoption.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Workflow</td><td>Markdown skills and plugin manifests</td></tr><tr><td>App</td><td>SwiftUI/AppKit, SwiftData, SwiftPM</td></tr><tr><td>Automation</td><td>Optional CLI, Unix socket and stdio MCP</td></tr><tr><td>Provenance</td><td>f0c2cdbf9e41d838c14d8b7596729581dd4833c0; 2026-10-31 UTC</td></tr><tr><td>Verification</td><td>Static inspection only. No build, test, install or model call.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Evidence-aware UI work</h4>
+<p>The template enumerates sidebar pages and settings tabs, visits light/dark modes, exports window PNGs and layout probes, and uses representative seeded data. Snapshot capture retries and explicitly labels its lower-fidelity AppKit fallback when Screen Recording is unavailable. The build-and-verify guide correctly distinguishes screenshots from interaction tests and warns against treating a successful compile as proof of a usable UI. See <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/ship/build-and-verify/SKILL.md">skills/ship/build-and-verify/SKILL.md</a> and <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/start/new-mac-app/template/Sources/__APP_NAME__/Snapshot.swift">skills/start/new-mac-app/template/Sources/__APP_NAME__/Snapshot.swift</a>.</p>
+<p>The grid linter is a source-text heuristic, not a Swift parser or accessibility audit. Pixel comparison reports a thresholded difference and writes overlays; it is not a semantic acceptance test. There are no published controlled success-rate or quality measurements establishing the “any app” promise. Complex permissions, background services, migrations, distribution and product-specific behavior remain engineering work.</p>
+<h4>A coherent native scaffold</h4>
+<p>The generator separates domain helpers into a Kit target, keeps UI on the main actor and supplies a small SwiftData model, sidebar, settings, theme tokens, icon source and test hooks. It preserves existing files while copying the template and merges missing ignore rules. However, it validates the app name but not the bundle identifier before interpolating it into sed replacements, scans the destination recursively for placeholders, and finishes with git add -A and a commit. Use an isolated new project, not a mixed working tree. See <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/start/new-mac-app/scripts/new-app.sh">skills/start/new-mac-app/scripts/new-app.sh</a>.</p>
+<h4>One command registry, multiple interfaces</h4>
+<p>The optional agent-cli template derives CLI help, JSON schemas and MCP tools from AgentCommands. Requests are routed onto the GUI's main actor and mutate its live model rather than a second database implementation. Delete previews without yes, ambiguous ID prefixes are rejected, and errors have stable codes. This is a useful pattern; it is not a complete authorization layer. See <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/code/agent-cli/template/Agent/AgentCore.swift">skills/code/agent-cli/template/Agent/AgentCore.swift</a> and <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/code/agent-cli/template/Agent/AgentCommands.swift">skills/code/agent-cli/template/Agent/AgentCommands.swift</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Architecture and Operational Findings</p>
+<h4>1. Build and install are coupled, with weak failure propagation</h4>
+<p><a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/start/new-mac-app/template/build.sh">skills/start/new-mac-app/template/build.sh</a> pipes swift build through grep and ends the pipeline with “or true”. It then checks that a binary exists and whether a Sources Swift file is newer. That heuristic does not cover all build inputs: a failed package/configuration change can leave an old binary eligible for installation. Codesign failures are also suppressed before an “installed” message. These are static control-flow findings, not reproduced failures.</p>
+<p>The script removes and reconstructs the installed app bundle, clears extended attributes, and selects an available Apple Development signing identity or ad-hoc signing. This is local developer convenience, not notarization, hardened-runtime review, atomic deployment or rollback. Preserve the previous app externally and require actual build/signature exit status before replacement.</p>
+<h4>2. “Test store” is an environment convention, not path isolation</h4>
+<p>Store.isOverridden checks only that APP_STORE is nonempty. Snapshot, seed and self-test code rely on that predicate while their messages say the store must be in a temporary directory. An override pointing at a real database is accepted. Seed logic can write to an empty overridden store; the self-test mutates whichever overridden store it opens. The supplied wrappers choose temporary paths, which is good, but direct callers are not confined to them. See <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/start/new-mac-app/template/Sources/__APP_NAME__/App.swift">skills/start/new-mac-app/template/Sources/__APP_NAME__/App.swift</a>, <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/start/new-mac-app/template/Sources/__APP_NAME__/SeedData.swift">skills/start/new-mac-app/template/Sources/__APP_NAME__/SeedData.swift</a> and <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/start/new-mac-app/template/Sources/__APP_NAME__/SelfTest.swift">skills/start/new-mac-app/template/Sources/__APP_NAME__/SelfTest.swift</a>.</p>
+<p>Snapshot/self-test wrappers remove fixed-name temporary artifacts and the app's saved window state. Parallel runs can collide; these are not fully side-effect-free tests. Prefer per-run directories, explicit disposable-store validation and separate test preferences/state.</p>
+<h4>3. Optional bridge trusts the local account</h4>
+<p><a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/code/agent-cli/template/Agent/AgentSocket.swift">skills/code/agent-cli/template/Agent/AgentSocket.swift</a> uses a Unix-domain socket and chmod 0600 rather than a network listener. That is a materially narrower exposure than unauthenticated TCP. However, same-user processes can invoke its commands; there is no per-client token, approval receipt or separate read/write capability. A caller-provided yes is confirmation syntax, not proof of human consent, and MCP hints are descriptive.</p>
+<p>The socket reader has receive timeouts but no total message-size limit, and the listener spawns a thread per accepted connection without an explicit cap. The router selects a known command but does not apply a common strict argument-schema validator; individual handlers do the checks. In items list, negative limit/offset integers reach prefix/dropFirst without a nonnegative guard, a Swift precondition-trap path that can terminate the GUI. No exploit was executed. Add bounds, shared validation, peer/client policy and resource caps before using this bridge with untrusted local callers. The optional add-agent-cli installer also chooses the first Sources directory rather than explicitly finding the app target, making selection fragile when both app and Kit directories exist.</p>
+<h4>4. Persistence and recovery remain starter-level</h4>
+<p>SwiftData stores app records locally; failure to open the store terminates with fatalError. The supplied model has defaults, but there is no versioned migration plan, backup/restore flow, crash-recovery test or transactional install rollback. Workflow recovery is file-backed backlog plus Git history, not leases, checkpoints or exactly-once effects. A story left doing after interruption requires agent/human reconciliation. “One story per commit” helps inspect code changes, but reverting code does not undo external app interactions or database migrations.</p>
+
+<p>Execution, Privacy and Credentials</p>
+<p>- <strong>Agent authority is inherited.</strong> Skill text and allowed-tool declarations do not create an OS sandbox. Build scripts write outside the project, can replace an app, launch/quit it, sign using a local identity, and optional installers add user-level skill/CLI links. The linker uses ln -sfn on generic skill names; review collisions before installing.<br>- <strong>Local app data does not imply local AI.</strong> No BAMA-owned model service or credential store was found in the inspected implementation. Claude Code/Codex/other host tools handle model authentication and may send source, screenshots and outputs to their provider under their own settings. An optional MCP client receives real item titles/notes from the bridge. Audit the host's data policy, not just SwiftData storage.<br>- <strong>Computer use is sensitive.</strong> The clone skill asks for permission, suggests demo data, limits changes to explicit consent and tells agents to exclude reference PNGs from public Git. Nevertheless, its menu/popover fallback is a full-screen screencapture, potentially including unrelated windows. The build-verification skill separately forbids full-screen captures. Resolve that inconsistency by isolating the reference app and redacting captures before model use. Textual screen indexes can also retain private content even when PNGs are ignored.<br>- <strong>Additional network/rights boundaries.</strong> The HIG helper fetches Apple documentation and caches it locally. Research/browser tools fetch public sources through the host agent. No telemetry client was identified in the inspected app/bridge templates; this is not an audit of host-agent telemetry. MIT covers BAMA, not proprietary reference apps, trademarks or Apple documentation. The clone guide's personal-use reassurance is not a blanket legal permission.</p>
+<p>Evidence: <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/scripts/link-skills.sh">scripts/link-skills.sh</a>, <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/plan/clone/SKILL.md">skills/plan/clone/SKILL.md</a>, <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/design/mac-design/scripts/hig.sh">skills/design/mac-design/scripts/hig.sh</a>, <a href="https://github.com/daveebbelaar/bama/blob/f0c2cdbf9e41d838c14d8b7596729581dd4833c0/skills/code/agent-cli/template/Agent/AgentMCP.swift">skills/code/agent-cli/template/Agent/AgentMCP.swift</a>.</p>
+
+<p>Maturity, Tests and Verification</p>
+<p>Public GitHub metadata retrieved on 2026-10-31 showed creation on October 24, last push October 29, 1,037 stars, 146 forks and one open issue; these are a time-sensitive popularity snapshot, not reliability evidence. The releases endpoint returned no releases. No GitHub Actions workflow was present at the reviewed revision.</p>
+<p>The scaffold includes four parameterized title-cleaning cases, an in-app CRUD-oriented self-test and an optional CLI checker for help/schema/error behavior and MCP initialize/tool-list shape. Those are real testing assets, but neither a repository-wide regression suite nor proof that generated apps are correct. The CLI checker does not comprehensively exercise mutation, negative numeric input, permission boundaries or crash recovery.</p>
+<p><a href="https://github.com/daveebbelaar/bama/issues/7">Open issue #7</a> reports scaffold placeholder substitution failures on certain macOS grep environments. The reviewed generator does use the reported grep pattern, but this review did not reproduce the report or establish its exact BSD/toybox diagnosis. Treat it as an unresolved compatibility report, not a confirmed universal macOS failure.</p>
+<p><strong>Review verification:</strong> anonymously acquired the public repository; inspected the exact source revision, manifest/skill count, license, generator, package/build scripts, app state/test/snapshot code, layout/image helpers, optional CLI/socket/MCP implementation and public GitHub metadata. All source execution was deliberately skipped: no macOS GUI/toolchain validation, installer run, unit/integration tests, permission prompts, runtime security probing or paid model call. Static findings should be confirmed with synthetic data on a supported Mac before adoption.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>SwiftUI Pro / Expert</td><td>Focused language/UI guidance; less end-to-end scaffolding.</td></tr><tr><td>Xcode + XCTest</td><td>Conventional build, signing and UI-test ownership.</td></tr><tr><td>Superpowers</td><td>Cross-stack workflow discipline rather than Mac-specific helpers.</td></tr><tr><td>REA</td><td>Deeper reverse engineering, not primarily native UI reconstruction.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no BAMA server to self-host. The supported path is macOS 26+, Xcode 26+ with Swift 6.2, and a skill-capable agent. Native reference-app computer use additionally depends on the host's plan/tool availability and macOS Accessibility/Screen Recording permissions. Linux or Windows can inspect the source but cannot validate this AppKit/SwiftUI application workflow as supplied.</p>
+<p>For an initial pilot: pin a reviewed revision, read the selected skills/scripts, use a fresh project and demo reference data, retain host-agent approval gates, make build/sign failures fatal, verify generated placeholders are gone, and run tests/captures against a uniquely created disposable store. Leave the optional CLI/MCP bridge out until needed; harden and test it before exposing sensitive application records. Distribution still needs deliberate signing, notarization and update/recovery design.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Adopt selectively for small native Mac projects. Strong seeded screenshot and test workflows are offset by suppressed build/signing errors, convention-only test-store isolation and an optional local command bridge needing hardening. Static review only; no source execution or macOS tests.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/daveebbelaar/bama">daveebbelaar/bama</a> · MIT</span>
+    <span><a href="bama.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
