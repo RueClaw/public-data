@@ -42,6 +42,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [nixfred-blip.md](reviews/nixfred-blip.md) [page](reviews/nixfred-blip.html) | [nixfred/blip](https://github.com/nixfred/blip) | MIT | ⚠️ Interesting | Omarchy iMessage client over a restricted Mac SSH bridge; strong read-state design, but preview DNS and sent-media retention caveats. Static review. |
 | [worktrunk.md](reviews/worktrunk.md) [page](reviews/worktrunk.html) | [max-sixty/worktrunk](https://github.com/max-sixty/worktrunk) | MIT OR Apache-2.0 | ✅ Deploy candidate | Branch-first Git worktree CLI with frozen hook approvals and deliberate preservation; not a sandbox, with ignored-file and merge-default caveats. Static review. |
 | [bama.md](reviews/bama.md) [page](reviews/bama.html) | [daveebbelaar/bama](https://github.com/daveebbelaar/bama) | MIT | ⚠️ Interesting | Native macOS agent-skill workflow and SwiftUI scaffold; useful UI evidence loops, but build, test-isolation and optional bridge hardening needed. Static review. |
 | [context-doctor.md](reviews/context-doctor.md) [page](reviews/context-doctor.html) | [michal-franc/context-doctor](https://github.com/michal-franc/context-doctor) | MIT | ⚠️ Interesting | Offline instruction-file linter with transparent rules and JSON reports; heuristic scores, unconfined linked-file reads and CI completeness caveats. Static review. |

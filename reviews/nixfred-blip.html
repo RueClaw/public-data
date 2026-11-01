@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blip — Review</title>
+<meta name="description" content="Omarchy-native iMessage through your own Mac and SSH.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / nixfred-blip</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">nixfred/blip · reviewed 2026-11-01</div>
+    <h1>Blip</h1>
+    <p class="one-liner">Omarchy-native iMessage through your own Mac and SSH.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">QML · Bun · Python · SSH</span>
+      <span class="chip"><a href="https://github.com/nixfred/blip">nixfred/blip ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">186</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">44</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A Mac is the gateway</h3><p>Not an iMessage protocol replacement. A logged-in, reachable Mac and Omarchy/Hyprland are operational dependencies; broad macOS permissions remain significant.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Real controls, incomplete isolation</h3><p>Restricted SSH dispatch and same-UID socket checks are concrete strengths. Default-on web previews contact senders’ sites, and DNS checks do not pin the connection address.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Read-only is not a backup</h3><p>Saved exports avoid overwrites, but the 200 MiB sent-media retention store can evict files still needed for attachment viewing. Uninstalling the Mac directory removes it too.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology and boundary</td></tr>
+<tr><td>Desktop</td><td>Quickshell/QML within Omarchy/Hyprland, not a portable web or generic Linux application</td></tr>
+<tr><td>Client logic</td><td>Bun TypeScript helpers; collector builds the thread/unread model, thread loader decorates bubbles</td></tr>
+<tr><td>Transport</td><td>OpenSSH multiplexing; dedicated restricted key; optional local Python Unix-socket accelerator</td></tr>
+<tr><td>Mac reader</td><td>Python SQLite connections with mode=ro; Messages and Contacts data stay authoritative on Mac</td></tr>
+<tr><td>Actions</td><td>AppleScript and optional Accessibility; native address-book helper for new contacts</td></tr>
+<tr><td>State</td><td>Private JSON metadata, media/avatar/link caches, runtime contact exports and drafts</td></tr>
+<tr><td>Dependencies</td><td>OS tools rather than a conventional npm application: Bun, jq, SSH, libnotify, clipboard/open helpers; optional socat, zenity, Hunspell, media tools and accessibility packages</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Blip integrates a bar badge, popout and separate Messages-style window into Omarchy. The Mac reads its Messages database and performs sends through Messages.app; Linux renders conversations and invokes bridge tools over SSH. It does not implement Apple's protocol, replace the Apple account, or work without the Mac. SMS/RCS depend on the Apple-side forwarding/account setup.</p>
+<p>Conversation search, rich attachments, group identities, contact review/export/creation, notification allowlists and optional OTP autofill are substantive features. Edit/unsend, native threaded-reply sending and typing indicators are not supplied. Experimental tapbacks have narrower text/DM and OS-version limitations. The README's screenshots use fictional fixtures, a useful privacy-conscious documentation technique. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/README.md">README</a></p><h4>Metadata-only unread reconciliation</h4>
+<p>The collector separates the seen watermark from read marks and persists an unread ledger rather than relying on a moving recent-message window. Read intentions are retained and reconciled against Mac state; newer inbound activity can invalidate an old retry. This is a meaningful correctness design, not just a cosmetic badge. Groups are addressed by their actual chat GUID instead of the most recent speaker. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/collector.ts">collector.ts</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/read-sync.ts">read-sync.ts</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/thread.ts">thread.ts</a></p>
+<h4>Restricted transport, not a restricted account</h4>
+<p>The Mac forced-command dispatcher shlex-splits requests and execs only named tools, without an arbitrary shell. The dedicated key uses its own ControlMaster socket and disables agent identity substitution. The optional accelerator has owner/mode checks, same-UID peer credentials, bounded queues and deadlines; its Mac serve channel allowlists read-only commands and failures fall back to one-shot SSH. These are concrete, inspectable controls. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/mac/blip-dispatch">dispatcher</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/linux/blip-shim">shim</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/linux/blip-bridged">daemon</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/mac/imsg">reader</a></p>
+<h4>Deliberate exports and action verification</h4>
+<p>Attachment saving pins destination directory descriptors, uses exclusive staging and hard-link publication, and numbers collisions rather than overwriting files. Contact creation is distinct from contact review; source documentation describes duplicate checking and native API readback rather than direct database editing. Read/tapback actions distinguish a click from verified state. These controls reduce common data-loss and false-success problems without proving every platform interaction works. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/save-attachment.ts">save-attachment.ts</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/mac/contact-save">contact-save</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/mac/imsg-read">imsg-read</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><strong>Source SHA:</strong> 045582e896b64109005a1b01e84832d3fd87715e</p><h4>Architecture</h4><p>BarWidget owns refresh/watch behavior and the shared model; BlipView and window/panel components display it. TypeScript helpers handle collection, search, send state, media fetching and display transformation. Mac helpers remain separately executable behind the forced-command entry point. The persistent bridge is an optimization, not a new cloud service: two pooled SSH channels amortize Python and database startup while binary attachments and mutations keep separate paths.</p>
+<p>This separation supports pure logic tests and mocked transport tests. It also creates a large compatibility surface across QML, Bun, Python, shells, Apple database schemas and localized UI automation. The 2,672-line collector and 2,800-line-class Mac reader are substantial modules, not a tiny glue script. The vendored bridge records its upstream origin and Blip-specific deviations in <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/BRIDGE-VERSION">BRIDGE-VERSION</a>.</p><h4>Security, Privacy and Execution Boundaries</h4><ul><li><strong>The Mac and Linux user account are trusted.</strong> Full Disk Access is granted to sshd-keygen-wrapper, not exclusively to the Blip key. Other shell-capable keys on that account inherit broad access. The restricted key still intentionally reads messages and invokes send/contact actions. The client automation switch is not a defense against another process running as the same user. If the dedicated key is absent, the shim falls back to ordinary SSH authority; verify confinement, do not assume it. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/docs/SECURITY.md">SECURITY</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/linux/blip-shim">shim</a></li><li><strong>No hosted Blip relay does not mean no outbound web requests.</strong> Automatic link cards default on, directly contacting linked sites from Linux when conversations are opened. The implementation accepts HTTP as well as HTTPS, sends no configured cookies, executes no page JavaScript, limits redirects/body sizes, and rejects many private addresses. However, safeUrl resolves a hostname separately from fetch(current): the validated IP is not pinned to the connection. That leaves a DNS-rebinding/validation-to-use gap in the intended SSRF defense. This is a static design finding, not a reproduced exploit. Use link_previews=off or an enforceable public-only egress boundary. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/linkpreview.ts">linkpreview.ts</a></li><li><strong>Message-body minimization is useful, not zero sensitive storage.</strong> Normal send bodies use stdin and state snapshots retain metadata rather than text. Attachments, preview titles/descriptions, contacts summaries and explicit exports remain sensitive; the notification daemon may retain previews. A clicked URL reaches the browser, and allowlisted toast previews can appear in process arguments. The absolute README slogan that text never touches argv/disk needs these qualifications. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/docs/PRIVACY.md">PRIVACY</a></li><li><strong>Optional automation adds real powers.</strong> Read pushes can emit read receipts and select a Mac conversation; tapbacks use Accessibility; OTP autofill injects into a focused field. Origin checks and single-use/deadline logic help, but application-supplied accessibility labels are not authentication. Enable features individually and test with synthetic/non-sensitive inputs. An unlocked gateway and auto-login guidance also have physical-security costs; retaining disk encryption and accepting manual unlock is a legitimate safer tradeoff. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/otp-policy.ts">OTP policy</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/otp-desktop.py">desktop adapter</a></li><li><strong>The advertised audit is project-reported.</strong> docs/SECURITY.md describes a Codex audit and later multi-lens reviews. The fixes are useful evidence, but neither token counts nor an audit label establish independent assurance of the current revision.</li></ul><h4>Data Preservation and Installation</h4><p>Read-only SQLite avoids directly corrupting Messages history, and muting/filtering in the client is not deletion. Nevertheless, Blip is not a backup. Mac file sending deliberately retains staging files because Messages may leave attachment records pointing at them. keep_sent limits that store to 200 MiB and removes older directories; its failure fallback deletes staging. Consequently older sent media that depends on that retained copy can become unavailable. The README's uninstall instruction to remove the entire Mac Blip directory also removes this retained media. Export important originals and inspect dependencies before cleanup; “never writes chat.db” is not equivalent to “cannot lose attachment availability.” <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/bridge/mac/imsg-send">imsg-send, keep_sent/gc_outbox</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/README.md">README removal section</a></p>
+<p>The setup script preserves non-owned configuration keys, appends an SSH block rather than replacing the whole file, and backs up displaced non-shim executables. It still mutates SSH authorization, installs helpers on both hosts and rewrites owned config values. Its config write is direct rather than a transactional rollback system. Review a pinned revision and back up relevant configuration first. Plugin installation follows main; updating Linux alone does not necessarily refresh the Mac helpers. No installer was run for this review. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/scripts/blip-setup">blip-setup</a></p><h4>Tests, Claims and Maturity</h4><p>The committed Ubuntu CI runs Bun tests, synthetic QML badge checks, Python syntax checks, numerous bridge regression suites, and shellcheck. Tests explicitly cover read verification, scheduling, attachment MIME, conversation clustering, socket trust, deadlines, quoting and contact creation. This is meaningful breadth. It is not a macOS integration matrix: real TCC grants, AppleScript behavior, Accessibility focus and Messages delivery still need live qualification. Bun is selected as latest and actions are version-tagged rather than immutable SHA-pinned. No tests or dependency audit were run here. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/.github/workflows/ci.yml">CI</a></p>
+<p>The Bun preload redirects XDG cache/config directories but does not replace HOME, while some helpers compute paths directly from HOME. That preload alone is not a secret-free sandbox. Future tests should run with an isolated home, no host credentials and no real SSH/desktop endpoints. <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/test-setup.ts">test-setup.ts</a>, <a href="https://github.com/nixfred/blip/blob/045582e896b64109005a1b01e84832d3fd87715e/collector.ts">collector.ts</a></p>
+<p>Public API snapshot on 2026-11-01: created 2026-08-31, last push 2026-10-31, 186 stars, 44 forks and 5 open items in GitHub's combined issues counter. Latest listed release was v2.6.2 on 2026-09-26, with no uploaded binary assets. These indicate an active young project, not reliability proof. Open issue #132 documents macOS 27 pin/mute breakage; the reviewed commit specifically fixes mute state/toggle handling, so the issue should not be treated as proof that all reported behavior still fails. <a href="https://api.github.com/repos/nixfred/blip">metadata</a>, <a href="https://github.com/nixfred/blip/releases/tag/v2.6.2">release</a>, <a href="https://github.com/nixfred/blip/issues/132">issue</a></p>
+<p>README claims such as approximately two-second push, warm SSH timings and 312 passing tests were not reproduced. Documentation lags in places: pinned conversations are described as read-only while newer action helpers include pin operations, and contact-scan/cache bounds differ between older and appended privacy sections. Prefer implementation and revision-specific tests to headline claims.</p><h4>Verification Limits</h4><p>Public HTTPS source acquisition and exact commit identity were verified; the prior public reviews/index were searched and no matching review found. Source analysis and artifact validation were performed; application execution, test results, performance, endpoint isolation, GUI rendering, send reliability and backup/restore behavior are unverified. This review is not an exhaustive vulnerability assessment or a promise of Apple-platform compatibility.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff</td></tr>
+<tr><td>Blip</td><td>Omarchy desktop with an existing Mac and SSH operations experience</td><td>Native integration, no Blip cloud relay; narrow desktop stack and Apple UI/schema coupling</td></tr>
+<tr><td>BlueBubbles</td><td>Broader messaging-client ecosystem and server-oriented deployment</td><td>Evaluate basic versus private-API modes separately; Blip's blanket “wants SIP off” comparison is too broad to adopt without qualification</td></tr>
+<tr><td>AirMessage web</td><td>Browser-based access rather than an Omarchy widget</td><td>Its public README describes a WebSocket proxy and Firebase/Sentry configuration; a different service and trust model</td></tr>
+<tr><td>Apple Messages on the Mac/iPhone</td><td>Maximum first-party compatibility</td><td>Requires using the Apple device rather than a native Linux workflow</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a two-device personal client, not a multi-tenant web service. Documented baseline is macOS 13+ with a logged-in Messages session, SSH and one-time permissions, plus Omarchy/Hyprland and the listed Linux tools. Sleep, logout, screen lock, TCC changes and macOS upgrades affect different features differently. Do not solve every failure by weakening system protections. Restrict SSH reachability, inventory other account keys, keep the dedicated key confined, start with previews and optional automation disabled, and confirm intended recipients and delivery/read outcomes on your own test account before normal use.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Credible specialist client with strong transport and read-state engineering. Pilot on your exact platform; disable automatic previews for sensitive use and preserve sent-media originals. Static review only: no tests or live messages.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/nixfred/blip">nixfred/blip</a> · MIT</span>
+    <span><a href="nixfred-blip.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
