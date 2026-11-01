@@ -94,6 +94,8 @@ Done: Markdown/HTML/index agree, provenance complete, public-only review and tem
 
 ## 6. Publish and summarize
 
+Publication is part of every admitted review, not a separate opt-in step. Continue directly from validated artifacts to push, remote verification and delivery in the same task. Never stop at an explanation of a fixable Git blocker or ask the user to repeat an already authorized publication request. Follow the automatic recovery procedure in the publication policy.
+
 Follow the publication policy's safe git procedure: inspect branch/origin/status/index, stage only explicit task-owned paths, inspect staged diff, validate, commit as review: <slug>, and inspect every outgoing commit before authorized publication. Preserve unrelated work. Fetch before pushing; rebase only a clean task-owned checkout; never force-push. If publication is on hold, stop at a local commit. Verify remote inclusion before claiming published.
 
 After verified publication, send one summary through supported messaging tools in the requesting authorized conversation, or return it to the parent responsible for delivery:
@@ -107,7 +109,7 @@ Public review: GitHub Markdown link
 
 A GitHub HTML file link is source, not a promised hosted page. If push fails, say locally committed/not published and give the blocker; do not claim successful publication or delivery. Never replace missing messaging tools with CLI/direct RPC.
 
-Done: remote publication verified or concrete blocker/hold recorded; summary delivered or returned to the responsible parent.
+Done only when the full review is published to RueClaw/public-data, remote inclusion is verified, and the requesting conversation receives the result with a live public review link. A child may return publication proof to its parent, but the parent owns channel delivery. Local commits, staged files, attachments, and recorded blockers are interim states, not completion. Keep blocked/held reviews open with artifact locations, blocker and next action; resume publication when the blocker is resolved.
 
 ## Rating system
 

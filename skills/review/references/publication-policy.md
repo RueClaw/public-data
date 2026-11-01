@@ -38,6 +38,17 @@ Done: Markdown/HTML/index consistent, citations and license checked, redaction a
 
 ## 4. Commit, publish, and report
 
+### Automatic publication and recovery
+
+- An admitted review includes publication authorization; publish immediately after validation without a second request. An explicit user hold is different from a technical failure and must never be auto-released.
+- Test Git transport with the repository configured SSH identity. A logged-out GitHub CLI is not evidence that Git SSH publication is blocked. Worktrees share repository configuration; independent clones must explicitly inherit the verified SSH command without exposing key contents.
+- A dirty or divergent shared checkout is not a reason to stop. Preserve it and use a clean, durable task-owned worktree from freshly fetched origin/main. Transfer only authorized review commits/files; deliberately merge index rows without restoring stale entries. Do not push unrelated commits. Store unfinished work outside temporary directories.
+- After a non-fast-forward rejection, fetch, inspect incoming changes, integrate on the clean task-owned branch, revalidate and retry without force. After a connection/auth failure, make one bounded recheck. After uncertain push output, check remote inclusion before attempting another push.
+- If a transient blocker remains, retain the artifact paths, exact commit, authorization, destination, requesting route, blocker and next action in private task state. Before ending, register a supported scheduled retry carrying that context; inspect existing jobs and reuse an existing task-owned retry rather than duplicating it. Retry with bounded backoff, never busy-poll. Do not leave the only artifact in /tmp.
+- If scheduler creation is unavailable or refused, explicitly report that automatic retry is NOT installed and identify the operator action required. Do not substitute an unapproved shell timer or claim that written instructions are an active scheduler.
+- Resuming after authentication repair includes publication and channel delivery, not just an authentication test. If a delegated worker fails, the parent recovers its actual effects and continues directly. A failed child does not finish the task.
+- Mark complete only after both remote inclusion and supported-message delivery are confirmed; then remove/disable the task-owned retry. If publication succeeded but delivery failed, retry delivery only and do not publish duplicate reviews.
+
 Public destination: https://github.com/RueClaw/public-data, branch main. Resolve <public-data> to the trusted local checkout; do not assume a historical vault path. Verify branch, origin fetch/push destination, status, and staged changes before any git operation. Never rewrite remotes or credentials. Preserve unrelated modifications and commits; do not stage them, stash them, reset them, or push them incidentally.
 
 Stage only the review's explicit file paths (plus README and explicitly approved extractions); inspect git diff --cached and run git diff --cached --check. If the index already contains unrelated work or files overlap concurrent edits, stop and coordinate. Commit as review: <slug>.
@@ -48,4 +59,4 @@ Verify the remote branch contains the reviewed commit before calling it publishe
 
 Send one concise summary to the requesting authorized research conversation: verdict, 2–4 findings, public review link, important limitations. Do not post in other channels, notify third parties, or export private context. Use existing supported channel tools; no custom bot or polling service. If a subagent cannot send, return the result to its parent for delivery.
 
-Done: remote publication verified (or explicit blocker/hold recorded), summary delivered or returned to the responsible parent.
+Done only when the full review is published, remote inclusion is verified, and the requesting conversation receives a summary with its live public review link. Returning proof to a parent completes a delegated step, not channel delivery. A blocker/hold, local commit, or attachment leaves the review open; retain artifact locations, the blocker and next action until publication and reporting are verified.
