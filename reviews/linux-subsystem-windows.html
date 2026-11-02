@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linux Subsystem for Windows — Review</title>
+<meta name="description" content="Windows 11 applications as Linux Wayland windows, backed by a VM and a custom shared-GPU stack.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / linux-subsystem-windows</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">acceleration3/linux-subsystem-windows · reviewed 2026-11-02 UTC</div>
+    <h1>Linux Subsystem for Windows</h1>
+    <p class="one-liner">Windows 11 applications as Linux Wayland windows, backed by a VM and a custom shared-GPU stack.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 root; bundled and component caveats</span>
+      <span class="chip">C++ · Qt 6 · KVM · Wayland · WDDM</span>
+      <span class="chip"><a href="https://github.com/acceleration3/linux-subsystem-windows">acceleration3/linux-subsystem-windows ↗</a></span>
+      <span class="chip"><a href="linux-subsystem-windows.md">Full review and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">93</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Windows on Linux — not Microsoft WSL</h3><p>A real Windows guest provides OS compatibility. remotewin presents separate application windows; accel-virt forwards graphics commands to Linux host drivers without whole-GPU passthrough.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Shared GPU does not mean universal compatibility</h3><p>API coverage and author GPU tests are promising, not certification. A Lightroom issue reports redraw and acceleration failures. Some performance notes describe uncommitted work, and fallback pixels can be much slower.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Convenience crosses security boundaries</h3><p>Loopback RPC and MCP have no inspected authentication gate; guest credentials persist in INI and unattended media. Silent administrator elevation, test signing, writable shares and persistent USB permissions demand an explicit trust decision.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Manager</td><td>C++20 / Qt 6 / user-session libvirt</td></tr><tr><td>VM</td><td>Patched QEMU / KVM / Windows 11 24H2+</td></tr><tr><td>Window transport</td><td>remotewin / Wayland / KWin / dma-buf</td></tr><tr><td>GPU</td><td>WDDM 3.2 / Vulkan / DXVK / vkd3d-proton</td></tr><tr><td>Verification</td><td>Static only; no builds, tests or benchmarks run</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Desktop integration</h4><p>Per-application windows, popups, file opening, USB attachment and shared folders are implemented. Managed mirroring distinguishes listener readiness from the first actual frame.</p><h4>Compatibility evidence</h4><p>The root README offers D3D9/11/12, Vulkan, OpenGL and OpenCL, including 32-bit processes. Native D3D9 exports exist despite stale component documentation. Real-app compatibility remains unverified here.</p><h4>Evidence limits</h4><p>The GPU harness describes multiple GPUs, image comparisons and reset detection. Large traces and run outputs are outside Git; no complete independent benchmark replay was obtained. Current CI targets main while the default branch is master and references missing codegen paths.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Manager → framed JSON RPC → guest service/session helpers. remotewin carries windows; accel-virt carries GPU commands through a patched QEMU device. GPU-backed frames use exported dma-bufs; fallback uses TCP pixels.</p><p>LSW runs the executor inside QEMU, not the optional separate renderer described by accel-virt. Host forwards bind loopback, but the guest listener binds all guest interfaces. The manager also starts a powerful unauthenticated loopback MCP endpoint.</p><p>Credential storage is plaintext QSettings INI plus unattended media. Framing has no visible maximum payload cap. This is not a hostile-guest containment recommendation.</p><p>Exact root SHA: b8242f960cf5b9ec7ee4b7a1e8fb7af1a01113c0. accel-virt: a9c01985cee76fa684d1666b39e9433128426c86. remotewin: dce05c0234ea67a7c8239f71e1b584907dd71f18.</p><p><a href="linux-subsystem-windows.md#evidence">Full revision-pinned evidence and limitations</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff</td></tr><tr><td>Wine / Proton</td><td>Supported apps without Windows</td><td>Less OS overhead; different compatibility gaps</td></tr><tr><td>WinApps</td><td>RDP / RemoteApp integration</td><td>Conventional remoting rather than custom shared GPU</td></tr><tr><td>virt-manager</td><td>Ordinary Windows VM</td><td>Less seamless; simpler operational model</td></tr><tr><td>VFIO / Looking Glass</td><td>Vendor GPU-driver workloads</td><td>Suitable hardware and more configuration required</td></tr><tr><td>Native Windows</td><td>Critical vendor-supported apps</td><td>No seamless Linux integration</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Target: x86-64 KVM, KDE/KWin Wayland, host Vulkan drivers, Windows 11 24H2+ and unenrolled Secure Boot keys for the test-signed driver. Arch-built packages currently require Qt ≥6.12; other distributions may not match the ABI. Defaults include 8 GiB guest RAM and a 60 GiB disk.</p><h4>Recovery before experimentation</h4><p>Back up disk, NVRAM, domain XML and settings before upgrades. Package removal is not a complete cleanup: inspect user state, desktop integration and generated USB udev rules. reset-vm.sh deletes the entire data directory despite its ISO-preservation comment; do not use it as recovery for valuable data.</p><h4>Rights and redistribution</h4><p>Root LSW is Apache-2.0, but bundled QEMU, WinFsp and other components retain their terms. Neither pinned standalone first-level submodule had a tracked LICENSE/COPYING file; clarify before reuse. Windows, applications, SDK/WDK materials and media require separate rights.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantive experimental engineering, not a hardened daily driver. Evaluate on a disposable licensed guest: unauthenticated local control, plaintext guest credentials, stale CI and a destructive reset script require caution. Static review only; no applications, benchmarks or VM installation tested.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/acceleration3/linux-subsystem-windows">acceleration3/linux-subsystem-windows</a> · Apache-2.0 root; bundled and component caveats</span>
+    <span><a href="linux-subsystem-windows.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
