@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [omarchy-mlx.md](reviews/omarchy-mlx.md) [page](reviews/omarchy-mlx.html) | [joshuaswarren/omarchy-mlx](https://github.com/joshuaswarren/omarchy-mlx) | MIT code; component/model terms separate | ⚠️ Interesting | Native MLX Vulkan and ANE tooling for Apple Silicon Linux; qualified-hardware pilot with numerical, API-security and released-installer caveats. Static review. |
 | [figcraft.md](reviews/figcraft.md) [page](reviews/figcraft.html) | [storytold/figcraft](https://github.com/storytold/figcraft) | MIT OR Apache-2.0; asset exceptions | ⚠️ Interesting | Native Rust interface-design editor with shared CLI/MCP engine; experimental interchange, alpha collaboration and privacy/documentation caveats. Static review. |
 | [linux-subsystem-windows.md](reviews/linux-subsystem-windows.md) [page](reviews/linux-subsystem-windows.html) | [acceleration3/linux-subsystem-windows](https://github.com/acceleration3/linux-subsystem-windows) | Apache-2.0 root; component caveats | ⚠️ Interesting | Windows-on-Linux VM with per-app Wayland windows and shared GPU; experimental security, CI, licensing and recovery caveats. Static review. |
 | [rustxng.md](reviews/rustxng.md) [page](reviews/rustxng.html) | [sahenjp/RustXNG](https://github.com/sahenjp/RustXNG) | AGPL-3.0-or-later | ⚠️ Interesting | Rust metasearch and agent page retrieval; useful sidecar, but privacy claims, SSRF boundaries and benchmark comparability need correction. Static review. |
