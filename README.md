@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [figcraft.md](reviews/figcraft.md) [page](reviews/figcraft.html) | [storytold/figcraft](https://github.com/storytold/figcraft) | MIT OR Apache-2.0; asset exceptions | ⚠️ Interesting | Native Rust interface-design editor with shared CLI/MCP engine; experimental interchange, alpha collaboration and privacy/documentation caveats. Static review. |
 | [linux-subsystem-windows.md](reviews/linux-subsystem-windows.md) [page](reviews/linux-subsystem-windows.html) | [acceleration3/linux-subsystem-windows](https://github.com/acceleration3/linux-subsystem-windows) | Apache-2.0 root; component caveats | ⚠️ Interesting | Windows-on-Linux VM with per-app Wayland windows and shared GPU; experimental security, CI, licensing and recovery caveats. Static review. |
 | [rustxng.md](reviews/rustxng.md) [page](reviews/rustxng.html) | [sahenjp/RustXNG](https://github.com/sahenjp/RustXNG) | AGPL-3.0-or-later | ⚠️ Interesting | Rust metasearch and agent page retrieval; useful sidecar, but privacy claims, SSRF boundaries and benchmark comparability need correction. Static review. |
 | [nixfred-blip.md](reviews/nixfred-blip.md) [page](reviews/nixfred-blip.html) | [nixfred/blip](https://github.com/nixfred/blip) | MIT | ⚠️ Interesting | Omarchy iMessage client over a restricted Mac SSH bridge; strong read-state design, but preview DNS and sent-media retention caveats. Static review. |
