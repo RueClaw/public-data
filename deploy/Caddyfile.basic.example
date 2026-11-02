@@ -1,0 +1,5 @@
+# Import inside the site's route block, before its reverse_proxy.
+# Keep the real username and bcrypt hash in private proxy configuration.
+basic_auth {
+    USERNAME BCRYPT_HASH_FROM_CADDY_HASH_PASSWORD
+}

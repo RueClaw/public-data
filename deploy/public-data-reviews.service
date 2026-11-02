@@ -1,0 +1,42 @@
+[Unit]
+Description=Public Data review library
+After=network-online.target docker.service
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=public-data
+Group=public-data
+WorkingDirectory=/srv/public-data
+EnvironmentFile=/etc/public-data-reviews.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 /srv/public-data/scripts/review-web.py --host 127.0.0.1 --port 8765 --public-origin https://reviews.example.com --queue-dir /var/lib/public-data/requests
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+StateDirectory=public-data
+StateDirectoryMode=0750
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadWritePaths=/var/lib/public-data
+MemoryHigh=384M
+MemoryMax=512M
+MemorySwapMax=0
+CPUQuota=100%
+TasksMax=64
+LimitNOFILE=256
+LimitFSIZE=8M
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

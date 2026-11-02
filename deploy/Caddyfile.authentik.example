@@ -1,0 +1,11 @@
+# Alternative to Basic auth, not an additional bypass or optional fallback.
+# Configure an Authentik proxy provider in forward-auth mode, add this app
+# to its outpost, and bind an explicit user/group access policy first.
+# Import inside a route block so this order is preserved.
+reverse_proxy /outpost.goauthentik.io/* http://AUTHENTIK_OUTPOST:9000
+forward_auth http://AUTHENTIK_OUTPOST:9000 {
+    uri /outpost.goauthentik.io/auth/caddy
+    copy_headers X-Authentik-Username X-Authentik-Groups X-Authentik-Uid
+}
+# The existing application reverse_proxy and gateway token follow this block.
+# An unavailable outpost must fail closed. Never add an anonymous fallback.
