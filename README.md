@@ -22,6 +22,10 @@ Curated patterns, prompts, architectural ideas, and repo reviews extracted from 
 
 ---
 
+## Web interface
+
+Run `python3 scripts/review-web.py` and open [the local library](http://127.0.0.1:8765) to browse reviews, read interactive guides, save entries, switch themes, and manage file-backed review requests. See [web interface documentation](web/README.md) and [request format](review-requests/README.md). The interface does not automatically run agents, commit changes, or publish reviews.
+
 ## Review workflow
 
 Use the repository-owned [review skill](skills/review/SKILL.md) and its [publication policy](skills/review/references/publication-policy.md) for repositories, articles, guides, and papers. Public outputs are `reviews/<slug>.md`, a matching standalone HTML page, and one README row; summaries link to the published review. Authorized channel routing is configured privately by the operator, not by this repository.
