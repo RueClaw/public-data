@@ -86,6 +86,4 @@ The `needReferenceImages` field is interesting — it flags prompts that require
 
 **Practical for creative/marketing work** — if you're generating images for VOS documents, marketing materials, or any project requiring image gen, having pre-validated prompts with sample outputs is faster than trial and error.
 
-**The data pipeline pattern is worth noting:** private CMS → GitHub Actions export → public JSON → agent file reads. This is a clean pattern for publishing live-updating reference data that agents can consume without API dependencies. Stealable for Marcos's KB, for public-data updates, for anything that has a CMS backend and wants agent-accessible snapshots.
-
 **The `needReferenceImages` field** as a structured boolean flag for "this prompt requires extra input" is a useful pattern for any skill that has prompts/templates with varying input requirements.

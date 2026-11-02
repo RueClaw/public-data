@@ -50,8 +50,6 @@ The system uses four specialized agents orchestrated via LangGraph:
 
 **2. Channel-Fitted Trends:** The Trend Agent uses a "fitted trend channel" tool—automated geometry on top of the price data before the LLM sees it. This provides the LLM with structured spatial context (slopes, boundaries) rather than just a sequence of numbers.
 
-**3. Decision Synthesis (The Judge Pattern):** The Decision Agent acts as a judge/aggregator, weighing conflicting signals from specialized sub-agents. This is a robust pattern for any complex multi-signal analysis (like our Parkinson's or Longevity work).
-
 ---
 
 ## Verdict

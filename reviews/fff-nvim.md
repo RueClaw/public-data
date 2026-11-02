@@ -112,6 +112,6 @@ Also tested on the Linux kernel repo (100k files, 8GB) in the Neovim demo. The m
 **For our setup:**
 - The MCP server is a direct drop-in for Claude Code sessions — `fff-mcp` handles grep and file search with frecency ranking out of the box. One install script, one line in CLAUDE.md.
 - The shared frecency DB between Neovim and MCP means file relevance from human editing sessions flows into AI sessions automatically.
-- The frecency decay model is directly applicable to Ori-Mnemos or any memory system that needs time-weighted relevance scoring.
+- The frecency decay model is directly applicable to a memory system that needs time-weighted relevance scoring.
 
-MIT. Prebuilt binaries for darwin-arm64 (our platform).
+MIT. Prebuilt binaries for darwin-arm64 (supported platform).

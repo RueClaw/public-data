@@ -74,6 +74,4 @@ Storage layout:
 
 Direct utility: we have multiple Claude Code contexts (ODR project, Rue's global setup, potentially client-specific rulesets). `claudectx` handles this cleanly. Pairs well with `.claude/rules/` per-profile.
 
-Also relevant for Debbie — she'll eventually need her own Claude Code profiles separate from Rue's.
-
 Install: `brew install foxj77/tap/claudectx`

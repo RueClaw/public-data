@@ -182,29 +182,9 @@ The principles document is worth reading independently:
 
 ---
 
-## Comparison to Our Setup
+## Deployment considerations
 
-**Strongly aligned:**
-- TELOS ≈ our SOUL.md + USER.md + MEMORY.md, but more structured and goal-oriented (10 distinct files)
-- Research pack's multi-agent parallel research ≈ our sessions_spawn pattern
-- Security pack PromptInjection testing is something we don't have
-- Thinking pack modes align with things we do ad-hoc (council-of-high-intelligence yesterday covers Council; we have no structured FirstPrinciples or Science workflows)
-- Status line sparklines are ahead of anything we have
-
-**Their approach we could adapt:**
-- TELOS structure (separate files for beliefs, mental models, learned lessons) is more structured than our flat MEMORY.md
-- The ratings.jsonl feedback loop enabling sparkline visualizations of quality over time
-- Mandatory URL verification in research workflows
-- The `Code → CLI → Prompts → Agents` escalation principle is exactly right and should be in our COMMON_SENSE.md
-- WorldThreatModelHarness for stress-testing ideas against world models
-
-**Our setup advantages:**
-- Multi-agent infrastructure (Anek, Debbie) — PAI is single-machine
-- LCM compaction vs their 200-line hard limit
-- Discord/Slack/iMessage integrations
-- Market brief and project management skills
-
----
+Evaluate isolated service accounts, least-privilege tools, memory validation, network egress controls and multi-agent requirements against the intended deployment. Public reviews do not describe a private installation.
 
 ## Extractable Patterns
 

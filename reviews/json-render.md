@@ -126,10 +126,5 @@ The repo ships `skills/` at the repo root — per-renderer SKILL.md files coveri
 
 ## Relevance
 
-**High.** This is directly relevant to:
-- **VOS (OpinionatedDocReviewer)** — the meta-critic rendering problem (show AI feedback in structured UI components) is exactly what json-render solves. Could replace the current TanStack Table + custom rendering with a proper catalog-driven approach.
-- **Marcos (Parkinson's agent)** — generating dynamic, personalized UI for a non-technical user from AI output without risking arbitrary code execution.
-- **Any agent that needs to produce UI** — the MCP Apps integration means you can drop this into any Claude tool and get rich interactive output instead of text.
-
 ## License
 Apache-2.0 (Vercel Inc., 2025) — permissive, use freely.

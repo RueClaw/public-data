@@ -89,19 +89,8 @@ Four research modules:
 
 **vmlx** (#234) is our current "ship this weekend" item for local MLX inference. mac-code is a different angle: it's the agent layer on top of llama.cpp/MLX, not the inference server itself. These compose cleanly — vmlx as the inference backend, mac-code patterns for the agent routing layer.
 
-**Direct wins to extract:**
-- KV cache quantization flags for llama.cpp (`--cache-type-k q4_0 --cache-type-v q4_0`) — already useful for our Debbie/Rue setups
-- Text-routing intent classification pattern — applicable to any agent running at low quant
-- TurboQuant module — directly applicable to the MLX stack if we push context persistence
-
-**Parkinson's agent (Marcos):** The persistent KV cache + R2 sync architecture is interesting for continuity of care context — load the patient's full history once, persist it, resume cross-session without re-processing. Worth watching.
-
 ---
 
 ## Verdict
 
 🔥🔥🔥🔥 — The text-routing trick for low-bpw models and the KV cache tiering architecture are the two transferable insights. The llama.cpp KV quantization flags alone are worth the review. Very new project with self-reported benchmarks, but the core ideas are sound and demonstrated.
-
-**Steal immediately:** `--cache-type-k q4_0 --cache-type-v q4_0` llama.cpp flags. Text-routing intent classification pattern.  
-**Watch:** TurboQuant as persistent context infrastructure for the Marcos agent.  
-**Note:** No explicit LICENSE file — educational use only until clarified.

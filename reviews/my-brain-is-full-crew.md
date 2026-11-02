@@ -102,8 +102,6 @@ They're complementary, not competing. Ori-Mnemos is the memory layer for AI agen
 
 **The dispatcher pattern is extractable.** The CLAUDE.md approach — pure router, no ego, routing by intent not command syntax — is a clean pattern for any multi-agent project. ODR's meta-critic routing could learn from this.
 
-**The Connector agent's approach** — finding non-obvious cross-note relationships — mirrors what we want for the Marcos agent's knowledge graph. The implementation strategy (Grep + Read across vault + synthesize connections) is worth reading in full.
-
 **The inter-agent messaging protocol** — agents leaving notes for each other in a shared inbox — is a simple but effective coordination pattern that doesn't require a complex orchestration framework. Worth adapting.
 
 **Not useful for Vida Meat or non-technical users** — this requires Claude Code and manual vault setup. It's a developer/researcher tool.

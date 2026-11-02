@@ -89,8 +89,6 @@ This isn't technically novel — it's a minimal EPUB reader. What's interesting 
 
 ## Relevance
 
-**For Marcos:** The plain-text extraction pattern is useful for the Parkinson's agent. If Marcos has books (medical references, etc.) in EPUB format, reader3's EPUB → plain text pipeline is already written and handles TOC, spine ordering, and image path rewriting. Could be adapted as an ingestion tool for a RAG system.
-
 **For the Obsidian vault / content ingestion:** reader3's `extract_plain_text()` is a solid EPUB → text function worth lifting. Handles encoding errors (`errors='ignore'`), HTML comment removal, script/style stripping, whitespace normalization — all the ugly edge cases in EPUB content.
 
 **As a workflow artifact:** More interesting as a demonstration of Karpathy's reading practice than as deployable software. Reading books with LLMs chapter-by-chapter as a study technique — the tool exists to reduce friction on that workflow.

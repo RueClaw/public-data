@@ -72,8 +72,6 @@ The README documents a formal handoff protocol for passing context between skill
 
 ## Relevance
 
-**Direct use case:** mrchuck's marines.bluesun.net WordPress site. Running `/seo:audit-page` on it would give structured recommendations. The GEO angle is also relevant for any content site that wants visibility in AI answers.
-
 **The `geo-content-optimizer` skill** is worth understanding for the research channel — the techniques for making content quotable by AI (precise stats, declarative quotable statements, FAQ schema, structured Q&A) are exactly the same techniques that make content good for RAG retrieval. The GEO optimization literature and the RAG optimization literature are converging.
 
 **The memory-management skill pattern** — hot cache in CLAUDE.md, cold storage for archival, promotion/demotion rules — is directly stealable for any domain-specific agent that needs project context persistence.

@@ -172,8 +172,6 @@ The no-calibration-data requirement is a meaningful practical advantage. GPTQ an
 
 The MLX 4-bit path is working but not optimized. PolarQuant's weight quality improvement carries over to any backend — the question is whether someone implements efficient Hadamard + Lloyd-Max dequantization kernels in Metal/MLX. The mathematical approach is backend-agnostic; only the inference kernels are CUDA-specific.
 
-For Anek (M4, 32GB) and Rue (M1 Max, 64GB): the MLX path produces better weights than standard GGUF at the same bit width, just at lower throughput. Worth monitoring as MLX kernel implementations improve.
-
 ---
 
 ## Verdict

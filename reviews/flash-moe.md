@@ -1,7 +1,7 @@
 # Anemll/anemll-flash-llama.cpp — Review
 
 **Repo:** https://github.com/Anemll/anemll-flash-llama.cpp  
-**Author:** Anemll (OpenClaw/Anek ecosystem)  
+**Author:** Anemll
 **License:** MIT  
 **Stars:** 3  
 **Language:** C++ (llama.cpp fork)  

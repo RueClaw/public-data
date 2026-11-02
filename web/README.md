@@ -21,16 +21,10 @@ node --check web/app.js
 
 Integration tests use temporary files, never the real queue. They cover catalog metadata, HTML serving, submission persistence, duplicate detection, revision conflicts, URL validation, cross-origin/host checks and private-path isolation.
 
-## Nautilus deployment
+## Deployment and security
 
-The instance is installed at `/home/zob/services/public-data`, served by `public-data-reviews.service`, and reached by Caddy at `172.23.0.1:8765` (the host side of Caddy's Docker bridge). The service accepts the exact public origin `https://reviews.zlyxy.me`. The backend is not bound to LAN/WAN interfaces. Caddy serves the library publicly and restricts all `/api/requests` routes to LAN/tailnet clients. There is no application account/password system: do not expose queue routes publicly without adding authentication and abuse controls.
+Use a dedicated service account behind a trusted TLS reverse proxy. All routes require Basic authentication or a configured Authentik forward-auth policy. Backend access additionally requires a private gateway token. Keep credentials and concrete hostnames, addresses and filesystem paths outside the repository. See the generic examples in `deploy/` for both authentication modes and resource ceilings.
 
-The live deployment is a file snapshot, not a second Git checkout. Refresh explicitly after new reviews are committed:
+Only the four explicitly allowed web assets are served. Guides are sanitized to scriptless HTML with an HTTP sandbox and a deny-by-default content security policy, including on direct links. Existing guide JavaScript is intentionally disabled; tab sections are expanded for reading. These controls reduce active-content risk but do not verify factual accuracy or prevent deceptive text and links.
 
-```sh
-rsync -az --exclude=.git --exclude=__pycache__ --exclude=review-requests/ \
-  -e 'ssh -F ~/.ssh/config' ./ nautilus:/home/zob/services/public-data/
-ssh -F ~/.ssh/config nautilus 'sudo systemctl restart public-data-reviews'
-```
-
-Run from the repository root. This preserves the server's request records. There is no automatic Git synchronization or publication. Back up the live queue separately. To inspect: `sudo systemctl status public-data-reviews`; logs: `sudo journalctl -u public-data-reviews`. Before changing the Caddy route, back up `/home/zob/caddy/Caddyfile`, validate with the running Caddy container and reload only after validation passes.
+Deployment is an explicit file synchronization; preserve the live review queue and private authentication configuration. There is no automatic Git synchronization or publication. Back up request records separately.

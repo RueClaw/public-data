@@ -106,10 +106,6 @@ Optical flow-warped latent initialization for a second diffusion pass is a clean
 
 Primarily research-interest. Not directly applicable to our current work (no A100, wrong domain for what we're building). But the conceptual contributions are significant:
 
-- **For VOS/ODR:** The VLM-as-reasoner-about-consequences pattern is interesting. Could adapt for "what else changes if we accept this document edit?"
-- **For Parkinson's support work:** Long-term: if Marcos needs video editing for content creation, VOID-style tools could be useful for removing background distractions or medical equipment from video calls
-- **For general ML literacy:** Good example of how to frame a video generation task as counterfactual reasoning rather than masked inpainting
-
 ---
 
 ## Verdict

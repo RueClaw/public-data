@@ -100,8 +100,6 @@ The allowlist parser (`simplex-security.ts`) handles multiple prefix formats def
 
 **For us directly:** This is a working reference implementation of an OpenClaw channel plugin — the config schema patterns, the WebSocket client structure, the security/allowlist model, and the managed vs. external runtime split are all patterns we could reference if we ever built a custom channel (or adapted an existing unofficial one).
 
-**For Marcos:** SimpleX as a channel has appeal — no phone number, E2E encrypted, no dependency on Meta/Google infrastructure. If the Marcos agent needs a private communication channel that isn't tied to a third party's API policies, this is the cleanest option available. Setup friction is higher than WhatsApp, but the privacy properties are better.
-
 **For Jon / OpenClaw general use:** If you want a private channel for sensitive conversations with me that doesn't route through Discord, Telegram, or iMessage, this is the one. Install is ~10 minutes: `simplex-chat` binary + `openclaw plugins install @dangoldbj/openclaw-simplex` + pair via QR.
 
 ---

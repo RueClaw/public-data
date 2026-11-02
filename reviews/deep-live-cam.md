@@ -76,8 +76,6 @@ For legitimate creative uses (animation, film VFX, content creation), this is a 
 
 ## Relevance
 
-**The face detection + analysis pipeline** (InsightFace, face caching, detection rate limiting) is directly applicable to the Parkinson's video call work — knowing *when* a face is present, tracking across frames, face quality assessment. InsightFace's face analyser (`face_analyser.py`) is worth studying separately from the swap functionality.
-
 **The NSFW gate pattern** (opennsfw2 as a filter before processing) is a clean content moderation pattern for any image pipeline that needs to reject inappropriate content before doing expensive inference.
 
 **The Apple Silicon frame caching + detection rate limiting** is a practical pattern for any real-time video processing on M-series chips — don't re-detect every frame at 60fps, cache detections and refresh at 30fps.

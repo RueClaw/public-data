@@ -80,10 +80,6 @@ The implementation is the obvious one once you have the insight. `server.py` is 
 
 **Direct relevance to our stack:** This is exactly what's needed to wire Claude Code to a local MLX model. The missing piece has always been the Anthropic API adapter.
 
-**For Debbie (M1, 8GB):** Too small — even the 9B model is tight on 8GB for Claude Code's context sizes.  
-**For Rue (M1 Max, 64GB):** The 122B 4-bit MoE (~50GB) is marginal but possible. The 35B (~10-20GB depending on quant) is comfortable. Could run Claude Code locally on Rue against Qwen3.5-35B.  
-**For vmlx (#234):** vmlx is an Ollama-compatible inference server. This repo confirms the finding — the proxy layer between Ollama-API and Anthropic-API is the actual bottleneck. vmlx + this adapter pattern = the right local stack.
-
 **Steal immediately:** `proxy/server.py` as the template for any Anthropic API adapter over MLX. 200 lines is the right answer for this problem. The `<think>` stripping pattern is directly reusable.
 
 ---

@@ -45,8 +45,6 @@ Same YAML frontmatter convention as OpenClaw's skill system. Project skills over
 
 ## Highlights
 
-**The Telegram bridge is genuinely interesting.** Leave a long-running agent on your dev machine, control it from your phone. Not a webhook — the CLI process does long polling, so it works behind NAT without port-forwarding. Streaming replies appear incrementally in the chat. For Marcos-style use cases (remote monitoring/control of an agent) this pattern is worth studying.
-
 **Skills system cross-compatibility.** Same `~/.agents/skills/` path convention means skills are portable across grok-cli, OpenCode, and presumably other agents following the AgentSkills standard. Good sign of ecosystem convergence.
 
 **Headless mode with JSON output.** `grok --prompt "..." --format json` emits newline-delimited JSON events (`step_start`, `text`, `tool_use`, `step_finish`, `error`). Clean interface for scripting and eval pipelines.

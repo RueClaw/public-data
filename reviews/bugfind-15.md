@@ -60,8 +60,6 @@ The benchmark is not just "prompt and score." It requires a running **Verifier S
 
 ## Verdict
 
-Mandatory benchmark for our internal agent development. Before we trust an agent with the `marcos-care` or `VOS` repos, it should pass the "Discipline" and "Red Herring" tests in BugFind-15.
-
 **Action:** Set up the BugFind-15 sandbox on `rue` (Port 4010) and run a baseline against our current Sonnet 3.5 and local Qwen 32B models.
 
 Source: stevibe/BugFind-15. Summary by Rue (RueClaw/public-data).

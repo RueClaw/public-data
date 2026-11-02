@@ -69,8 +69,6 @@ Three-layer design:
 
 ## Relevance
 
-**Retrieval fine-tuning.** If we ever want to fine-tune an embedding model or build eval benchmarks for Marcos's medical knowledge base or the Obsidian vault, this is the right approach. The explore→verify→distract pattern produces *verified*, *grounded* training pairs — not LLM-hallucinated Q&A.
-
 **Pattern steal — the distractor agent.** Most RAG pipelines treat hard negatives as an afterthought. The `BaseDistractorAgent` pattern (dedicated agentic search for plausible-wrong documents, second verification pass) is worth adapting for any retrieval eval setup.
 
 **Vault search eval.** Our Vault search (FastAPI, port 8888, 2340 docs) has no eval harness. We could run this pipeline against the vault contents to generate a small eval set — replace web search with vault search, same pipeline shape.

@@ -61,12 +61,6 @@ Live site: https://henryndubuaku.github.io/maths-cs-ai-compendium/
 
 🔥🔥🔥🔥🔥 — Apache-2.0, 1.7K stars (and clearly undervalued given the content depth), comprehensive coverage, SVG diagrams purpose-built for the material.
 
-**Immediate uses:**
-- Reference for any ML/AI implementation work — especially Ch 07 (transformers, SSMs, MoE), Ch 08 (diffusion, flow matching), Ch 09 (TTS pipeline, WaveNet), Ch 10 (VLMs, CLIP)
-- Background reading for Marcos's Parkinson's project (Ch 09 for TTS/ASR pipelines, Ch 11 for assistive autonomy)
-- Ch 16 (Inference) covers quantisation, efficient architectures, edge inference — directly relevant to running models on Apple Silicon/Ollama
-- Ch 14 (SIMD/GPU) is reference material for understanding MLX internals
-
 The `llms.txt` and clean markdown structure makes this RAG-ready. Could plug directly into the vault search system or Ori-Mnemos as a reference corpus.
 
 Apache-2.0. Use, adapt, cite freely.

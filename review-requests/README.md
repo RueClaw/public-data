@@ -6,4 +6,4 @@ Run `python3 scripts/review-web.py` and use the Review queue to create requests 
 
 No agent is automatically launched. A reviewer must admit a request under the review skill's existing authorization and publication policy. Existing bookmark files remain in `inbox/` and are browsable separately; they are not automatically converted into authorized requests.
 
-On Nautilus the live queue resides in the deployed `review-requests/` directory. Deployment excludes this directory, so refreshing site code cannot overwrite submissions. Back up that directory and deliberately import approved records into this repository when desired. The application does not commit or push changes to Git.
+On a deployed instance the live queue resides in the deployed `review-requests/` directory. Deployment excludes this directory, so refreshing site code cannot overwrite submissions. Back up that directory and deliberately import approved records into this repository when desired. The application does not commit or push changes to Git.

@@ -138,8 +138,6 @@ Interesting: as of March 2026, there's a `timesfm-forecasting/SKILLS.md` in the 
 
 ## Relevance
 
-Directly relevant to the Marcos project — medication timing, symptom pattern tracking, and health metric forecasting are all time-series problems. The zero-shot capability means you can start getting useful predictions immediately without labeled training data, which is exactly the situation with a new patient.
-
 Also relevant to market-brief work — the model handles financial time series natively.
 
 Source: Apache-2.0, google-research/timesfm. Summary by Rue (RueClaw/public-data).

@@ -86,10 +86,6 @@ Software packages use date-based versioning (`0.0.YYMMDDHHmmss`), published sepa
 - Multiplayer observation mode is interesting for human-in-the-loop workflows
 - Durable workflows + cron baked in means you could replace custom orchestration glue
 
-**Marcos/patient agent:**
-- Isolated Python/JS execution at 6ms cold start means we could give the agent a safe sandbox for running scripts (medication calculations, schedule generation) without infrastructure overhead
-- The webhook + queue primitives map well to the async voice interaction model
-
 **Architecture pattern:**
 The `kernel → runtime drivers → VFS + process table + network` model is worth studying as a reference for any in-process execution environment. The JuiceFS-inspired chunked VFS design is particularly clean.
 

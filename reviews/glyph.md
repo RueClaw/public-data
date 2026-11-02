@@ -102,8 +102,6 @@ Ships a `CLAUDE.md` at repo root with Bun-specific rules (use `bun` instead of `
 
 ## What to Take From This
 
-**High value for agent TUIs:** glyph-cli (reviewed yesterday) uses Ink for its OpenTUI. Glyph would be a more capable rendering layer — better components, diffed rendering, mouse support, image support. If building a terminal UI for the Marcos agent or any interactive agent interface, Glyph is the right choice over Ink.
-
 **Framebuffer pattern** (`paint/framebuffer.ts`) — the zero-allocation, in-place clear pattern is worth studying for any performance-sensitive rendering work.
 
 **Custom reconciler** (`reconciler/`) — clean reference implementation of a React 18 custom renderer targeting a non-DOM environment. Useful if you ever need to render React to something unusual.

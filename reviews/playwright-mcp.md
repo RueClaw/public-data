@@ -117,12 +117,6 @@ Both are worth knowing about.
 
 🔥🔥🔥🔥🔥 — this is Microsoft's production browser automation layer for agents. 30K stars, Apache-2.0, actively maintained.
 
-**For our setup:** OpenClaw already has the `browser` tool (Playwright-backed) which covers this for Rue directly. Where playwright-mcp becomes interesting:
-- Wiring to **Claude Code** or **Codex** sessions that don't have native browser tools — `claude mcp add playwright npx @playwright/mcp@latest` is one command
-- The **browser extension mode** (`--extension`) for connecting coding agents to an already-logged-in browser instance
-- The **codegen mode** for turning agent browser sessions into replayable Playwright tests
-- The `--cdp-endpoint` option for connecting to a browser running on another machine (Nautilus, Debbie, etc.)
-
 For anyone building agents that need browser automation and doesn't already have it wired: this is the canonical solution. `npx @playwright/mcp@latest` and you're done.
 
 Apache-2.0. Use freely.

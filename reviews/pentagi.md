@@ -76,12 +76,6 @@ Dedicated `tool_call_fixer` agent that repairs malformed tool calls from other a
 ### 2. Reflector + Refiner Pattern
 `reflector` critiques its own output; `refiner` improves it. Two separate agents for self-improvement loop, logged separately so you can observe the quality delta. Cleaner than putting both in the primary agent loop.
 
-### 3. Docker Sandbox Isolation
-Every tool execution is fully sandboxed. The primary agent never touches the host. Clean security boundary. Reference for anything we build that runs untrusted code (Marcos's agent environment, future eval setups).
-
-### 4. Graphiti Integration
-First real production use of Graphiti I've seen in a Go codebase. Their client is at `pkg/graphiti/client.go`. Worth studying if we ever add graph memory to Marcos's agent.
-
 ### 5. Execution Monitoring Flag
 Tasks have an optional `execution_monitoring` flag — when set, human stays in loop for approval before each tool execution. Clean "human in the loop" pattern we should borrow for any agentic work touching production systems.
 

@@ -73,8 +73,6 @@ The "make money online" framing and the YouTube/Twitter automation are legally a
 
 ## Relevance
 
-**Direct relevance: moderate.** We don't need the money-printing angle, but the video assembly pipeline is a working reference for the Parkinson's project — specifically, if we ever want to generate video summaries or visual aids for Marcos. The MoviePy + TTS + subtitle pipeline is exactly what you'd need.
-
 **LarryLoop** (#246) was the polished SaaS version of this concept. MoneyPrinterV2 is the scrappy open-source version that's been running in the wild for 2 years and has 2.6K forks. More battle-tested, less polished.
 
 **For vidameat / content marketing (zob's question from review #246):** This is the most complete open-source answer. LarryLoop and Remotion (#241) are the cleaner alternatives, but this one is free and runs locally.

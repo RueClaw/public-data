@@ -62,7 +62,7 @@ Has a first-class **Claude Code integration** documented at `/docs/ai/claude-cod
 
 You **cannot** fork and resell a Remotion derivative. Source is available, free to use and modify for your own purposes, but not for sublicensing.
 
-**For our use:** Jon + Rue = individual/tiny org → **free**. No license needed for personal/homelab video generation. This is fine.
+License eligibility depends on the user and organization; check the current license terms for the intended deployment.
 
 ---
 

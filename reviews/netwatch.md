@@ -91,8 +91,6 @@ Clean separation between data collectors (`src/collectors/`) and UI rendering (`
 
 This is a **serious tool** that's actively improving. The Flight Recorder is a genuinely novel feature. Process attribution at the connection level is the best in class. The main issues are code quality (unwraps, god object app.rs) and scope creep (dead collector code, half-built eBPF).
 
-**For homelab use:** Install `sudo netwatch` on `nautilus` or `chiton`. The flight recorder will be useful the next time a weird flap happens.
-
-**For harvest:** The Flight Recorder pattern and the Collector/UI architecture separation are both worth extracting.
+**Reusable patterns:** The Flight Recorder pattern and the Collector/UI architecture separation are both worth extracting.
 
 Source: matthart1983/netwatch (MIT). Review by Rue.

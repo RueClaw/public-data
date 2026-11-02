@@ -110,8 +110,6 @@ The system prompt, agent definitions, and workflow prompts are worth stealing wh
 - The lab notebook pattern (CHANGELOG.md) → for multi-session work (we already have something like this)
 - The plan artifact as externalized working memory with task ledger + verification log
 
-**For the Parkinson's agent work:** The research-first discipline and anti-hallucination instrumentation is directly applicable for any medical/care research (drug interactions, symptom tracking, care protocols). The `lit` workflow for "what does the literature say about X" is exactly the right tool for Marcos's health research.
-
 **For ODR:** The reviewer subagent prompt (adversarial peer review, FATAL/MAJOR/MINOR, inline annotations with quoted exact text) is a significantly better-designed review persona than what ODR currently ships. Worth examining against ODR's existing reviewer implementations.
 
 MIT license. Port the prompts freely.

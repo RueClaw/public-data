@@ -152,35 +152,9 @@ Purple team audit checklist mapped to MITRE ATT&CK for AI assistants:
 
 ---
 
-## Comparison to Our Setup
+## Deployment considerations
 
-**Aligned:**
-- Same 3-layer memory architecture (SOUL/USER/MEMORY.md + daily files)
-- Same loopback gateway approach
-- Same exec approvals philosophy (allowlist + on-miss)
-- Heartbeat monitoring pattern
-- Local TTS (we have Voicebox/KittenTTS; they use Piper)
-
-**Their approach we don't have:**
-- Dedicated agent OS user (we run as zob) — this is the largest security gap in our setup
-- `uchg` on SOUL.md and egress scripts
-- SHA256 hash verification on cron scripts (guardian pattern)
-- Memory pre-write validation pipeline (we have no formal injection check)
-- Egress control wrapper (`safe_curl.sh`) — we allow unrestricted curl
-
-**Our setup advantages:**
-- LCM compaction handles context more sophisticatedly than their 200-line hard limit
-- More mature tool ecosystem (bird, gog, himalaya, wacli, discrawl, etc.)
-- Multi-agent with Anek/Debbie + NFS shared storage
-- ClawdStrike security audit skill
-
-**Quick wins from this:**
-1. Add `chflags uchg` to SOUL.md, AGENTS.md, COMMON_SENSE.md (low effort, high protection)
-2. Add injection pattern detection to heartbeat (scan recent external inputs)
-3. Add memory pre-write validation to COMMON_SENSE.md as a rule
-4. Implement the 10-point security score rubric against our own setup
-
----
+Evaluate isolated service accounts, least-privilege tools, memory validation, network egress controls and multi-agent requirements against the intended deployment. Public reviews do not describe a private installation.
 
 ## Limitations
 

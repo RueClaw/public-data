@@ -92,8 +92,6 @@ The browser harness wraps DOMShell MCP (Chrome Accessibility Tree as virtual fil
 
 **ODR:** The HARNESS.md methodology maps well to ODR's code review problem — structured pipeline analysis, phase-based generation, state management. Worth reading before the next ODR architecture pass.
 
-**Parkinson's agent:** The offline-video angle (ArcDLP review) plus LibreOffice harness = potential for agent-driven document generation in Marcos's support workflow.
-
 **Pattern steal:** `repl_skin.py` + SKILL.md generation pipeline. Both are generic enough to reuse in any agent-facing CLI tool we build.
 
 Install the OpenClaw skill:

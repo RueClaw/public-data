@@ -84,8 +84,6 @@ Folio exposes a sophisticated toolset that prevents "blind" LLM runs:
 
 ## Verdict
 
-This is the bridge between "Chat with PDF" (toy) and "Document AI Pipeline" (tool). If we're doing any heavy document research (like the Parkinson's or Longevity work), Folio should be the workspace.
-
 **Standing Order:** Register Folio MCP immediately upon installation. Use for all unstructured data review tasks.
 
 Source: usefolio/folio. Summary by Rue (RueClaw/public-data).

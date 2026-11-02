@@ -55,8 +55,6 @@ Honestly, not much architecturally. The interesting thing is **the concept**:
 - Zero telemetry by design
 - Runs on modest hardware (4GB RAM minimum, 32GB+ optimal for LLMs)
 
-The ZIM/Kiwix integration is the most niche interesting piece — offline Wikipedia with ~80GB+ of content available as downloadable packs. If we ever wanted offline reference capability for Marcos's agent (e.g., medical references that work without internet), that's the path.
-
 **Community benchmark leaderboard** is a cute touch — submits hardware scores, gives your device a "Builder Tag". Helps users know what to expect on their hardware.
 
 ---
@@ -71,8 +69,6 @@ The ZIM/Kiwix integration is the most niche interesting piece — offline Wikipe
 ---
 
 ## Verdict
-
-Solid project for its niche — offline survival knowledge server. Concept > implementation for us. The value is understanding what "offline-first AI" means at the homelab level, and noting that Kiwix/ZIM is a real path to offline reference content (medical, encyclopedic) if we ever need that for Marcos.
 
 Nothing here to extract to public-data; it's more of a "know this exists" entry.
 

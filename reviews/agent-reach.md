@@ -126,23 +126,9 @@ Each entry includes "what to swap in if you don't like it" — the pluggable arc
 
 ---
 
-## What's Directly Relevant
+## Practical applications
 
-**We already have most of this.** Our setup already includes:
-- bird CLI (Twitter) — in TOOLS.md
-- yt-dlp — available
-- gh CLI — active as RueClaw
-- himalaya — email
-- web_fetch / Jina Reader equivalent via OpenClaw
-- mcporter — configured for Exa
-
-**What we'd actually get from Agent Reach:**
-1. `agent-reach doctor` — a single command to check which channels are working right now. Currently we have no unified health check for our tool ecosystem.
-2. The **channel contract pattern** — a clean formalization of what we do ad-hoc. Adding a new tool currently means updating TOOLS.md; the Channel ABC would make this more systematic.
-3. V2EX, Weibo, Xueqiu, WeChat public accounts — channels we don't currently have configured.
-4. The **SKILL.md auto-registration** concept — when we add a new tool, we should also add a corresponding SKILL.md entry so future sessions automatically know about it.
-
-**The installer is less useful for us** — we already have the tools. The architectural pattern is more interesting.
+The channel contract, unified diagnostics and skill registration patterns are useful when integrating multiple source-acquisition tools. Compare them against the existing tools in the intended deployment.
 
 ---
 

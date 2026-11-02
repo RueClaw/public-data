@@ -74,7 +74,7 @@ Local checks on macOS:
 - `cargo test --workspace --locked`
   - Build completed and many test crates passed before failing in `fabro-cli`.
   - Observed failure summary: 431 passed, 3 failed, 1 ignored in the failing CLI test binary.
-  - Two failures involved invalid `FABRO_LOG_DESTINATION` handling around `stdot`; one involved a missing `/Users/zob/.fabro/auth.lock` in the local test environment.
+  - Two failures involved invalid `FABRO_LOG_DESTINATION` handling around `stdot`; one involved a missing `/Users/<user>/.fabro/auth.lock` in the local test environment.
 
 These results are not a clean green local validation, but the failures look concentrated in CLI/env/test-harness edges rather than the core architectural model.
 

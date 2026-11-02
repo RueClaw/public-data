@@ -105,8 +105,6 @@ Strong methodology, well-executed scaffolding, excellent agent coverage. The con
 
 The SDD workflow (constitution → spec → plan → tasks → implement → verify) is essentially what ralphinit/ralphonce does at the project level, with better formalization. The two complement each other.
 
-**Worth adapting:** the constitution template for long-running projects (ODR, Parkinson's agent), and the handoff chain pattern for our OpenClaw skills.
-
 ---
 
 *Source: https://github.com/github/spec-kit | License: MIT | Author: GitHub, Inc. | Reviewed: 2026-03-21*

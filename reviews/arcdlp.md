@@ -67,7 +67,5 @@ src/
 ## Relevance
 Low for agent/AI work. High for anyone who wants a clean, self-hostable video downloader without the yt-dlp CLI. The codebase is a good template for "simple Electron wrapper over a CLI tool" — the queue.js and ytdlp.js modules are worth stealing as patterns.
 
-**For Marcos (Parkinson's project):** If he needs offline video content (lectures, tutorials), this is the cleanest way to get it. No cloud, no accounts, files stay local.
-
 ## License
 MIT — take whatever you want.

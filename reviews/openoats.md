@@ -120,11 +120,6 @@ Point at any folder of `.md` or `.txt` files. Chunked, embedded, cached to disk 
 
 ## Relevance
 
-- Directly usable: point at the shared Obsidian vault or Marcos agent notes, use during calls with doctors/family/team
-- Pattern reference: the 5-stage pipeline with pre-LLM filters is clean architecture for any "interrupt with suggestion" agent
-- Marcos use case: could surface medication timing, symptom tracking prompts, or talking points during doctor appointments — knowledge base is just the Parkinson's research vault
-- The `SuggestionEngine.swift` is worth studying as a reference for "when to speak" logic
-
 ## Install
 
 ```bash

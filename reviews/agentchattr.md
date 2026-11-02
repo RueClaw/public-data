@@ -148,8 +148,6 @@ Correctly scoped for local use:
 
 **Direct value for multi-agent ODR work.** agentchattr solves the coordination problem that makes running multiple coding agents painful — the copy-paste, the context switching, the losing track of who knows what. Sessions with role casting map directly to ODR's meta-critic orchestration: Reviewer → Red Team → Meta-Critic → Synthesizer.
 
-**For the homelab setup:** Rue + Debbie in a shared agentchattr room would be interesting. Debbie handles Marcos-facing work, Rue handles research; they can coordinate on shared tasks without me proxying messages.
-
 **The `wrapper_api.py` pattern** for OpenAI-compatible local models is worth having for vmlx integration — once vmlx is running, any agent can @mention a locally-hosted model via the API agent wrapper.
 
 **Install:** `cd ~/src/agentchattr/macos-linux && sh start_claude.sh`
