@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hyperkernel / Hyperserve — Review</title>
+<meta name="description" content="A specialized Rust inference host for precompiled NVIDIA B300 megakernels—not the kernel generator.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / hyperkernel</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Hyperstitioncc/Hyperkernel · reviewed 2026-11-06</div>
+    <h1>Hyperkernel / Hyperserve</h1>
+    <p class="one-liner">A specialized Rust inference host for precompiled NVIDIA B300 megakernels—not the kernel generator.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT repository; checkpoint/dependency terms separate</span>
+      <span class="chip">Rust · CUDA 13 · B300 cubins</span>
+      <span class="chip"><a href="https://github.com/Hyperstitioncc/Hyperkernel">Hyperstitioncc/Hyperkernel ↗</a></span>
+      <span class="chip"><a href="hyperkernel.md">Full evidence and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">79</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">8</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Correct identity: Hyperserve, not a sandbox</h3><p>Four fixed modes run DeepSeek-V4.1-Flash, openpilot frame inference, Evo2 and MG3. Only the LLM mode serves HTTP; this is not an OS kernel or a published kernel-generation compiler.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Meaningful scheduling, narrow hardware</h3><p>Prefix-page reuse, prefill pacing, preemption and pinned-memory GPU rings are implemented. The LLM requires four B300s and about 203 GB of host RAM for its shared table alone; C5/C6/C7 profiles do not impose separate five/six/seven-lane caps.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Trust the artifacts, protect the service</h3><p>Cubins and bundle layouts execute with native GPU authority. Loopback and optional bearer auth are useful, but IPC, deadlines and tenant separation need hardening; the optional serve wrapper drops the API-key environment variable.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Host</td><td>Rust 2024, Rust 1.99.0, clap, libc</td></tr><tr><td>Device</td><td>cudarc 0.19.10; CUDA driver; B300 cubins</td></tr><tr><td>Service</td><td>std TCP, httparse, serde_json, SSE</td></tr><tr><td>State</td><td>In-memory lanes, prefix cache and metrics; no durable queue</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Specialized inference</h4><p>Four model runners with local checkpoints. Chat/completions support streaming, tool-call formatting and logprobs, but not Responses or structured-output constraints. Tool calls are returned as data, not executed.</p><h4>Evidence versus claims</h4><p>All 11 reference descriptors were decompressed and parsed without executing source. Five LLM descriptors declare four ranks, 1,048,576 context positions and 202,758,032,400 host-table bytes. These facts do not prove runtime capacity, numerical parity or speed.</p><h4>Testing posture</h4><p>137 Rust test annotations and eight integration-test files were inventoried; none was run. Fake-device tests cover host contracts, while some bundle/checkpoint checks are ignored by default. No GitHub workflows, releases, tags or Actions runs were found at retrieval.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Host policy / device protocol</h4><p>CLI → trusted bundle and checkpoint loader → rank processes and peer memory → scheduler/page pools → pinned-memory command/reply rings → native megakernel. The Kernel trait supports deterministic fake-device tests.</p><h4>Native trust boundary</h4><p>Bundles contain executable cubins; original kernel sources and a reproducible generator pipeline are absent. Local rank IPC lacks explicit peer-credential validation and restrictive-mode setup in the inspected path. Processes cooperate; they are not tenant sandboxes.</p><h4>HTTP boundary</h4><p>Loopback default, optional bearer key, 256 connections and 16 MiB bodies. Bodies are read before authentication; per-read timeouts are not total deadlines, and no socket write timeout was found. Use authenticated TLS ingress and external limits. The dsv41 wrapper uses env -i without passing HYPERSERVE_API_KEY.</p><h4>Recovery</h4><p>Prefix cache, jobs and metrics are volatile. Surfaced errors refuse work; the supervisor terminates other ranks after one exits, with no request replay or automatic restart. Validate failure cleanup and stalled-device behavior separately.</p><h4>Provenance and limits</h4><p>Reviewed 2026-11-06 at <code>14d1e149bd3ce6a033eeff67ea393a01ce4c6a77</code>. Static review only: no build, tests, GPU execution, model downloads, vulnerability scan or benchmarks. Repository created 2026-11-05; metadata popularity is not safety evidence. See the full Markdown review for revision-pinned citations and license scope.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>Best fit</th></tr><tr><td>vLLM / SGLang</td><td>Broader LLM serving ecosystems; verify exact model support</td></tr><tr><td>TensorRT-LLM</td><td>NVIDIA-oriented runtime/build tooling</td></tr><tr><td>Upstream model runtimes</td><td>Numerical reference baselines</td></tr><tr><td>Hyperserve</td><td>Host/device research or isolated qualification on exact B300 hardware</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Plan for Linux/Unix APIs, Rust 1.99.0, NVIDIA R580+ and B300 devices: four for LLM, one for driving/DNA, two for MG3. Checkpoints and their licenses are separate. Keep bundles immutable, temporary IPC private and credentials minimal; keep HTTP loopback unless protected by authenticated TLS ingress.</p><p>Do not treat this as a tested deployment recipe. First establish numerical parity, throughput at real context lengths, auth preservation, client deadlines, rank cleanup and restart behavior. MIT permits repository reuse with notices; it does not supply missing kernel source.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Real host/device engineering and useful fake-kernel tests, but alpha maturity, binary-only kernel rebuild provenance and incomplete service hardening limit this to study or isolated evaluation. No numerical correctness or performance claim was reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Hyperstitioncc/Hyperkernel">Hyperstitioncc/Hyperkernel</a> · MIT repository; checkpoint/dependency terms separate</span>
+    <span><a href="hyperkernel.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
