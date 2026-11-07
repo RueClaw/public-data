@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vork — Review</title>
+<meta name="description" content="Headless 3D and VFX rendering for code-writing agents — not an agent harness or a sandbox.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / vork</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">voyager-so/vork · reviewed 2026-11-07</div>
+    <h1>vork</h1>
+    <p class="one-liner">Headless 3D and VFX rendering for code-writing agents — not an agent harness or a sandbox.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Custom vork Preview License · not open source</span>
+      <span class="chip">Rust · Slang · Vulkan/Metal</span>
+      <span class="chip"><a href="https://github.com/voyager-so/vork">voyager-so/vork ↗</a></span>
+      <span class="chip">Static review · SHA 44188baab29ad1c174c9e949c982d9edb45308fc</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">787</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">49</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real rendering kernel, not an LLM wrapper</h3><p>Scene JSON and generated SDKs feed retained GPU resources and programmable camera, material and compute stages. The external agent authors and inspects; the renderer does not require a model key.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Performance claims need a fresh comparison</h3><p>Published timings use different quality settings and historical builds; the Blender reproduction helper is documented broken. Volumes are ignored, dense scenes can fail, and new programs can compile for minutes.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Trust and license are adoption gates</h3><p>Host file access, native compilers and media tools are not sandboxed job execution. Internal commercial rendering is allowed, but modified distribution and third-party render services need permission.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology / role</td></tr><tr><td>Entry point</td><td>Clap CLI: render, setup, std and topic/field help</td></tr><tr><td>Scene contract</td><td>Serde/schemars scene v2, validation, generated SDK types and JSON Schema</td></tr><tr><td>Renderer</td><td>Rust, wgpu 29, Vulkan/Metal, native ray queries, retained GPU scene and per-frame values</td></tr><tr><td>Programs</td><td>Pinned Slang compiler; generated shader modules, reflection and program ABI</td></tr><tr><td>Standard library</td><td>Native geometry/text/environment helpers and embedded QuickJS for shared functions</td></tr><tr><td>Output</td><td>PNG, EXR/control outputs; NVENC/VideoToolbox or FFmpeg fallback</td></tr><tr><td>Persistence</td><td>Files, immutable SDK buffer sidecars, content-keyed BLAKE3-checked disk cache; no database</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p>An external agent writes scene JSON, optionally using Python or TypeScript helpers, invokes the native CLI, inspects the rendered image and revises the scene. There is no embedded LLM or required model-provider key in the inspected render path. Agent intelligence and any image-model assets belong to the surrounding workflow, not to the rendering kernel.</p>
+<p>Scene API v2 separates content from render profiles. The standard previs/draft/final/path profiles trade fidelity and cost; the default hybrid renderer combines raster visibility and ray-traced lighting, while path tracing is a separate choice. Assets can be imported from glTF, and libraries/examples cover simulation, compositing, camera effects and VFX on real footage. These are executable graphics workflows, not generative-video inference. The README explicitly identifies image-model-painted backgrounds in one showcase and qualifications on other demos. [E1–E4]</p>
+<h4>Key Features</h4><h4>An interface designed for iterative code generation</h4>
+<p>The CLI exposes short progressive help, exact field help, named render profiles and structured scene validation. Scene structs reject unknown fields in inspected definitions, and reference/name/resource validation runs before rendering. Python/TypeScript types derive from the scene contract rather than being unrelated hand-written APIs. This reduces spelling and schema drift; it does not ensure that an agent's composition is artistically correct or that a supported scene fits VRAM. [E2, E3]</p>
+<h4>Retained scene resources and programmable rendering</h4>
+<p>The install step creates an immutable GPU scene and effect plan; frame processing supplies animation and changing values instead of rebuilding every resource. Slang hooks cover camera, materials, propagation, display/compositing and compute-based geometry/simulation. This is the most useful architectural distinction from driving an editor through clicks. CPU parsing, planning, animation evaluation and I/O remain necessary; “GPU” is not “CPU-free.” [E4, E5]</p>
+<h4>Actual preview limits, not just a roadmap disclaimer</h4>
+<p>The current install code deliberately strips participating-media bindings and volume geometry, warning that they are ignored. Extra environment lights are also reduced to the first one in that path. Thus the presence of volume-related source modules is not proof of usable volume rendering in this release. The README documents allocation failures on dense scenes, quality losses at four/eight samples, long compilation stalls, and limited water simulation. More samples cannot restore omitted indirect transport. [E1, E4]</p>
+<h4>Claims and Evidence</h4><table><tbody><tr><td>Claim / impression</td><td>Evidence and qualification</td></tr><tr><td>Agent-friendly rendering</td><td>CLI, schema, SDKs and program hooks substantiate the interface; no independent agent-success study was performed.</td></tr><tr><td>Faster than Blender</td><td>Vendor final-profile warm timings include selected 1.14–2.32× movie ratios, but quality/sample/denoising and startup boundaries differ. Not equal-quality speedups.</td></tr><tr><td>Million simulated birds</td><td>Example compute programs and recorded workflow exist; Blender figures are sparse-frame projections, not complete measured movies.</td></tr><tr><td>Fast path tracing</td><td>Carried-forward path measurements are actually 5.81× and 1.99× slower than Cycles for two reported scenes.</td></tr><tr><td>Reproducible benchmark</td><td>Public runner omits the historical draft profile/seed and forces denoise=false; Blender helper is documented broken on 5.2.1. Historical tables are not currently reproducible by those commands.</td></tr><tr><td>Physical correctness</td><td>Analytic-oracle and numerical/regression test source exists; no independent executed result or broad correctness guarantee follows.</td></tr></tbody></table>
+<p>The tables primarily describe frozen build 81ae2b075 or earlier freezes, not the reviewed HEAD. The reported sweep delivered 583/585 images, with a million-stars allocation failure in both profiles; 19 earlier comparisons failed their no-worse FLIP condition. These unusually candid qualifications are valuable, but do not rescue the missing independent rerun. Setup/warmup can cost minutes, and new shaders can compile long after initial setup. [E1, E11]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p>The main flow is:</p>
+<p>1. CLI/SDK authors or loads scene JSON and selects a profile and output paths.<br>2. Scene/standard-library expansion normalizes geometry and resource references; validation checks structure and relationships.<br>3. Renderer installation imports assets, compiles programs, builds acceleration/resources and derives the effect plan.<br>4. Retained resources are reused across ordered frame work; native encoders can keep video on GPU, with readback fallbacks.<br>5. Output workers encode/write frames, and cache entries preserve expensive intermediate work.</p>
+<p>Seven Rust workspace crates divide CLI, scene, standard library, mesh processing, Slang, rendering and encoding. The renderer remains a large, tightly coupled subsystem with many inline regression modules. Vendored wgpu family patches, EXR bounds changes and Basis compression changes have provenance files; this improves inspectability but makes upstream updates a maintenance responsibility. GPU/FFI code and dynamic native libraries mean Rust alone is not an isolation guarantee. [E2, E4–E6]</p>
+<h4>Execution, Permissions, Network and Privacy</h4><p><strong>The trust boundary is the operating-system process, not the scene document.</strong> Asset and shader paths are resolved for use, not confined to a dedicated scene root. SDK path rewriting intentionally permits relative paths outside the scene directory. Slang runs as a subprocess and uses authored module origins for imports. Python/TypeScript authoring programs are ordinary host code; their helpers are not an execution sandbox. Only the embedded standard-library QuickJS context has the narrower no-host-binding boundary. [E3, E5, E7]</p>
+<p>The inspected SDK render calls use argument arrays rather than concatenating a shell command, which avoids that common injection class. However, executable selection through VORK_BIN, Slang selection through VORK_SLANGC and native tools on PATH remain trusted configuration. Unix compiler subprocesses use a process-group guard to prevent orphaned compilers after the parent dies; that is lifecycle cleanup, not CPU/VRAM quotas or a filesystem jail. The non-Unix compiler path simply spawns the process. [E5, E7]</p>
+<p>There is no HTTP service/auth/CORS layer in the inspected CLI architecture. That is appropriate for a local renderer, not evidence that arbitrary remote jobs are safe. No account, telemetry uploader or provider-credential flow was identified in the sampled core path; this is not a network trace or a whole-dependency privacy certification. Installers and example preparation recipes do download software/assets. Video input invokes FFmpeg/ffprobe without an explicit protocol allowlist in the inspected calls, so local-looking media inputs should not be treated as a guaranteed no-network boundary. External authoring agents can separately transmit scene content to their providers. [E1, E7, E8]</p>
+<p>For untrusted scenes/assets, use a secret-free worker, read-only approved inputs, a separate output/cache directory, denied outbound networking and external time/memory/process limits. GPU exposure and native image/video/compiler parsers still enlarge the attack surface. This review did not demonstrate an exploit or certify these components against hostile media.</p>
+<h4>Data Preservation and Recovery</h4><p>SDK scene writes are thoughtfully ordered: immutable UUID buffer sidecars are written first, then a temporary JSON file atomically replaces the destination. Existing destination symlinks are rejected, new files are private, and old sidecars are retained for concurrent readers. This avoids replacing a reader's backing buffers midway through a save. It also accumulates old/orphan sidecars; these are not automatic scene-history snapshots, and the inspected writes do not establish power-loss durability through explicit fsync. Back up the scene plus all referenced assets/sidecars. [E7]</p>
+<p>The renderer cache has integrity hashes, version/content keys, a store lock, temporary-file publication and budget-based eviction. It is regenerable acceleration state, not a backup. In particular, eviction considers .entry files in the configured cache directory, so dedicate VORK_CACHE_DIR to this tool rather than pointing it at a general data folder. [E9]</p>
+<p>Rendered PNG/EXR files use direct writes in the output worker, unlike the SDK's atomic scene publication. Do not assume an interrupted render leaves an old destination intact or produces a transactionally complete image sequence. Use a new run directory, verify expected frames, then promote accepted outputs. The inspected interface supports frame ranges, but that is not a proven general checkpoint/resume system for stateful simulation. [E10]</p>
+<p>The Unix installer verifies a release checksum and stages a complete install tree, testing --version before replacing the old tree. The old install is retired and deleted by cleanup, and GPU setup occurs after replacement. A setup failure explicitly leaves the new version installed; there is no automatic rollback to the prior working GPU setup. Retain the old archive/version if rollback matters. Default installation also appends PATH entries to shell startup files; custom PREFIX or VORK_NO_MODIFY_PATH opts out. Nothing was installed during this review. [E8]</p>
+<h4>Tests, CI and Maturity</h4><p>Public GitHub metadata retrieved 2026-11-07: repository created 2026-11-05; last push 2026-11-07; 787 stars, 49 forks and one open issue/PR in the repository aggregate. Release v0.1.0 was published 2026-11-06. These are a fresh public launch's popularity/activity signals, not production validation. The shallow clone does not establish the full development history. [E12]</p>
+<p>The tree includes CLI invalid-scene/help/range/output tests, standard-library property tests, SDK serialization/render-option tests, installer/package tests, and renderer analytic/GPU/regression tests. Examples include independent trilinear-field and brute-force geometry oracles. No GitHub Actions workflow files were present under .github/workflows at the reviewed SHA; build documentation's references to CI are not independently verifiable public workflow evidence. Cargo.lock, dependency policy and pinned Slang/OIDN distribution metadata are positive reproducibility inputs. No dependency vulnerability audit or binary/notarization validation was performed. [E2, E6, E13]</p>
+<p><strong>Tests run: none.</strong> Static acquisition, source inspection and review-artifact checks must not be confused with upstream test results. Rendering quality, runtime safety, performance and platform compatibility remain unverified here.</p>
+<h4>License and Reuse</h4><p>Copyright is attributed to Nullframe, Inc.; the public project is voyager-so/vork. The custom Preview License allows free use including commercial work, private modification, and unmodified redistribution with notices. It prohibits distributing modified versions, selling/licensing the software, and offering a hosted/managed service where others submit scenes/code/jobs without permission. Rendering internally and delivering finished media to clients is explicitly allowed. Rights for this version survive a later version's change to paid terms. Contributions grant broad perpetual relicensing rights to the company. [E14]</p>
+<p>The Blender bridge is separately GPL-3.0-or-later; third-party libraries and example assets retain their own terms. NOTICE is substantial, and showcase assets include CC BY, CC BY-SA, CC0 and footage-specific licenses. A renderer license does not grant unrestricted rights to demo assets or all generated derivatives. No upstream code/assets were extracted into this review. This is not an OSI-open-source fork/service foundation.</p>
+<h4>Evidence / Source Map</h4><p>All source links below are pinned to the reviewed revision unless marked live metadata.</p>
+<p>- <strong>E1:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/README.md">README: demos, limits, measurements and installation</a>.<br>- <strong>E2:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/Cargo.toml">Workspace manifest</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-cli/src/main.rs">CLI entry point</a>.<br>- <strong>E3:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-scene/src/v2/mod.rs">Scene v2 validation</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-std/src/lib.rs">standard-library boundary</a>.<br>- <strong>E4:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-render/src/install.rs">Installation and ignored media</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-render/src/plan.rs">effect plan</a>.<br>- <strong>E5:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-slang/src/lib.rs">Slang compiler and subprocess lifecycle</a>.<br>- <strong>E6:</strong> <a href="https://github.com/voyager-so/vork/tree/44188baab29ad1c174c9e949c982d9edb45308fc/vendor">Vendored dependencies</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/deny.toml">dependency policy</a>.<br>- <strong>E7:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/packages/ts/src/index.ts">TypeScript scene writer</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/packages/python/vork/__init__.py">Python SDK</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-render/src/footage.rs">video decoder</a>.<br>- <strong>E8:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/install.sh">Unix installer</a>.<br>- <strong>E9:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-render/src/disk_cache.rs">Disk-cache integrity, publication and eviction</a>.<br>- <strong>E10:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-render/src/png_output.rs">Output writing</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-render/src/shot.rs">shot lifecycle</a>.<br>- <strong>E11:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/benchmarks/README.md">Benchmark method and known reproduction failure</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/benchmarks/RESULTS.md">recorded results</a>.<br>- <strong>E12:</strong> <a href="https://api.github.com/repos/voyager-so/vork">Public repository metadata</a>, <a href="https://github.com/voyager-so/vork/releases">releases</a> (live, retrieved 2026-11-07).<br>- <strong>E13:</strong> <a href="https://github.com/voyager-so/vork/tree/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-cli/tests">CLI tests</a>, <a href="https://github.com/voyager-so/vork/tree/44188baab29ad1c174c9e949c982d9edb45308fc/crates/vork-render/src">renderer source/test modules</a>, <a href="https://github.com/voyager-so/vork/tree/44188baab29ad1c174c9e949c982d9edb45308fc/packages">SDKs</a>, <a href="https://github.com/voyager-so/vork/tree/44188baab29ad1c174c9e949c982d9edb45308fc/.github">.github tree</a>.<br>- <strong>E14:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/LICENSE">License</a>, <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/NOTICE">third-party notices</a>.<br>- <strong>E15:</strong> <a href="https://github.com/voyager-so/vork/blob/44188baab29ad1c174c9e949c982d9edb45308fc/docs/help/build.md">Build requirements</a>.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> voyager-so/vork / Nullframe, Inc.; vork Preview License, with separately licensed dependencies, Blender bridge and assets. Independent analysis; not an endorsement or legal opinion.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff against vork</td></tr><tr><td><a href="https://www.blender.org/">Blender</a> / EEVEE / Cycles</td><td>Broad production authoring, mature simulation/compositing and established interchange</td><td>Larger UI/Python API surface, but supports headless scripting too; stronger default choice when completeness and ecosystem outweigh compact agent help.</td></tr><tr><td><a href="https://github.com/mitsuba-renderer/mitsuba3">Mitsuba 3</a></td><td>Research-grade programmable/differentiable light transport</td><td>Different focus from quick hybrid VFX/movie authoring; useful when transport experimentation matters most.</td></tr><tr><td><a href="https://github.com/mrdoob/three.js">Three.js</a></td><td>Browser-delivered interactive graphics</td><td>Much easier web distribution; not a direct replacement for this offline ray-traced VFX/encoding pipeline.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Self-Hosting / Local Operation Notes</h4><p>This is a local executable distribution, not a ready-made web deployment. Published requirements are Linux x64 with glibc 2.35+ and suitable libstdc++, or Windows x64, with a supported NVIDIA hardware-ray-tracing Vulkan GPU; Apple Silicon uses Metal with macOS 26 required by the bundled Slang toolchain. Intel Mac, Linux ARM and software Vulkan are not qualified paths. NVIDIA data-center accelerators without the required ray tracing are not made suitable merely by being newer. [E1, E15]</p>
+<p>Keep Slang, OIDN, libraries, notices and SDK companions together. Linux video output needs FFmpeg even when NVENC supplies encoding; input videos need ffprobe too. Mac H.264 can use VideoToolbox. Source builds require Rust 1.96, a native C/C++ toolchain/libclang and separately provisioned pinned Slang. SDKs require Python 3.11+ or Node 22.18+; the npm package named vork is unrelated, and the shipped TypeScript import is @usevoyager/vork. Avoid an accidental namesake package install.</p>
+<p>Acceptance gates for a pilot: verify actual GPU/driver/compiler compatibility, render a representative interior/transparency/simulation shot, measure cold and warm wall time including setup, inspect outputs at equal quality, interrupt and recover a run, and check the license against the intended internal/client/service use. Do not promise performance or production readiness before those checks.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A substantive renderer for a bounded creative pilot on supported GPUs. Retained scenes and programmable hooks are valuable, but preview fidelity limits, irreproducible unequal-quality benchmarks and service/distribution restrictions prevent a broad production recommendation. Static review only; no tests or GPU renders run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/voyager-so/vork">voyager-so/vork</a> · Custom vork Preview License · not open source</span>
+    <span><a href="vork.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
