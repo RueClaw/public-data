@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [claude-mem.md](reviews/claude-mem.md) [page](reviews/claude-mem.html) | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) | Apache-2.0 | ⚠️ Interesting | Cross-harness observational memory; strong observer lockdown, but capture/privacy defaults, loopback trust and total-cost caveats. Static review. |
 | [tradingagents.md](reviews/tradingagents.md) [page](reviews/tradingagents.html) | [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents) | Apache-2.0 | 📚 Study | LLM financial research with point-in-time safeguards; decision scoring is not executable portfolio performance. |
 | [zlack.md](reviews/zlack.md) [page](reviews/zlack.html) | [sanguneo/zlack](https://github.com/sanguneo/zlack) | MIT | ⚠️ Interesting | Tauri Slack wrapper with native notifications; authentication and IPC navigation caveats. |
 | [ecc.md](reviews/ecc.md) [page](reviews/ecc.html) | [affaan-m/ECC](https://github.com/affaan-m/ECC) | MIT | ⚠️ Interesting | Cross-harness workflow, hooks and memory suite; strong managed-install controls, but provider egress, retention and adapter-parity caveats. Static review. |

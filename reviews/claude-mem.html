@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude-Mem — Review</title>
+<meta name="description" content="Cross-harness observational memory: useful continuity, consequential privacy defaults.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / claude-mem</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">thedotmack/claude-mem · reviewed 2026-11-07</div>
+    <h1>Claude-Mem</h1>
+    <p class="one-liner">Cross-harness observational memory: useful continuity, consequential privacy defaults.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0</span>
+      <span class="chip">TypeScript · Bun · SQLite · Chroma</span>
+      <span class="chip"><a href="https://github.com/thedotmack/claude-mem">thedotmack/claude-mem ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">114,392</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">9,926</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Useful progressive recall</h3><p>Hooks capture activity, a second model distills it, and later sessions receive an index before fetching details. Memory is generated interpretation, not guaranteed factual replay.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Capture defaults need attention</h3><p>Secret redaction is off; screenshot capture and telemetry are on. Raw tool receipts persist indefinitely by default. Local storage does not mean local inference.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Strong observer lockdown, weaker worker trust</h3><p>Observer tools, MCP and inherited settings are disabled. The worker instead trusts loopback; a broad bind without a TV token warns rather than refusing startup.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>TypeScript, Bun/Node, Express</td></tr><tr><td>Storage</td><td>SQLite/FTS5; Chroma; optional server PostgreSQL/Redis</td></tr><tr><td>Revision</td><td>f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd · v15.12.0</td></tr><tr><td>Verification</td><td>Static source inspection only; no runtime tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>1. <strong>Capture before summarization.</strong> Session routes initialize and strip user prompts; shared ingestion applies tool skips, project/privacy decisions, media handling and tag stripping before serializing tool I/O. It dual-writes a durable tool-use receipt alongside queued observer work. Receipt failure is logged while the observation can still queue, so this is not an atomic, lossless audit ledger. Entirely private stored prompts suppress observation/summary creation; a *missing* prompt row explicitly allows ingestion to avoid freezing sessions after startup races. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/http/shared.ts">src/services/worker/http/shared.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/http/routes/SessionRoutes.ts">src/services/worker/http/routes/SessionRoutes.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/validation/PrivacyCheckValidator.ts">src/services/worker/validation/PrivacyCheckValidator.ts</a>.<br>2. <strong>Model-derived memory.</strong> Prompts render bounded tool parameters/outcomes into an observation schema; the model can emit observations or a noise skip. ClaudeProvider manages streamed/resumed observer sessions and end summaries. Compression and truncation reduce payloads but can discard a crucial qualification or error. Record IDs establish provenance to stored records, not proof that a generated claim is true. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/sdk/prompts.ts">src/sdk/prompts.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/ClaudeProvider.ts">src/services/worker/ClaudeProvider.ts</a>.<br>3. <strong>Progressive retrieval rather than full replay.</strong> Search returns a small index, timeline supplies surrounding work, and get_observations expands chosen IDs. Filter-only retrieval uses SQLite; text queries use Chroma when configured, supplement empty categories with SQLite, and use SQLite when Chroma is disabled. Chroma errors are explicit, not universally silent fallbacks. File-oriented hybrid search first finds SQL metadata matches and then ranks/hydrates within that scope. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/search/SearchOrchestrator.ts">src/services/worker/search/SearchOrchestrator.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/search/strategies/HybridSearchStrategy.ts">src/services/worker/search/strategies/HybridSearchStrategy.ts</a>.<br>4. <strong>Bounded injection.</strong> ContextBuilder assembles session-start context. ContextBudget measures characters and drops full narratives, last summary/message, then timeline entries to meet the hook delivery budget; it can still report overBudget when nothing droppable remains. It is not an exact tokenizer or guarantee of perfect context selection. Cross-harness startup context is opt-in. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/context/ContextBuilder.ts">src/services/context/ContextBuilder.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/context/ContextBudget.ts">src/services/context/ContextBudget.ts</a>.<br>5. <strong>Not merely passive memory.</strong> The file-read gate can deny a whole-file Read for qualifying large files with observations and redirect the agent toward targeted reading/smart navigation. This changes the working agent's behavior, so test editing and debugging workflows as well as search. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/tests/evals/read-gate/README.md">tests/evals/read-gate/README.md</a>.</p><h4>Retrieval quality and cost</h4><p>The README's roughly 50–100 token index entries versus 500–1,000 token full records explains a plausible roughly 10x *result-payload* reduction when most details are never fetched. It does not demonstrate 10x total task savings, preserved recall, or improved correctness. Observer generation, repeated context, tool-schema overhead, misses and extra search turns all count. Moving observer traffic off a subscription plan reallocates billing; it is not free computation or a universal doubling of useful work.</p>
+<p>There is real evaluation machinery: the file-read-gate suite compares ON/OFF arms with seeded memories and deterministic graders. Its documentation reports large-file savings of 35% on Sonnet and 32% on Opus, while an earlier small-file experiment increased Opus cost by 20%; the threshold was adjusted accordingly. Those are upstream reports, not reproduced results. The harness disables observer capture and Chroma to isolate the gate, so it does not establish full-pipeline memory economics or semantic retrieval quality. No broad, independently verified recall/precision, stale-fact correction or longitudinal task-success result was established here. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/tests/evals/read-gate/README.md">tests/evals/read-gate/README.md</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Privacy and Network Data Flows</h4><p><strong>Local storage is not local inference.</strong> Claude observer requests use Claude credentials/subscription or API settings; Gemini sends content to Google's generativelanguage API; OpenRouter routes to its endpoint and downstream model provider, with configurable endpoint overrides including the cmem gateway. OpenAI-compatible and Codex providers add more deployment choices. A local endpoint may reduce remote generation egress, but must be selected and verified; it does not automatically disable telemetry or sync. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/GeminiProvider.ts">src/services/worker/GeminiProvider.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/OpenRouterProvider.ts">src/services/worker/OpenRouterProvider.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/OpenAICompatibleProvider.ts">src/services/worker/OpenAICompatibleProvider.ts</a>.</p>
+<p>Cloud Sync is opt-in and separate from observer inference. TeamBrain, Notion export and optional notification integrations are additional intentional disclosures, not implied by choosing local SQLite. Provider retention, training use and hosted deletion guarantees were not independently verified. A confidential project should be excluded before capture, not merely kept out of startup context.</p>
+<p><strong>Defaults matter:</strong> secret-pattern redaction false; generic credential matching separately false; media capture true; media inference false; excluded-project list empty; raw tool-use retention zero (forever); daily log retention 30 days; automatic SQLite backups false. These values are directly in <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/shared/SettingsDefaultsManager.ts">src/shared/SettingsDefaultsManager.ts</a>.</p>
+<p>Balanced lowercase private-tag blocks are removed, including nested blocks; unclosed private tags intentionally remain ordinary text. This is a specific capture transformation, not a promise to erase the host agent's original transcript or prior provider requests. Regex secret redaction, when enabled, has broad vendor patterns, custom rules and a one-million-character fail-closed marker; it does not detect all confidential source, personal information, screenshots or arbitrary credentials. Generic patterns remain opt-in and documented coverage gaps exist. Folder-Markdown exclusion controls generated context files, not all capture. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/utils/tag-stripping.ts">src/utils/tag-stripping.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/utils/redaction.ts">src/utils/redaction.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/docs/public/usage/auto-redaction.mdx">docs/public/usage/auto-redaction.mdx</a>.</p>
+<p>Telemetry consent defaults on and includes separately scrubbed error capture unless disabled. DO_NOT_TRACK and explicit telemetry controls are honored; error telemetry has its own kill switch under the general consent gate. This is more careful than indiscriminate payload logging, but “anonymous analytics” still means outbound events and identifiers, not no-network operation. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/telemetry/consent.ts">src/services/telemetry/consent.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/telemetry/telemetry.ts">src/services/telemetry/telemetry.ts</a>.</p>
+<h4>Credential, HTTP and Prompt-Injection Boundaries</h4><p><strong>Strong observer tool restrictions.</strong> buildHardenedSdkOptions sets tools and allowedTools empty, an explicit deny list, dontAsk permission mode, a deny-and-audit canUseTool callback, no MCP servers or inherited settings, strict MCP configuration and a separate observer directory. This is materially stronger than telling a model not to execute tools. The source also documents a previous argv-normalization failure and regression coverage for forwarding the empty tools flag. A separate working directory is not an OS sandbox. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/sdk/hardened-options.ts">src/sdk/hardened-options.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/tests/security/observer-tool-enforcement.test.ts">tests/security/observer-tool-enforcement.test.ts</a>.</p>
+<p>EnvManager isolates selected provider credentials and writes its credential file with restrictive permissions (0600; data directory creation 0700). Those are filesystem protections, not encrypted secret storage. The consuming agent and installed hook code still run with their user's local authority. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/shared/EnvManager.ts">src/shared/EnvManager.ts</a>.</p>
+<p><strong>Worker and server are different security products.</strong> Worker defaults to 127.0.0.1, uses Host/DNS-rebinding and Origin checks, refuses framing except TV, and blocks foreign-page DELETEs. It does not generally authenticate local API callers; CORS admits other localhost ports for reads. Local untrusted programs/pages remain relevant attackers. Opening its bind without a TV token only produces a warning, explicitly noting full API/provider-key exposure through settings. Do not publish this worker behind a bare port forward or assume CORS authenticates non-browser clients. With a TV token, a separate guard restricts remote clients to four read-only paths; this is a broadcast token, not per-user authorization. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/http/middleware.ts">src/services/worker/http/middleware.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/http/origin-policy.ts">src/services/worker/http/origin-policy.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker-service.ts">src/services/worker-service.ts</a>.</p>
+<p>The separate server middleware defaults to API-key authentication and scope verification. Local-dev bypass requires explicit settings, loopback peer/Host and no forwarding headers. That is useful hardening, but this review did not test tenant isolation across every server route; redaction configuration is currently worker-local rather than tenant-scoped. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/server/middleware/auth.ts">src/server/middleware/auth.ts</a>.</p>
+<p><strong>Persistent prompt injection remains possible in principle.</strong> Source files, tool output and imported memories are untrusted material. Stripping selected wrapper tags and disabling observer tools do not validate the semantic truth or safety of a stored instruction. A poisoned observation can later influence a fully capable coding agent. Treat retrieved text as cited historical evidence, not standing policy; independently verify commands and changed facts. No adversarial end-to-end injection test was run, and no exploit is claimed.</p>
+<h4>Retention, Deletion and Portability</h4><p>SQLite is the authoritative record store, with separately retained logs, media, vector data and optional backups/sync copies. Default indefinite tool receipts mean storage contains more than compressed observations. Retention of linked tool-use rows is configurable, but is not a universal expiry policy for every memory and derivative.</p>
+<p>Deletion is more deliberate than a simple SQL DELETE: synced rows require an available sync identity; acknowledged rows refuse an unreplicated delete when sync is unavailable. Cloud deletions queue tombstones; context is invalidated after commit. Chroma cleanup runs asynchronously on a best-effort basis and logs failures. This is sensible convergence engineering, not verified physical erasure from vector storage, backups, provider systems or already injected contexts. Single-observation deletion is not equivalent to removing its whole source session. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/worker/http/routes/DataRoutes.ts">src/services/worker/http/routes/DataRoutes.ts</a>.</p>
+<p>Optional backups use verified VACUUM INTO snapshots and rename completed files, avoiding an unsafe live database-file copy; default retention is seven snapshots when enabled. A database snapshot is not a full portable backup of media, credentials and all external state. The export script emits query-selected observations, summaries, prompts and parent-session metadata; it is not an exhaustive machine backup or guaranteed raw receipt/media archive. Import validates record shapes. Test restore and export/import round trips before relying on them. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/services/backup/BackupManager.ts">src/services/backup/BackupManager.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/scripts/export-memories.ts">scripts/export-memories.ts</a>.</p>
+<h4>Installation, License and Maturity</h4><p>The installer edits host integrations, adds a launcher, provisions runtime dependencies and starts services; README says Bun and uv can be installed automatically. Interactive setup can route through hosted sign-in and an observer trial requiring a payment method, while explicit provider/offline choices skip account interaction. Update/upgrade invokes the installation flow again, rather than being a content-only refresh. Inspect its proposed changes and pin versions for controlled deployments. No installer or marketplace plugin was run in this review. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/npx-cli/index.ts">src/npx-cli/index.ts</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/src/npx-cli/commands/install.ts">src/npx-cli/commands/install.ts</a>.</p>
+<p>Root LICENSE is Apache-2.0 and NOTICE attributes Alex Newman; this is the license of the reviewed revision, not an assertion about every historical release or hosted service. No upstream code was extracted. Runtime providers, downloaded models and dependencies keep their own terms. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/LICENSE">LICENSE</a>, <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/NOTICE">NOTICE</a>.</p>
+<p>Public GitHub metadata at review time: 114,392 stars, 9,926 forks, 82 open issues/PRs combined; last push 2026-11-07T19:51:47Z. These indicate adoption/activity, not security or reliability. The latest reviewed commit updates the v15.12.0 changelog. The source has a substantial test tree (1,249 test-named paths counted, not a passing-test count). CI defines typechecks, committed-bundle verification, build budgets, fast/integration lanes, server smoke, sync and platform-specific jobs. Root CI uses npm install without a committed root lockfile and floating Bun latest/actions tags: reproducibility is weaker than a fully pinned build. CI definitions were inspected; current run outcomes and dependency vulnerability status were not independently certified. <a href="https://github.com/thedotmack/claude-mem/blob/f6a2c4313e0e7f5a1b4314aae0062ce27539c6bd/.github/workflows/ci.yml">.github/workflows/ci.yml</a>.</p>
+<h4>Verification and Limitations</h4><p>Public anonymous HTTPS acquisition and canonical identity verified; no predecessor-name/canonical-source match found in the existing public reviews, README or repository index. All implementation conclusions above are static and revision-bound. No private user material was accessed. Tests, live providers, package artifacts, release signatures, all adapter paths, hosted retention and browser/network security were not exercised. Publication checks cover Markdown/HTML/index consistency and standalone HTML markup, not application functionality.</p>
+<p><strong>Attribution:</strong> Alex Newman / <a href="https://github.com/thedotmack/claude-mem">thedotmack/claude-mem</a>, Apache-2.0.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Prefer it when</td><td>Tradeoff versus Claude-Mem</td></tr>
+<tr><td>Native agent memory / curated project notes</td><td>You want minimal services and explicitly reviewed durable facts</td><td>Less automatic cross-harness capture; easier data minimization</td></tr>
+<tr><td><a href="agentmemory.md">agentmemory</a></td><td>You want another hook/MCP memory design with explicit privacy/retention controls</td><td>Compare current defaults and operational burden, not feature names alone</td></tr>
+<tr><td><a href="pi-observational-memory.md">pi-observational-memory</a></td><td>Pi session continuity and an inspectable ledger are the primary goal</td><td>Narrower integration scope rather than a broad sidecar product</td></tr>
+<tr><td><a href="codesherpa.md">codesherpa</a></td><td>You need current code structure rather than remembered conversation</td><td>Git/blob-grounded indexing avoids some stale narrative memory problems</td></tr>
+<tr><td><a href="tracebase.md">tracebase</a></td><td>Auditable session evidence matters more than automatic note injection</td><td>Trace inspection is a different objective from autonomous memory synthesis</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Start with a disposable, non-sensitive project and one supported harness. Before live capture, decide provider egress, telemetry/error reporting, screenshots, exclusions, redaction and retention. Keep the worker loopback-only; use the authenticated server design for actual remote multi-user needs, not a permissive worker bind. Protect its data directory and backups as sensitive data. Test one capture → observation → restart → retrieval cycle, excluded content, deletion with sync offline, restore, and an intentionally wrong/stale memory. Compare no-memory and memory runs on the same tasks including observer spend and failures.</p>
+<p><strong>Bottom line:</strong> the architecture is useful and visibly hardened in several important places, but automatic memory creates a durable new data and instruction surface. Its current defaults prioritize frictionless capture over strict minimization. A measured, configured pilot is justified; an unqualified install recommendation is not.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot on non-sensitive projects, not a privacy-safe default. Progressive retrieval and hard observer tool restrictions are strong ideas, but capture defaults, provider egress, loopback trust and unproven whole-pipeline economics need explicit qualification. Static review only; no tests or installation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/thedotmack/claude-mem">thedotmack/claude-mem</a> · Apache-2.0</span>
+    <span><a href="claude-mem.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
