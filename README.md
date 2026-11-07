@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [raven-oscar-soirey.md](reviews/raven-oscar-soirey.md) [page](reviews/raven-oscar-soirey.html) | [oscar-soirey/Raven](https://github.com/oscar-soirey/Raven) | Apache-2.0; component terms | ⚠️ Interesting | Native C GUI and XML designer; compelling rendering, but failing current CI, unstable ABI and resource/browser trust boundaries. Static review. |
 | [claude-mem.md](reviews/claude-mem.md) [page](reviews/claude-mem.html) | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) | Apache-2.0 | ⚠️ Interesting | Cross-harness observational memory; strong observer lockdown, but capture/privacy defaults, loopback trust and total-cost caveats. Static review. |
 | [tradingagents.md](reviews/tradingagents.md) [page](reviews/tradingagents.html) | [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents) | Apache-2.0 | 📚 Study | LLM financial research with point-in-time safeguards; decision scoring is not executable portfolio performance. |
 | [zlack.md](reviews/zlack.md) [page](reviews/zlack.html) | [sanguneo/zlack](https://github.com/sanguneo/zlack) | MIT | ⚠️ Interesting | Tauri Slack wrapper with native notifications; authentication and IPC navigation caveats. |
