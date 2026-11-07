@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tstack — Review</title>
+<meta name="description" content="Nine coding-agent skills for evidence-first PR delivery, plus a Python GitHub watcher—not a self-contained agent runtime.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / tstack</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">t3dotgg/tstack · reviewed 2026-11-07</div>
+    <h1>tstack</h1>
+    <p class="one-liner">Nine coding-agent skills for evidence-first PR delivery, plus a Python GitHub watcher—not a self-contained agent runtime.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Markdown · Python stdlib · gh</span>
+      <span class="chip"><a href="https://github.com/t3dotgg/tstack">t3dotgg/tstack ↗</a></span>
+      <span class="chip"><a href="https://github.com/t3dotgg/tstack/tree/1085050f3baed1ac724caa4a8166145fb2ac88af">Reviewed SHA 1085050</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3,223</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">241</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Process, not an enforcement engine</h3><p>Full-send composes review, filing, babysitting and merge decisions through the host agent. Full-stop keeps the merge human-owned, but both grant broad testing authority in prose.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Ready does not mean safe to merge</h3><p>The watcher does not fully gate human changes-requested or UNKNOWN/BLOCKED merge states. Bot completion can include failed checks; empty CI can wait indefinitely. Independently revalidate the final head and protection rules.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Useful recovery, bounded guarantees</h3><p>POSIX locks and atomic JSON replacement support restart deduplication. Six-hour baselines, 100-item API windows and subprocesses without timeouts limit recovery. No tests or CI are included.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Workflow</td><td>Nine Markdown skills; four YAML descriptors</td></tr><tr><td>Helper</td><td>556-line Python standard-library CLI; authenticated gh; POSIX fcntl</td></tr><tr><td>Models</td><td>Host delegates; three providers for council; GPT Sol for sol-loop</td></tr><tr><td>Evidence</td><td>Static full-tree review; no tests, installs or model calls</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Proof before delivery</h4>
+<p><a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/full-send/SKILL.md">full-send</a> requires observed evidence, fresh checks and review on the latest diff before merging. It explicitly disallows administrator bypasses and requires questions when proof or authority is missing. <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/full-stop/SKILL.md">full-stop</a> instead forbids merging, queue entry and default-branch pushes, and checks existing auto-merge settings. This distinction is useful, but both are prompt contracts rather than executable authorization policy.</p>
+<h4>Review without endless scope growth</h4>
+<p><a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/sol-loop/SKILL.md">sol-loop</a> sets three rounds by default, at most five for specified high-risk concerns, one reviewer, a stable finding ledger and current-diff approval. It refuses model substitution and treats missing replies as non-approval. <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/council/SKILL.md">council</a> requests three different providers and exposes disagreements/scores. Unlike sol-loop, council has no fixed round, time or spend cap; agreement is not independent empirical proof of correctness.</p>
+<h4>Respect existing work and contributors</h4>
+<p><a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/modernize/SKILL.md">modernize</a> distinguishes modernizing, reworking and closing an obsolete PR; prescribes disposable worktrees, range-diff and an observed-head force-with-lease. <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/takeover/SKILL.md">takeover</a> preserves original commits, authorship and verified co-author credit. <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/file-pr/SKILL.md">file-pr</a> checks for an existing PR and calls for secret review before publication. <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/leaving-pr-comments/SKILL.md">leaving-pr-comments</a> requires agent attribution and successful post verification before resolving a thread.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The composition is full-send → sol-loop → file-pr → babysit-pr → a model-decided merge gate; full-stop wraps that flow without merge permission. T3 Code supplies capability discovery, delegates and PR watch wakeups. Other environments must provide equivalent subagents and monitoring. Nothing in this repository implements those host services.</p>
+<p>The <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/babysit-pr/scripts/pr-wait">pr-wait helper</a> invokes gh through an argument list without a shell. It validates repository/PR input, retrieves PR metadata and review threads with GraphQL, reads checks through gh, discovers required-check names through REST, and compares base commits for file overlap. Duplicate check names collapse to the worst result. Two identical check snapshots reduce premature completion while checks register. Notifications are deduplicated across restarts; one POSIX file lock prevents another local watcher of the same PR.</p>
+<h4>Readiness is not merge authorization</h4>
+<p>Static inspection identifies concrete limitations:</p>
+<ul><li><strong>Human changes-requested and non-ready merge states are not full gates.</strong> The script reports human reviews but does not reject readiness merely because a human requested changes. The ready branch rejects DIRTY earlier and BEHIND at completion, but does not require a positive mergeable state; UNKNOWN or BLOCKED can reach readiness when other conditions hold. The skills' merge rules are stricter, so callers must re-read live approvals, draft state, protection and mergeability. See <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/babysit-pr/scripts/pr-wait#L350-L515">poll and termination</a>.</li><li><strong>Bot completion is not bot approval.</strong> Recognized bot checks are considered done once non-pending, including failed/cancelled checks. Unless those check names are in the required gate, a recognized bot's failed check can satisfy reviewed. Bot identity is substring matching on login/check name, not a verified app identity. Treat output as notification, never an attestation.</li><li><strong>Empty CI can wait forever.</strong> gate_done requires a nonempty gate. With no required checks and no non-review-bot CI checks, neither green nor ready completes for an open PR. Default ready also needs Greptile or Macroscope; the skill documents green for repositories without them, but that does not fix empty CI.</li><li><strong>Snapshot freshness is incomplete.</strong> PR and check reads are separate API calls. The two-poll snapshot includes check names/buckets, not the head SHA, and required-check names are cached for the whole process. A push, base change or protection change therefore needs independent final validation rather than assuming a transactional head-bound result.</li><li><strong>Large conversations are truncated.</strong> GraphQL asks for the last 100 comments/reviews/threads and first 100 comments per thread without pagination. Older unresolved threads or replies outside those windows can be missed. API errors in required-check discovery are logged but do not prevent proceeding with a partial or empty set. See <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/skills/babysit-pr/scripts/pr-wait#L81-L242">query and discovery</a>.</li></ul>
+<p>These are code-path observations, not reproduced runtime failures or claims that GitHub branch protection can be bypassed.</p><h4>Trust and privacy</h4><p>The watcher itself performs reads, not git checkout, push or merge. It has no direct model SDK, custom credential vault, listening web service, CORS configuration or telemetry endpoint. It inherits gh authentication, PATH and environment, so its actual account/host/token authority comes from the operator's environment. It does not scope tokens itself. Its small argv-based subprocess boundary avoids shell interpolation of PR text, but does not sandbox gh or the agent.</p>
+<p>The surrounding skills intentionally authorize substantial effects: executing project tests, browser/device testing, rebasing, branch pushes, comments, changes to auto-merge settings and, for full-send, merging. Full-send and full-stop text explicitly interprets the trigger as overriding project-level ask-first testing rules while retaining harness/system approvals. Full-stop even advertises triggering on ordinary closing emphasis, “Full stop.” That is too broad for sensitive workflows: require an unambiguous explicit invocation and enforce hard tool-side limits. None of the source text changes the authority of the reviewer reading it.</p>
+<p>PR bodies, bot comments, code and repository-specific bot rules are untrusted material entering agent context. HTML stripping and truncation in snippets improve presentation but are not prompt-injection defenses or robust terminal-control sanitization. The host must prevent source content from granting tool access. Running project tests can execute arbitrary dependency hooks and code: use disposable secret-free environments, not a privileged developer session.</p>
+<p>Council and sol-loop send relevant code/context to external model providers via the host. There is no built-in redaction, provider allowlist, retention policy or paid-call budget. Public comments, PR descriptions and screenshots are further outbound boundaries. The posting skills ask for secret checks, but that is model behavior, not deterministic data-loss prevention. Account access, enterprise policies and provider contracts remain separate obligations.</p><h4>Recovery</h4><p>The helper stores event IDs, summary hashes, base OID and merge state in a per-PR JSON file under its documented user state directory. Writes use a temporary file plus replace, and the OS releases the per-PR lock on process exit. It does not persist full comment bodies or credentials in that JSON. No explicit private file mode, schema version, fsync, retention pruning or validated-state migration is implemented. Syntax-corrupt JSON is ignored; syntactically valid unexpected state shapes may still raise uncaught errors.</p>
+<p>State older than six hours is discarded as a baseline. A first run likewise suppresses historical events, so “nothing that arrived in between is lost” is only qualified by the freshness window and API pagination. This is not an append-only audit log. A crash after stdout emission but before saving can replay an event on restart.</p>
+<p>Transient gh errors receive five attempts with exponential sleeps, and the main loop stops after ten transient failed polls. However subprocess.run has no explicit timeout, there is no Retry-After/reset-aware account-wide limiter, and multiple PRs each poll independently. The default interval is 20 seconds with a five-second minimum. A hung gh process can bypass the intended failure bound; ordinary waiting has no deadline. sol-loop bounds rounds, not wall-clock wait time. Open <a href="https://github.com/t3dotgg/tstack/pull/17">PR #17</a> proposes a wait-timeout fix; <a href="https://github.com/t3dotgg/tstack/pull/16">PR #16</a> proposes no-gating-bot readiness behavior. Both were open at retrieval and are not part of this reviewed SHA; their reports are not independent verification.</p><h4>Evidence and maturity</h4><p>The complete tracked tree contains 16 files: README, MIT LICENSE, nine skills, four YAML descriptors and one Python script. No test suite, CI workflow, package manifest, lockfile or release automation is present at this revision. There is no executable regression evidence for readiness, recovery, host compatibility or improved code quality. The only third-party executable dependency of the helper is gh, but the real workflow also depends on Git, agent harnesses, provider accounts and whatever the target project's tests execute. No dependency vulnerability scan was run.</p>
+<p>The <a href="https://api.github.com/repos/t3dotgg/tstack">public repository API</a>, retrieved 2026-11-07, reported creation on 2026-10-24, last push 2026-10-28, 3,223 stars, 241 forks and 15 open issues/PRs combined. The <a href="https://api.github.com/repos/t3dotgg/tstack/releases">release endpoint</a> returned an empty list. This is a young, popular public bundle, not a demonstrated production reliability record. A shallow checkout establishes the reviewed tip, not a full historical audit.</p>
+<p>The <a href="https://github.com/t3dotgg/tstack/blob/1085050f3baed1ac724caa4a8166145fb2ac88af/LICENSE">actual MIT license</a> names Theo Browne, copyright 2026, and permits reuse with notice preservation and no warranty. No code was extracted into a separate tool or pattern artifact. External harnesses, providers and tools retain their own terms.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>GitHub protection</td><td>Enforces checks and approvals outside model judgment; pair with tstack</td></tr><tr><td>gh pr checks --watch</td><td>Simpler CI-only wait; no thread or base-overlap reporting</td></tr><tr><td>Superpowers / Compound Engineering</td><td>Broader workflow methods and packaging; tstack is smaller and PR-focused</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no service to deploy. Start with reviewed, revision-pinned individual skills in a disposable project, preserve existing same-named skills rather than blindly applying the README's recursive copy, and keep local overrides versioned. Use full-stop/manual merge initially; harden its trigger and testing authority before installing it globally.</p>
+<p>The helper imports POSIX fcntl, so native Windows Python is not supported as written; Linux/macOS or a suitable Unix environment is the practical target. README only says python3 and does not declare a tested minimum Python or gh version. Claude Code/Codex support is claimed, but multi-provider subagent availability, model names and wakeup behavior depend on the actual harness. GitHub Enterprise URLs are not accepted by the URL parser, and state keys lack a hostname dimension.</p>
+<p>Before unattended adoption, add synthetic regressions for empty CI, changing heads, bot failures, human change requests, UNKNOWN/BLOCKED merge state, truncated threads, protection lookup failures, state corruption and hung subprocesses. Keep mandatory approvals and branch protection external to the model, bound time/spend, and verify final live state independently. No installation or deployment was performed for this review.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Selectively adopt the procedures, not unattended merge authority. Strong proof, scope and handoff habits meet prompt-only enforcement and incomplete watcher readiness gates. Start with manual merging and external branch protection; static review only, no runtime tests.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/t3dotgg/tstack">t3dotgg/tstack</a> · MIT</span>
+    <span><a href="tstack.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [tstack.md](reviews/tstack.md) [page](reviews/tstack.html) | [t3dotgg/tstack](https://github.com/t3dotgg/tstack) | MIT | ⚠️ Interesting | Nine PR-delivery agent skills and a Python watcher; strong proof habits, but prompt-only authority, incomplete readiness gates and recovery limits. Static review. |
 | [idea-generator-2.md](reviews/idea-generator-2.md) [page](reviews/idea-generator-2.html) | [fltman/idea-generator-2](https://github.com/fltman/idea-generator-2) | MIT | ⚠️ Interesting | Visual evolutionary idea board; useful lineage and scouts, but self-scored novelty, soft budgets and local trust boundaries. Static review. |
 | [floci.md](reviews/floci.md) [page](reviews/floci.html) | [floci-io/floci](https://github.com/floci-io/floci) | MIT; component terms separate | ⚠️ Interesting | Local AWS emulator with real container workloads; substantial tests, but semantic parity, credential/execution boundaries and durability need qualification. Static review. |
 | [hyperkernel.md](reviews/hyperkernel.md) [page](reviews/hyperkernel.html) | [Hyperstitioncc/Hyperkernel](https://github.com/Hyperstitioncc/Hyperkernel) | MIT; separate checkpoint terms | 📚 Study | Hyperserve B300 megakernel inference host; substantial scheduling, but binary-only kernel provenance, narrow hardware and service-hardening caveats. Static review. |
