@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>json-render — Review</title>
+<meta name="description" content="Catalog-driven streaming UI: useful architecture, application-owned trust boundaries.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / json-render</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">vercel-labs/json-render · reviewed 2026-11-07</div>
+    <h1>json-render</h1>
+    <p class="one-liner">Catalog-driven streaming UI: useful architecture, application-owned trust boundaries.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0</span>
+      <span class="chip">TypeScript · Zod · renderer adapters</span>
+      <span class="chip"><a href="https://github.com/vercel-labs/json-render">vercel-labs/json-render ↗</a></span>
+      <span class="chip"><a href="https://github.com/vercel-labs/json-render/releases/tag/v0.22.0">v0.22.0</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">19,319</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1,024</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Catalog prompts are not enforcement</h3><p>Generic multi-component propsOf validation accepts unknown prop records rather than discriminating by component type. Structural validation is separate and not a complete graph or security check.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Actions and URLs remain your responsibility</h3><p>State watchers and registered handlers expose real capabilities. Require server-owned authorization and confirmation, validate resolved URLs, and keep model state separate from privileged business state.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Streaming can expose incomplete output</h3><p>React can hide failed elements; Chat SDK streaming can leave a partial message visible when final validation fails. Budget parsing, rendering and provider spend, and design explicit recovery.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>TypeScript, Zod 4, catalog/schema and JSONL patches</td></tr><tr><td>Adapters</td><td>React/Vue/Svelte/Solid, native, document/media, Chat SDK and MCP Apps</td></tr><tr><td>Tooling</td><td>pnpm 11, Node ≥24, Turborepo, Vitest</td></tr><tr><td>Revision</td><td>18194121c8f087afacd9a8ef65fbda18374ee039 · v0.22.0</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Catalogs are a vocabulary, not guaranteed model output</h4>
+<p>The README claims output matches the schema “every time.” Actual <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/core/src/schema.ts">catalog validation</a> calls a generated Zod schema, but its <code>propsOf</code> implementation deliberately returns <code>z.record(z.string(), z.unknown())</code> when there are multiple component prop schemas. It does <strong>not</strong> build a discriminated union matching each element type to its props. A catalog with one props schema behaves differently. Known component names can be enforced by the generated enum, but only if validation is actually called; a prompt is not enforcement.</p>
+<p>The <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/react/src/schema.ts">React schema</a> describes root/elements and optional visible/repeat/slots, while runtime specs also use state, on and watch. Its ordinary Zod object generation can strip fields outside that declared shape. Treat validation output as a tested integration contract, not an interchangeable full-runtime spec. Validate each selected component's resolved props explicitly, with separate rules for expression syntax and trusted state-derived values.</p>
+<p><a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/core/src/spec-validator.ts">validateSpec</a> checks roots, child references, visibility forms, repeat contexts and misplaced fields. It does not take a catalog and therefore cannot reject unknown component types or enforce per-component prop schemas. Its ancestor guard avoids looping during one structural traversal but does not report cycles as invalid. A self-referencing child graph needs explicit application rejection before recursive rendering. These are static deductions, not executed exploit demonstrations.</p>
+<h4>Streaming and repair are useful but tolerant</h4>
+<p><a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/core/src/types.ts">SpecStream</a> buffers newline-delimited JSON patches, mutates a spec and emits shallow snapshots. Malformed lines can be ignored; the parser checks for op/path rather than validating a complete patch schema. Replace intentionally sets missing targets for streaming tolerance; this is not strict RFC 6902 validation. The compiler retains its buffer and applied-patch history without an application budget. Bound bytes, line length, patch count, tree depth, repeat size and elapsed time.</p>
+<p>Auto-fix can move misplaced fields and prune dangling references; structured fix details mark lossy pruning. Retrying while preserving content is different from silently accepting a pruned result. React hooks provide abort/error handling; missing components/children can disappear with console warnings, and per-element error boundaries render nothing after failures and reset on a changed reset key. None of this guarantees a complete or semantically correct result.</p>
+<h4>State and actions are real application capabilities</h4>
+<p><a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/react/src/renderer.tsx">React rendering</a> resolves state/item/template/conditional expressions and calls registered computed functions. Bindings write state; repeated children inherit item scope; watchers skip initial mount and dispatch when watched values change. Registered functions/directives remain trusted executable code, not sandboxed model expressions.</p>
+<p>The <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/react/src/contexts/actions.tsx">action provider</a> implements state mutations and other built-ins, then dispatches registered handlers. Confirmation is driven by the supplied binding; it is not server authorization. The registry helper forwards params to action functions without automatically parsing them against catalog action schemas. Watchers and chained callbacks also mean “the user clicked a button” is not a safe universal assumption.</p>
+<p>Keep principal identity, tenant IDs, access policy and secrets out of writable model state. On the server, revalidate action params, authorize every resource, protect against CSRF/replay as applicable, rate-limit and use idempotency keys for side effects. Require server-owned confirmation policy for costly/destructive operations; an absent model-supplied confirm flag must not bypass it. Visibility and disabled controls are presentation, not access control.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture and Trust Boundaries</h4>
+<ol><li><strong>Trusted developer catalog/registry → generation prompt.</strong> Catalog descriptions help the model select a vocabulary. User messages, retrieved content and tool output can still inject instructions; the model must not decide its own permissions.</li><li><strong>Untrusted JSON → validation → resolution → rendering.</strong> Separate shape, graph, expression, component-prop and policy checks. Revalidate resolved URLs and action parameters; a syntactically valid state reference can resolve to an unsafe value. Render only a minimal allowlisted registry.</li><li><strong>Rendered component → browser/network/host side effect.</strong> Ordinary React text escaping is useful, but URLs and custom components are different sinks. <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/shadcn/src/components.tsx">shadcn components</a> pass image sources and link hrefs onward; <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/react-email/src/components/standard.tsx">email</a> and <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/image/src/components/standard.tsx">image</a> likewise accept URLs. The shared layer is not a universal URL sanitizer. Allowlist schemes/origins, block private-network destinations for server-side fetchers, constrain redirects and isolate remote asset retrieval. Browser images can leak requests; server-side rendering dependencies may fetch resources. Actual SSRF exploitability was not tested.</li><li><strong>MCP app HTML → host iframe.</strong> <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/mcp/src/server.ts">MCP server registration</a> validates through catalog.validate, but inherits that validator's limits. Its advertised CSP allows all HTTPS resource and connection domains, not an application-specific allowlist. <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/mcp/src/build-app-html.ts">buildAppHtml</a> escapes title but deliberately inserts developer-supplied head/CSS/JS. Those are trusted bundle inputs, never places to insert model text. Host isolation and user consent do not replace backend authorization.</li><li><strong>Prototype/path and resource handling.</strong> Core mutable JSON-pointer helpers reject __proto__ segments and use own-property/dense-array handling. This is welcome hardening, not a blanket guarantee for every setter: <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/core/src/state-store.ts">immutableSetByPath</a> is a separate implementation. Reject dangerous path segments at ingress and review each state adapter. No working prototype-pollution exploit is claimed here.</li></ol>
+<h4>Platform Adapters and Recovery</h4>
+<p>Shared vocabulary does not mean identical component sets or validation behavior. PDF, email, image, terminal, video and 3D adapters have different resource and output semantics; choose a target-specific catalog. Routing integrations and code generation expand the trusted surface and deserve a separate deployment review.</p>
+<p>The new <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/chat/src/render.ts">Chat renderer</a> is a notable contrast to generic validation: it resolves elements and checks each component's props, plus structure and optional platform limits, before final card output. <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/chat/src/stream.ts">streamCard</a> posts partial cards and throttles edits (500 ms default), then validates the final card. If final validation or posting fails, an already-visible partial message can remain. The caller must handle retries, platform 429s, cleanup/error edits and duplicate-post avoidance; the helper does not provide a durable delivery transaction.</p>
+<h4>Provider Data and Cost Flows</h4>
+<p>The <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/examples/chat/app/api/generate/route.ts">chat API example</a> sends converted conversation messages into an AI SDK agent. Its <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/examples/chat/lib/agent.ts">agent</a> uses a configurable Gateway model and public-data tools, including a web-search provider, with a five-step stop condition. Prompts, history and tool results therefore leave the application under the selected provider's terms. No inference is required just to render an existing spec.</p>
+<p>The example <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/examples/chat/lib/rate-limit.ts">rate limiter</a> uses Upstash Redis when configured but <strong>allows requests when Redis is absent</strong>. The shown route has no user-authentication check and trusts a forwarded IP header; safe interpretation depends on a trusted reverse proxy. A duration limit and five tool steps are not per-user monetary budgets. Add authenticated quotas, input/output limits, concurrency caps, provider spend limits, request cancellation and retention rules. Keep Gateway and Redis credentials server-side.</p>
+<p>The optional <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/packages/core/src/experimental-evaluator.ts">experimental evaluator</a> explicitly posts evaluation requests to Vercel AI Gateway using a supplied API key/model. Do not describe the whole repository as offline because normal rendering can be offline. Candidate evaluation is a separate opt-in data/cost path. Provider privacy, actual token costs and hosted availability were not tested.</p>
+<h4>Maturity, Tests and License</h4>
+<p>At retrieval, public GitHub metadata reported 19,319 stars, 1,024 forks and 121 open issues/PRs; last repository push was 2026-11-06. The checked commit is dated 2026-11-04, and <a href="https://github.com/vercel-labs/json-render/releases/tag/v0.22.0">v0.22.0</a> was published that day. Popularity is not a security or reliability test. A small open-work sample included proposed directive and Chat renderer improvements; proposals were not counted as shipped features.</p>
+<p>There are 86 package test files matching *.test.* in the acquired tree, including schema, pointer/state, streaming, rendering and chained-action tests. <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/.github/workflows/ci.yml">CI</a> installs with a frozen lockfile, builds packages and runs tests, lint, type checks and docs builds; version synchronization and a <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/.github/workflows/release.yml">release workflow</a> are present. This establishes test infrastructure, <strong>not measured coverage or passing checks at this SHA</strong>. Neither local tests nor CI-run outcomes were verified. Recent changelog fixes for JSON pointers, repeated stream operations, YAML copy growth and codegen object keys show active maintenance and why pinning matters.</p>
+<p>The root <a href="https://github.com/vercel-labs/json-render/blob/18194121c8f087afacd9a8ef65fbda18374ee039/LICENSE">LICENSE</a> is Apache-2.0, including patent terms and notice obligations. Core directly depends on Zod; renderer dependencies vary, including React ecosystem libraries, Satori, MCP/Chat SDKs and native/output tooling. A full transitive vulnerability/license audit was not performed. Remotion and other optional ecosystems require their own applicable license review; the root license does not automatically relicense dependencies.</p>
+<h4>Update Notes</h4>
+<p>This refresh replaces the public review dated 2026-03-23, which did not pin a revision. The same source and artifact slug are retained; a precise commit-to-commit delta is unavailable. The current release adds Chat SDK cards; the tree also contains framework routing/devtools packages and experimental candidate evaluation. More importantly, this review corrects the previous five-fire assessment and unsupported “excellent test coverage” language, distinguishes structural checks from component validation, and removes speculation about future licensing. Current source and actual Apache terms, not a hypothetical future license, govern this assessment.</p>
+<h4>Verification and Limitations</h4>
+<p>Public unauthenticated HTTPS acquisition and exact source SHA were verified. Local and live existing reviews were checked; this is an in-place refresh, not a second review. Source files, manifests, license, CI definitions, tests, changelog and public release/metadata were inspected. This was not an exhaustive audit of every adapter, a runtime exploit test, a benchmark, or a provider compliance assessment. No source code or dependencies were executed. Claims about parser/validator behavior are static source findings.</p>
+<p><strong>Attribution:</strong> Vercel Labs / vercel-labs/json-render, Apache-2.0. Public metadata retrieved 2026-11-07 UTC. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Explicit application UI</td><td>React + structured/tool output is simpler for a few fixed screens.</td></tr><tr><td>Forms</td><td>JSON Forms / react-jsonschema-form specialize in forms rather than generic generated composition.</td></tr><tr><td>Host cards/protocols</td><td>Adaptive Cards favors host interoperability; evaluate A2UI separately. No comparative benchmarks were run.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p> This is a library ecosystem, not a ready-to-secure hosted service. Pin a release and only the adapters needed; the development monorepo currently requires Node &gt;=24 and pnpm &gt;=11. Serve model calls behind your own authenticated backend, maintain narrow registries and keep preview state separate from committed business data. Disable side-effecting actions during generation; validate and authorize before enabling them. Add render boundaries, a last-known-good spec, repair budgets and structured failure reporting rather than relying on silent disappearance. For MCP apps, restrict resource/connect origins and supply only trusted bundles.</p>
+
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A useful UI intermediate representation, not a security boundary. Start with bounded read-only UI; enforce component props, graph limits, URL policy and server-side action authorization yourself. Static review only; tests and deployments were not run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/vercel-labs/json-render">vercel-labs/json-render</a> · Apache-2.0</span>
+    <span><a href="json-render.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
