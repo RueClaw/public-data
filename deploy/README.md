@@ -1,6 +1,6 @@
 # Deployment controls
 
-Install the repository read-only at `/srv/public-data` and use a dedicated `public-data` system account. Store live requests outside the code in `/var/lib/public-data/requests`. Keep backup copies of the queue; the application does not synchronize it to Git.
+Install the repository read-only at `/srv/public-data` and use a dedicated `public-data` system account. Store live requests outside the code in `/var/lib/public-data/requests`. The service stores local users, hashed sessions and private AI connections in `/var/lib/public-data/private` using `--state-dir`. Back up that directory privately. The application is public and read-only by default; login unlocks actions and administrator settings; change the initial **admin / admin** password in Settings before allowing shared access. Keep backup copies of the queue; the application does not synchronize it to Git.
 
 Adapt the service example's bind address and public origin. Behind a containerized proxy, bind only to the host side of that proxy's private bridge, not every interface. Put a random `PUBLIC_DATA_GATEWAY_TOKEN` in a root-readable `/etc/public-data-reviews.env` and set the matching `X-Public-Data-Gateway` header using the proxy's private configuration. The proxy must overwrite the incoming header. Never commit the token, passwords, password hashes or identity-provider secrets.
 

@@ -1,8 +1,7 @@
 # Agent access
 
 The Assistant sidebar view (`/#agent`) and direct CLI share `scripts/library_agent.py`. Search and
-age-based freshness checks always work. AI answers and maintenance are disabled
-until the operator supplies command adapters. The existing queue remains a list
+age-based freshness checks always work. AI answers can use server-side OpenAI-compatible connections managed in Settings. Maintenance and optional command-based answers require operator-owned adapters. The existing queue remains a list
 of suggestions; submissions never launch an agent.
 
 ```sh
@@ -64,18 +63,12 @@ Do not enable a writable runtime against a production checkout. A read-only
 service deployment needs a separate writable worktree and deliberate promotion of
 reviewed artifacts. The stock deployment remains read-only; maintenance is opt-in.
 
-Anyone with access to the authenticated UI can invoke enabled operations; there
-are no per-user roles. For distinct access levels, run separate instances with
-separate configs/accounts behind separate proxy policies. Gateway authentication,
-Host validation, same-origin checks, request body limits and rate limits also
-apply to agent routes. Keep adapters, config, secrets and logs outside served
-collections and the public repository. Provider charges and data egress are
-controlled by your adapter. Search results and queries are passed to that adapter.
+Local users can search, check freshness and ask through enabled AI connections. Only administrators can manage users/connections or invoke command adapters (including maintenance). Local sessions, gateway authentication, Host validation, same-origin checks, request body limits and rate limits apply to agent routes. Keep adapters, config, secrets and logs outside served collections and the public repository. See [local settings and secret storage](README.md#local-accounts-and-settings). Provider charges and data egress are controlled by the configured connection or adapter.
 
 ## HTTP contract
 
-`GET /api/agent` returns `{actions: [...], github: false}` without command details.
-`POST /api/agent` accepts `{action, query, target?, days?, github?}` and returns
+`GET /api/agent` returns `{actions: [...], github: false, configurations: [{id, name, enabled}]}` without command details.
+`POST /api/agent` accepts `{action, query, configuration?, target?, days?, github?}` and returns
 `{action, results: [...]}` for search/stale or `{action, answer: "..."}` for adapters.
 Use `Content-Type: application/json` and `X-Public-Data: 1`; deployed callers also
 need the authenticated gateway. Invalid or disabled actions return 400. Raw agent

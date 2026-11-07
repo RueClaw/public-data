@@ -15,7 +15,8 @@ spec.loader.exec_module(web)
 class WebTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name) / 'repo'
+        self.root.mkdir()
         (self.root/'web').mkdir()
         (self.root/'web/index.html').write_text('<!doctype html>Library')
         (self.root/'reviews').mkdir()
@@ -24,14 +25,17 @@ class WebTest(unittest.TestCase):
         (self.root/'README.md').write_text('| [demo.md](reviews/demo.md) | [Demo](https://github.com/demo/demo) | MIT | ✅ Deploy candidate | A useful demo |\n')
         (self.root/'.git').mkdir()
         (self.root/'.git/config').write_text('private')
-        self.server = web.App(('127.0.0.1', 0), self.root)
+        self.server = web.App(('127.0.0.1', 0), self.root, state_dir=Path(self.temp.name)/'private')
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         self.base = f'http://127.0.0.1:{self.server.server_port}'
+        request = Request(self.base+'/api/login', data=b'{"username":"admin","password":"admin"}', headers={'Content-Type':'application/json','X-Public-Data':'1'})
+        with urlopen(request) as response:
+            self.cookie = response.headers['Set-Cookie'].split(';')[0]
     def tearDown(self):
-        self.server.shutdown(); self.server.server_close(); self.thread.join(); self.temp.cleanup()
+        self.server.shutdown(); self.server.server_close(); self.thread.join(); self.server.access.db.close(); self.temp.cleanup()
     def call(self,path,method='GET',data=None,headers=None):
-        hdr={'Content-Type':'application/json','X-Public-Data':'1'}
+        hdr={'Content-Type':'application/json','X-Public-Data':'1','Cookie':self.cookie}
         hdr.update(headers or {})
         request=Request(self.base+path,method=method,headers=hdr,data=json.dumps(data).encode() if data is not None else None)
         try: response=urlopen(request)
@@ -41,6 +45,91 @@ class WebTest(unittest.TestCase):
         content_type=response.headers.get('Content-Type','')
         response.close()
         return status, json.loads(body) if 'application/json' in content_type else body
+    def test_local_auth_and_roles(self):
+        cookie = self.cookie
+        self.cookie = ''
+        self.assertEqual(self.call('/api/catalog')[0], 200)
+        self.assertEqual(self.call('/content/reviews/demo.md')[0], 200)
+        self.assertEqual(self.call('/api/settings/ai')[0], 401)
+        self.assertEqual(self.call('/api/settings/users')[0], 401)
+        self.assertEqual(self.call('/api/requests')[0], 200)
+        self.assertEqual(self.call('/content/reviews/demo.html')[0], 200)
+        self.assertEqual(self.call('/api/agent')[0], 401)
+        self.assertEqual(self.call('/api/requests','POST',{'title':'Anonymous','url':'https://example.com'})[0],401)
+        self.assertEqual(self.call('/api/requests/'+'a'*32,'PATCH',{'revision':1,'status':'completed'})[0],401)
+        self.assertEqual(self.call('/api/agent','POST',{'action':'ask','query':'demo'})[0],401)
+        self.assertEqual(self.call('/api/settings/ai','POST',{})[0],401)
+        self.assertEqual(self.call('/api/login','POST',{'username':'admin','password':'wrong'})[0],401)
+        self.cookie = cookie
+        self.assertEqual(self.call('/api/settings/users','POST',{'username':'reader','password':'pass','role':'user','active':True})[0],200)
+        token,user = self.server.access.login('reader','pass','test')
+        self.cookie = 'pd_session='+token
+        self.assertEqual(self.call('/api/catalog')[0],200)
+        self.assertEqual(self.call('/api/settings/ai')[0],403)
+        self.assertEqual(self.call('/api/settings/users','POST',{})[0],403)
+        self.assertEqual(self.call('/api/agent','POST',{'action':'refresh'})[0],403)
+        self.assertEqual(self.call('/api/logout','POST',{})[0],200)
+        self.assertEqual(self.call('/api/catalog')[0],200)
+        self.cookie=cookie
+        admin=self.call('/api/settings/users')[1]['users'][0]
+        self.assertEqual(self.call('/api/settings/users','POST',dict(admin,active=False))[0],400)
+
+    def test_ai_settings_are_write_only(self):
+        secret={'name':'Router','endpoint':'https://private.example/v1','model':'private-model','api_key':'secret-key','enabled':True}
+        self.assertEqual(self.call('/api/settings/ai','POST',secret)[0],200)
+        configs=self.call('/api/settings/ai')[1]['configurations']
+        self.assertEqual(set(configs[0]),{'id','name','enabled'})
+        for route in ['/api/settings/ai','/api/agent','/api/catalog']:
+            body=json.dumps(self.call(route)[1])
+            for k in ('endpoint','model','api_key'): self.assertNotIn(secret[k],body)
+        self.assertEqual(self.call('/api/settings/ai','POST',{'id':configs[0]['id'],'name':'Renamed','enabled':False})[0],200)
+        self.assertFalse(self.call('/api/settings/ai')[1]['configurations'][0]['enabled'])
+        from local_access import Access
+        reopened=Access(Path(self.temp.name)/'private')
+        self.assertEqual(reopened.configurations()[0]['name'],'Renamed')
+        reopened.db.close()
+        self.assertEqual(self.call('/api/settings/ai','POST',{'id':configs[0]['id'],'delete':True})[0],200)
+        self.assertEqual(self.call('/api/settings/ai')[1]['configurations'],[])
+
+    def test_proxy_request_and_error_redaction(self):
+        import io
+        from unittest.mock import patch, MagicMock
+        secret={'name':'Router','endpoint':'https://private.example/v1','model':'private-model','api_key':'secret-key','enabled':True}
+        self.call('/api/settings/ai','POST',secret)
+        opener=MagicMock()
+        opener.open.return_value=io.BytesIO(json.dumps({'choices':[{'message':{'content':'secret-key private-model https://private.example/v1 answer'}}]}).encode())
+        with patch('local_access.build_opener',return_value=opener):
+            status, result=self.call('/api/agent','POST',{'action':'ask','query':'demo'})
+        self.assertEqual(status,200)
+        self.assertEqual(result['answer'],'[redacted] [redacted] [redacted] answer')
+        request=opener.open.call_args.args[0]
+        self.assertEqual(request.full_url,secret['endpoint']+'/chat/completions')
+        self.assertEqual(request.get_header('Authorization'),'Bearer secret-key')
+        payload=json.loads(request.data)
+        self.assertEqual(payload['model'],'private-model')
+        self.assertNotIn('secret-key',json.dumps(payload))
+        self.assertNotIn('private.example',json.dumps(payload))
+        with patch('local_access.build_opener',side_effect=OSError('secret-key private.example')):
+            status,result=self.call('/api/agent','POST',{'action':'ask','query':'demo'})
+        self.assertEqual(status,400)
+        self.assertNotIn('secret-key',json.dumps(result))
+        self.assertNotIn('private.example',json.dumps(result))
+
+    def test_user_changes_revoke_sessions_and_preserve_accounts(self):
+        access=self.server.access
+        access.save_user({'username':'reader','password':'old','role':'user','active':True})
+        token,reader=access.login('reader','old','test')
+        access.save_user(dict(reader,password='new',active=True))
+        self.assertIsNone(access.user(token))
+        self.assertIsNone(access.login('reader','old','test'))
+        self.assertIsNotNone(access.login('reader','new','test'))
+        admin=next(u for u in access.users() if u['username']=='admin')
+        with self.assertRaises(ValueError): access.save_user(dict(admin,username='reader',active=True))
+        self.assertEqual(len(access.users()),2)
+        self.assertEqual(access.user(self.cookie.split('=',1)[1])['username'],'admin')
+        for route in ('users','ai'):
+            self.assertEqual(self.call('/api/settings/'+route,'POST',{'id':['bad']})[0],400)
+
     def test_catalog_and_guide(self):
         status,data=self.call('/api/catalog'); self.assertEqual(status,200)
         item=data['items'][0]; self.assertEqual(item['html'],'reviews/demo.html'); self.assertEqual(item['description'],'A useful demo'); self.assertEqual(item['date'],'2026-11-01')
@@ -78,7 +167,7 @@ class WebTest(unittest.TestCase):
             self.assertNotIn(unsafe,body)
         self.assertIn(b'Hidden findings',body)
         self.assertNotIn(b'<section hidden',body)
-        with urlopen(self.base+'/c%6fntent/reviews/demo.html') as response:
+        with urlopen(Request(self.base+'/c%6fntent/reviews/demo.html', headers={'Cookie':self.cookie})) as response:
             csp=response.headers['Content-Security-Policy']
             self.assertIn("script-src 'none'",csp)
             self.assertIn('sandbox;',csp)

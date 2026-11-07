@@ -24,7 +24,7 @@ Curated patterns, prompts, architectural ideas, and repo reviews extracted from 
 
 ## Web interface
 
-Run `uv run --no-project scripts/review-web.py` and open [the local library](http://127.0.0.1:8765) to browse reviews, read interactive guides, save entries, switch themes, and manage file-backed review requests. See [web interface documentation](web/README.md) and [request format](review-requests/README.md). The interface includes full-text discovery and freshness checks, with opt-in configurable agent adapters for answers, review refreshes and HTML improvements. It does not automatically commit or publish. See [agent access](web/AGENT.md) and [direct agent instructions](AGENTS.md).
+Run `uv run --no-project scripts/review-web.py` and open [the local library](http://127.0.0.1:8765) to browse publicly in read-only mode, read guides, save entries, switch themes, and manage file-backed review requests. See [web interface documentation](web/README.md) and [request format](review-requests/README.md). Use Login (initially **admin / admin**) for permitted actions and administrator Settings. The interface includes full-text discovery and freshness checks, with opt-in configurable agent adapters for answers, review refreshes and HTML improvements. It does not automatically commit or publish. See [agent access](web/AGENT.md) and [direct agent instructions](AGENTS.md).
 
 ## Review workflow
 

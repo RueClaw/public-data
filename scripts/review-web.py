@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Dependency-free public-data library and file-backed review queue."""
 import argparse
+from http.cookies import SimpleCookie, CookieError
+from local_access import Access
 from library_agent import AgentService
 import hmac
 import time
@@ -119,8 +121,12 @@ def catalog(root):
 
 class App(ThreadingHTTPServer):
     daemon_threads = True
-    def __init__(self, address, root=ROOT, public_origin=None, queue_dir=None, gateway_token=None, max_connections=32, agent_config=None):
+    def __init__(self, address, root=ROOT, public_origin=None, queue_dir=None, gateway_token=None, max_connections=32, agent_config=None, state_dir=None):
         self.root = root.resolve()
+        private = Path(state_dir or Path.home() / ".local/state/public-data").expanduser().resolve()
+        if private.is_relative_to(self.root):
+            raise ValueError("Private state must be outside the repository.")
+        self.access = Access(private)
         self.agent = AgentService(self.root, catalog, agent_config)
         self.queue_dir = (queue_dir or root / 'review-requests').resolve()
         self.public_origin = public_origin
@@ -167,6 +173,21 @@ class Handler(BaseHTTPRequestHandler):
     def setup(self):
         self.request.settimeout(10)
         super().setup()
+    def session_token(self):
+        try:
+            cookie = SimpleCookie(self.headers.get("Cookie", ""))
+            return cookie["pd_session"].value if "pd_session" in cookie else ""
+        except CookieError:
+            return ""
+
+    def require_user(self, admin=False):
+        self.user = self.server.access.user(self.session_token())
+        if not self.user:
+            self.respond(401, {"error": "Sign in required."}); return False
+        if admin and self.user["role"] != "admin":
+            self.respond(403, {"error": "Administrator access required."}); return False
+        return True
+
     def authorized(self):
         token = self.server.gateway_token
         if token and not hmac.compare_digest(self.headers.get('X-Public-Data-Gateway', ''), token):
@@ -191,7 +212,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(body)))
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'no-referrer')
-        self.send_header('Cache-Control', 'no-cache')
+        self.send_header('Cache-Control', 'no-store')
+        if getattr(self, 'session_cookie', None):
+            self.send_header('Set-Cookie', self.session_cookie)
         self.send_header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()')
         if content_type.startswith('text/html') and guide:
             self.send_header('Content-Security-Policy', GUIDE_CSP)
@@ -221,6 +244,14 @@ class Handler(BaseHTTPRequestHandler):
         if not self.valid_host():
             return self.respond(403, {'error': 'Host not allowed.'})
         path = unquote(urlsplit(self.path).path)
+        if path == '/api/session':
+            return self.respond(200, {'user': self.server.access.user(self.session_token())})
+        if path.startswith('/api/settings') or path == '/api/agent':
+            if not self.require_user(path.startswith('/api/settings')): return
+        if path == '/api/settings/users':
+            return self.respond(200, {'users': self.server.access.users()})
+        if path == '/api/settings/ai':
+            return self.respond(200, {'configurations': self.server.access.configurations()})
         if path == '/api/catalog':
             with self.server.catalog_lock:
                 if self.server.cached is None or time.monotonic() - self.server.cached_at > 30:
@@ -230,7 +261,12 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/requests':
             return self.respond(200, {'requests': self.requests()})
         if path == '/api/agent':
-            return self.respond(200, self.server.agent.capabilities())
+            caps = self.server.agent.capabilities()
+            if self.user['role'] != 'admin': caps['actions'] = [a for a in caps['actions'] if a in ('search', 'stale')]
+            configs = [c for c in self.server.access.configurations() if c['enabled']]
+            if configs and 'ask' not in caps['actions']: caps['actions'].append('ask')
+            caps['configurations'] = configs
+            return self.respond(200, caps)
         if path == '/api/health':
             return self.respond(200, {'ok': True})
         if path.startswith('/content/'):
@@ -277,8 +313,37 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(size))
             if not isinstance(data, dict):
                 raise ValueError('Expected an object.')
+            path = urlsplit(self.path).path
+            if self.command == 'POST' and path == '/api/login':
+                result = self.server.access.login(data.get('username'), data.get('password'), self.client_address[0])
+                if not result: return self.respond(401, {'error': 'Invalid username or password.'})
+                token, user = result
+                self.session_cookie = 'pd_session=' + token + '; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200' + ('; Secure' if self.server.public_origin else '')
+                return self.respond(200, {'user': user})
+            if not self.require_user(path.startswith('/api/settings')): return
+            if self.command == 'POST' and path == '/api/logout':
+                self.server.access.logout(self.session_token())
+                self.session_cookie = 'pd_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'
+                return self.respond(200, {'ok': True})
+            if self.command == 'POST' and path == '/api/settings/users':
+                self.server.access.save_user(data)
+                return self.respond(200, {'ok': True})
+            if self.command == 'POST' and path == '/api/settings/ai':
+                self.server.access.save_ai(data)
+                return self.respond(200, {'ok': True})
             if self.command == 'POST' and urlsplit(self.path).path == '/api/agent':
-                result = self.server.agent.run(data)
+                action = data.get('action', 'search')
+                if action not in ('search', 'stale', 'ask') and self.user['role'] != 'admin':
+                    return self.respond(403, {'error': 'Administrator access required.'})
+                if action == 'ask' and (data.get('configuration') or any(c['enabled'] for c in self.server.access.configurations())):
+                    query = data.get('query', '')
+                    if not isinstance(query, str) or not query.strip() or len(query) > 8000:
+                        raise ValueError('Enter a question up to 8,000 characters.')
+                    result = self.server.access.ask(data.get('configuration'), query, self.server.agent.search(catalog(self.server.root), query))
+                else:
+                    if action == 'ask' and self.user['role'] != 'admin':
+                        return self.respond(403, {'error': 'Administrator access required.'})
+                    result = self.server.agent.run(data)
                 self.server.cached = None
                 return self.respond(200, result)
             with LOCK:
@@ -340,13 +405,14 @@ if __name__ == '__main__':
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--public-origin', help='Exact HTTPS origin accepted behind a trusted proxy')
     parser.add_argument('--queue-dir', type=Path, help='Persistent queue location (defaults to review-requests/)')
+    parser.add_argument('--state-dir', type=Path, help='Private local account and AI database directory outside the repository')
     parser.add_argument('--agent-config', type=Path, help='Private operator-owned JSON command configuration')
     args = parser.parse_args()
     agent_config = json.loads(args.agent_config.read_text()) if args.agent_config else None
     gateway_token = os.environ.get('PUBLIC_DATA_GATEWAY_TOKEN')
     if args.public_origin and not gateway_token:
         parser.error('Public deployment requires PUBLIC_DATA_GATEWAY_TOKEN from a private environment file.')
-    server = App((args.host, args.port), public_origin=args.public_origin, queue_dir=args.queue_dir, gateway_token=gateway_token, agent_config=agent_config)
+    server = App((args.host, args.port), public_origin=args.public_origin, queue_dir=args.queue_dir, gateway_token=gateway_token, agent_config=agent_config, state_dir=args.state_dir)
     print(f'Public Data → http://{args.host}:{args.port}', flush=True)
     try:
         server.serve_forever()
