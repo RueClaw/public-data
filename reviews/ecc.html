@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECC — Review</title>
+<meta name="description" content="Cross-harness coding-agent workflows, hooks, managed installation and memory.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ecc</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">affaan-m/ECC · reviewed 2026-11-07</div>
+    <h1>ECC</h1>
+    <p class="one-liner">Cross-harness coding-agent workflows, hooks, managed installation and memory.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Node.js · Markdown · Python · Rust alpha</span>
+      <span class="chip"><a href="https://github.com/affaan-m/ECC">affaan-m/ECC ↗</a></span>
+      <span class="chip"><a href="ecc.md">Full evidence and limitations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">299,049</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">44,184</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real tooling, not just prompts</h3><p>Install plans, operation records, hook consent and recovery helpers make the workflow catalog operational. They do not make it a sandbox.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local memory can call a provider</h3><p>Session summaries can reuse Claude authentication and inherited CLI configuration. The helper is not explicitly sealed from tools or MCP; inspect effective permissions before enabling it.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Adopt a narrow, measured profile</h3><p>Vault path and secret checks are useful, but retention is operator-owned. Claude is the primary integration; cross-harness parity and Rust ECC2 remain limited.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Content</td><td>Markdown agents, skills, rules and commands</td></tr><tr><td>Runtime</td><td>Node CLI/hooks, Bash/Python learning, optional provider SDKs</td></tr><tr><td>State</td><td>Markdown, JSONL and SQLite; separate Rust alpha</td></tr><tr><td>Revision</td><td>d2ef2680594f9a17526a6e1a2e18b3d242c5d17b</td></tr><tr><td>Verification</td><td>Static review; upstream exact-SHA CI success, not locally reproduced</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>
+ECC packages a proposed engineering cycle: plan, test, implement, review, verify, remember and improve. Most specialist behavior lives in Markdown instructions consumed by an existing coding harness. For example, the planner declares Read/Grep/Glob tools and an Opus model; search-first guides investigation of existing packages and tools before implementation. Those declarations only constrain execution to the extent that the receiving harness implements them.</p>
+<p>The executable layer is significant. The npm CLI dispatches setup, selective install, catalog/profile, memory, repair/uninstall, session inspection and control-pane operations. Claude Code is the primary supported integration; Codex has native plugin/config paths, while other adapters expose narrower capabilities. The README advertises 71 agents, 314 skills and 98 legacy command shims; these are upstream catalog counts, not independently certified behavior or quality scores. <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/README.md">Overview and support matrix</a>.
+</p><h4>1. A large workflow catalog with useful engineering discipline</h4>
+<p>The research-before-coding, planning, TDD, review and verification material is reusable. The value is reducing repeated process design, not guaranteeing that an LLM followed the process. Domain-specific and security-related skill labels are not certifications. Instruction-only adapters cannot enforce Claude-style hooks. Start with a narrow workflow rather than advertise hundreds of unrelated skills to every session. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/skills/search-first/SKILL.md">`skills/search-first/SKILL.md`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/agents/planner.md">`agents/planner.md`</a> and the README support matrix.</p>
+<h4>2. Managed installation is materially better than blind copying</h4>
+<p>The implementation separates install planning, application, state recording, diagnosis, repair and uninstall. Install-state validation rejects unknown fields and records operations; lifecycle logic uses content hashes and containment checks, and includes preservation of drifted/symlinked copies in relevant uninstall/migration paths. Hook consent explicitly discloses automatic source writes, command/process changes, transcript-derived LLM egress, MCP activity, permission gates and persistent records. This is unusually useful disclosure, but not a universal rollback guarantee for external side effects.</p>
+<p>The legacy shell entry point automatically runs npm install with --ignore-scripts when node_modules is missing. That prevents dependency lifecycle scripts at that step, not registry access or subsequent runtime code execution. Auto-update pulls current repository changes and reinstalls recorded selections: an update changes trusted executable bytes and deserves review. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/install-state.js">`scripts/lib/install-state.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/install-lifecycle.js">`scripts/lib/install-lifecycle.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/install/hook-consent.js">`scripts/lib/install/hook-consent.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/install.sh">`install.sh`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/auto-update.js">`scripts/auto-update.js`</a>.</p>
+<h4>3. Hooks contain real checks, but are not a sandbox</h4>
+<p>GateGuard inspects tool/transcript evidence and distinguishes first-touch edits, destructive shell operations and routine commands. Config protection tries to prevent agents from weakening lint/format checks instead of fixing code. The dispatcher bounds input and fails closed on truncation for selected GateGuard/MCP checks; other paths intentionally return no opinion or skip unavailable helpers. Profiles default to standard and hooks can be disabled through configuration/environment.</p>
+<p>This is defense in depth under a trusted operator, not an independent authorization kernel. A process with the user's filesystem/environment authority can influence configuration; the underlying harness still owns permissions, sandboxing and tool availability. Do not interpret a hook timeout, successful install or a security-scanner score as proof of containment. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/hooks/hooks.json">`hooks/hooks.json`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/hooks/run-with-flags.js">`scripts/hooks/run-with-flags.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/hook-flags.js">`scripts/lib/hook-flags.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/hooks/gateguard-fact-force.js">`scripts/hooks/gateguard-fact-force.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/hooks/config-protection.js">`scripts/hooks/config-protection.js`</a>.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Host harness versus ECC</h4>
+<p>The CLI dispatches local subprocesses; manifests select files and adapters; the host harness discovers instructions and invokes hooks. Hooks may read transcripts, run formatters/checks, inspect MCP services and write session state. There is no single ECC permission boundary covering every adapter and optional service.</p>
+<p>The sampled Codex worker preserves the operator's configured sandbox and accepts only never/on-request approval policies. It canonicalizes the task-file path into its current worktree before invocation. Noninteractive never means no approval prompts, not no tool execution. The separately named yolo profile still specifies workspace-write rather than danger-full-access; naming alone would have produced the wrong security conclusion. User-install defaults use on-request and workspace-write, with live web search. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/orchestrate-codex-worker.sh">`scripts/orchestrate-codex-worker.sh`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/.codex/user-config.example.toml">`.codex/user-config.example.toml`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/.codex/yolo.config.toml">`.codex/yolo.config.toml`</a>.</p>
+<h4>Important finding: session summaries can use existing provider authentication</h4>
+<p>The session-end path may trigger an LLM summary when remaining context is low or at a configured message interval (default 50). The helper extracts recent conversation text and starts claude --model haiku -p by default, reusing existing Claude authentication and inheriting the process environment. It has a recursion guard, deadline budget and mechanical fallback, but the inspected invocation does <strong>not</strong> explicitly disable tools, MCP or inherited CLI configuration. Conversation text is concatenated into the summarization prompt rather than submitted to a separately sealed no-tool evaluator.</p>
+<p>Therefore “local memory” does not imply offline processing or no additional model usage. The installed hook consent does disclose this egress. For sensitive workloads, deliberately disable LLM summarization or verify the helper's effective provider, tools and configuration in an isolated pilot. This is a trust-boundary concern from static inspection, not a demonstrated exploit. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/hooks/session-end.js">`scripts/hooks/session-end.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/llm-summary.js">`scripts/lib/llm-summary.js`</a>.</p>
+<h4>Providers, credentials and network access</h4>
+<p>The core content does not require an ECC-hosted account, but the selected coding harness generally uses its own provider account. The optional Python layer resolves Claude/OpenAI/Ollama/Atlas/Astraflow providers and saved provider/model configuration; its tool executor invokes registered Python callables directly. It sanitizes model-facing exception text, while raw exceptions remain in trusted logs. Application authors must impose their own tool schema validation, approval and isolation boundaries.</p>
+<p>MCP examples include local package execution, unpinned npx packages, @latest entries, hosted endpoints and credential placeholders. Copying an entire example is a supply-chain and authorization decision, not harmless documentation setup. The opt-in Itô bridge is an external authenticated compute workflow, not free bundled inference; hosted ECC Pro/GitHub App is separate from this MIT tree. No provider, compute reservation, paid service or MCP connection was tested. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/src/llm/providers/resolver.py">`src/llm/providers/resolver.py`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/src/llm/tools/executor.py">`src/llm/tools/executor.py`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/mcp-configs/mcp-servers.json">`mcp-configs/mcp-servers.json`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/.codex/user-config.example.toml">`.codex/user-config.example.toml`</a>.</p>
+<h4>Local dashboards are a trusted-machine boundary</h4>
+<p>The web dashboard explicitly describes loopback-only, unauthenticated operation. The control pane defaults to 127.0.0.1 and enables actions unless disabled. Shared Host/Origin checks help against DNS rebinding and browser-origin misuse, but accept absent Origin and compare hostnames rather than authenticating users; they are not tenant isolation or a general same-origin/token authorization scheme. Keep these operator surfaces off public proxies and shared untrusted hosts. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/dashboard-web.js">`scripts/dashboard-web.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/control-pane/server.js">`scripts/lib/control-pane/server.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/loopback-guard.js">`scripts/lib/loopback-guard.js`</a>.
+</p><h4>Memory, retention and recovery</h4><p>
+<strong>Memory Vault:</strong> project/team scopes live under the project's .ecc/memory, user scope under the user's .ecc/memory. Default recall is project+team. New entries are create-only and unreviewed; types/statuses and sizes are constrained. Reads are bounded (including file-count and aggregate-byte limits), use non-symlink/regular-file checks, and enforce trusted-root containment. Creation requests owner-only directories/files, project memory is ignored by Git, and known secret patterns are rejected. The MCP wrapper makes user scope opt-in and uses a server-owned harness identity. These are meaningful controls. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/memory-vault.js">`scripts/lib/memory-vault.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/lib/memory-vault-format.js">`scripts/lib/memory-vault-format.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/memory-mcp.mjs">`scripts/memory-mcp.mjs`</a>.</p>
+<p><strong>Not a secret store or automatic knowledge approval:</strong> regexes recognize selected token/private-key formats, not all confidential prose, PII or novel credentials. Markdown storage is plaintext, and “unreviewed” is provenance, not a guarantee against prompt injection when recalled. No general TTL/encrypted-at-rest policy was established for the sampled vault. Backups, manual review, retention and deletion across every store remain operator responsibilities.</p>
+<p><strong>Continuous learning is separate:</strong> hook observation stores scrubbed tool input/output in JSONL; a background observer can transform observations into project/global instincts and later skills. Its checked-in observer setting is disabled by default. The observer uses a model subprocess with Read/Write allowed tools; it is not neural-weight training. Archives preserve rotated/processed observations, so rotation must not be confused with secure erasure. The skill's “100% reliable” hook-capture language is too strong: the implementation explicitly skips observation when a shell/helper is unavailable or fails. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/skills/continuous-learning-v2/config.json">`skills/continuous-learning-v2/config.json`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/skills/continuous-learning-v2/hooks/observe.sh">`skills/continuous-learning-v2/hooks/observe.sh`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/skills/continuous-learning-v2/agents/observer-loop.sh">`skills/continuous-learning-v2/agents/observer-loop.sh`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/scripts/hooks/observe-runner.js">`scripts/hooks/observe-runner.js`</a>.</p>
+<p><strong>Recovery is layered:</strong> mechanical session-summary fallback, saved handoffs, recorded install state and diagnosis/repair tools help continuity. They do not undo already-issued external API actions, restore every manually changed config, or prove a model-generated summary is accurate. The Rust alpha uses SQLite as its cross-process state source; its own documentation says the overall product and release packaging are unfinished.
+</p><h4>Tests and maturity</h4><p>
+The main CI definition has Linux Node 18/20/22 lanes, Windows/macOS Node 22 lanes, package-manager compatibility lanes, exact packed-artifact installation lifecycle checks, component/schema validators, Python lint/type/unit tests, coverage gates, signature/advisory checks and supply-chain IOC scanning. Actions are SHA-pinned in the sampled workflow and checkout credential persistence is disabled. Tests include memory boundary, read-completeness, MCP, summary and observer regressions. These are stronger maintenance signals than a prompt-only repository.</p>
+<p>The public <strong>CI run for this exact SHA reported success</strong>: <a href="https://github.com/affaan-m/ECC/actions/runs/42296108996">run 42296108996</a>. That is upstream status, not a locally reproduced result or a claim that every optional integration works. The security job blocks high runtime npm advisories, not all development dependency advisories. No independent dependency audit, registry-to-source reproducibility check, complete license inventory or release-binary verification was performed.</p>
+<p>Observed GitHub metadata: 299,049 stars, 44,184 forks and 241 open issues/PRs combined; these are transient popularity/activity counts, not evidence of safety. The latest reviewed source is newer than the 2.2.3 release. README caveats include optional Bash/Python requirements, macOS shell limitations and native-Windows observer/memory issues; code includes related fixes, but this review did not resolve those reports experimentally. Node 18 compatibility is a stated minimum, not a recommendation to deploy an obsolete runtime. Prefer a maintained supported Node release and test the exact host/harness combination. Evidence: <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/.github/workflows/ci.yml">`.github/workflows/ci.yml`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/tests/lib/memory-vault.test.js">`tests/lib/memory-vault.test.js`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/package.json">`package.json`</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/README.md">`README.md`</a>.
+</p><h4>Verification limits</h4><p>
+This is a source-based architectural review, not penetration testing or a complete audit of the 314-skill catalog. No reviewed source was installed or executed, no host credentials or private data were used, and no model calls were made. Source/API access and upstream CI status were verified; behavior, performance, platform parity and recovery remain to be independently reproduced. No code was extracted from the repository.</p>
+<hr>
+<p><strong>Attribution:</strong> <a href="https://github.com/affaan-m/ECC">Affaan Mustafa and contributors / affaan-m/ECC</a>, <a href="https://github.com/affaan-m/ECC/blob/d2ef2680594f9a17526a6e1a2e18b3d242c5d17b/LICENSE">MIT license</a>. Earlier identity: affaan-m/everything-claude-code.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>ECC</td><td>Broad workflow plus operations suite; more boundaries to own</td></tr><tr><td>Superpowers</td><td>Focused coding methodology and review loop</td></tr><tr><td>Compound Engineering</td><td>Workflow and accumulated lessons across harnesses</td></tr><tr><td>Native instructions</td><td>Smaller trusted surface; more manual curation</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+There is no single production server to deploy. Keep the source/release version explicit, inspect the chosen adapter's effective permissions, preview the managed install plan, and preserve existing settings. Begin with a small no-hooks/selective profile; enable hooks only after reviewing their disclosed effects. Do not bulk-import MCP examples or assume opt-in observer behavior applies to every summary hook.</p>
+<p>A useful pilot should measure task success, review defects, tokens/cost and wall time against the same harness without ECC. Exercise uninstall with modified user files, interrupted session recovery, oversized hook inputs, secret-bearing synthetic transcripts, memory-scope separation and provider-denied/offline operation. Keep dashboards local, pin external executables, and set a retention policy for vaults, summaries, observations, archives and databases. None of these deployment steps was performed during this review.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Selectively pilot the workflow layer, not the entire catalog as a trusted operating system. Strong managed installation and memory safeguards coexist with provider-backed summaries, executable hooks, uneven adapter parity and an unfinished Rust alpha.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/affaan-m/ECC">affaan-m/ECC</a> · MIT</span>
+    <span><a href="ecc.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

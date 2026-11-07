@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ecc.md](reviews/ecc.md) [page](reviews/ecc.html) | [affaan-m/ECC](https://github.com/affaan-m/ECC) | MIT | ⚠️ Interesting | Cross-harness workflow, hooks and memory suite; strong managed-install controls, but provider egress, retention and adapter-parity caveats. Static review. |
 | [vork.md](reviews/vork.md) [page](reviews/vork.html) | [voyager-so/vork](https://github.com/voyager-so/vork) | Custom Preview License (source-available) | ⚠️ Interesting | Agent-oriented headless 3D/VFX renderer; retained GPU scenes, preview fidelity limits, benchmark and sandbox/licensing caveats. Static review. |
 | [tstack.md](reviews/tstack.md) [page](reviews/tstack.html) | [t3dotgg/tstack](https://github.com/t3dotgg/tstack) | MIT | ⚠️ Interesting | Nine PR-delivery agent skills and a Python watcher; strong proof habits, but prompt-only authority, incomplete readiness gates and recovery limits. Static review. |
 | [idea-generator-2.md](reviews/idea-generator-2.md) [page](reviews/idea-generator-2.html) | [fltman/idea-generator-2](https://github.com/fltman/idea-generator-2) | MIT | ⚠️ Interesting | Visual evolutionary idea board; useful lineage and scouts, but self-scored novelty, soft budgets and local trust boundaries. Static review. |
