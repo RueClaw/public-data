@@ -8,6 +8,11 @@ Require authentication on every route using either the Basic example (hashed pas
 
 The gateway token is an additional backend boundary, not a substitute for user authentication. Local loopback previews omit the token; public-origin startup refuses to run without it.
 
+Install uv system-wide at `/usr/bin/uv` (or adjust `ExecStart` to its absolute
+location) and provide Python 3.10+ at `/usr/bin/python3`. The service uses uv in
+offline mode with managed-Python downloads and caching disabled, so startup needs
+no network access or writable environment/cache under the read-only deployment.
+
 ## Explicit resource ceilings
 
 The service example limits CPU to one core, memory to 512 MiB (384 MiB soft threshold), swap to zero, tasks to 64, open files to 256 and individual file writes to 8 MiB. The server allows 32 concurrent connections, ten-second socket waits, 50 requests/second with a burst of 100, 16,000-byte request bodies, 8 MiB served files/responses, 20,000 catalog entries, an eight-entry sanitized-guide cache and a queue bounded by both 10,000 records and 64 MiB. Catalog refreshes are serialized. Queue writes reject operations beyond the configured budget.
@@ -18,4 +23,4 @@ Set `request_body { max_size 16KB }` before authentication/WAF inside the site's
 
 The server uses a conservative HTML element/attribute allowlist, removes scripts, inline event handlers, forms, frames, SVG and external assets, drops hidden state, and expands tab sections. All guide responses include an HTTP CSP sandbox with no capabilities, script execution disabled, external resources blocked and no form submissions. The library iframe also has an empty sandbox. Direct links receive the same restrictions. Interactive JavaScript features are intentionally unavailable. Sanitization and isolation reduce browser capability; neither establishes that text, links or instructions are truthful or harmless.
 
-Static assets use an explicit allowlist. Deployment documentation is not an HTTP asset. Markdown paths cannot traverse out of their named collection. Run `python3 scripts/test_review_web.py` after changes.
+Static assets use an explicit allowlist. Deployment documentation is not an HTTP asset. Markdown paths cannot traverse out of their named collection. Run `uv run --no-project scripts/test_review_web.py` after changes.

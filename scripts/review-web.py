@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Dependency-free public-data library and file-backed review queue."""
 import argparse
+from library_agent import AgentService
 import hmac
 import time
 from functools import lru_cache
@@ -118,8 +119,9 @@ def catalog(root):
 
 class App(ThreadingHTTPServer):
     daemon_threads = True
-    def __init__(self, address, root=ROOT, public_origin=None, queue_dir=None, gateway_token=None, max_connections=32):
+    def __init__(self, address, root=ROOT, public_origin=None, queue_dir=None, gateway_token=None, max_connections=32, agent_config=None):
         self.root = root.resolve()
+        self.agent = AgentService(self.root, catalog, agent_config)
         self.queue_dir = (queue_dir or root / 'review-requests').resolve()
         self.public_origin = public_origin
         self.gateway_token = gateway_token
@@ -227,6 +229,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(200, {'items': self.server.cached})
         if path == '/api/requests':
             return self.respond(200, {'requests': self.requests()})
+        if path == '/api/agent':
+            return self.respond(200, self.server.agent.capabilities())
         if path == '/api/health':
             return self.respond(200, {'ok': True})
         if path.startswith('/content/'):
@@ -273,6 +277,10 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(size))
             if not isinstance(data, dict):
                 raise ValueError('Expected an object.')
+            if self.command == 'POST' and urlsplit(self.path).path == '/api/agent':
+                result = self.server.agent.run(data)
+                self.server.cached = None
+                return self.respond(200, result)
             with LOCK:
                 path = urlsplit(self.path).path
                 if self.command == 'POST' and path == '/api/requests':
@@ -332,11 +340,13 @@ if __name__ == '__main__':
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--public-origin', help='Exact HTTPS origin accepted behind a trusted proxy')
     parser.add_argument('--queue-dir', type=Path, help='Persistent queue location (defaults to review-requests/)')
+    parser.add_argument('--agent-config', type=Path, help='Private operator-owned JSON command configuration')
     args = parser.parse_args()
+    agent_config = json.loads(args.agent_config.read_text()) if args.agent_config else None
     gateway_token = os.environ.get('PUBLIC_DATA_GATEWAY_TOKEN')
     if args.public_origin and not gateway_token:
         parser.error('Public deployment requires PUBLIC_DATA_GATEWAY_TOKEN from a private environment file.')
-    server = App((args.host, args.port), public_origin=args.public_origin, queue_dir=args.queue_dir, gateway_token=gateway_token)
+    server = App((args.host, args.port), public_origin=args.public_origin, queue_dir=args.queue_dir, gateway_token=gateway_token, agent_config=agent_config)
     print(f'Public Data → http://{args.host}:{args.port}', flush=True)
     try:
         server.serve_forever()
