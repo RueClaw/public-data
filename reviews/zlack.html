@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zlack — Review</title>
+<meta name="description" content="An unofficial Tauri desktop wrapper for Slack—not a self-hosted messaging service.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / zlack</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">sanguneo/zlack · reviewed 2026-11-07</div>
+    <h1>Zlack</h1>
+    <p class="one-liner">An unofficial Tauri desktop wrapper for Slack—not a self-hosted messaging service.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Rust · Tauri 2 · JavaScript · OS WebView</span>
+      <span class="chip"><a href="https://github.com/sanguneo/zlack">sanguneo/zlack ↗</a></span>
+      <span class="chip"><a href="https://github.com/sanguneo/zlack/tree/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3">reviewed revision</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">63</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">11</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A client, not a collaboration backend</h3><p>Slack still owns accounts, authorization, messages and retention. Zlack adds native windows, badges, downloads and up to two warm workspaces.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Remote IPC needs one more boundary</h3><p>New workspace URLs are validated, but an existing window can receive an unchecked URL through switch_workspace. This is a static code-path concern requiring an authorized IPC caller, not a demonstrated message-based exploit.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Real tests; important behavior unverified</h3><p>All 33 JavaScript tests passed in a network-isolated synthetic sandbox. Google login and Linux sign-in handoff issues have open proposals; those fixes are not in the reviewed revision.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Native</td><td>Rust / Tauri 2 / OS WebView</td></tr><tr><td>UI</td><td>Live Slack web client plus injected JavaScript</td></tr><tr><td>Storage</td><td>WebView sessions, localStorage metadata, Downloads</td></tr><tr><td>Provenance</td><td>2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3 · v1.6.0</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p> Zlack loads app.slack.com into a system WebView and injects a substantial JavaScript compatibility layer. Slack still supplies the UI, accounts, messages, files, permissions and backend. There is no independent message database, server API, tenant provisioning, retention service or offline archive. The project is not affiliated with or endorsed by Slack/Salesforce.</p>
+<p>The audience is a desktop user seeking native notifications and workspace switching without packaging an entire Chromium runtime. That packaging choice is verified; lower real-world RAM/CPU use is not. Up to two workspace windows stay warm. Evicted workspaces are not continuously live, so do not assume every workspace continues receiving real-time alerts.</p>
+<h4>Native notification routing</h4>
+<p>The preload replaces Notification and notification-permission behavior, disables service-worker registration, and intercepts fetch/XHR/sendBeacon telemetry to associate notifications with team/channel IDs. The native layer shows titles/bodies through the OS notification service and routes activation to the originating window, with a Slack URL fallback. Ten-minute JavaScript and Rust activation retention is <strong>not</strong> a promise to purge OS notification history or Slack messages. Slack-internal telemetry formats are compatibility liabilities despite thoughtful reconciliation tests. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/notification-bridge.cjs">Bridge</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/native_notifications.rs">native registry</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/notifications.rs">activation</a>.</p>
+<h4>Workspace and unread integration</h4>
+<p>A mutex-protected Rust registry tracks window/team mappings, LRU order, metadata and aggregate badges. MAX_LOADED_WORKSPACES is two. Preload observes Slack state, caches workspace names/domains locally, and remembers request headers/body for counts polling in page memory. Authentication remains Slack's responsibility. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/main.rs#L87-L146">Registry</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/preload.js#L397-L433">request replay</a>.</p>
+<h4>Authenticated downloads</h4>
+<p>File/image requests run inside the logged-in page with credentials included, then send base64 bytes through IPC to Rust. Native saves use the OS Downloads directory, sanitized stems/extensions and 64 MiB image / 256 MiB general-file limits. Base64 and full-buffer copies can be expensive. Native save commands do not themselves require a user gesture or Save dialog: a compromised allowed page could issue repeated writes. General-file extensions may be executable, but this code does not automatically execute the saved file. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/downloads.rs">Downloads</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/preload.js#L1449-L1475">fetch bridge</a>. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Authentication and tenant boundaries</h4>
+<p>Slack web sessions/cookies handle login and service authorization; Zlack has no separate password system or server-side authorization. Workspace windows are UI separation, not strong tenant compartments: they use shared application state, no explicit per-workspace WebView data directory, and commands accept team identifiers supplied by the page. workspace_status exposes aggregate workspace metadata. update_notification_context mutates a global ID-keyed registry without checking the caller's originating window. These are local cross-workspace trust concerns, not evidence of bypassing Slack's server-side access controls.</p>
+<p>Public <a href="https://github.com/sanguneo/zlack/issues/13">issue #13</a> reports Google login blocked in embedded WebViews. <a href="https://github.com/sanguneo/zlack/pull/14">PR #14</a> proposes browser/deep-link login, but was open at review time and is not in this SHA. <a href="https://github.com/sanguneo/zlack/pull/7">PR #7</a> separately addresses Linux slack: sign-in handoff recovery. These are upstream reports/proposals, not independently tested fixes or proof every login fails. Validate the actual identity-provider flow before adoption; do not infer huddle/screen-sharing support from a working chat page.</p>
+<h4>Native IPC: useful restrictions, incomplete defense</h4>
+<p>Static capabilities permit only the slack-ipc command set on HTTPS app.slack.com/slack.com in main/workspace-* windows. Additional workspace-host capabilities are created for a particular window after Slack-domain URL parsing. No general shell permission is exposed. New-window URLs must be credential-free HTTPS under slack.com. External opening accepts credential-free HTTP(S), rejecting file/custom protocols, but does not exclude private-network hosts or unusual ports; this opens the user's browser, not a native HTTP proxy. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/capabilities/slack.json">Capability</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/permissions/slack.toml">permissions</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/security.rs">URL validation</a>.</p>
+<p><strong>Important static finding:</strong> switch_workspace accepts an optional URL. Creating a new window validates it, but ensure_workspace_window skips creation/validation when that team already has a live window. switch_to_workspace then supplies the URL to an evaluated script, attempts the Slack router and otherwise assigns window.location.href. A non-Slack URL can therefore reach that fallback for an existing window. No native on_navigation allowlist is installed in the reviewed main.rs. A compromised IPC-authorized page could navigate another existing workspace window; javascript: evaluation risk should also be explicitly regression-tested and blocked rather than assumed safe. This is a code-path finding, not a demonstrated live exploit, and requires control of an authorized page/IPC caller—not merely posting a normal Slack message. Fix by parsing URLs at the command boundary on every call and applying native navigation policy. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/main.rs#L358-L428">Creation/lookup</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/main.rs#L477-L537">navigation sink</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/main.rs#L742-L748">command</a>.</p>
+<p>Application csp is null; that does not prove Slack's remote response CSP is absent. Injected page interception is a compatibility mechanism, not a security boundary. Executable-adjacent CSS is read and delivered to the page; use trusted CSS only. A sibling fixed WebView2 runtime is executable code and shifts runtime-update responsibility to the operator. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/tauri.conf.json">Config</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/platform.rs">platform handling</a>.</p>
+<h4>Message/file privacy and retention</h4>
+<p>There is no independent privacy layer or end-to-end encryption implementation. Slack and any identity provider remain network trust dependencies. Zlack observes page requests/responses for unread/workspace/notification behavior; the OS receives notification titles and message bodies. Session data, localStorage workspace metadata, clipboard image copies and attachments are separate persistence surfaces. No application-wide secure erase, configurable retention, profile encryption or account-removal cleanup mechanism was found in the inspected implementation. Signing out must not be assumed to remove Downloads or notification history.</p>
+<p>Filename sanitization prevents ordinary path components from choosing arbitrary destinations, but unique_path checks existence separately from std::fs::write and falls back to the original filename after 9,999 collisions. Overwrite avoidance is best-effort, not atomic: concurrent saves or name exhaustion can overwrite. Prefer atomic create_new-style allocation and failure instead of fallback. This edge case and filesystem symlink races were not dynamically exercised. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/downloads.rs#L248-L266">Filename selection</a>.</p>
+<h4>Maturity, Dependencies and Verification</h4>
+<p>Public metadata on 2026-11-07: 63 stars, 11 forks, three open issues/PRs combined; created 2026-01-06, last push 2026-10-27. <a href="https://github.com/sanguneo/zlack/releases/tag/v1.6.0">v1.6.0</a> was published 2026-10-26 UTC and targets this SHA. Popularity is not assurance. <a href="https://api.github.com/repos/sanguneo/zlack">Metadata</a>.</p>
+<p>npm and Cargo lockfiles are present. npm has only the Tauri CLI as a direct dev dependency; the native/runtime supply chain is much larger. CI compiles on Ubuntu, Windows and macOS and runs clippy without warnings-as-errors; it does <strong>not</strong> run cargo test or JavaScript suites. Actions use moving version tags; releases download an executable AppImage helper and a GTK plugin from a moving master URL without an explicit digest check. Pin immutable revisions/digests and add test gates. No vulnerability scan, SBOM, binary signature verification or reproducibility comparison was performed. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/.github/workflows/ci.yml">CI</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/.github/workflows/release.yml">release</a>.</p>
+<p>Executed Node 24.22.1 tests/download-names.test.cjs, tests/notification-bridge.test.cjs, tests/slack-navigation.test.cjs and src-tauri/context-menu-bridge.test.cjs: <strong>33 passed; zero failed/skipped</strong>. Bubblewrap cleared environment variables, exposed runtime files/read-only source, used an ephemeral home and disabled networking. Synthetic tests cover notification ordering/activation, filename resolution, context-menu handling and routing—not Slack itself. Rust security/download/activation tests were inspected but not run. No accounts, application service connections, executable releases, native UI or updates were exercised. Performance, SSO, huddles, cookies at rest and platform behavior remain unverified. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>When it fits / tradeoff</th></tr>
+<tr><td>Zlack</td><td>Personal experiments with a lighter wrapper and custom CSS; unofficial bridge maintenance and IPC trust surface.</td></tr>
+<tr><td>Official Slack desktop</td><td>Important Slack work and vendor-supported desktop behavior; bundled runtime and vendor support policy.</td></tr>
+<tr><td>Supported browser</td><td>Least extra client code, normal profiles and updates; less Zlack-specific tray/workspace integration.</td></tr>
+<tr><td>Zulip or Mattermost</td><td>Hosting a collaboration backend; different product and migration/operations project, not a drop-in client.</td></tr>
+<tr><td>Adoption considerations</td><td>
+<p><a href="https://slack.com/help/articles/115002037526-System-requirements-for-using-Slack">Slack's supported systems/browsers</a> distinguish huddle browser support; a spoofed Chrome user agent does not turn WebKit into Chrome. <a href="https://github.com/zulip/zulip">Zulip</a> and <a href="https://github.com/mattermost/mattermost">Mattermost</a> are category alternatives, not audited deployments in this review.</p>
+<p><strong>Practical gate:</strong> fix the existing-window URL boundary; scope native mutable state by originating window where appropriate; add tests to CI; validate real SSO and notification/download behavior on each platform. Until then, study or cautiously pilot rather than standardize on it. </p></td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p> There is no server to self-host. Desktop packages exist for Windows, macOS and Linux; source builds require Node, Rust and platform Tauri/WebView prerequisites. The configured macOS minimum is not a guarantee Slack's current web client supports that OS/WebKit. Keep the system WebView patched; a fixed Windows runtime needs its own updates.</p>
+<p>Startup does a DNS reachability check and can show a local retry page polling Slack every five seconds. That is connection recovery, not offline messaging. Window close normally hides the app; the tray offers quit/restore. Maximized state is explicitly persisted in a small window-state file. Keep a known-good installer and normal supported Slack access as fallback; no in-app rollback or message backup/restore subsystem was found. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src/index.html">Fallback</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/main.rs">lifecycle</a>.</p>
+<p>The updater checks GitHub Releases on startup and asks before download/install/restart. An embedded public key and release signing configuration are positive, but updater signing does not prove platform code signing/notarization, reproducible builds or successful end-to-end updates. Documentation warns that losing the signing key breaks existing clients' trust in replacement-key updates. <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/src-tauri/src/main.rs#L827-L848">Updater</a>, <a href="https://github.com/sanguneo/zlack/blob/2b5e3e25c698f9e84fb4b1393c45b4fda295b4d3/docs/auto-update.md">operations</a>. </p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful native notifications and a small system-WebView shell, but unresolved authentication compatibility and an existing-window URL validation gap prevent a default deployment recommendation. 33 synthetic JavaScript tests passed; no live Slack or native application validation was performed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/sanguneo/zlack">sanguneo/zlack</a> · MIT</span>
+    <span><a href="zlack.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TradingAgents — Review</title>
+<meta name="description" content="Multi-agent financial research with point-in-time defenses—not validated live trading.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / tradingagents</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">TauricResearch/TradingAgents · reviewed 2026-11-07</div>
+    <h1>TradingAgents</h1>
+    <p class="one-liner">Multi-agent financial research with point-in-time defenses—not validated live trading.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0</span>
+      <span class="chip">Python · LangGraph · LangChain</span>
+      <span class="chip"><a href="https://github.com/TauricResearch/TradingAgents">TauricResearch/TradingAgents ↗</a></span>
+      <span class="chip"><a href="https://arxiv.org/html/2412.20138v2">Paper ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">121,152</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">23,168</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Research output, not executable orders</h3><p>Parallel analysts and two debates produce structured ratings and reports. Despite simulated-exchange language in the README, the inspected graph ends at the portfolio manager without a brokerage or fill path.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Real time-boundary defenses</h3><p>Tools clamp dates; SEC filings and FRED vintages respect historical cutoffs; live-only data is withheld. Those controls cannot remove future knowledge from model weights or create missing text archives.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>A backtest is not investment validation</h3><p>The evaluator scores five-day benchmark-relative decisions, not a financed portfolio with fills, costs and slippage. Short-window paper simulations and agent consensus are not reliable-return evidence.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Python 3.11+, LangGraph, LangChain, Pydantic</td></tr><tr><td>Data</td><td>Yahoo, Alpha Vantage, SEC EDGAR, FRED, Polymarket, social feeds</td></tr><tr><td>Interface/storage</td><td>Typer/Rich CLI, reports, Markdown memory, optional SQLite checkpoints</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>1. Explicit orchestration beats an opaque agent loop</h4>
+<p>Analysts have isolated histories and report-only outputs, then synchronize before debate. The default maximum is 20 tool rounds per analyst, one research round and one risk round; exceeding the analyst limit forces a report. Structured decision schemas improve interoperability, but do not prove price validity, suitability or calibrated confidence. Multiple roles commonly share the same underlying model and evidence: consensus is correlated inference, not independent confirmation. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/graph/setup.py">Graph</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/agents/schemas.py">schemas</a>.</p>
+<h4>2. Point-in-time controls are real—and still incomplete evidence</h4>
+<p>The tool layer clamps model-requested dates to the analysis date and canonicalizes them. News/social timestamp filters reject future observations; historical coverage gaps are explicitly unavailable, not silently “no news.” Current-only company profiles, undated statements and undisclosed insider trades are withheld on historical runs; Polymarket live odds are withheld too. SEC facts are filtered by filing date and FRED requests pin realtime vintages. Memory excludes lessons whose outcomes were not known by the analysis date. These are valuable code-level defenses, not proof of a leak-free historical dataset. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/dataflows/date_window.py">Date rules</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/agents/tools.py">tools</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/dataflows/vendors/sec_edgar.py">SEC</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/dataflows/vendors/fred.py">FRED</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/memory/log.py">memory</a>.</p>
+<p>Residual concerns include unavailable historical text archives, provider revisions/deletions, retrospective instrument universes and mappings, and an LLM's pretrained knowledge of events after the backtest date. Date-filtering tools cannot remove knowledge already inside model weights. Withholding unavailable fundamentals is safer than leaking them, but makes old runs unlike today's full-data run, especially outside SEC-covered US filers.</p>
+<h4>3. “Backtest” means decision scoring, not portfolio simulation</h4>
+<p>The current harness evaluates ticker/date cells and keeps its own memory log. It measures return from the first final close after the analysis date across a configurable holding window (default five trading days), subtracts a regional benchmark's return and groups outcomes by rating. Buy/Overweight and Sell/Underweight receive directional hit rates; Hold claims no direction. Summary alpha is parsed from percentage strings rounded to 0.1 percentage point. “Alpha” here is simple return difference, not factor-adjusted statistical alpha. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/backtest.py">Harness</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/memory/settlement.py">settlement</a>.</p>
+<p>There are no actual quantities, fills, cash accounting, compounded equity curve, transaction fees, spread/slippage, market impact, borrow availability/cost, financing or taxes in this evaluator. A Sell hit is not evidence of a profitable executable short. The same supplied portfolio context is reused across cells rather than carried forward. Overlapping holding windows are correlated; per-cell means are not independent observations or portfolio CAGR/Sharpe. Benchmark fallback can be SPY even for an instrument needing a different comparison, so audit the configured benchmark and calendar/currency conventions.</p>
+<p>A reproducibility trap is visible in the harness: resumption skips cells by ticker/date in the run's log, not a full configuration identity. Do not reuse a run ID after changing model, prompts, analyst set or holding period. Failures and pending observations must be reported alongside successful scores to avoid selection bias. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/backtest.py">Harness</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tests/test_backtest.py">tests</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Provenance</h4>
+<p>Revision 9fa1196fffbcfd9de5146d2dd2869df84ab99838; reviewed 2026-11-07 UTC. Static source review; no installations, application execution, model API calls or trades.</p>
+<p>Four analyst roles cover market technicals, fundamentals, news/macro and social sentiment. They work in parallel with isolated tool/message histories. Bull/bear researchers debate their reports; a research manager synthesizes a plan; a trader proposes an action; aggressive/conservative/neutral risk debaters feed a portfolio manager's final five-tier rating. Fast and deep model tiers can use different providers. Memory settlement runs alongside analysts, and the portfolio manager receives date-eligible lessons. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/graph/setup.py">Graph wiring</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/graph/trading_graph.py">runtime</a>.</p>
+<p>The output boundary matters. The graph ends at the portfolio manager and returns state plus a rating. Schemas contain prose, optional entry/stop/target prices and sizing guidance, not validated executable orders. A supplied portfolio is broker-neutral JSON context, not a connected account or a continuously updated ledger. Although the README says approved proposals reach a simulated exchange, the inspected runtime/backtest does not implement that exchange. No live brokerage order path was found in the reviewed package. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/agents/schemas.py">Schemas</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/portfolio.py">portfolio context</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/backtest.py">backtest</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/README.md">README claim</a>.</p>
+<h4>Trading Performance Evidence</h4>
+<p>The linked <a href="https://arxiv.org/html/2412.20138v2">TradingAgents paper, arXiv:2412.20138v2</a> describes a January 1–March 29, 2024 simulation and comparisons with buy-and-hold, MACD, KDJ/RSI, zero-mean reversion and SMA. Its results prose reports at least 23.21% cumulative return on three sampled stocks, over 26% for AAPL, and Sharpe ratios at least 5.60 across AAPL, GOOGL and AMZN. These are <strong>authors' historical simulation claims</strong>, not independently reproduced returns, audited live results or results measured here. The paper says live deployment is future work.</p>
+<p>The inspected experiment/results text asserts daily information availability but does not substantiate a complete timestamped input archive, model-training cutoff audit, survivorship-free universe selection, realistic cost/slippage/shorting assumptions, repeated-seed uncertainty, or a locked prospective/walk-forward out-of-sample evaluation. A short interval and a handful of prominent surviving stocks are insufficient evidence of generalization across regimes. The baseline set is useful but does not isolate whether expensive multi-agent debate beats a matched single-model/no-debate system on identical information and budget. Paper tables/figures were not numerically reconstructed; the readable experiment/results sections were inspected, and no performance statistic was verified by rerunning them.</p>
+<p>The 2026 repository has different data adapters, models and evaluation semantics from that paper. It explicitly warns published figures need not reproduce. Do not transfer a paper Sharpe ratio onto this SHA. To substantiate investment reliability, require frozen point-in-time data and model/version manifests, survivorship-aware universes including delistings, realistic executions and all costs, matched baselines and ablations, repeated trials with uncertainty, leakage audits, and genuinely unseen forward evaluation. Agent agreement and coherent explanations are not substitutes.</p>
+<h4>Tests, CI and Maturity</h4>
+<p>There are <strong>88 test_*.py files</strong>, including backtest, graph end-to-end, date boundaries, filing knowledge time, historical social/news, memory point-in-time, provider routing, secret scrubbing, reporting, checkpoint and path-safety tests. Inspected backtest tests use a fake graph: useful regression coverage of bookkeeping, not evidence of market profitability or live-provider compatibility.</p>
+<p>CI declares Python 3.11–3.14 plus an America/New_York run, a clean-install import smoke test and Ruff lint. GitHub reported <a href="https://github.com/TauricResearch/TradingAgents/actions/runs/41812805325">CI run 41812805325</a> successful for the exact reviewed SHA. We did <strong>not</strong> run that suite locally or audit every job log; integration tests are excluded by default in pytest configuration. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/.github/workflows/ci.yml">Workflow</a>, <a href="https://github.com/TauricResearch/TradingAgents/tree/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tests">tests</a>.</p>
+<p>Public metadata retrieved 2026-11-07: 121,152 stars, 23,168 forks, last push 2026-11-04, and 127 open issues/PRs combined. Latest release was <a href="https://github.com/TauricResearch/TradingAgents/releases/tag/v0.7.1">v0.7.1, published 2026-10-27</a>, with fixes to filing-date normalization, final-close settlement and Docker environment-file exclusion. That is evidence of active maintenance and recently repaired correctness boundaries, not proof that remaining bugs are absent. Popularity is not a safety or returns metric. Trading-R1 advertising in the README concerns a separate product, outside this review.</p>
+<h4>Verification and Limits</h4>
+<p>Reviewed source and public metadata, implementation paths and selected tests cited above; read the paper's experiment/results text. No application tests or financial backtests were executed, no paper results reproduced, no live provider integration validated, no accounts accessed, and no paid services used. Findings are scoped to this exact revision and inspected paths; this is not a financial recommendation, penetration test or exhaustive dependency/license audit.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>TradingAgents</td><td>LLM financial research and debate; no execution accounting.</td></tr><tr><td><a href="https://github.com/microsoft/qlib">Qlib</a></td><td>Quantitative ML research and evaluation.</td></tr><tr><td><a href="https://github.com/QuantConnect/Lean">LEAN</a></td><td>Event-driven backtesting and execution infrastructure.</td></tr><tr><td>Single-model control</td><td>Measure whether debate adds value on identical frozen inputs.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Reproducibility and API Expenses</h4>
+<p>The manifest uses lower-bound dependencies, with no lockfile found in the snapshot; Docker bases and the optional Ollama image are not digest-pinned. Saved run settings include provider/model names, analysts and vendor routing, but the inspected allowlist omits some influential settings such as temperature and holding period. Live text feeds are not archived by the backtest, and the harness samples each cell once. Low temperature is not a determinism guarantee. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/pyproject.toml">Manifest</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/graph/trading_graph.py">saved settings</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/README.md">README reproducibility</a>.</p>
+<p>Budget for analyst model/tool iterations, both debates and managers, structured-output retries, reflection calls on settled decisions, and optional per-post Jev requests—not just one “stock analysis” completion. Grid work grows with tickers × dates × calls per cell; parallelism reduces latency, not token bills. Configuration offers retry, token and round controls, but no demonstrated end-to-end dollar ceiling. No dollar estimate is asserted without measured token counts and current provider pricing. Free/keyless market access can be rate-limited or unavailable; subscription limits and optional data/model charges still apply. Local Ollama removes a hosted-model dependency, not hardware cost or all outbound data calls.</p>
+<h4>Security, Privacy and Data Terms</h4>
+<ul><li><strong>Outbound data:</strong> Prompts, source text and generated analysis reach the configured model providers; tier overrides may mean two recipients. Portfolio context, if supplied, includes holdings/cash and other positions for decision agents. Optional Jev screening sends social posts to another service. Use synthetic portfolios for evaluation and review provider retention/region terms before sharing anything sensitive. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/portfolio.py">Portfolio renderer</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/agents/post_screen.py">Jev</a>.</li><li><strong>Credentials:</strong> API keys use environment configuration. Query-key HTTP error scrubbing and a report-settings allowlist reduce accidental disclosure. ChatGPT OAuth persists tokens in an owner-readable file (0600 on creation); that is not encryption or a universal secret-management guarantee. Custom endpoints are trusted configuration and can receive keys/prompts. This was a static check, not a credential audit. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/dataflows/net.py">HTTP helper</a>, <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/llm_clients/chatgpt_auth.py">auth</a>.</li><li><strong>Untrusted content:</strong> News and social posts are adversarial model inputs. Jev relevance/stance filtering is not a prompt-injection security boundary and fails back to unscreened content on errors. Schemas constrain output shape, not truth. Do not connect generated ratings directly to a broker; an independent deterministic execution/risk layer and human approval would be separate engineering work.</li><li><strong>Local persistence:</strong> Reports, logs, caches and optional checkpoints retain source material and generated context. Treat outputs as potentially sensitive, restrict filesystem access, and establish retention. Report HTML disables raw HTML and images in Markdown and escapes fields—a positive hardening detail, not a full security certification. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/tradingagents/report_html.py">Renderer</a>.</li><li><strong>Deployment boundary:</strong> This is principally a local CLI/library, not a hardened authenticated multi-user service; web auth/CORS cannot be inferred. Docker uses a non-root app user and excludes environment files, but it does not make untrusted provider content safe. No deployment was performed.</li><li><strong>Rights:</strong> Apache-2.0 covers repository code, with notice/modification and patent conditions; it does not license Yahoo/Alpha Vantage/social content or grant redistribution rights to cached data. Check each vendor's access, storage, commercial-use and redistribution terms and model/subscription terms. Public accessibility and a free API tier are not blanket commercial licenses. <a href="https://github.com/TauricResearch/TradingAgents/blob/9fa1196fffbcfd9de5146d2dd2869df84ab99838/LICENSE">License</a>.</li></ul>
+<h4>Self-Hosting Notes</h4>
+<p>Start with read-only synthetic research, pinned dependencies/models and a measured per-run budget. Disable unnecessary providers, avoid account/portfolio material, and retain immutable input/output manifests if evaluating historical claims. Configure explicit vendor chains rather than relying on arbitrary fallback; preserve missing-data notices. Do not expose local model endpoints publicly. The supplied Docker/CLI routes are useful packaging, not a production trading deployment recipe.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the orchestration and historical-data defenses, not the returns as an investment promise. The built-in backtest scores independent recommendations without execution costs or portfolio accounting. Static review only; the paper’s simulated returns were not reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/TauricResearch/TradingAgents">TauricResearch/TradingAgents</a> · Apache-2.0</span>
+    <span><a href="tradingagents.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
