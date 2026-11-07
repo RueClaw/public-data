@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Idégeneratorn / Idea Generator — Review</title>
+<meta name="description" content="A local evolutionary brainstorming board—not a validated invention engine.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / idea-generator-2</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">fltman/idea-generator-2 · reviewed 2026-11-07</div>
+    <h1>Idégeneratorn / Idea Generator</h1>
+    <p class="one-liner">A local evolutionary brainstorming board—not a validated invention engine.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Node ≥25 · TypeScript · SQLite</span>
+      <span class="chip"><a href="https://github.com/fltman/idea-generator-2">fltman/idea-generator-2 ↗</a></span>
+      <span class="chip">Static review · source f3f29b443db6</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">33</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">12</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real workflow, unproven outcomes</h3><p>Branch and cross ideas with visible ancestry. The calibration script checks 11 hand-labelled examples twice, not held-out novelty or practical success.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Budget numbers are not hard caps</h3><p>Checks happen before autopilot steps; manual calls, queued judging and briefs bypass them. Missing provider cost becomes zero, and concurrent work can overshoot.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local service, external trust boundaries</h3><p>Keys persist in browser localStorage. URL ingestion lacks private-address checks, and gold can write generated CLAUDE.md instructions automatically.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Implementation</td></tr>
+<tr><td>Runtime</td><td>Node &gt;=25 runs TypeScript directly; no build step</td></tr>
+<tr><td>API</td><td>Built-in node:http, regex routes, JSON and server-sent events</td></tr>
+<tr><td>Persistence</td><td>node:sqlite DatabaseSync; boards, ideas, edges, leads, keywords, reports and daily spend</td></tr>
+<tr><td>UI</td><td>Vanilla ES modules, custom canvas/graph behavior and DOM helpers</td></tr>
+<tr><td>Models</td><td>OpenRouter, Anthropic, OpenAI, Azure; Ollama, MLX, LM Studio, custom OpenAI-compatible endpoints</td></tr>
+<tr><td>Dependencies</td><td>One direct dependency, @anthropic-ai/sdk ^1.3.0; lockfile pins 1.3.0 plus seven transitive packages</td></tr>
+<tr><td>Tests</td><td>node:test, injected fake chat/fetch, in-memory SQLite and temporary project directories</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Goal-directed branching and lineage</h4>
+<p>Generation prompts ask for concrete mechanisms rather than buzzwords. Default expansion requests a close variation, a borrowed mechanism and a bold leap; crossover requests a genuinely fused concept. Existing titles (only the last 40) are supplied as a non-repetition prompt. There is no semantic novelty index or prior-art check. The graph preserves parent relationships, generations and guest origins. [2–4]</p>
+<h4>A transparent score, but not a panel of judges</h4>
+<p>The judge returns originality, feasibility and impact, each clamped to 1–5, a short reason and keywords. Code sums the dimensions and assigns bronze at 9, silver at 11, gold at 13. Human medal overrides win both for display and breeding, mapping to fitness values 6/10/12/14. This separates presentation thresholds from model output, a useful design choice. Nevertheless, one selected model produces all dimensions in one call; the default generator and judge use the same configured model family. A short explanation is a rationale, not a verified proof. [3,6]</p>
+<h4>Evolution is real selection, not measured progress</h4>
+<p>The pure nextMove function uses tournaments of size three, nominal 20% expansion/mutation, and excludes repeated combined pairs and direct parent-child pairs. Small populations expand first. It does not establish semantic diversity, exclude all distant relatives, or measure real-world success. The displayed first/latest fitness windows exclude seeds and guests, avoiding one obvious inflated-gain baseline, but still measure the same endogenous judge reward. The windows can overlap for small populations. Increasing scores could reflect better phrasing or judge preference rather than better ideas. [6]</p>
+<h4>Scouts constrain references, not truth</h4>
+<p>X leads must have an HTTP(S) X/Twitter URL matching a normalized URL in provider-returned search annotations; invented uncited URLs are dropped. Research leads must match IDs from Hugging Face daily/search results, with ID deduplication and original paper metadata. This is stronger than trusting model-written citations alone. However, citation membership does not establish that the generated summary/hook is supported, that an X URL is specifically a post, or that an idea is novel. Research selection sees shortened summaries (preferring ai_summary), not full papers. The one-year filter applies to searched papers, not the daily feed. Scouts feed seeds; they do not automatically fact-check each evolved candidate. [7]</p>
+<h4>Gold writes briefs, not functioning products</h4>
+<p>Gold can trigger another model call and a fresh folder containing CLAUDE.md, README.md, idea.json and a gitignored notes directory, followed by git init. Automatic project creation defaults to true, even on a manual board when its background judge awards gold. Names are sanitized and existing folders are not overwritten. No Claude process is started and no generated implementation is executed. The separate “reveal” operation invokes the macOS open command; portability of that convenience action is limited. [2,4,8]</p><h4>Methodology and evidence</h4><p>The calibration tool contains six author-labelled weak examples (largely bare topics/vague proposals), five detailed strong examples, two runs each, and an empty board goal: 22 judge calls. It fails if any weak example reaches 9 or if the strong-minus-weak mean gap is below 3. It prints run spread and strong gold counts, but neither is a pass/fail gate. It is a prompt sanity check, not statistical calibration of probability, a held-out novelty benchmark or independent expert validation. Detail level is confounded with the weak/strong labels. [10]</p>
+<p>The reviewed tree contains no committed calibration-result dataset, blinded human evaluation, comparison against a same-budget single-prompt baseline, customer experiment, patent/literature novelty search, or measured downstream project outcomes. Source comments report small provider timing/cost observations; these were not independently reproduced. The open feedback issue also discusses semantic-plausibility loops, but its anecdote is not an evaluation dataset. [10,12]</p>
+<p>To test usefulness, freeze goals/constraints and budgets; compare manual brainstorming and one-shot generation with evolution; hide method and model score from independent domain raters; check prior art and failure modes; and measure shortlist diversity plus real prototype/customer outcomes. Keep that evaluator out of the selection loop.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The flow is browser → app.ts routes → engine.ts operations → llm.ts prompts/provider adapter → SQLite → per-board event bus/SSE. index.ts starts the database, engine, in-memory runtime settings and one-second autopilot timer. Generation, persistence and HTTP handlers are separated sufficiently to inject fakes in tests. Pure scoring/evolution modules are shared between browser and server. [2–6,9]</p>
+<p>Background manual-operation judging has a three-active-call queue. Autopilot performs its own judgments and can run boards concurrently, so that queue is not a global provider concurrency cap. State for hourly steps, backoff and pacing is in memory, while dollar spend is persisted. Restarting resets the rate/backoff history. A seed may persist before its background judgment fails, and an auto-created project may fail after judgment succeeds: those are deliberately separate stages, not one atomic operation. [2,5]</p><h4>Privacy, security and execution</h4><ul><li><strong>Local is not offline.</strong> Ideas, goals, source text, selected ancestry and summaries are sent to whichever provider each role chooses. Hugging Face search receives the goal/focus query; X scouting sends it through OpenRouter/search. Role overrides can silently change the recipient relative to app-wide settings. Local-only models do not make enabled scouts local. [2,3,7,9]</li><li><strong>Keys persist in the browser.</strong> localStorage holds API keys, models and endpoint settings; the server receives them in memory, with environment-key fallback. “Never writes keys to disk” is only a server-storage claim: the browser profile persists them. Any compromised same-origin script/browser profile is therefore sensitive. The API reports key sources rather than returning raw keys. [9,11]</li><li><strong>Loopback is a default, not an enforced boundary.</strong> HOST can override 127.0.0.1. There is no login, Host/Origin validation or CSRF token in the inspected handler. No permissive CORS header is emitted, which limits ordinary cross-origin reads, but is not equivalent to origin/host enforcement; JSON parsing also does not require a JSON Content-Type. Do not expose this service or assume browser-origin attacks are handled. No exploit was executed. [9]</li><li><strong>URL ingestion is an SSRF surface.</strong> asUrl accepts HTTP(S), including private destinations, and fetchPage follows redirects without destination/IP checks. Extracted content is sent to the distillation provider. The nominal two-megabyte cap slices only after arrayBuffer has read the whole response, so it is not a streaming download-memory limit. Add private-address/redirect/DNS checks and streamed byte bounds before accepting untrusted links. [13]</li><li><strong>Endpoint settings are authority-bearing.</strong> Configurable base URLs are not allowlisted. OpenAI-compatible adapters attach the configured/fallback provider credential to the chosen endpoint, so an endpoint change can redirect sensitive data and credentials. Only trusted operators should control runtime settings. [9]</li><li><strong>Generated text crosses into agent instructions.</strong> Source text, goals and model briefs can contain prompt injection. The browser's text-node DOM helpers are a positive XSS defense, but exporting that text into CLAUDE.md is a separate trust boundary. Review generated instructions before opening them with a coding agent. File writes run with server-user permissions under the configured absolute project root, not an OS sandbox. git init uses execFile rather than a model-authored shell command; its callback ignores errors, so a returned project path does not prove Git initialization succeeded. [8,11]</li><li><strong>Backups/exports are sensitive.</strong> SQLite and generated idea.json/briefs contain ideas and lineage in plaintext. Ignoring a notes folder in Git is not encryption and does not protect the other project files from later publication. Static file serving includes a lexical traversal guard; request bodies are bounded to one megabyte. These controls do not make the app multi-tenant. [8,9]</li></ul><h4>Maturity and verification</h4><p>Public GitHub metadata retrieved 2026-11-07: created 2026-11-02, last push 2026-11-04, 33 stars, 12 forks, one open feedback issue and no published releases. The inspected package is 0.1.0. These are time-sensitive activity facts, not quality guarantees. No tracked GitHub Actions workflow was present. [1,12]</p>
+<p>There are exactly 50 top-level test declarations across six files, matching the README count: API 15, autopilot 4, extraction 5, leads/project 5, providers 11 and scoring/evolution 10. Tests exercise meaningful seams: fake-provider failures, model routing, citation filtering, SSE, goal-specific guests, traversal, export, medal overrides, selection, pacing and project name collisions. They cannot establish live-model quality or current provider compatibility. Tests were inspected, not executed; no dependency audit, browser interaction, security exploit or paid calibration was run. No performance/quality result is claimed. [14]</p><h4>Evidence map — pinned source</h4><p>All source-code links below pin the reviewed revision.</p>
+<p>1. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/README.md">README</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/package.json">manifest</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/package-lock.json">lockfile</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/LICENSE">MIT license</a>.<br>2. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/engine.ts">Engine: calls, judging, generation, cross-board operations, projects and autoStep</a>.<br>3. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/llm.ts">Generation/judging prompts and normalization</a>.<br>4. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/db.ts">Database schema, default config and templates</a>.<br>5. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/autopilot.ts">Autopilot pacing, spend checks and in-memory state</a>.<br>6. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/public/js/score.js">Scoring</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/public/js/evolve.js">evolution selection/statistics</a>.<br>7. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/leads.ts">X citation and research paper filters</a>.<br>8. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/project.ts">Project rendering and filesystem/subprocess effects</a>.<br>9. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/index.ts">Startup binding</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/app.ts">HTTP/settings routes</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/providers.ts">provider transport and costs</a>.<br>10. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/tools/calibrate-judge.ts">Calibration fixtures and acceptance criteria</a>.<br>11. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/public/js/settings.js">Browser settings</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/public/js/dom.js">text-node DOM helper</a>, <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/public/js/app.js">UI operations</a>.<br>12. <a href="https://api.github.com/repos/fltman/idea-generator-2">Public repository metadata</a>, <a href="https://github.com/fltman/idea-generator-2/releases">releases</a>, <a href="https://github.com/fltman/idea-generator-2/issues/1">feedback issue</a>; retrieved 2026-11-07.<br>13. <a href="https://github.com/fltman/idea-generator-2/blob/f3f29b443db6e1db916af03c7b49942cacd681d8/server/extract.ts">URL parsing, redirects and extraction limits</a>.<br>14. <a href="https://github.com/fltman/idea-generator-2/tree/f3f29b443db6e1db916af03c7b49942cacd681d8/test">Test tree</a>.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> Anders Bjarby / fltman/idea-generator-2, MIT License. Independent static analysis; no source code extracted.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Better fit</td><td>Trade-off</td></tr>
+<tr><td>This repository</td><td>Visual ongoing idea families, cross-board recombination and brief export</td><td>Endogenous scores, soft cost controls, local trust only</td></tr>
+<tr><td><a href="https://github.com/UditAkhourii/adhd">ADHD</a></td><td>Bounded divergent ideation with isolated frames and a separate critic</td><td>CLI/skill workflow rather than a live visual breeding board; model critique still needs external validation</td></tr>
+<tr><td><a href="https://github.com/stanford-oval/storm">STORM</a></td><td>Retrieval-led research and citation-oriented reports</td><td>Not an evolutionary idea canvas; source quality and claim support still need checking</td></tr>
+<tr><td>Plain whiteboard + manual source research</td><td>Low-cost exploration with explicit human prioritization</td><td>No automated lineage/scoring/scouting; more manual organization</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The default configuration is manual mode, 10-second autopilot pace, 60 steps/hour, $1/day per board and $5/day globally. These are source defaults, not a cost forecast. One expansion commonly means one generation plus up to three judge calls, and each gold may add a brief call. Hosted model/search charges depend on the selected service; local inference still costs hardware, memory and electricity. [2,4,5]</p>
+<p><strong>The budget limiter is a soft autopilot throttle.</strong> It checks recorded spend before a step, not before each API call, reserves no funds for in-flight work, and does not gate manual operations, background judging or project creation. Multiple boards can begin against the same spend snapshot. A zero-dollar limit allows work while recorded spend is zero—including a first paid call. OpenAI-compatible cost is usage.cost or zero; unknown Anthropic model prices also map to zero. Failed/invalid responses and retries can incur costs that never reach the successful-call ledger. Thus zero recorded spend is not proof of free operation and dollar caps can be exceeded. Use provider-side hard limits and an explicit human budget. [2,5,9]</p>
+<p>A trial needs Node &gt;=25, the locked npm dependency tree, a browser and a working selected model endpoint; Git is required for actual project initialization. Claude Code is separate and only needed to pursue generated briefs. The source contains a lockfile but no container deployment or service hardening. Verify model availability and pricing rather than treating hardcoded names/prices or README provider-history statements as independently established facts. Start with synthetic/nonconfidential material, all boards manual, automatic projects disabled, trusted endpoints and restricted egress. Back up SQLite and inspect generated folders. No install was performed for this review.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful for supervised ideation: lineage, source-filtered scouts and deterministic medals are implemented. One-model judging does not establish novelty or usefulness, and dollar limits are soft autopilot throttles. Static review only; tests and models were not run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/fltman/idea-generator-2">fltman/idea-generator-2</a> · MIT</span>
+    <span><a href="idea-generator-2.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
