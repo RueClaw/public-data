@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [floci.md](reviews/floci.md) [page](reviews/floci.html) | [floci-io/floci](https://github.com/floci-io/floci) | MIT; component terms separate | ⚠️ Interesting | Local AWS emulator with real container workloads; substantial tests, but semantic parity, credential/execution boundaries and durability need qualification. Static review. |
 | [hyperkernel.md](reviews/hyperkernel.md) [page](reviews/hyperkernel.html) | [Hyperstitioncc/Hyperkernel](https://github.com/Hyperstitioncc/Hyperkernel) | MIT; separate checkpoint terms | 📚 Study | Hyperserve B300 megakernel inference host; substantial scheduling, but binary-only kernel provenance, narrow hardware and service-hardening caveats. Static review. |
 | [tiny-llm.md](reviews/tiny-llm.md) [page](reviews/tiny-llm.html) | [skyzh/tiny-llm](https://github.com/skyzh/tiny-llm) | Apache-2.0 code; CC BY-NC-SA 4.0 book | 📚 Study | Apple-silicon inference and coding-agent course with separate learner/reference trees, historical benchmark evidence and unsandboxed-effect caveats. Static review. |
 | [weight-space-programming.md](reviews/weight-space-programming.md) [page](reviews/weight-space-programming.html) | [Sparks of Weight-Space Programming](https://rikiyat.github.io/blog/weight-space-programming/) | N/A | ⚠️ Interesting | LLM-directed neural program synthesis and sparse repair; inspectable evidence, looping-sensitive gains and unproven general optimization claims. Static review. |
