@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [tailnet-do.md](reviews/tailnet-do.md) [page](reviews/tailnet-do.html) | [littledivy/tailnet-do](https://github.com/littledivy/tailnet-do) | BSD-3-Clause declared; LICENSE missing | 📚 Study | Tailscale inside a Durable Object; unauthenticated example proxy, shared-runtime isolation and lifecycle limits. Static review. |
 | [caldoai-skills.md](reviews/caldoai-skills.md) [page](reviews/caldoai-skills.html) | [caldoai/skills](https://github.com/caldoai/skills) | MIT | 📚 Study | One refactoring prompt with a useful coupling taxonomy but no mandatory baseline, approval checkpoint, or bounded execution. |
 | [memorilla.md](reviews/memorilla.md) [page](reviews/memorilla.html) | [snap-stanford/memorilla](https://github.com/snap-stanford/memorilla) | Apache-2.0 | 📚 Study | Query-conditioned latent compression for frozen LLMs; promising research, not managed durable memory. |
 | [astryx.md](reviews/astryx.md) [page](reviews/astryx.html) | [meta/astryx](https://github.com/meta/astryx) | MIT | ⚠️ Interesting | React 19 design system with typed agent-facing tooling; pilot project-local and review global CLI side effects. |
