@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memorilla — Review</title>
+<meta name="description" content="Query-conditioned latent memory for frozen local LLMs—not a durable agent memory database.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / memorilla</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">snap-stanford/memorilla · reviewed 2026-11-08</div>
+    <h1>Memorilla</h1>
+    <p class="one-liner">Query-conditioned latent memory for frozen local LLMs—not a durable agent memory database.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 code · separate asset terms</span>
+      <span class="chip">Python · PyTorch · vLLM · Qwen3</span>
+      <span class="chip"><a href="https://github.com/snap-stanford/memorilla">snap-stanford/memorilla ↗</a></span>
+      <a class="chip" href="https://arxiv.org/html/2610.21375v1">Paper</a><a class="chip" href="https://github.com/snap-stanford/memorilla/actions/runs/42135886072">Upstream CI</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">659</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">50</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Sixteen soft tokens, not sixteen tokens of storage</h3><p>The module attends over all document embeddings and projects into a specific decoder’s embedding space. Storage, encoding and model coupling remain; the convenience answer method re-embeds all documents.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Benchmark wins need protocol context</h3><p>The memory is trained on benchmark training splits. Prompts differ from text baselines; some accuracy uses nearest-choice embeddings. The 27× latency comparison amortizes encoding and uses Hugging Face generation without paged KV cache.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Research persistence is not a memory service</h3><p>No CRUD, TTL, tenant authorization or audited erasure. Existence/row-count checks can reuse stale embeddings after same-length data changes. CPU CI does not exercise real GPU inference.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Python 3.11+, PyTorch 2.7, Transformers 4.53.3, vLLM 0.9.1, Lightning 2.6.1</td></tr><tr><td>Storage</td><td>Parquet and FP16 safetensors shards; no managed database</td></tr><tr><td>Revision</td><td>d8f18891a50bf33c18f04fe5167c22f51e58c9cd</td></tr><tr><td>Verification</td><td>Static only; upstream CI succeeded. No installs, model/data downloads or paid calls.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Evidence, Benchmarks and Reproducibility</h4><p>The paper reports 84.33% FactKG accuracy versus 80.43% full-context accuracy at 108× fewer document tokens, a 49.68 average across benchmark primary scores, and a 16-token Pareto-frontier result. These are author results, not independently reproduced here. Token counts exclude question/shared instructions and do not include stored embeddings, model weights or ingestion/training compute.</p>
+<p>The release includes eight benchmark protocols, explicit metrics, recipes and downloadable assets. <a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/docs/evaluation.md">Evaluation docs</a> explain exact-match/generation metrics, nearest-choice embedding scoring, outputs and numerical variability. This is much better than a README-only leaderboard, with important qualifications:</p>
+<ol><li><strong>Supervised adaptation, not zero-shot general memory.</strong> Stage 3 trains on training splits of all eight evaluated benchmarks; personalization gets additional tuning. This is legitimate supervised evaluation but differs from generic RAG without benchmark-specific training. Backbone pretraining contamination and upstream dataset overlap were not independently audited.</li><li><strong>Split names matter.</strong> Paper Appendix B evaluates LaMP development splits, 500 seed-selected TriviaQA validation examples and a 100-example PubMedQA test portion of a 900/100 split. Released “test” labels do not imply original official test sets. Small/subsampled sets deserve uncertainty estimates.</li><li><strong>PV4 is synthetic and clustered.</strong> <a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/personalizationv4/README.md">PV4 docs</a> specify 119 training users, 30 disjoint test users, 4,237 test questions and 629 hard questions. Validation questions share training users. Chats/questions derive from the same generated persona, permitting shared synthetic style and assumptions; this is not real-user preference validation. The hard subset is selected by a particular untrained decoder's failures in no-memory/top-1 settings, not model-independent hardness. Training docs disclose one PMv2 test persona is not unseen.</li><li><strong>Accuracy can mean embedding preference.</strong> PMv2, PV4 and FactKG answers map to the nearest candidate using Qwen3-Embedding-4B, also used for memory. Candidates are hidden from generation, but nearest-choice scoring does not prove exact factual precision or calibrated personalization. Averaging heterogeneous metrics is not a universal utility score.</li><li><strong>Prompts/context differ.</strong> <a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/memorilla/benchmarks.py">Benchmark registry</a> gives Memorilla and text baselines different prompts/suffixes and some different generation settings. Oversized baseline chats truncate from the front, potentially removing system prompt/header; context fit is reported. Equalize prompts and inspect truncation before attributing every difference to architecture.</li><li><strong>Paper coverage exceeds the runner.</strong> The release runs closed-book, cosine RAG and full context. Appendix C additionally describes official Mem0/MemoRAG with a 4B memory writer, a reimplemented per-benchmark-trained xRAG bridge, LLMLingua-2 budget sweeps and ComMer's reported results. These are not each alternative's best latest/hosted configuration. Their full reproduction runners were not found in this release. Best-depth/budget-per-metric selection needs provenance; it is not itself proof of leakage.</li><li><strong>Checkpoint provenance has a documentation mismatch.</strong> The README hosted table labels personalization checkpoints as from Stage 1, whereas standard personalization recipes continue Stage 3; the example single-task recipe starts Stage 2. Verify each hosted model card/config before assuming its folder reproduces the displayed curriculum. Helper downloads do not pin revisions.</li><li><strong>Reliability remains unverified here.</strong> Supervised results use greedy decoding/fixed seed; docs acknowledge numeric drift. No independent training repetitions, confidence intervals, overlap audit or full reproduction were performed for this review.</li></ol>
+<h4>Latency and Cost</h4>
+<p>Paper Appendix F's 0.739-second versus 19.932-second comparison uses one H100-80GB, batch size one, 32 generated tokens, 250-token documents, medians of five timings after two warmups, and Hugging Face generation <strong>without paged KV cache</strong>. At 512 documents, full context uses YaRN for roughly 128K tokens. Encoding those documents is a separately accounted write cost of about 2.589 seconds. This is an amortized read-path result, not cold-start latency of answer(), nor an optimized vLLM serving comparison.</p>
+<p>Sixteen memory tokens can greatly reduce decoder prefill but still require a 4B encoder, roughly 194M-parameter module, training and compatible local decoder. README requirements are Linux/CUDA, one 80GB GPU and roughly 25GB model download for the example; three stages reportedly take 19 hours on four H100-80GB GPUs and about 310GiB data/embeddings. These are source estimates, not measured costs here. Measure ingestion, repeated-query amortization, factual quality, throughput, GPU memory and wall-clock dollars—not compression alone.</p>
+<h4>TextWorld Is a Different Experiment</h4>
+<p><a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/rl/README.md">RL docs</a> report 18.6% to 24.2% average success using eight soft tokens <strong>in addition to full textual history</strong>. Forty test prompts represent 30 distinct games; sampled rollouts are correlated, not independent tasks. Training has a 16K input budget and evaluation 4,096 tokens; terminal/truncation metrics matter. Longer simulator tiers retain four recent five-turn documents, unlike the all-turn medium/hard setting. The commit-pinned external SkyRL fork and Python 3.12/vLLM 0.11 environment are separate from the main environment and were not audited here. This does not establish unrestricted lifelong learning.</p>
+<h4>Tests, Dependencies, License and Maturity</h4><p>Nine test modules plus fixtures/helpers cover memory masks/config/checkpoint round trips, embeddings, data/scoring, recipes, PV4 and RL aggregation. Fixtures use synthetic data/fake encoders. CI runs lint and CPU pytest, deliberately excluding vLLM; wrapper tests use importorskip and fake engines, so green CI does not validate real GPU inference. Real checkpoint tests require an opt-in directory. <a href="https://github.com/snap-stanford/memorilla/actions/runs/42135886072">CI run 42135886072</a> succeeded at the reviewed SHA; that is upstream evidence, not tests run here.</p>
+<p>Core GPU dependencies are pinned, with an NCCL override for multi-GPU stalls; other ranges/extras float and no complete lockfile is checked in. Main and RL installations have distinct platform contracts. This was not a dependency vulnerability scan.</p>
+<p>Public metadata on 2026-11-08 showed 659 stars, 50 forks, zero open issues, November 6 latest push and no GitHub releases. Popularity/clean issue counts are not production proof. Readable code, clear limitations and automated tests are strengths; absent service/lifecycle guarantees and unreproduced GPU results limit readiness.</p>
+<p><a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/LICENSE">LICENSE</a> is Apache-2.0 for code, with patent grant and standard notice obligations. Source datasets retain individual licenses; PV4 is CC BY 4.0. Inspect model cards and each dataset's terms before redistribution/commercial use; the code license does not cover all assets.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>What It Is</h4><p>Stanford SNAP's canonical repository implements the paper by Adibvafa Fallahpour and collaborators. A frozen Qwen3-Embedding-4B encodes each document; a learned module reads the entire embedding collection conditioned on a question and emits 16 vectors in Qwen3-8B's input embedding space. The decoder sees these vectors plus normal prompt text, not the original documents. This is lossy semantic compression, not lossless storage of a conversation in 16 tokens.</p>
+<p>The intended users are researchers and teams able to train/serve open-weight models. The supervised path uses approximately 194 million trainable memory parameters according to the paper; encoder and decoder are frozen. A separate TextWorld experiment trains eight memory slots with reward. Neither path is autonomous personal-memory capture or an API-compatible plug-in for arbitrary hosted chat models.</p>
+<h4>Stack and Architecture</h4><table><thead><tr><th>Layer</th><th>Implementation</th></tr></thead><tbody><tr><td>Collection input</td><td>Parquet rows: collection_id, documents, question, answer</td></tr><tr><td>Persistent representation</td><td>FP16 document shards and row-aligned question embeddings in safetensors</td></tr><tr><td>Memory readout</td><td>Learned slots, query conditioning, two cross-attention/FFN blocks, output projection</td></tr><tr><td>Training</td><td>Lightning, frozen Transformers decoder, answer-token loss; YAML recipes</td></tr><tr><td>Inference</td><td>vLLM prompt_embeds and copied decoder input embedding matrix</td></tr><tr><td>Evaluation</td><td>Eight benchmark protocols; closed-book/RAG/full-context runners</td></tr><tr><td>Optional tools</td><td>OpenAI PV4 generator, W&amp;B logging, external SkyRL-Memorilla fork</td></tr></tbody></table>
+<p><a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/memorilla/memory.py">MemoryModule</a> is legible: learned slots (or optional cosine top-k initialization), query cross-attention, optional document self-attention, document cross-attention, and projection. With default self-attention disabled, the read still touches every document: fixed decoder context is not constant storage or asymptotically constant retrieval cost. Enabling document self-attention also introduces quadratic document interactions.</p>
+<p><a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/memorilla/llm.py">MemoryLLM</a> injects vectors at reserved memory-token positions during training; <a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/memorilla/vllm.py">MemoryVLLM</a> implements corresponding prompt-embedding generation. <a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/train.py">train.py</a> explicitly freezes the text model. Changing decoder family is not simply swapping an API endpoint: dimensions, tokenizer, projection and training distribution must match.</p>
+<h4>Memory Lifecycle</h4><ul><li><strong>Capture:</strong> callers supply document lists or dataset collections. No background interception, salience policy, identity resolution, factual extraction or consent workflow. RL records trajectory turns, but its runtime lives elsewhere.</li><li><strong>Read:</strong> every collection embedding participates in learned attention; optional retrieval initialization does not eliminate that full read. No evidence snippets, source citations, confidence scores or inspectable facts accompany the answer.</li><li><strong>Persist:</strong> <a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/memorilla/embeddings.py">EmbeddingStore/EmbeddingWriter</a> index sorted collection IDs into lazily opened, memory-mapped shards; collections are embedded from their first row. The dataset path reuses these representations. However, the convenient answer(question, documents) method re-embeds all supplied documents on every call: it does not implement an amortized persistent write path for application callers.</li><li><strong>Update:</strong> the architecture permits replacing changed document vectors, but the shipped store is a split-oriented writer plus read-only store, not a CRUD database. No document-level update/version/conflict/recency API. Repeated collection IDs are assumed to share documents.</li><li><strong>Delete:</strong> no deletion API, tombstones, TTL, retention policy or audited erasure. Applications must rebuild/remove raw Parquet, embedding shards, prediction files, caches and backups. If private data trained the module, deleting an external vector is not model unlearning.</li><li><strong>Invalidation hazard:</strong> missing_files() checks existence; load_split_with_embeddings() checks question row count—not content hashes. Editing/reordering a split without changing its count can silently reuse stale/misaligned embeddings. Encoder directory names use only the last model-name component, not an immutable revision. Treat source data, encoder revision and embeddings as one versioned bundle.</li></ul>
+<h4>Durability and Recovery</h4>
+<p>The builder has a file lock, missing-shard detection, chunked writes and lazy reading. But index, question and document writes are separate, with no transactional generation manifest, content hashes tying embeddings to rows, or end-to-end backup/restore protocol. Missing files can reveal interrupted initial builds; existence is not integrity, and complete-looking old files can conceal an interrupted overwrite. Memory weights/config are also separate ordinary writes.</p>
+<p><a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/docs/training.md">Training recovery</a> restores optimizer/step state from last.ckpt, but explicitly does not reproduce remaining batch order. Epoch memory checkpoints are retained; evaluation reruns overwrite prediction/metric paths. PV4 generation uses atomic replacement and resumes existing files, stronger write behavior than the embedding store, but changed prompts/personas require deliberate invalidation.</p>
+<h4>Security, Privacy and Trust Boundaries</h4><p><strong>Local does not mean automatically offline.</strong> Helpers download assets from Hugging Face when absent. Standard inference runs local models rather than sending documents to a hosted text provider. The optional <a href="https://github.com/snap-stanford/memorilla/blob/d8f18891a50bf33c18f04fe5167c22f51e58c9cd/personalizationv4/generate.py">PV4 generator</a> sends persona-derived prompts to OpenAI using OPENAI_API_KEY; it has retries/atomic output but no total spend cap or explicit Responses store=false. Provider retention depends on API/account policy: do not infer zero retention. Optional W&amp;B exports run telemetry/configuration. No credentials were supplied or used in this review.</p>
+<p><strong>Supply chain:</strong> decoder/tokenizer loading sets trust_remote_code=True, permitting repository Python where applicable—not proof default Qwen assets execute custom code. Helper downloads lack immutable revision pins. Prefer audited local snapshots, restricted egress and isolation. Positives include safetensors, yaml.safe_load and weights_only=True for memory-state loading; they do not sanitize all dependencies/model code or external framework loading.</p>
+<p><strong>No authorization boundary:</strong> this is not a server with authentication, tenant ACLs, encryption or managed secrets; CORS is not an applicable built-in feature. Collection IDs route tensors, not authenticated users. The application must restrict documents before compression. Embeddings retain sensitive semantics. Inferred health/preferences in the README example should not become verified facts or assumed consent.</p>
+<p><strong>Prompt injection is untested.</strong> Questions/system prompts enter chat templates. Documents influence soft vectors placed in the system-prompt region; compression is not a demonstrated instruction/data firewall. No injection benchmark, source trust labels or policy enforcement layer was found. The tokenizer registers a reserved memory marker and inject_memory() assumes the expected placeholder count rather than validating per row. User text containing that marker is a static robustness concern (possible count/shape failure or unintended placement), not a dynamically demonstrated exploit. Empty/unbounded inputs also need application checks: the builder rejects empty collections, while answer() has no equivalent explicit guard. Do not expose the library directly to hostile tenants or privileged tools without separate controls.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>RAG</td><td>Prefer inspectable citations, mutable facts and provider portability.</td></tr><tr><td>Mem0 / Letta</td><td>Application memory workflows rather than soft-token compression.</td></tr><tr><td>MemoRAG / xRAG / ComMer</td><td>Different retrieval/compression and training assumptions; compare matched protocols.</td></tr><tr><td>Full context</td><td>Simple for small collections; growing prefill and context cost.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Self-Hosting Notes and Practical Verdict</h4><p>The useful idea is query-conditioned readout over reusable embeddings, not “all memory solved in 16 tokens.” GPU research teams should reproduce a small held-out task with immutable assets, equalized prompts and complete cost accounting. A deployed assistant should start with auditable RAG and explicit lifecycle controls; add latent memory only when measured gains justify coupling and reduced interpretability. A hybrid latent-plus-text evidence path is promising and consistent with the paper's own fine-detail limitation.</p>
+<p>Use the documented Linux/CUDA/Python environment rather than assuming a CPU/macOS turnkey install. Avoid mixing the main and RL dependency stacks. Application deployment additionally needs encryption/access control, versioned data+embeddings, deletion across derived artifacts, validated inputs, authenticated serving, monitoring and backup/restore drills. None was deployed in this review.</p>
+<h4>Verification and Limits</h4><p>Inspected README/license/manifests/CI, memory/inference modules, embedding persistence, training recovery, evaluation protocols, tests, PV4 generation and RL documentation/configuration; fetched the public paper including computational/baseline appendices and public GitHub metadata. Local/live public review indexes were checked; no prior review of this canonical repository was found. No source tests or benchmark reproduction were run. Full released data, model cards, contamination, GPU behavior, deletion effectiveness and external RL implementation remain unverified.</p>
+<p><strong>Attribution:</strong> snap-stanford/memorilla and the authors of <em>Memorilla: Latent Semantic Memory for LLMs</em>, Apache-2.0 code; paper/data retain their own terms.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Strong research implementation with clear learned compression and useful tests. Fixed decoder tokens do not imply constant ingestion cost or managed memory: production needs deletion, invalidation, access control and adversarial validation. Static review; no benchmarks reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/snap-stanford/memorilla">snap-stanford/memorilla</a> · Apache-2.0 code · separate asset terms</span>
+    <span><a href="memorilla.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [memorilla.md](reviews/memorilla.md) [page](reviews/memorilla.html) | [snap-stanford/memorilla](https://github.com/snap-stanford/memorilla) | Apache-2.0 | 📚 Study | Query-conditioned latent compression for frozen LLMs; promising research, not managed durable memory. |
 | [astryx.md](reviews/astryx.md) [page](reviews/astryx.html) | [meta/astryx](https://github.com/meta/astryx) | MIT | ⚠️ Interesting | React 19 design system with typed agent-facing tooling; pilot project-local and review global CLI side effects. |
 | [phoneuse.md](reviews/phoneuse.md) [page](reviews/phoneuse.html) | [lxe/phoneuse](https://github.com/lxe/phoneuse) | MIT; dependency/model terms separate | ⚠️ Interesting | Linux-to-iPhone AirPlay/HID control demo; thoughtful frame recovery, but WebSocket origin, bridge confidentiality and agent-consent boundaries need hardening. Static review. |
 | [mnemos-mcp.md](reviews/mnemos-mcp.md) [page](reviews/mnemos-mcp.html) | [Riley-Coyote/mnemos-mcp](https://github.com/Riley-Coyote/mnemos-mcp) | Apache-2.0 + notices; OFL fonts | ⚠️ Interesting | Agent-authored continuity with hybrid recall and verified backups; archival forgetting, optional autonomous-hour egress and admin-scope caveats. Static review. |
