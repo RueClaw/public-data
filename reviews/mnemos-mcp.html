@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mnemos — Review</title>
+<meta name="description" content="Agent-authored continuity memory, not a document indexer.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / mnemos-mcp</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Riley-Coyote/mnemos-mcp · reviewed 2026-11-08</div>
+    <h1>Mnemos</h1>
+    <p class="one-liner">Agent-authored continuity memory, not a document indexer.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 + notices; OFL fonts</span>
+      <span class="chip">Python · FastMCP · SQLite/FTS5</span>
+      <span class="chip"><a href="https://github.com/Riley-Coyote/mnemos-mcp">Riley-Coyote/mnemos-mcp ↗</a></span>
+      <span class="chip"><a href="mnemos-mcp.md">Full evidence and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">133</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">18</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Lifecycle is the real advantage</h3><p>Atomic capture pairs, signed-by-model labels, separate handoffs and startup delivery make memory usable. The author’s searchable plain-file control matched factual retrieval.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Forget does not erase</h3><p>Old words, correction history and backups remain. Local SQLite is not encrypted storage; export is a lossy projection that can overwrite existing notes.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Keep authority narrow</h3><p>Simple stdio scopes are not OS tenancy. Advanced ID-based inspection/forget lack full scope checks; autonomous hours add provider egress and host tools.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Python 3.10+, FastMCP; SQLite WAL and FTS5</td></tr><tr><td>Meaning</td><td>Optional local sentence-transformers/PyTorch or Gemini</td></tr><tr><td>Revision</td><td>d3749e2bae6780106bebe9876393abecc460f5e3</td></tr><tr><td>Verification</td><td>Static source review; tests not run</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p><br>The agent chooses what to capture and writes its own content and lesson. Mnemos stores it, asks for reflection as memories age, and returns a waking packet plus query-driven recall. Standing preferences do not fade; handoffs belong to sessions; journals are not automatically converted into beliefs. This differs from automatically mining every transcript. Hooks and harness adapters provide the practical advantage over a folder of notes. Authorship resolution can inspect harness/session information; “not a transcript indexer” does not mean no integration ever reads a session file.</p>
+<p>Neuroscience vocabulary describes software heuristics: strength, stability, accessibility, decay and graph propagation. These are inspectable mechanisms, not validated biological fidelity. The identity framing is product philosophy, not scientific evidence of consciousness. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/README.md">Overview</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/authorship.py">authorship</a>.</p>
+<h4>Capture: atomic memory, not automatic summarization</h4>
+<p>Simple capture strips outer whitespace, appends supplied context, classifies kind/domain/tags with local rules and prepares an engram. Memory and continuity note land together through save_capture_pair; a standing mark shares that transaction. Embedding/bookkeeping follows the durable save and reports a secondary failure without claiming the original capture failed. That avoids an obvious retry-duplicates trap, although ordinary capture is not universally idempotent. Optional provider classification/connection discovery happens before the pair transaction. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/simple_runtime.py#L5346-L5541">Capture</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/store/sqlite_store.py#L4323-L4364">store</a>.</p>
+<h4>Recall: hybrid, scoped and state-changing</h4>
+<p>Current retrieval uses 30 lexical and 30 semantic seeds, word/meaning weights 0.3/0.5, reciprocal rank constant 60 and a semantic floor of 0.35. Content and its authored lesson take their better lexical rank rather than duplicate votes. Resonance walks at most two hops and five strongest links per expansion; notes do not propagate activation. Scope/visibility filtering is part of candidate selection. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/retrieval/reactive.py">Retriever</a>.</p>
+<p>At this SHA recall defaults to 16 rows, three allocated to handoffs, and allows 50 on request. Handoffs have a separate search so old drafts do not dominate memory results. Recall reinforces returned memories once per session, wakes dormant matches and can restore faded archived items when requested; deliberately forgotten/replaced items are excluded by the supported simple path. Only the first 15 returned memories are co-linked. This is not a pure read API: retrieval changes future behavior. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/simple_runtime.py#L5544-L5730">Recall</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/CHANGELOG.md">unreleased changes</a>.</p>
+<h4>Continuity and upkeep are distinct</h4>
+<p>Startup context records delivery/session state without running decay. Capture can request background upkeep; scheduled and capture-triggered upkeep share a transactionally claimed, token-owned lease. Reflection asks the agent what a fading experience taught or whether a fact still holds; the agent supplies the meaning/verdict. Handoffs, journals and standing preferences have different lifecycles from ordinary memories. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/simple_runtime.py#L405-L452">Claims</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/consolidation/daemon.py">consolidation</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/consolidation/decay.py">decay</a>.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>MCP authority</h4>
+<p>Simple tools are context, handoff, journal, note, page, capture, recall, correct, reflect, introduce, maintain and health. Bounds include 65,536 capture characters, 4,096 query characters and 50 recall rows. Type/length validation reduces malformed-input/resource hazards, not semantic authorization. Most operations are honestly annotated as mutating, but openWorldHint=false is not an offline guarantee when providers are enabled. There is no per-call human approval gate for writes: the host's tool policy owns that decision. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/simple_mcp.py">Surface</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/simple_tools.py">limits</a>.</p>
+<p>Stdio delegates access control to whoever can launch/use the process. Simple scope is agent/person/project, configured rather than inferred from the current directory; project defaults to global. This avoids accidental fragmentation but requires explicit partitions for separation. Same-account processes can access the files. Authorship “signatures” are model/session labels, including caller-supplied model IDs, not cryptographic writer authentication. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/simple_scope.py">Scope</a>.</p>
+<p><strong>Advanced mode is an admin boundary, not an equally restricted view.</strong> It adds setup, ingestion, inspection, functional-memory, belief and legacy shared-pool tools. In particular, mnemos_inspect(engram_id) and legacy mnemos_forget(engram_id) directly load an ID without the simple runtime's person/project check. Advanced access plus an ID can inspect/archive another partition within that database. This is a static finding, not an executed exploit; it does not imply network exposure or bypass of the simple tool. Keep advanced mode away from mutually untrusted clients. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/mcp_server.py#L1252-L1295">Inspect</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/mcp_server.py#L1449-L1467">legacy forget</a>.</p>
+<h4>Persistent prompt injection</h4>
+<p>The implementation distinguishes agent/person/tool-authored words, labels unsigned/other-model notes and avoids promoting legacy tool-written content into identity. That is valuable provenance, but cannot determine whether an agent copied malicious instructions into its own capture. Such content can return at startup, especially when standing. There is no demonstrated semantic injection sanitizer or cryptographic writer attestation. Treat recalled text as evidence rather than authority; restrict writers and inspect corrections. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/docs/privacy-security.md#stored-words-and-trust">Trust model</a>.</p>
+<h4>Local storage is not local inference</h4>
+<p>- Baseline memory/FTS and maintenance need no dedicated account/key. Cached local embedding loads are forced offline; model download is a separate operation. The README estimates about 90 MB for the model and several hundred MB for libraries including PyTorch.<br>- Explicit provider selection sends selected memories for link/surprise judgments. A key alone does not opt in. Providers include Claude CLI, Anthropic, OpenRouter and OpenAI. Environment/config and searched .env files determine selection/credentials; default search includes the launch directory and Mnemos's own directory. A chosen OpenRouter path can also inspect an existing OpenClaw config for a key. Inspect ambient credential discovery; do not launch from an untrusted config context. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/llm.py">Provider code</a>.<br>- Explicit Gemini selection sends embedded memory/query text to Google. Its REST implementation places the key in the request URL; caught errors redact it, but URL-handling intermediaries/logging still deserve care. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/store/embedding_index.py">Embeddings</a>.<br>- Optional Jev sends up to 1,000 message characters and six 200-character candidate lines to TypeSafe. The private key file is not shown back; scores choose cue lines, not memory rewrites. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/jev.py">Jev</a>.<br>- Anything a host agent reads enters its model context regardless of Mnemos's provider setting. Explicit shared captures enter a separate collective database, readable through recall by other agents and potentially their providers. Withdrawal authorization is tool-level, not OS isolation. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/shared_memory.py">Shared memory</a>.</p>
+<h4>Quiet hours add autonomous work and cost</h4>
+<p>The documented setup choice is yes-by-default after disclosure; noninteractive setup does not directly schedule the hours. Claude hours use the person's plan and transmit prompt material, wake context and whatever is read/recalled to Anthropic. Own-hour defaults are 60 minutes/400,000 tokens; work-hour defaults 30 minutes/200,000 tokens. These ceilings are not dollar budgets or price quotes.</p>
+<p>Controls include restricted Claude invocation, explicit MCP config, isolated settings, secret-read denies, sandbox enabled with no unsandboxed fallback, and previously written studio settings moved aside. But the own hour includes Bash/WebSearch/WebFetch: it is not an offline database timer. Actual isolation depends on Claude's installed runtime and OS sandbox. Hermes/OpenClaw handed-off hours use ordinary host tools, a weaker boundary acknowledged in the docs. Leave hours off until authority, quota and egress are accepted. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/life.py#L690-L742">Construction</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/docs/privacy-security.md#quiet-hours">privacy</a>.</p>
+<h4>Companion exposure</h4>
+<p>The companion binds specifically to 127.0.0.1, uses a random URL token, validates Host, requires a matching Origin and JSON for writes, bounds request size, and sends no-store/no-referrer/nosniff headers plus a page CSP. Assets are bundled. The page can inspect neighboring local minds and change memory/settings: its URL is a local bearer capability, not a multi-user login. Do not share/reverse-proxy it as a remote authenticated service. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/companion/server.py">Server</a>.</p>
+<h4>Retention, Export, Backup and Durability</h4>
+<p><strong>Forgetting is not erasure.</strong> Corrections archive the old pair and retain lineage/version history; forget archives rather than deletes. Normal recall suppresses deliberately forgotten content, but raw SQLite, backups and admin access retain it. No comprehensive hard-delete/retention-expiry workflow is provided by the documented interface. Uninstallation intentionally leaves memory. This is not a compliance deletion mechanism. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/simple_runtime.py#L6512-L6620">Correction</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/docs/privacy-security.md#correction-and-forgetting">privacy</a>.</p>
+<p>Storage is ordinary SQLite, not encrypted storage. POSIX helpers apply 0700 to newly created directories and 0600 to files; existing directories are not automatically tightened without force, and chmod is skipped on Windows. Use disk encryption, account ACLs and encrypted backups. “One file” is simplified: WAL/SHM sidecars, shared stores, backup files, config and hour records also exist. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/file_security.py">File security</a>.</p>
+<p>Backup uses SQLite's online backup API, integrity-checks the copy and publishes through a temporary file. Restore saves the old destination, restores through SQLite rather than swapping a live WAL-backed file, then compares fresh-connection row counts/digests for seven principal memory tables. Stronger than copying the main DB, but not proof of every table's semantic correctness or all power-loss conditions. DB backups do not preserve every integration setting/hour artifact; this is not an off-machine backup policy. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/backup.py">Backup/restore</a>.</p>
+<p>WAL, five-second busy timeout, immediate transactions, rollback on BaseException, migration backups and code-version gates address real failures. WAL synchronous=NORMAL favors performance; it does not promise the latest acknowledged transaction survives sudden power loss. An expiring upkeep lease is not permanent exclusion if a job outlives it. Recent Hermes fixes serialize shared-connection calls and correct conversation handoffs, but MCP sidecar mode still cannot distinguish every topic sharing one server. Do not treat one runtime as a proven arbitrary-concurrency service. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/store/sqlite_store.py#L1662-L1755">Transactions</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/CHANGELOG.md">Hermes fixes</a>.</p>
+<p>Workspace export is a projection, not a round-trip backup: it truncates selected content and writes MEMORY.md plus daily/topic/belief files. It directly overwrites rather than merging existing notes; selection is agent-level rather than the simple API's full person/project scope. Export into an empty dedicated destination; inspect for mixed-scope content and stale exports after forgetting. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/interface/openclaw_export.py">Exporter</a>.</p>
+<h4>Evidence, Costs and Maturity</h4>
+<p>The README reports 35%→65% on 30 tasks, 14%→41% on 64 sealed questions and 22%→42% with ordinary tools. These are author-run, one-person workloads, not independently reproduced results. The useful control is that the same memories as searchable plain files scored 43% versus Mnemos's 42%: evidence supports capture/wake discipline more clearly than superior retrieval. Reported 22%/8% cost reductions are workload-specific API-price accounting, not guaranteed subscription/embedding/autonomous-hour savings. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/README.md#how-well-it-remembers">Claims</a>.</p>
+<p>The public synthetic retrieval benchmark uses 224 engrams, disjoint topic vocabularies and one seed. Its recall@k denominator is capped at k, equaling precision when topics have enough relevant items; it is not full-corpus recall. Published depth-three default results also describe an older propagation design: current code uses two hops and a fan limit. Do not transfer those numbers without rerunning. Recent unreleased handoff rules were chosen after inspecting a small question set; the changelog reports no live-agent validation for that selection yet. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/benchmarks/README.md">Benchmark</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/mnemos/retrieval/reactive.py">constants</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/CHANGELOG.md">changelog</a>.</p>
+<p>Public GitHub metadata checked 2026-11-08: repository created 2026-10-27; 133 stars, 18 forks and 10 open items including PRs; last push reported 2026-11-08. Latest release observed: v0.6.4, published 2026-11-07. Manifest explicitly says Alpha. Activity is not reliability. A sampled CodeQL run for this SHA succeeded; that does not prove the complete test matrix passed. Open PR #12 reports a fresh/no-store doctor path naming local embeddings without clearly saying dependencies are absent. <a href="https://api.github.com/repos/Riley-Coyote/mnemos-mcp">Metadata</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/releases/tag/v0.6.4">release</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/actions/runs/42432700350">CodeQL</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/pull/12">PR</a>.</p>
+<p>Tests include failed-save rollback, scope leakage, correction/forget, restoration, provider opt-in, parallel handoffs and maintenance claims. CI declares Python 3.10–3.13 tests, an 80% coverage gate for selected supported modules, an embedding job, dependency audit, Bandit, wheel-content/unlocked-install checks and Linux/macOS/Windows black-box jobs. Actions are SHA-pinned. Core MCP is bounded to &gt;=1.30.0,&lt;2, explicitly avoiding an incompatible major; optional ranges remain broad and a uv lockfile is present. Large modules (runtime about 8,600 lines, store about 5,800) and rapid churn increase regression risk. Tests/workflows were inspected, not executed; no independent dependency audit was run. <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/pyproject.toml">Manifest</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/.github/workflows/release-hardening.yml">CI</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/tests/test_a_failed_save_leaves_nothing.py">rollback tests</a>, <a href="https://github.com/Riley-Coyote/mnemos-mcp/blob/d3749e2bae6780106bebe9876393abecc460f5e3/tests/test_scope_security.py">scope tests</a>.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Plain files + hooks</td><td>Lower complexity; you own capture and wake discipline</td></tr><tr><td>Pi observational memory</td><td>Source-backed background observation/compaction</td></tr><tr><td>agentmemory</td><td>Broader hook ingestion/history and retention</td></tr><tr><td>Leviathan</td><td>Structured-record search rather than agent continuity</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><br>Begin with simple stdio, one trusted identity, explicit scope and an isolated store. Verify actual semantic availability, not just provider selection. Leave dedicated providers, shared memory and quiet hours disabled until accepted. Do not expose the companion remotely. Back up before upgrades and test restore using synthetic data, including corrections/forgotten rows and mixed scopes. Use empty export destinations. Expand concurrency only after demonstrating distinct handoffs and complete saves on intended host versions.</p>
+<p>Before sensitive use require synthetic checks for out-of-scope IDs, malicious stored instructions, retried writes, interrupted transactions, backup/restore, provider egress and the exact sandbox. This review is static evidence, not a penetration test, runtime compatibility certification or longitudinal retrieval evaluation. No private memory or transcripts were used.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot for one trusted local agent. Strong capture/wake lifecycle and recovery engineering, but forgetting is archival, optional hours transmit context and spend quota, and advanced tools are an admin boundary. Static review only; no tests or models run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Riley-Coyote/mnemos-mcp">Riley-Coyote/mnemos-mcp</a> · Apache-2.0 + notices; OFL fonts</span>
+    <span><a href="mnemos-mcp.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

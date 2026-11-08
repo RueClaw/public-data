@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [mnemos-mcp.md](reviews/mnemos-mcp.md) [page](reviews/mnemos-mcp.html) | [Riley-Coyote/mnemos-mcp](https://github.com/Riley-Coyote/mnemos-mcp) | Apache-2.0 + notices; OFL fonts | ⚠️ Interesting | Agent-authored continuity with hybrid recall and verified backups; archival forgetting, optional autonomous-hour egress and admin-scope caveats. Static review. |
 | [json-render.md](reviews/json-render.md) [page](reviews/json-render.html) | [vercel-labs/json-render](https://github.com/vercel-labs/json-render) | Apache-2.0 | ⚠️ Interesting | Catalog-driven streaming UI across web and output adapters; application-owned validation, URL policy and action authorization remain essential. |
 | [raven-oscar-soirey.md](reviews/raven-oscar-soirey.md) [page](reviews/raven-oscar-soirey.html) | [oscar-soirey/Raven](https://github.com/oscar-soirey/Raven) | Apache-2.0; component terms | ⚠️ Interesting | Native C GUI and XML designer; compelling rendering, but failing current CI, unstable ABI and resource/browser trust boundaries. Static review. |
 | [claude-mem.md](reviews/claude-mem.md) [page](reviews/claude-mem.html) | [thedotmack/claude-mem](https://github.com/thedotmack/claude-mem) | Apache-2.0 | ⚠️ Interesting | Cross-harness observational memory; strong observer lockdown, but capture/privacy defaults, loopback trust and total-cost caveats. Static review. |
