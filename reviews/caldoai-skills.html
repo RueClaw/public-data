@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caldo Skills — Review</title>
+<meta name="description" content="One refactoring prompt: sharp architectural questions, broad execution authority.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / caldoai-skills</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">caldoai/skills · reviewed 2026-11-08</div>
+    <h1>Caldo Skills</h1>
+    <p class="one-liner">One refactoring prompt: sharp architectural questions, broad execution authority.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT · © 2026 Maze</span>
+      <span class="chip">Markdown · JSON · external agent</span>
+      <span class="chip"><a href="https://github.com/caldoai/skills">caldoai/skills ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">884</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">16</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Small source, consequential authority</h3><p>Only four tracked files and one skill; no bundled scripts or MCP server. An agent supplies the tools that turn the prompt into edits and subagent work.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Good diagnosis, weak stopping rule</h3><p>Hidden links, needless links, and surplus provide a clear review taxonomy. “Fix everything” and repeat-until-clean are not a bounded change plan or a regression safety mechanism.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Consent exists, but only for additions</h3><p>Comment cleanup and test pruning are opt-in. Core redesign does not require a second approval, and safeguards proposed in open PRs are not present in this commit.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Source</td><td>One 142-line Markdown skill; one marketplace JSON; README and MIT license</td></tr><tr><td>Revision</td><td>f3cf47774975a7d9fca45730babf4ff7ad765ada</td></tr><tr><td>Verification</td><td>Static only; all four files inspected. No installation or agent execution.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The canonical repository is <strong>caldoai/skills</strong>, branded <strong>Caldo Skills</strong>, with marketplace name <strong>caldo-skills</strong> and owner label <strong>Maze</strong>. Its only skill is <strong>untangle-codebase</strong>. The generic name “skills” should not be confused with the separate Vercel skills installer linked in the README. The owner-qualified review slug is <strong>caldoai-skills</strong>.</p>
+<p>The skill asks an agent to map coupling, propose a redesign, fix the entire problem list, and delegate repeated reviews. Claimed benefits are fewer tokens per change, fewer unnoticed breaks, better output, and faster debugging. These are plausible goals, not measured results: there is no benchmark, evaluation set, token accounting, or before/after case study. <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L1-L17">Skill, lines 1–17</a>.
+</p><h4>Change-together reasoning</h4>
+<p>The strongest idea is to ask whether pieces should change together. Hidden links cover duplicated logic and implicit order; needless links cover leaked internals and volatile dependencies; surplus covers pass-through wrappers, unused extension points, and dead code. This organizes design review, but is not a machine-checkable definition of correctness. <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L30-L68">Lines 30–68</a>.</p>
+<h4>A decision log connecting causes to fixes</h4>
+<p>The example groups concrete file/line observations beneath broader changes: dialog focus restoration, a payment-provider interface, and a common command registry. It makes reasoning auditable and preserves context through compaction. The application paths are illustrative examples, not real implementations or integrations in this repository. <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L109-L142">Lines 109–142</a>.</p>
+<h4>Explicit opt-in for comments and test pruning</h4>
+<p>The agent must ask whether to remove redundant comments and prune or rewrite weak tests; those additions are optional. Test cleanup is deferred until after structural work, acknowledging the regression safety net. Distinguishing implementation-coupled tests from behavioral tests is useful, but whether a test catches a real bug remains a judgment call. A mistaken deletion can conceal a regression. <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L19-L28">Lines 19–28</a>, <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L76-L86">76–86</a>.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><strong>Prompt-only does not mean effect-free.</strong> There is no bundled executable: effects come from an agent translating natural language into tool calls. Front matter sets <strong>disable-model-invocation: true</strong>, expressing an invocation restriction for supporting hosts, not a sandbox or permission boundary. No allowed-tools list or permission enforcement exists here. Claude Code, Cursor, Codex, and other-agent compatibility is a README installation claim, not verified equivalence of permissions or front-matter behavior.</p>
+<p><strong>Consent is partial.</strong> Step 2 says not to change anything while cataloging problems. After redesign, the next step is “Fix everything on the list”; there is no mandatory user approval of that list. The initial question concerns optional comment/test cleanup, not a second authorization gate for the core refactor. Separate consent for deleting dead code, modifying public interfaces, or invoking project commands is not specified. <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L19-L32">Lines 19–32</a>, <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L64-L98">64–98</a>.</p>
+<p><strong>Stopping and correctness are underspecified.</strong> “Do not stop until there is nothing worth fixing left” relies on subagent judgment; there is no iteration, token, cost, or time cap. Behavior must be preserved except bugs fixed along the way, with testing at the end. No pre-change test baseline, per-change regression check, branch/checkpoint, rollback, dirty-worktree protection, or failure escalation is required. Incidental bug fixes also complicate a behavior-preserving comparison. <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L88-L107">Lines 88–107</a>.</p>
+<p><strong>Heuristics need domain constraints.</strong> Necessary special cases may remain, but counting them is called the best measure of progress. Retries, sleeps, provider exceptions, or unusual comments may encode real distributed-system or business constraints. Removing them needs operational evidence, not just cleaner dependencies. The tip to “script away the function bodies” does not specify a disposable copy or read-only representation; treat that as an analysis transformation, never erasure of working sources. <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L56-L74">Lines 56–74</a>, <a href="https://github.com/caldoai/skills/blob/f3cf47774975a7d9fca45730babf4ff7ad765ada/skills/untangle-codebase/SKILL.md#L94-L107">94–107</a>.</p>
+<p><strong>No outbound automation is prescribed.</strong> There are no instructions to push commits, open PRs, send messages, deploy, or contact a Caldo API. There is also no embedded protection against untrusted instructions encountered in the target repository. The host agent must preserve its own trust boundaries and approval controls.
+</p><h4>Credentials, Privacy, and Supply Chain</h4>
+<ul><li>No API keys, credential readers, network endpoints, telemetry clients, provider SDKs, or authentication flows are present. Stripe and PayPal appear only in the example.</li><li>Real use reads the target codebase and possibly Git history, generates summaries, and passes context to subagents. What leaves the machine depends on the agent/model provider and its logging/retention settings; this prompt establishes no privacy guarantee, redaction policy, or local-only requirement.</li><li>The README's unversioned <strong>npx skills add caldoai/skills</strong> invokes an external npm-distributed installer and retrieves skill content. Neither installer version nor source revision is pinned in that example. Marketplace/manual-copy routes differ mechanically, but all expose instructions to an agent. No installer or transitive dependency audit was performed.</li><li>The marketplace uses local source <strong>./</strong> with <strong>strict: false</strong>; that manifest setting is not an approval boundary. No installation verification, uninstall/recovery procedure, signed release policy, or locked distribution is supplied. Inspect and pin skill and installer independently if adopting them.</li></ul><h4>Maturity and Verification</h4>
+<p>The anonymous public GitHub API reported <strong>884 stars, 16 forks</strong>, creation <strong>2026-10-25</strong>, and last push <strong>2026-11-05T19:07:22Z</strong> at retrieval on 2026-11-08. The commits endpoint returned three commits, beginning with the October 29 initial commit; the latest merge adds installation instructions. The releases endpoint returned an empty list. Popularity is not evidence of reliability.</p>
+<p>Three open entries were PRs, not three confirmed bug issues. <a href="https://github.com/caldoai/skills/pull/2">PR #2</a> proposes optional approval checkpoints, a baseline, branches, per-fix commits, and revert-on-regression. <a href="https://github.com/caldoai/skills/pull/4">PR #4</a> proposes flagging untested changes and reports a regression found in a separate review. <a href="https://github.com/caldoai/skills/pull/3">PR #3</a> fixes a typo. These are contributor reports and unmerged proposals at this snapshot, not reproduced failures or protections present in main.</p>
+<p>Verification: all four tracked files inspected; JSON parsed; the sole skill path checked against tracked content; no extra runtime files or test/CI definitions found. Source was treated strictly as data. No npx, plugin installation, project test commands, delegated refactoring, paid inference, accounts, or service connections were used. Benefits, host compatibility, skill loading, and behavior preservation were not runtime-tested. No executable test suite is supplied; synthetic tests of prose would not establish safe agent behavior.</p>
+<p>Metadata: <a href="https://api.github.com/repos/caldoai/skills">repository</a>, <a href="https://api.github.com/repos/caldoai/skills/commits">commits</a>, <a href="https://api.github.com/repos/caldoai/skills/releases">releases</a>, <a href="https://api.github.com/repos/caldoai/skills/issues?state=open">open issues/PRs</a>.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Caldo prompt</td><td>Broad architectural reasoning, no enforced correctness boundary</td></tr><tr><td>IDE/LSP refactorings</td><td>Bounded language-aware edits; still need tests</td></tr><tr><td>jscodeshift / OpenRewrite</td><td>Repeatable migrations; ecosystem-specific recipes</td></tr><tr><td>Project checklist</td><td>Explicit approval, compatibility and rollback requirements</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no service, database, or deployment configuration. Integration means loading instructions into a coding agent. A safer adaptation first produces a read-only decision log, agrees a small change budget, preserves baseline tests and existing work, isolates changes on a branch, validates each fix, prohibits unapproved test deletion, and stops for missing coverage or ambiguity. These are recommendations, <strong>not features of this revision</strong>.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Use the coupling taxonomy and decision log in a bounded, human-reviewed refactor. This revision has no mandatory plan approval, baseline tests, rollback protocol, or execution budget; its performance claims are unmeasured.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/caldoai/skills">caldoai/skills</a> · MIT · © 2026 Maze</span>
+    <span><a href="caldoai-skills.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
