@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>phoneuse — Review</title>
+<meta name="description" content="Linux-to-iPhone control: AirPlay video in, Bluetooth keyboard and mouse out.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / phoneuse</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">lxe/phoneuse · reviewed 2026-11-08</div>
+    <h1>phoneuse</h1>
+    <p class="one-liner">Linux-to-iPhone control: AirPlay video in, Bluetooth keyboard and mouse out.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; dependency/model terms separate</span>
+      <span class="chip">Python · BlueZ · GStreamer · ESP32 C</span>
+      <span class="chip"><a href="https://github.com/lxe/phoneuse">lxe/phoneuse ↗</a></span>
+      <span class="chip"><a href="phoneuse.md">Full cited review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">362</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">36</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real control, no jailbreak</h3><p>AirPlay supplies pixels; Bluetooth HID supplies taps and typing. The tested setup is one iPhone 17 Pro on iOS 26 with Arch/Hyprland and NVIDIA, not a broad compatibility matrix.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Consent is not a security boundary</h3><p>Unlock asks the owner, but passcodes remain same-user-readable plaintext. Takeover fails open if its local service disappears; send/buy/delete approvals are instructions, not transaction gates.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Inspect every transport</h3><p>The loopback WebSocket lacks origin/token validation. Bridge reports have HMAC integrity but no encryption; the companion API binds to the LAN with signed requests but no TLS.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Security &amp; recovery</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Reviewed source</td><td>3902b415c763ff9ebd63e3627e23c87237b3076c</td></tr><tr><td>Verification</td><td>Static only; no execution, installation, pairing or model calls</td></tr><tr><td>Video</td><td>UxPlay, GStreamer, GTK4, WebCodecs</td></tr><tr><td>Input</td><td>Root BlueZ daemon or optional ESP32 bridge</td></tr><tr><td>Vision</td><td>RapidOCR, GoClick-Large, PyTorch/ONNX Runtime</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>phoneuse lets a Linux desktop view and manipulate an unmodified iPhone using ordinary Screen Mirroring and AssistiveTouch. It is not Android ADB automation, an iOS accessibility-tree reader, an iMessage database client, or a standalone reasoning agent. CLI and stdio MCP tools provide screen capture, OCR, coordinate/label taps, swipes, typing and app navigation to an external agent. Human operators can use GTK and browser mirrors directly. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/README.md">README</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/mcp_server.py">MCP</a></p>
+<p>The optional LilyGO ESP32 bridge moves the Bluetooth transmitter next to the phone while the computer sends commands over Wi-Fi. A newly added companion <strong>server and protocol</strong> support phone-side takeover/unlock approval and APNs Live Activities; this checkout contains no iOS application source or verified app distribution. Do not confuse the optional companion design with a requirement for the core app-free path. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/companion.py">Companion implementation</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/docs/COMPANION.md">protocol</a></p>
+<p>1. <strong>Two independent channels.</strong> Screen video arrives through AirPlay; input goes back as keyboard/mouse reports, not through AirPlay. The root daemon exposes a group-writable Unix command socket, used by CLI, browser and desktop input adapters. The bridge can replace direct Bluetooth without presenting two keyboards at once. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/hid_daemon.py">Daemon</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/bridge.py">bridge client</a><br>2. <strong>A restartable frame fan-out.</strong> UxPlay feeds a dedicated hub that decodes once and re-encodes with NVENC or x264, retaining the last frame and producing keyframes for new viewers. Viewer restarts need not interrupt AirPlay; hub or receiver restarts still require the owner to restart Screen Mirroring. Bounded browser frame queues drop stale work rather than accumulate latency. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/hub.py">Hub</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/web.py">browser</a><br>3. <strong>Feedback rather than blind sleeps.</strong> The frame service detects meaningful visual change and settling while discounting persistent animation. MCP actions default to a three-frame strip at approximately 0.1/0.4/0.8 seconds, plus OCR of the last frame—not the README's blanket claim that every action waits for settling. A settled single image/text view is another mode. Neither proves the intended app transaction succeeded. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/frames.py">Frames</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/mcp_server.py">MCP</a><br>4. <strong>Text-first targeting and stale-view detection.</strong> Label matching can refuse absent text; visual descriptions fall back to a grounding model that can still return a coordinate when the target is absent. Positional tap guards compare nearby image content, but permit force overrides and fail open on absent/old evidence or read errors. This is an ergonomic safeguard, not an authorization boundary. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/cli.py">CLI</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Browser mirror: loopback is not enough</h4>
+<p>The browser server binds to loopback port 8777. Several sensitive HTTP mutations validate an exact localhost Origin, which is worthwhile. However, the <strong>WebSocket handler prepares /ws without any Origin or token check</strong>, then streams phone frames and accepts input messages. The client-provided “playing” flag and a live mirror are the input gates; there is no browser identity check. A foreign website able to reach that loopback WebSocket could therefore access the screen/control path. Browser local-network protections may constrain reachability, so this is a static missing-control finding, not a reproduced browser exploit. Validate Origin/Host and add a per-session secret before using a real personal phone. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/web.py">web.py, ws / Tab.handle / same_origin</a></p>
+<h4>Pairing and privileged host access</h4>
+<p>The BlueZ agent accepts Just Works pairing. Despite an earlier comment describing a limited pairing window, setup actually calls <strong>open_pairing(0)</strong>, leaving the adapter discoverable/pairable indefinitely. The profile sets RequireAuthentication and RequireAuthorization false, and the architecture permits a new paired device to replace the current connection. This is not evidence that an arbitrary nearby device can directly read the iPhone; it is an unnecessarily broad pairing/device-selection boundary. Use a bounded owner-approved window and explicit device binding. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/hid_daemon.py">hid_daemon.py, Agent / setup_dbus</a></p>
+<p>The HID command socket is mode 0660, root-owned with the wheel group selected by the installer. Members can send low-level commands outside the CLI's mirror, unlock and takeover checks. The service runs Python as root from the installed repository directory, without sandbox hardening in the supplied unit; a user-writable checkout consequently becomes trusted root-executed code on service restart. Desktop input capture reads Linux input devices; read-only does not mean privacy-free. Restrict both source-tree ownership and device/socket access. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/scripts/install.sh">Installer</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/mirror_input.py">input adapter</a></p>
+<h4>Unlock approval is useful, but not isolation</h4>
+<p>The normal unlock route creates a request ID, waits up to two minutes for the browser/desktop/companion answer, and does not disclose the saved code in normal tool output. Storage is <strong>plaintext</strong>, protected by mode 0600 and a 0700 directory, not a vault. The unlock helper refuses permissive file modes, detects lock screens through OCR, types once and checks afterward; the three-attempts/hour counter is in process memory and resets on restart. OCR/English lock-screen heuristics can be wrong. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/unlock.py">unlock.py</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/web.py">UnlockRequests</a></p>
+<p>The helper function itself is not a separate authorization service; approval lives in its caller. A same-user shell agent can read the stored code, spoof Origin headers, or use the underlying daemon if granted access. Thus “the agent never sees the passcode” describes the intended tool flow, not a guarantee against a compromised same-user agent. Prefer manual unlock and do not grant a phone agent unrestricted shell access.</p>
+<h4>Bridge: integrity is not confidentiality</h4>
+<p>BLE provisioning uses X25519, a displayed comparison code and AES-GCM for Wi-Fi credentials. UDP control on port 47700 uses HMAC-SHA256 truncated to eight bytes, sessions and increasing sequence numbers. Cached replies suppress duplicate report execution after a lost reply; four sessions support concurrent clients. These are substantive reliability/authentication mechanisms. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/docs/BRIDGE.md">Bridge protocol</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/bridge/main/link.c">firmware link</a></p>
+<p><strong>Ordinary HID REPORT/KEYS payloads are authenticated but not encrypted.</strong> A party able to observe LAN packets can infer typed characters—including a saved passcode when entered through the bridge—from keyboard reports. Wi-Fi credential sealing does not protect those keystrokes. Discovery is unsigned, and firmware persists the control key/network settings in NVS without flash-encryption or secure-boot settings evident in the supplied defaults. Treat the network and physical bridge as trusted; encrypt all control traffic before credential-bearing use. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/bridge/main/link.c">link.c</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/bridge/main/settings.c">settings.c</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/bridge/sdkconfig.defaults">defaults</a></p>
+<h4>Companion listener and outbound data</h4>
+<p>The browser process attempts to start the companion API on <strong>all IPv4 interfaces, TCP 8778</strong>, even though the companion app is optional. It advertises through Avahi. Authentication uses a one-use, ten-minute pairing link with a 32-byte key; signed requests include method/path/body hash, timestamp and nonce, with replay tracking. Passcode/Wi-Fi fields are AES-GCM sealed. This is stronger than an unauthenticated LAN API, but ordinary requests/responses use HTTP, not TLS, and state/action labels are not confidential. Nonce history is in memory; restart loses it. Pairing URLs are bearer secrets and need private handling. No app implementation was available to verify Keychain storage or phone-side approval behavior. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/companion.py">companion.py</a></p>
+<p>Core mirroring and local OCR need no cloud model API. Nevertheless, MCP returns images and OCR text to the external agent, so that harness may transmit private messages, notifications, photos and account information to its model provider and retain them in transcripts. There is no task-specific screen redaction or iOS accessibility-tree permission scope: this is pixel access to whatever is visible. Screenshots and diagnostic input/video/Bluetooth captures are sensitive artifacts; some temporary screenshots are removed, but explicit captures and traces persist and error paths are not a complete retention policy. Runtime paths fall back to a shared temporary directory when XDG_RUNTIME_DIR is absent. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/mcp_server.py">MCP</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/cli.py">CLI</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/tools/telemetry.py">telemetry</a></p>
+<p>If APNs is configured, action text, session state/counts and unlock notifications leave for Apple's push service using an operator-supplied signing key. Local vision still consumes RAM/GPU, disk and model-download bandwidth. External agent inference has its own image/token charges or subscription limits; no end-to-end spend cap is implemented here. Upstream image-token/latency figures are observations or estimates, not verified pricing or performance guarantees. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/apns.py">APNs</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/companion.py">companion activity loop</a></p>
+<h4>Prompt injection and consequential actions</h4>
+<p>MCP instructions and the shipped skill tell the agent to ask before sending, posting, buying, deleting, modifying accounts/security or approving permissions. These are good instructions, <strong>not enforced transaction gates</strong>. Generic tap/type/Enter tools can perform all those operations; there is no recipient/amount binding, purchase confirmation receipt, app allowlist or screen-content trust classifier. Malicious text in a web page, message or screenshot can enter the same model context as legitimate observations. Keep that content untrusted, require a human approval immediately before the final consequential action, and verify the actual destination and outcome. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/mcp_server.py">MCP instructions</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/skill/SKILL.md">skill rules</a></p>
+<h4>Reliability, Recovery and Concurrency</h4>
+<p>The implementation has real engineering beyond a gesture demo: Bluetooth reconnection and calibration, skippable hover backpressure, bridge acknowledgement/deduplication, key release on browser disconnect, fresh keyframes, frame settling and automatic child-process restart. The author reports roughly 100 ms visual response and slower bridge report delivery; this review did not reproduce those measurements. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/ARCHITECTURE.md">Architecture</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/docs/BRIDGE.md">bridge measurements</a></p>
+<p>Takeover pauses normal CLI/MCP actions through a browser-service check, but that check <strong>continues on connection errors and non-409 HTTP failures</strong>. Browser restart also loses its in-memory pause state. Low-level HID clients bypass it entirely. A 20-second activity timeout is a UI indicator, not an exclusive per-agent lease. Shared last-view/action files, multiple socket clients and simultaneous physical-phone use can interleave; report-level locks do not make a multi-step gesture or purchase atomic. Run one controller at a time. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/cli.py">cli.agent_turn</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/web.py">web agent state</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/hid_daemon.py">daemon command threads</a></p>
+<p>Automatic reconnect cannot establish whether an app already sent a message before a failure. Do not retry a consequential action merely because its screenshot/acknowledgement failed. Re-observe and reconcile first. Auto-correct, US keyboard layout, notification overlays, iOS updates, stale coordinates and OCR/grounder errors all remain operational hazards.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>UxPlay alone</td><td>Viewing without agent input</td></tr><tr><td>Apple iPhone Mirroring</td><td>Supported human control on compatible Macs/iPhones</td></tr><tr><td>Appium XCUITest</td><td>Structured iOS testing; more provisioning/toolchain setup</td></tr><tr><td>scrcpy</td><td>Android, not an iPhone replacement</td></tr><tr><td>Native APIs / Shortcuts</td><td>Prefer narrow authorized actions where available</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <table><tbody><tr><td>Layer</td><td>Implementation / requirement</td></tr><tr><td>Screen ingress</td><td>iPhone AirPlay → UxPlay → loopback H.264 RTP</td></tr><tr><td>Display and frames</td><td>GStreamer decode/re-encode hub; GTK4 mirror; WebCodecs browser; frames service</td></tr><tr><td>Input</td><td>Root Python HID daemon with BlueZ classic Bluetooth mouse/keyboard/absolute-pointer reports</td></tr><tr><td>Desktop coupling</td><td>Hyprland IPC, readable Linux input devices, GTK4/GStreamer plugins; not a generic Windows/macOS host</td></tr><tr><td>Local vision</td><td>RapidOCR/ONNX Runtime; GoClick-Large via PyTorch and Transformers 4.45.0</td></tr><tr><td>Agent integration</td><td>CLI plus optional MCP SDK in a separate system-site-packages virtual environment</td></tr><tr><td>Optional hardware</td><td>Original ESP32 LilyGO T-Display, ESP-IDF v6.1, 2.4 GHz Wi-Fi; BLE setup and classic Bluetooth HID</td></tr></tbody></table>
+<p>Upstream explicitly calls this <strong>heavy-construction technology-demo software</strong>, tested on one setup: iPhone 17 Pro/iOS 26, Arch Linux, BlueZ 5.87, Hyprland 0.56, UxPlay 1.73.7, GStreamer 1.28, GTK 4.24 and NVIDIA GPU. Python 3.11+ is required by the core; vision setup selects Python 3.12. Software video decode/encode and CPU model fallbacks exist, but their practical latency and other iPhone/desktop compatibility were not verified. Other screen sizes require configuration and pointer calibration; these are not evidence of broad iOS support. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/README.md">Requirements</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/config.py">config</a></p>
+<p>The phone and computer need LAN reachability, Bluetooth connectivity (direct or bridge), user-initiated mirroring, and AssistiveTouch; Dwell Control must be off to avoid unintended taps. The cursor helper can ask Siri aloud via the computer's speakers, which requires an appropriate unlocked, nearby phone and is not a silent system API. No jailbreak/developer account/cable is required for the core path; USB flashing and additional tooling are needed for the optional bridge. APNs configuration is a separate Apple credential/account dependency.</p>
+<h4>Installation, Updates, Dependencies and Maturity</h4>
+<p>Installation is manual clone/symlink plus a sudo script, not a self-contained package manager transaction. The script writes a Bluetooth systemd override, disables bluetoothd input/hostname plugins, adds a device class, installs/enables the root HID service and restarts Bluetooth. It can disrupt the computer's own Bluetooth keyboard/mouse. An uninstall path removes owned files/markers, but it is not a snapshot-based rollback and does not restore arbitrary previous overwritten contents. Inspect and back up the exact affected configuration before any pilot. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/scripts/install.sh">install.sh</a></p>
+<p>Vision setup installs mostly unpinned dependencies and downloads GoClick files without a model revision pin; runtime uses <strong>trust_remote_code=True</strong> for model and processor loading. That executes remote model-repository Python, not merely inert weights. MCP setup uses mcp&gt;=2.3 and system-site-packages. No lockfile, root Python packaging manifest, test suite or CI workflow was found in the reviewed tree; diagnostic tools and touchlab are not automated regression coverage. The root MIT license does not establish the licenses or security of UxPlay, GStreamer plugins, model weights and their transitive dependencies. No dependency vulnerability audit was performed. <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/scripts/setup-vision.sh">vision setup</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/phoneuse/vision.py">vision loader</a>, <a href="https://github.com/lxe/phoneuse/blob/3902b415c763ff9ebd63e3627e23c87237b3076c/scripts/setup-mcp.sh">MCP setup</a></p>
+<p>Updates are especially sensitive because the user-side supervisor watches source files and restarts components, while MCP hot-reloads modules between calls. Stop control before changing the checkout, pin a reviewed revision and explicitly restart/test; do not treat an in-place pull as an atomic upgrade. No signed release/update verification path was identified.</p>
+<p>Public GitHub metadata retrieved 2026-11-08 reported creation on 2026-11-07, last push 2026-11-08T16:29:10Z, 362 stars, 36 forks and 7 open items (GitHub's issue count includes pull requests). The releases API returned an empty list. An open issue proposes remote modes; it is not evidence of implemented supported remote operation. The issue listing was not used as a complete issue census. Popularity after roughly one day does not establish reliability. <a href="https://api.github.com/repos/lxe/phoneuse">Metadata</a>, <a href="https://github.com/lxe/phoneuse/releases">releases</a>, <a href="https://github.com/lxe/phoneuse/issues/8">remote-mode issue</a></p>
+<h4>Self-Hosting Notes / Acceptance Bar</h4>
+<p>Use a spare phone with test accounts on an isolated trusted network, a dedicated Linux user/host, manual unlock, and one controller. Do not port-forward the web/companion services or expose bridge UDP to the Internet. Keep real notifications, payment apps and credentials out of early tests. Do not mistake “local OCR” for “no provider data egress.”</p>
+<p>Before broader use: fix WebSocket origin/session authorization; restrict pairing and device identity; encrypt bridge input; make takeover fail closed and persistent; isolate secrets from agents; add serialized session ownership and app/action approvals; pin and audit dependencies/model code; test lock-state failures, disconnects, stale frames, concurrent control and rollback on every qualified platform.</p>
+<h4>Verification and Limits</h4>
+<p>Public HTTPS acquisition and canonical lxe/phoneuse identity were verified; the exact source commit above was checked out. Review evidence includes README/license, service and firmware configuration, CLI/MCP, frame/display pipeline, browser and companion authentication, bridge protocol, credential handling and installers. Findings about missing guards are static code observations, not penetration-test results. No real phone, Bluetooth adapter, local input device, user content, credential or cloud model was accessed; source tests/builds were not run. Firmware crypto, Bluetooth behavior, browser restrictions, app availability and all performance/compatibility claims require independent controlled validation.</p>
+<p><strong>Attribution:</strong> <a href="https://github.com/lxe/phoneuse">lxe/phoneuse</a>, copyright 2026 Aleksey Smolenchuk, MIT. Analysis only; no source-code extraction.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Ingenious supervised spare-phone experiment, not a hardened personal-phone agent. Strong frame recovery and useful owner approval coexist with missing WebSocket origin checks, plaintext bridge input and cooperative-only takeover. Static review only; no device tests.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/lxe/phoneuse">lxe/phoneuse</a> · MIT; dependency/model terms separate</span>
+    <span><a href="phoneuse.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
