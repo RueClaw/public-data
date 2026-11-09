@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>awesome-gpui — Review</title>
+<meta name="description" content="A structured map of the GPUI ecosystem—not a vetted software registry.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / awesome-gpui</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">zed-industries/awesome-gpui · reviewed 2026-11-09</div>
+    <h1>awesome-gpui</h1>
+    <p class="one-liner">A structured map of the GPUI ecosystem—not a vetted software registry.</p>
+    <div class="verdict-pill">📚 Study / good reference</div>
+    <div class="chips">
+      <span class="chip">CC0-1.0 catalog; linked terms vary</span>
+      <span class="chip">JSON · Markdown · Python · GitHub Actions</span>
+      <span class="chip"><a href="https://github.com/zed-industries/awesome-gpui">zed-industries/awesome-gpui ↗</a></span>
+      <span class="chip"><a href="awesome-gpui.md">Evidence and full review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,648</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">143</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>161 entries, not 161 endorsements</h3><p>The complete catalog covers 124 application entries, 29 libraries, six tools and two resources. Schema validation and automated activity badges improve discovery, not application assurance.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Names and dependencies move</h3><p>The listed gpui-component now resolves to GPUI Kit. Its README and workspace versions differ; the older official scaffolder emits an unpinned Git dependency.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Accessibility exists; parity is not proven</h3><p>Current upstream includes AccessKit and multiple platform implementations. App authors still own semantic IDs, roles, assistive actions, packaging and real target-platform tests.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Catalog quality, representative sources, and adoption boundaries.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Catalog and shortlist</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">GPUI and evidence</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Alternatives</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Source revision</td><td><code>92b6ba71085f8e62a88dc19ea356b0fdb6ab8096</code></td></tr><tr><td>Method</td><td>Entire catalog; bounded linked-source sample; no execution</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What it is and who should use it</h4><p>The opening sentence describes GPUI itself, but this repository contains no UI framework implementation. Its product is a browsable list of projects. Developers evaluating native Rust interfaces, looking for component libraries, or studying application architecture will get more from it than someone expecting a supported SDK or a buildable starter workspace.</p><p>The full <code>projects.json</code> contains <strong>161 entries with 161 distinct exact project URLs</strong>, all HTTPS, and every project URL appears in the generated README. These are entries, not 161 independent repositories: several libraries are subdirectories of one repository. Nine entry URLs are not GitHub project URLs. The count excludes separate screenshot URLs and links embedded in descriptions.</p><table><tbody><tr><td>Section</td><td>Entries</td><td>Assessment</td></tr><tr><td>Apps / Developer Tools</td><td>63</td><td>Dominant segment: editors, database/API clients, terminals and agent workspaces</td></tr><tr><td>Apps / Productivity</td><td>31</td><td>Notes, file tools, readers and messaging</td></tr><tr><td>Apps / Media</td><td>15</td><td>Players, recording, editing and launchers</td></tr><tr><td>Apps / System Utilities</td><td>12</td><td>Monitoring, disk, clipboard and device utilities</td></tr><tr><td>Apps / Demos &amp; Examples</td><td>3</td><td>Very small explicitly beginner-oriented subset</td></tr><tr><td>Libraries</td><td>29</td><td>Controls, graphs, plotting, navigation, wrappers and platform layers</td></tr><tr><td>Tooling</td><td>6</td><td>Scaffolding, inspection, agent instrumentation and cross-runtime tooling</td></tr><tr><td>Resources</td><td>2</td><td>One community book and one video playlist</td></tr></tbody></table><p>This is broad application discovery but thin pedagogy. The taxonomy mixes polished products, experiments, archived projects, product-only sites with unverified source availability and framework extensions. There are no machine-readable fields for license, tested OS, GPUI revision, accessibility, release/signing status or selection rationale. That omission matters more than whether one more application is missing.</p><h4>Curation architecture and maintenance</h4><p><a href="https://github.com/zed-industries/awesome-gpui/tree/92b6ba71085f8e62a88dc19ea356b0fdb6ab8096">Catalog source and schema</a> are the canonical inputs. The schema requires name, category, URL and description, requires an app subcategory, rejects unknown fields, and requires HTTPS URLs. Python scripts sort entries by schema category order and case-folded name, then generate README tables from the template and GitHub metadata. This is substantially easier to maintain than manual star counts.</p><p>The PR template tells contributors to edit JSON rather than generated Markdown and validate/sort it. CI checks schema conformance and ordering and rejects README edits in PRs. A daily scheduled workflow and relevant main-branch changes regenerate the README; publication retries are bounded when main advances. The auto-assignment workflow uses <code>pull_request_target</code> only for metadata and does not check out PR code. Actions are major-tag references rather than immutable commit pins. These are workflow observations, not evidence that every recent CI run passed.</p><p>There is no separate CONTRIBUTING file in the inspected tree and no substantive acceptance rubric beyond this mechanical process. The code of conduct points to Zed's public policy. Maintainer assignment and schema gates improve consistency; they do not substitute for project review.</p><h4>What the badges actually measure</h4><p>The legend says “latest commit,” but for a repository-root link the generator uses GitHub's <strong><code>pushed_at</code></strong>, not a verified latest default-branch code commit. For a subdirectory link it queries the commits endpoint with a path filter, but does not carry the URL's branch/ref into that query. Thus a link to a non-default branch can have activity measured on a different ref. Repository stars are reused for subdirectory entries; they are not votes for that component. Archived status takes precedence; non-GitHub entries get N/A; API failures become unavailable rather than disappearing.</p><p>The 30-/90-day thresholds are useful triage but not a maintenance assessment. A documentation push can make something green; a stable complete example can be dormant without being broken. The renderer does not check arbitrary product websites or screenshot availability, and successful repository metadata retrieval does not prove that a linked subdirectory exists or builds. The generator warns on metadata failures but can still publish a degraded table.</p><p>Public GitHub metadata retrieved on the review date reported <strong>1,648 stars, 143 forks, six open issues/PRs, not archived, and last push 2026-11-09T20:34:13Z</strong>. The open-items sample consisted of six addition PRs (#163, #165, #166, #168, #169, #170), not six confirmed defects. The releases query returned an empty list. A catalog does not need binary releases. These figures are time-sensitive popularity/activity context, not a quality score.</p><h4>Coverage, biases and missing decision information</h4><ul><li><strong>Developer-workflow skew:</strong> 63 of 124 application entries are developer tools. Agent terminals and database clients recur heavily. This reflects the visible contributor ecosystem, not a measured census of all GPUI usage.</li><li><strong>Discoverability bias:</strong> GitHub projects have rich stars/activity signals; product-only sites do not. The fire marker privileges popularity, while alphabetical ordering at least avoids a pure popularity ranking.</li><li><strong>Learning gap:</strong> only two resources and three demo entries; no guided sequence linking state, focus, input methods, accessibility, async work, testing and packaging. The official site supplies a better starting spine.</li><li><strong>Compatibility gap:</strong> no dependency compatibility matrix. A tutorial targeting GPUI 0.2, a moving Zed Git revision and GPUI Kit's snapshot packages are not automatically interchangeable.</li><li><strong>Evidence gap:</strong> descriptions such as “fastest,” “secure,” “cross-platform,” “zero runtime overhead” or “production ready” are project claims. The list provides no common benchmark, threat model, accessibility audit or release qualification supporting them.</li><li><strong>Lifecycle gap:</strong> archived projects remain useful history and are honestly labeled, but novice readers need explicit replacement/learning-only guidance. The Codux entry does point to a successor, a helpful pattern to expand.</li></ul><p>A better catalog would add tested platform/revision, license and release links, a last-human-checked date, and a concise reason for inclusion. These are recommendations, not features claimed to exist.</p><h4>Bounded link verification and practical shortlist</h4><p>The sample was chosen by role, not star ranking: upstream framework/application, primary component library, official scaffolder, one book, one small app and one larger custom-rendered utility. All six sampled repository endpoints were publicly retrievable (five shallow HTTPS clones plus pinned Zed files). The official site returned HTTP 200 and redirected <code>www.gpui.rs</code> to <code>gpui.rs</code>. No exhaustive HTTP sweep, screenshot check, video review or downstream dependency audit was performed.</p><table><tbody><tr><td>Use</td><td>Pick and selection rationale</td><td>Evidence and caveat</td></tr><tr><td>Learn current fundamentals</td><td><a href="https://gpui.rs/">Official GPUI site</a> → README, contexts, key dispatch and examples</td><td>Closest to the evolving upstream API. Read examples at the same revision as your dependency, rather than combining snippets from different dates.</td></tr><tr><td>Learn vocabulary</td><td><a href="https://github.com/MatinAniss/gpui-book">GPUI Book</a></td><td>Clear sampled Entity/Context explanations and a structured contents page. Last sampled commit is October 2025; README explicitly declines contributions/PRs. Several contents entries have empty destinations (Canvas, List, paint phases, etc.). No license file found: read and cite, do not assume permission to redistribute its prose/code. Supplement, not authoritative current manual.</td></tr><tr><td>Build ordinary controls</td><td><a href="https://github.com/longbridge/gpui-kit">GPUI Kit</a>, listed as gpui-component</td><td>Best first component candidate in this sample: behavior/base, styled components and optional JS shell are separated; exact upstream snapshot dependencies and real accessibility-oriented tests are visible. Evaluate its added abstraction and API churn.</td></tr><tr><td>Study a compact app</td><td><a href="https://github.com/duanebester/gpui-todos">gpui-todos</a></td><td>Small modules for input, state, theme, assets and view; useful to trace actions and global state. Manifest uses GPUI 0.2; sampled main has macOS-oriented keybindings. No license file or manifest license found. Learning reference, not a licensed cross-platform starter recommendation.</td></tr><tr><td>Study a substantial app</td><td><a href="https://github.com/zed-industries/zed">Zed</a></td><td>Upstream application explains why entities, actions, custom elements and async execution exist. Large scope and application-specific coupling make it a reference, not a minimal template. GPUI's Apache license does not make Zed's GPL application code permissively reusable.</td></tr><tr><td>Study custom visualization and packaging</td><td><a href="https://github.com/tobi/disktree">disktree</a></td><td>Inspectable split between UI-free core, GPUI app, scanner and packaging. README documents Linux/macOS/Windows distribution and filesystem limitations. Good architecture specimen, but deletion/SSH authority makes it inappropriate as a casual “try every app” exercise. No removals, scans, installers or SSH operations were run.</td></tr><tr><td>Scaffold cautiously</td><td><a href="https://github.com/zed-industries/create-gpui-app">create-gpui-app</a></td><td>MIT, minimal app/workspace layouts, official organization. Sampled latest commit is April 2025; template specifies a Git GPUI dependency without <code>rev</code>. Treat as readable scaffolding and reconcile with current official platform initialization—not a reproducibility guarantee.</td></tr></tbody></table><h4>Concrete component drift</h4><p>GitHub resolves the listed <code>longbridge/gpui-component</code> repository to <code>longbridge/gpui-kit</code>. At the sampled SHA, the README advertises the <code>gpui-kit = &quot;0.7&quot;</code> usage line, while the workspace declares its packages as <strong>0.9.1</strong> and pins <code>gpui-pre</code> platform/macro companions to <strong>=0.3.12</strong>. Comments explicitly warn that snapshots can change APIs and that floating them previously broke consumers. This is source-level version evidence, not a claim that the latest published release equals the workspace version.</p><p>The sampled checkbox implementation contains accessible-role handling and tests inspecting the accessibility role. That supports “there is implemented accessibility work,” not “all controls are accessible on all platforms.” Claims of 120 FPS, hundreds of thousands of table rows, or 200K-line editing were not benchmarked. Optional GPUI Fast and JavaScript extension hosting expand the dependency/trust surface and were not separately audited.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>GPUI reality check: framework evidence, not catalog promises</h4><p>Official source was sampled at <strong>f0d896f2c18a543335eb155f729d36b624695591</strong>. Its <a href="https://github.com/zed-industries/zed/blob/f0d896f2c18a543335eb155f729d36b624695591/crates/gpui/README.md">GPUI README</a> explicitly says <strong>pre-1.0 with frequent breaking changes</strong>; the crate manifest declares version 0.2.2 and Apache-2.0. The version in a main-branch manifest is not proof of what a particular registry release contains.</p><h4>Architecture and rendering</h4><p>Entities own state; views implement <code>Render</code>; elements provide lower-level layout/prepaint/paint control. Contexts mediate state access and updates; actions map input to logical operations; an integrated executor supports async work. This is a hybrid retained-state/declarative-frame architecture, not a DOM or a collection of OS-native widgets. CSS/Tailwind-inspired method names do not imply browser CSS compatibility.</p><p>The current <a href="https://github.com/zed-industries/zed/blob/f0d896f2c18a543335eb155f729d36b624695591/crates/gpui_platform/src/gpui_platform.rs">platform constructor</a> selects macOS, Windows, Linux/FreeBSD, iOS and WebAssembly implementations. The README documents Metal on macOS, Wayland/X11 on Linux/FreeBSD, and Win32/DirectWrite on Windows. Sampled platform manifests connect Linux to <code>gpui_wgpu</code> and Windows to Direct3D 11 APIs; the wgpu renderer contains a WebGL shader path. Do not repeat obsolete blanket claims that GPUI is macOS-only or that every backend uses one renderer. Equally, platform branches and community mobile entries are not proof that every widget, IME, driver, release package or assistive technology has equivalent support. Android/OpenHarmony list entries need their own platform-layer evaluation; the inspected default platform constructor is not an Android support matrix.</p><h4>Accessibility is present, but application work remains</h4><p>The upstream <a href="https://github.com/zed-industries/zed/blob/f0d896f2c18a543335eb155f729d36b624695591/crates/gpui/src/_accessibility.rs">accessibility guide</a> documents AccessKit integration, roles, stable global element IDs, synthetic children and assistive actions. It explicitly warns that repeated IDs can silently drop nodes in release builds and that nodes without a role are not reported. An application's custom canvas/editor cannot become accessible merely by rendering with GPUI. Test focus, screen-reader semantics, action dispatch, contrast, zoom, reduced motion and IME on each shipping platform. No screen-reader or hardware testing was done here.</p><h4>Distribution and licensing</h4><p>A successful Rust build is not a distributable product. Qualify platform runtime dependencies, GPU/driver compatibility, assets/fonts, signing/notarization, installer/update behavior and crash diagnostics. Disktree's README, for example, describes separate per-OS artifacts and caveats around unsigned macOS builds and helper packaging; these are documentation observations, not independently validated binaries.</p><p>The catalog's CC0 dedication covers its own rights only and expressly does not clear third-party rights. GPUI is Apache-2.0; sampled GPUI Kit software is Apache-2.0 with an additional CC BY 4.0 offer for specified documentation; create-gpui-app and disktree have MIT texts. Zed's README describes primarily GPL-3.0-or-later application source with Apache components where marked. The book and todos sample lack an explicit license. Follow the actual file/component terms and preserve applicable notices; inclusion does not grant reuse permission.</p><h4>Evidence ledger and verification limits</h4><p>All revisions below were retrieved publicly on 2026-11-09 UTC. Mutable web/API observations are date-stamped rather than presented as immutable snapshots.</p><table><tbody><tr><td>Source</td><td>Exact revision</td><td>Inspected scope</td></tr><tr><td>awesome-gpui</td><td>92b6ba71085f8e62a88dc19ea356b0fdb6ab8096</td><td>Entire README/catalog, LICENSE, schema, template, PR template, code-of-conduct pointer, Python scripts, manifests/lockfile inventory and three workflows</td></tr><tr><td>zed-industries/zed</td><td>f0d896f2c18a543335eb155f729d36b624695591</td><td>GPUI README/manifest/crate-root, contexts/key-dispatch documents, accessibility guide, platform constructor/manifests, renderer excerpt and root licensing section; not entire Zed</td></tr><tr><td>longbridge/gpui-kit (redirect from gpui-component)</td><td>0a2a64339c1821e9914e4c19603c0e543f618f7d</td><td>README, workspace manifest/pins, license documents, checkbox accessibility/test excerpts</td></tr><tr><td>zed-industries/create-gpui-app</td><td>63fbe214da83c5409f6845147d793d595b12e2c5</td><td>README, MIT license, template inventory and default Cargo template</td></tr><tr><td>MatinAniss/gpui-book</td><td>664b8127b29a8c7291e68cd2f99fc12a8c2fc382</td><td>README/contribution policy, contents, Entity/Context chapters and license-file absence</td></tr><tr><td>duanebester/gpui-todos</td><td>d721babd4ffc5e599bd89ed89f03004afb1149d9</td><td>README, manifest, main/module layout and license-file absence</td></tr><tr><td>tobi/disktree</td><td>9b18b272ca3c5a145f6ff58eaf89dc4d311eeaea</td><td>Full README, MIT license, workspace manifest and directory/package layout; no safety audit of removal implementation</td></tr></tbody></table><p>Checks performed: JSON parsed successfully; 161 distinct exact URLs; all HTTPS; all catalog URLs represented in README; five sampled linked clones succeeded; official source files and site were public; repository redirect confirmed through GitHub API. Schema/order CI was <strong>read, not executed</strong>. No build/test success is asserted for any linked project. The shallow clones do not establish full historical cadence. Release binaries, security claims, arbitrary website links, screenshots, mobile/WebAssembly behavior and comparative performance remain unverified.</p><p><strong>Bottom line:</strong> bookmark this as a living map. Learn from current upstream, shortlist GPUI Kit for components, study small examples with revision/license caution, and qualify apps independently. Nothing here endorses installing the entire list.</p><p><strong>Attribution:</strong> Zed Industries and awesome-gpui contributors (CC0-1.0); linked authors retain their own rights. This review is independent analysis, not an upstream endorsement.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Fit versus maintained alternatives</h4><p>These are architecture choices, not comparative performance results. Alternative documentation was checked on 2026-11-09; no alternative was built or audited.</p><table><tbody><tr><td>Requirement</td><td>Sensible direction</td><td>Tradeoff</td></tr><tr><td>Rust-native, highly customized editor/tool UI; willing to own upgrades</td><td>GPUI, with GPUI Kit if standard controls fit</td><td>Strong control over rendering/state; pre-1.0 churn and release qualification remain yours</td></tr><tr><td>Rust application with explicit message/update state flow</td><td><a href="https://github.com/iced-rs/iced">Iced</a></td><td>Elm-style architecture, built-in widgets and wgpu/tiny-skia renderer options including software fallback; its README also calls it experimental, so not an automatic stable-API escape</td></tr><tr><td>Immediate-mode tools, inspectors or embedding UI in a rendering engine</td><td><a href="https://github.com/emilk/egui">egui/eframe</a></td><td>Direct immediate-mode model and documented native/web integrations; different UI/layout model, not a GPUI component substitute</td></tr><tr><td>Conventional desktop product with established controls and accessibility guidance</td><td><a href="https://doc.qt.io/qt-6/accessible.html">Qt 6</a></td><td>Documented Widgets/Quick keyboard and accessibility facilities; C++/QML integration and module-specific open-source/commercial license compliance, rather than a Rust-first GPUI stack</td></tr></tbody></table><p>Choose GPUI because its state/rendering model and available components match the product—not because multiple list descriptions say “blazing fast.” Before committing to it, build a separately authorized small qualification app covering a large list, complex text input, keyboard navigation, accessibility, background work and a packaged binary on each target OS. This review did not perform that exercise.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study / good reference</div>
+      <p>Bookmark the catalog for discovery. Learn from current upstream, shortlist GPUI Kit for controls, and qualify versions, licenses, accessibility and packaged applications independently. Static review only; no linked project was executed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/zed-industries/awesome-gpui">zed-industries/awesome-gpui</a> · CC0-1.0 catalog; linked terms vary</span>
+    <span><a href="awesome-gpui.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
