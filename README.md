@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [hyprglass.md](reviews/hyprglass.md) [page](reviews/hyprglass.html) | [hyprnux/hyprglass](https://github.com/hyprnux/hyprglass) | BSD-3-Clause; MIT protocol | ⚠️ Interesting | Hyprland glass renderer with cache and unload safeguards; ABI, GPU/HDR and runtime-config recovery caveats. Static review. |
 | [tailnet-do.md](reviews/tailnet-do.md) [page](reviews/tailnet-do.html) | [littledivy/tailnet-do](https://github.com/littledivy/tailnet-do) | BSD-3-Clause declared; LICENSE missing | 📚 Study | Tailscale inside a Durable Object; unauthenticated example proxy, shared-runtime isolation and lifecycle limits. Static review. |
 | [caldoai-skills.md](reviews/caldoai-skills.md) [page](reviews/caldoai-skills.html) | [caldoai/skills](https://github.com/caldoai/skills) | MIT | 📚 Study | One refactoring prompt with a useful coupling taxonomy but no mandatory baseline, approval checkpoint, or bounded execution. |
 | [memorilla.md](reviews/memorilla.md) [page](reviews/memorilla.html) | [snap-stanford/memorilla](https://github.com/snap-stanford/memorilla) | Apache-2.0 | 📚 Study | Query-conditioned latent compression for frozen LLMs; promising research, not managed durable memory. |

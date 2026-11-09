@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HyprGlass — Review</title>
+<meta name="description" content="Liquid Glass-inspired Hyprland rendering, with compositor-level compatibility and recovery costs.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / hyprglass</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">hyprnux/hyprglass · reviewed 2026-11-09</div>
+    <h1>HyprGlass</h1>
+    <p class="one-liner">Liquid Glass-inspired Hyprland rendering, with compositor-level compatibility and recovery costs.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">BSD-3-Clause root · MIT protocol</span>
+      <span class="chip">C++23 · C11 · GLES · Wayland</span>
+      <span class="chip"><a href="https://github.com/hyprnux/hyprglass">hyprnux/hyprglass ↗</a></span>
+      <span class="chip">Static review · source 317ed8c1b06b</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">350</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">49</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A renderer, not a theme pack</h3><p>Samples the backdrop, applies blur and refraction, then composites below translucent surfaces. Layers and subsurfaces are opt-in.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Version matching is essential</h3><p>main tracks hyprland-git; stable releases use paired revisions. Guards reduce risk but do not create a stable ABI or a plugin sandbox.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Measure and preserve a rollback</h3><p>Caching and GPU counters are real; performance guarantees are not established. Runtime shadow/blur changes and a resident helper complicate rollback.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Compatibility &amp; recovery</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Host</td><td>Linux Hyprland; native plugin using unstable internal APIs</td></tr><tr><td>Renderer</td><td>GL/GLES framebuffers, GLSL ES 3.00; no Vulkan/CPU fallback inspected</td></tr><tr><td>Configuration</td><td>Hyprland Lua; type checks, bounded table copying and preset inheritance</td></tr><tr><td>Hints</td><td>ext-background-effect-v1 and project-specific hyprglass_item_v1 Wayland protocol</td></tr><tr><td>Build</td><td>C++23/C compilers, Make, pkg-config, Hyprland development headers, pixman, libdrm, Wayland server/scanner and transitive host dependencies</td></tr><tr><td>Packaging</td><td>hyprpm source build or release shared library; no server, database or account</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p>HyprGlass models a pane as a rounded convex slab: sample the backdrop, blur it, displace texture coordinates near its edge, separate RGB samples, then add tint, Fresnel glow and specular highlights. Presets are artistic approximations, not demonstrated physically accurate optics or parity with Apple's implementation.</p>
+<p>Window glass sits below the application surface, so opaque applications can hide it. Opaque-window skipping defaults on. Layer and subsurface support default off; layers can use alpha masks, requested blur regions, rounded shapes or generated contours. Per-window tags, layer namespaces, inherited presets and light/dark overrides provide fine-grained control. See <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/README.md">README</a>, <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/BuiltInPresets.hpp">presets</a> and <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/Shaders.hpp">shaders</a>.</p>
+<h4>Performance: mechanisms, not measured guarantees</h4><p>Actual optimizations include opaque-window skipping, cached sampled/blurred backdrops, capped live resampling (30 Hz default), reduced sampling resolution for stronger blur, shader variants, paired bilinear Gaussian taps and folded blur passes. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/Diagnostics.cpp">Diagnostics</a> exposes cache hits/misses/deferred work, megapixels, contour rebuilds and optional GPU stage timers. Debug modes separate render-pass hint cost from GL pipeline cost. These are measurement tools, not benchmark results.</p>
+<p>The README's “static scenes stay free” should mean avoiding resampling, not zero total compositor/GPU work: cached glass still needs composition/bookkeeping when drawn. Blur-folding's “identical look” is an intended perceptual result, not proven pixel equivalence. The implementation preserves a Gaussian variance relationship but uses capped finite kernels and sampled textures; no image/numerical regression suite establishes equality.</p>
+<p>Cost grows with glass area, resolution/scale, background activity and effects. Self-sampling reblurs busy application content. Forced layer resampling ignores the cap and is explicitly expensive. X-ray retains a monitor-sized framebuffer, larger with HDR, expiring after 600 rendered frames without use—not necessarily ten seconds of idle wall time. Frost and contour add textures/passes. No reproducible hardware-labelled frame-time, power or battery benchmark suite was found. Before adoption, compare disabled/native-blur/glass modes under idle, video, dragging, mixed-scale monitors and lock/unlock; measure frame-time tails and power, not just cache counters.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture and key features</h4><p>1. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/main.cpp">main.cpp</a> checks compatibility, registers render/window/monitor/config listeners, attaches decorations and hooks renderLayer and CRenderPass::add. Hook failures disable affected features.<br>2. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/GlassDecoration.cpp">GlassDecoration</a> queues bottom-layer render-pass elements. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/GlassRenderer.cpp">GlassRenderer</a> copies padded backdrop regions, runs horizontal/vertical Gaussian passes and composites glass. Core paths assume GL framebuffer types.<br>3. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/GlassLayerSurface.cpp">GlassLayerSurface</a> redirects foreground rendering into a temporary framebuffer, then combines it with masked glass. Subsurface passes wrap a participating client surface draw similarly.<br>4. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/BackgroundDamageObserver.cpp">BackgroundDamageObserver</a>, scene generations and render-order fingerprints invalidate caches. Deferred resampling avoids incompletely redrawn backgrounds. X-ray uses wallpaper snapshots; frost adds overlap-sensitive blur; contour computes a distance field around irregular alpha outlines.<br>5. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/ItemHints.cpp">ItemHints</a> loads an embedded C helper through memfd/dlopen with RTLD_NODELETE. Resident Wayland request implementations let old objects become inert on unload instead of pointing into unmapped plugin code. Callbacks into the plugin are cleared first.</p>
+<p>The helper is a useful lifecycle pattern, but deliberately remains resident until compositor exit. Reloading does not replace every loaded component; a helper ABI mismatch disables hints and may require a session restart.</p>
+<h4>Desktop authority, privacy and input boundaries</h4><p><strong>Loading this library trusts native code inside the compositor.</strong> There is no plugin sandbox or portal consent boundary; bugs can affect the whole graphical session. It samples framebuffer content and reads window/layer metadata. No telemetry, credential collection, network client/listener or screenshot-to-disk path was found in inspected runtime source. This is a scoped static finding, not proof of vulnerability absence. Downloads/package repositories are a separate build/update network boundary.</p>
+<p>The Wayland extension supplies preset/shape hints, not pixel readback, arbitrary shaders, paths or shell commands. It uses client-associated Wayland objects, caps preset storage, rejects duplicate active items per surface, falls back for invalid extents and clamps negative radii. No additional app allowlist in the helper bind path or explicit per-client object quota was identified; lifecycle/resource-pressure fuzz tests would be valuable. CORS/web authentication do not apply to this local protocol.</p>
+<p>Lock handling mirrors Hyprland's above-lock layer selection to avoid injecting glass without a foreground surface over the lockscreen. This is a positive code-level safeguard, <strong>not experimentally verified lockscreen privacy</strong>. Validate the exact lockscreen, screen-sharing and overview-plugin combination before sensitive use. Item diagnostics include window addresses/classes, monitor names and presets; inspect/redact before posting bug reports.</p>
+<p>A static protocol-contract discrepancy deserves a regression test: <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/protocols/hyprglass-item-v1.xml">XML</a> says destroying an item retains committed hints until the next surface commit; <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/item-helper/helper.c">item_resource_destroy</a> immediately removes/frees the item and lookup subsequently finds none. The next redraw may lose hints before the documented commit boundary. This is a source-level observation, not a reproduced failure or claimed exploit.</p>
+<h4>Maturity, licenses and supply chain</h4><p>Public API snapshot: 350 stars, 49 forks, nine open issue/PR objects (not nine confirmed bugs), created 2026-02-16, last pushed 2026-11-03. v1.1.1 fixes video/GPU backdrop refresh; v1.1.0 addresses stale backgrounds, transforms and animation issues. This shows maintenance and an evolving rendering surface—not universal stability.</p>
+<p><a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/.github/workflows/ci.yml">CI</a> builds stable-branch PRs against Arch's Hyprland and main against Chaotic-AUR hyprland-git. A wrong stable line generates a warning rather than proving that older line builds. A <a href="https://github.com/hyprnux/hyprglass/actions/runs/42476575671">sampled successful CI run</a> targets the reviewed SHA. Checks cover compilation and commit messages, not automated rendering/protocol/lockscreen/GPU correctness. No tracked test directory or test target was found. No upstream tests or build were run here.</p>
+<p>Actions use mutable version tags and rolling Arch/container/package inputs. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/.github/workflows/release.yml">Release automation</a> downloads a versioned changelog tool without an accompanying checksum check in that step; no signing/attestation step was identified. These are reproducibility/supply-chain hardening opportunities, not evidence of compromise.</p>
+<p><a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/LICENSE">Root BSD-3-Clause</a> names Jeremy Trufier; protocol XML carries an MIT grant for contributors. Retain applicable notices when redistributing. Hyprland/Wayland/graphics dependencies retain separate obligations. No upstream code or artwork was extracted.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff</td></tr><tr><td>HyprGlass</td><td>Refraction, edge optics and client-hinted shapes on Hyprland</td><td>Native-plugin ABI, extra rendering and recovery burden</td></tr><tr><td>Hyprland native blur/opacity</td><td>Ordinary frosted transparency without another native plugin</td><td>Not the complete lens/refraction/preset system</td></tr><tr><td>App-owned translucent styling</td><td>A controlled bar/widget/application</td><td>Narrow scope; cannot generally sample arbitrary desktop content itself; compositor blur may still be needed</td></tr><tr><td>KDE/KWin built-in blur</td><td>Standard translucency for existing Plasma users</td><td>Different desktop/compositor, not an effect-parity Hyprland replacement</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Compatibility and GPU requirements</h4><p><strong>Choose the source line, not just the newest version.</strong> main follows hyprland-git; stable hyprland-X.Y branches follow release lines. The checked-in .hyprland-version says 0.57.1, but is not a guarantee arbitrary 0.57.1 installations can load this main build. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/hyprpm.toml">hyprpm.toml</a> maps exact host release commits to plugin revisions; its newest explicit entry here maps Hyprland 0.57.0 to HyprGlass v1.1.1. Unmatched commits fall through to main.</p>
+<p><a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/HyprlandIdentity.hpp">HyprlandIdentity</a> accepts identical commits, or a shared major/minor release line for release-channel builds. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/LoadGuard.cpp">LoadGuard</a> also compares dependency-version suffixes. main requires commit matching when a usable build hash exists. Missing identity can yield “unknown,” not rejection. These checks reduce mismatch risk but do not guarantee all ABI safety: the dynamic loader and initial API calls must still work. Do not use the unsupported version-check bypass as a compatibility fix.</p>
+<p>The current docs/config are Lua-native for Hyprland 0.57; older hyprlang installations need matching older source and documentation. Other compositors, X11, macOS and Windows are not targets. No qualified Intel/AMD/NVIDIA model/driver matrix or numeric VRAM minimum was found. The concrete requirements are the host's GL path and shader support, not a named GPU brand. <a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/src/Contour.cpp">Contour</a> checks GLES 3.2 or GL_EXT_color_buffer_float for half-float fields, with alpha-mask fallback. Timers additionally require GL_EXT_disjoint_timer_query. <a href="https://github.com/hyprnux/hyprglass/issues/101">Open issue #101</a> reports over-bright semitransparent layers on an HDR/colour-managed monitor; not reproduced here.</p>
+<h4>Installation, update, removal and recovery</h4><p><a href="https://github.com/hyprnux/hyprglass/blob/317ed8c1b06be00990ccdca02bf9ade936f47f13/Makefile">Makefile</a> builds local shared objects and offers clean, but does not install packages or rewrite desktop config. hyprpm is recommended upstream; manual loading or a persistent Lua load line are alternatives. A prebuilt binary must match architecture, Hyprland and dependencies. Release automation builds on Arch Linux, not a demonstrated multi-architecture matrix. Release assets were not executed or independently reproduced here.</p>
+<p>Back up configuration and merge a guarded plugin-specific block; do not replace a whole config. There are <strong>runtime side effects</strong>: window glass turns shadows on and sets no_blur at the direct-property-set priority. Unload withdraws its setting rather than snapshotting a pre-existing value at that same priority, so runtime property ownership can conflict. Exit does not explicitly restore the prior shadow setting; reload preserved user config after removing/disabling the load path. Layer blur management also changes rendering behavior while active.</p>
+<p>Upstream documents hyprpm update, plugin unload and hyprpm disable; there is no dedicated full uninstaller. Remove only the chosen installation's startup entry and owned binary, preserving unrelated settings. Unload cleans listeners, hooks, decorations, GPU state and callbacks, but the helper stays resident; restarting the compositor is the strongest reset after helper changes or unexplained corruption.</p>
+<p>For a session that will not start, use a separate text console/recovery session to disable the plugin startup entry and restore known-good config. Do not depend on hyprctl responding before compositor startup finishes. Top-level synchronous commands in Lua can deadlock during plugin-induced config reload. The README's systemctl --user revert troubleshooting suggestion is broader than deleting one temporary timeout drop-in and can discard other overrides: preserve existing units/drop-ins and undo only the diagnostic change. No such changes were made here.</p>
+<p>“Loaded” can mean paused: plugin list gives the compatibility/duplicate reason while hyprglass status may not exist. Once active, inspect status and configerrors. Shader failures stay disabled until reload; missing hooks selectively disable layers/items. Keep guards enabled, rebuild after host upgrades and retain a known-good rollback pair.</p>
+<h4>Verification and limits</h4><p>Inspected public documentation/tree, license, build/manager metadata, shaders/rendering, cache/damage paths, configuration, load/unload guards, protocol/helper and workflows. Public accessibility was verified without account authentication. Existing reviews and repository index were searched; no prior same-source review was found. Artifact validation covers Markdown/HTML/index consistency and standalone markup, not compositor behavior.</p>
+<p>No host desktop data, user config or private files were used. No installation, config mutation, plugin loading, model downloads or paid API calls. Driver support, fidelity, frame pacing, power, lockscreen behavior, protocol destruction timing and full removal recovery remain experimentally unverified. This is not a security audit or dependency endorsement.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> hyprnux/hyprglass; Jeremy Trufier and contributors. BSD-3-Clause root; MIT protocol notice.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot on a pinned, recoverable Hyprland session. Substantial rendering and lifecycle engineering, but internal hooks, unmeasured GPU costs and open HDR issues argue against blanket deployment. Static review only; prefer native blur for ordinary translucency.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/hyprnux/hyprglass">hyprnux/hyprglass</a> · BSD-3-Clause root · MIT protocol</span>
+    <span><a href="hyprglass.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
