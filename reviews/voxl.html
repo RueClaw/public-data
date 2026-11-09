@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voxl — Review</title>
+<meta name="description" content="Browser desktop streaming for isolated VMs and computer-use agents—not a voice model or a security sandbox.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / voxl</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">tembo/voxl · reviewed 2026-11-09</div>
+    <h1>voxl</h1>
+    <p class="one-liner">Browser desktop streaming for isolated VMs and computer-use agents—not a voice model or a security sandbox.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT source; x264-linked binary GPL caveat</span>
+      <span class="chip">Rust · Axum · x264 · WebCodecs</span>
+      <span class="chip"><a href="https://github.com/tembo/voxl">tembo/voxl ↗</a></span>
+      <span class="chip"><a href="https://github.com/tembo/voxl/commit/3eda62874b2b3f160bc0b2e1ea20c434e0de5325">Exact source revision</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,383</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">76</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Built for existing desktops, not speech</h3><p>X11/Xvfb, macOS and Windows capture feed H.264 over a browser WebSocket. Screenshots, recording and sequence-aware visual waiting are useful for agents; native Wayland and GPU encoding are absent at this revision.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Read-only is not a privacy boundary</h3><p>Authentication and server-side input restrictions are implemented. But read-only viewers retain observation and enabled downloads; the default home-directory share can expose hidden files through direct downloads or ZIPs.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Benchmark headlines need qualification</h3><p>The README uses best runs, native decode timing and loss-free shaped links. The reviewed commit updates Selkies setup and reports substantially closer results. Test real browsers, legibility, packet loss and matched resources.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Server</td><td>Rust 2021, Tokio, Axum, native OS backends</td></tr><tr><td>Media</td><td>x264 H.264, Opus, PNG, MP4</td></tr><tr><td>Browser</td><td>TypeScript, WebCodecs, worker, OffscreenCanvas</td></tr><tr><td>State</td><td>Shared password; transient sessions; persistent uploaded files</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>1. <strong>Damage-driven video rather than constant screenshot polling.</strong> Platform capture feeds conversion and x264; the shared Hub distributes frames, cursor and audio. Client acknowledgements drive queue tracking and adaptive bitrate. Paint-over frames sharpen still content. A stalled client is resynchronized after roughly four seconds; before that, a slow viewer can gate the shared capture flow. This is not independently isolated per-viewer video quality. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/video.rs">video.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/hub.rs">hub.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/encoder.rs">encoder.rs</a>.<br>2. <strong>Useful agent APIs without an agent dependency.</strong> Screenshot responses carry a sequence number; /wait supports change/idle, region, timeout and since-sequence semantics, avoiding blind sleeps and missed-change races. This detects visual changes, not semantic application readiness. Recordings reuse encoded frames rather than re-encoding, but muxing, buffering and transfer still consume resources; the README's “no extra CPU” wording is stronger than the implementation warrants. Resize ends a recording and multi-stripe recording is refused. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/wait.rs">wait.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/record.rs">record.rs</a>.<br>3. <strong>Browser work is separated sensibly.</strong> The worker owns transport and video decode, with OffscreenCanvas or a presentation handoff; the main thread owns layout, input, clipboard, audio and microphone controls. It checks secure-context/WebCodecs availability and reconnects a closed socket after one second. This is transport recovery, not durable session replay. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/web/src/client/main.ts">main.ts</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/web/src/worker.ts">worker.ts</a>.<br>4. <strong>A compact embeddable process, not a static dependency-free binary.</strong> main.rs delegates to library run(); compile-time platform modules share interfaces. build.rs generates x264 FFI and invokes esbuild, then embeds client assets. Native codec/display dependencies remain operational and supply-chain inputs. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/lib.rs">lib.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/build.rs">build.rs</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Exact source and verification</h4><p>Reviewed SHA: <code>3eda62874b2b3f160bc0b2e1ea20c434e0de5325</code>. Static source review; no build, runtime tests or device access. Upstream CI for this SHA reports success.</p><h4>Authentication and network boundary</h4>
+<p>Authentication middleware protects the desktop, WebSocket, file and agent endpoints; a small explicit asset list and /healthz are public. Credentials may come from a CLI flag, VOXL_PASSWORD, a Selkies-compatible environment variable, or a generated 128-bit random password. Basic, Bearer and URL-token authentication all grant the same authority; the optional Basic username does not constrain Bearer/token access. There is no per-user RBAC, MFA, expiring viewer token or per-session permission system in the reviewed paths. No application login rate limiter was found. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/login.rs">login.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/lib.rs">lib.rs</a>.</p>
+<p>Generated passwords are intentionally printed in startup logs. Token links remain in the page URL and are propagated to worker/WebSocket/file URLs, so browser history, copied links and proxy access logs must be treated as credential stores. Use protected secret injection rather than command-line secrets, restrict logs, and prefer an authenticated front proxy for multi-user access. Changing a configured password requires restarting/reconfiguring the process; a generated one changes on restart.</p>
+<p>Linux defaults to all interfaces on port 6901; macOS/Windows default to loopback. The server itself is plain HTTP. Host validation and browser Origin checks are real middleware, run before login, but are not network authentication: non-browser callers can omit Origin, IP hosts are permitted, and wildcard exceptions weaken browser protections. Remote browser WebCodecs also requires HTTPS. Terminate TLS at a trusted proxy and restrict direct backend reachability; disabling built-in auth is safe only when that proxy cannot be bypassed. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/access.rs">access.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/SECURITY.md">SECURITY.md</a>.</p>
+<h4>Desktop authority is execution authority</h4>
+<p>An authenticated writable viewer can type into a terminal or privileged application already present in the desktop. There is no command allowlist, action approval or application sandbox. All viewers share the same desktop and privilege level. macOS needs Screen Recording and Accessibility permissions; Windows runs in the user's interactive session and has lock-screen/UAC restrictions. Do not elevate it to bypass those boundaries. Linux capture relies on authority to access the X display.</p>
+<p>Read-only mode is enforced on the server: a command allowlist rejects input/clipboard writes/resize and all binary client messages; upload is disabled separately. <strong>Read-only does not mean confidential:</strong> screen, screenshot/recording, outbound clipboard and enabled downloads remain available. Turn off clipboard, audio and file transfers independently when those data channels are unwanted. Browser microphone is off by default server-side and requires a browser permission flow when enabled. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/server.rs">server.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/lib.rs">lib.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/web/src/client/mic.ts">mic.ts</a>.</p>
+<h4>Files are a broad grant, not a vault</h4>
+<p>Uploads and downloads default on, with the user's home as files-root (falling back to filesystem root if neither home environment variable exists). The list UI hides dotfiles, but direct downloads resolve a requested relative path and directory ZIP traversal does not filter hidden files. <strong>Hiding dotfiles is not secret protection:</strong> a home-root share can expose configuration and credentials to an authorized downloader. Use a dedicated minimal exchange directory instead of a real user's home.</p>
+<p>Path components reject absolute paths and parent traversal; canonicalized existing targets must remain under the configured root. Folder ZIPs omit symlinks, upload subdirectories are checked stepwise, uploads require a custom header and use create-new temporary files followed by rename. These are meaningful safeguards, but path validation and later filesystem operations are not a race-proof filesystem sandbox. Concurrent local mutation and crash/race behavior were not dynamically tested. Avoid attacker-writable shared roots and use OS isolation. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/files.rs">files.rs</a>.</p>
+<h4>Data and cost flows</h4>
+<p>The reviewed runtime has no model provider, account service, telemetry uploader or obligatory third-party media relay. Screen/audio/clipboard/files go between the host and authenticated viewer through whatever reverse proxy or tunnel the operator chooses; a TLS-terminating intermediary can observe them. Browser-origin media permissions are separate from server authentication. Apps on the controlled desktop can make their own network calls; voxl does not restrict their egress.</p>
+<p>Costs are CPU encoding, bandwidth, hosting and optional tunnel/proxy services—not model tokens. The 30,000-kbps default video ceiling is about 13.5 GB/hour per viewer if continuously saturated, excluding overhead/audio; actual damage-driven/adaptive traffic can be much lower. Multiple viewers still multiply delivered traffic. The optional Daytona benchmark script uses an external account/API key and may incur cloud charges; it is not a runtime requirement and was not run. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/lib.rs">lib.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/bench/README.md">bench README</a>.</p><h4>Persistence and recovery</h4><p>- <strong>Uploaded files persist</strong> in the selected root; there is no expiry/cleanup scheduler or resumable upload protocol. The default per-upload size limit is unlimited. Error paths attempt to remove temporary .part files, but crashes can leave them behind; no startup scavenger was identified. Unique-name selection plus rename is not a transactional multi-client conflict protocol.<br>- <strong>Recordings are RAM-backed</strong>, with a default 300-second maximum. Started/unclaimed recordings are discarded after the maximum duration plus a 60-second grace period. No global recording-count/byte budget was found. A time limit alone is not a safe aggregate memory bound. Saved downloads/recordings then have viewer-owned retention, not server-enforced deletion.<br>- <strong>Session state is ephemeral.</strong> There is no database, durable task journal, audit identity or restore system. WebSocket reconnect resets decoding; disconnect releases input state and stops that client's microphone stream. It does not undo desktop actions or recover an interrupted upload/recording after process loss.<br>- <strong>Operational recovery is external.</strong> Release builds abort on panic; the library also installs an aborting panic hook in unwind builds. A supervisor, isolated desktop lifecycle, resource quotas and backup/restore policy belong to the deployment. /healthz is a simple “ok” response, not proof that capture/input/audio are healthy. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/files.rs">files.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/record.rs">record.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/server.rs">server.rs</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/lib.rs">lib.rs</a>.</p><h4>Claims and maturity</h4><p>The README reports approximately 60 FPS and 12–99 ms median latency on a 16-vCPU GPU-less VM. It discloses that voxl's column uses its best run, that native clients measure draw-to-decode rather than complete browser/input-to-photon latency, that Sunshine is outside its GPU-oriented sweet spot, and that shaped links do not drop packets. These results are useful author evidence, not a universal product ranking or a reproduction by this review.</p>
+<p>Importantly, the <strong>reviewed HEAD itself updates the Selkies benchmark setup</strong>. Its merged commit message reports much closer voxl/Selkies results, including faster Selkies LAN scroll in that separate run, and calls for standardized quality/legibility tests. Hardware and setup differ, so do not combine those numbers with the README table; they do show why its headline should not decide a purchase or migration. Compare text/chroma fidelity, real browser latency, loss, concurrent viewers and matched resource limits. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/README.md">README</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/bench/README.md">benchmark methodology</a>, <a href="https://github.com/tembo/voxl/commit/3eda62874b2b3f160bc0b2e1ea20c434e0de5325">reviewed commit discussion</a>.</p>
+<p>Public metadata checked 2026-11-09: repository created 2026-06-18, last push 2026-11-09T04:16:38Z, 1,383 stars, 76 forks, 23 open issue/PR items in GitHub's combined counter; not archived. Latest public release is <a href="https://github.com/tembo/voxl/releases/tag/v0.3.4">v0.3.4</a>, published 2026-11-07. These are time-sensitive activity signals, not safety evidence.</p>
+<p>CI defines web formatting/lint/type checks, Linux formatting/clippy/tests/package verification, macOS tests, and Windows tests plus a real-desktop smoke exercise. The public <a href="https://github.com/tembo/voxl/actions/runs/42560916056">CI run for the reviewed SHA</a> reports success. Unit tests cover areas including auth, origins, read-only commands, recording-length bounds and encoder logic; bench/tests contains richer Playwright transfer/resize/microphone scenarios. Most of those integration scripts are not invoked by the main CI workflow. Native OS/FFI code and manual feature tests still need platform qualification. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/.github/workflows/ci.yml">CI</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/bench/README.md">bench</a>.</p>
+<p>Cargo and npm lockfiles are committed, but CI actions mostly use movable version tags and Nix shells resolve external nixpkgs; this is not fully hermetic supply-chain pinning. No vulnerability scan or exhaustive dependency audit was performed. SECURITY.md says fixes target the latest release, so operators own upgrade cadence.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Selkies</td><td>Compare current matched Linux/browser stacks; benchmark gap is setup-sensitive.</td></tr><tr><td>KasmVNC / noVNC</td><td>Consider VNC compatibility and text fidelity, not just animation FPS.</td></tr><tr><td>Sunshine + Moonlight</td><td>Prefer for GPU-backed gaming/native clients; different design target.</td></tr><tr><td>RustDesk</td><td>Prefer for general remote support and device rendezvous.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The documented installation builds voxl-server with Rust and native dependencies; it is not a one-file script installer. Linux needs x264/libyuv/Opus/PulseAudio, pkg-config/clang and esbuild. macOS uses Homebrew-provided libraries and OS permissions; Windows uses vcpkg/LLVM/esbuild and an interactive desktop. Nix files support a Linux build, with default.nix advertising x86_64-linux. Patched Xvfb is recommended for smooth scrolling and shared-memory capture. A capable browser needs a secure context, WebCodecs and OffscreenCanvas; the README's exact browser/version matrix was not device-tested.</p>
+<p>build.rs executes esbuild from PATH or ESBUILD and generates FFI bindings; normal Cargo/native package build trust applies. No runtime self-updater, automatic model download or account bootstrap was found. The release workflow publishes a crate and attaches it to a GitHub release; it is not evidence of signed ready-to-run installers. Pin a reviewed version/lockfile and separately manage native libraries, rebuilds and rollback. Unknown CLI flags are silently accepted for Selkies compatibility, so validate effective behavior rather than assuming a misspelled security flag failed closed. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/build.rs">build</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/.github/workflows/release.yml">release workflow</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/src/lib.rs">argument parsing</a>.</p>
+<p>The root LICENSE is MIT, copyright Tembo 2026, but README explicitly calls out GPL obligations for x264-linked binaries/bundles. Cargo and Nix MIT metadata alone do not describe the complete distributed artifact. The bundled Inter font has its own OFL license. Review native-library and codec-distribution obligations before redistributing; this review extracts no source code. <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/LICENSE">LICENSE</a>, <a href="https://github.com/tembo/voxl/blob/3eda62874b2b3f160bc0b2e1ea20c434e0de5325/web/inter-LICENSE.txt">font license</a>.</p><h4>Deployment checklist</h4><p>Start with a disposable Xvfb VM/container and dedicated low-privilege account, not a logged-in personal workstation. Explicitly bind loopback or a protected interface; use TLS and authenticated proxy access with an exact host/origin allowlist. Keep built-in authentication unless the backend is unreachable except through the authenticating proxy. Disable files/clipboard/audio/microphone unless needed; otherwise use a minimal exchange root and nonzero upload limits. Read-only is useful for observers but does not remove download or capture authority.</p>
+<p>Add connection/request/concurrency limits and memory/disk quotas outside the process, bound recordings, protect access/startup logs, and test reconnect, shutdown, upload interruption, restore and loss-heavy networking with synthetic data. Validate permissions and input on each OS before use. For computer-use agents, put policy and approval gates in the agent harness and isolate the actual desktop: the streaming layer is not that boundary.</p><h4>Review limits</h4><p>Anonymous public acquisition and exact Git SHA identification succeeded; existing public reviews, README and repository-tracking index had no matching canonical source. Findings come from static reading of the identified files plus unauthenticated public metadata. No benchmark, app test, native build, vulnerability exploit or real device interaction was run. Resource-exhaustion and filesystem-race concerns are design observations, not demonstrated exploits. No private data was used.</p>
+<p><strong>Attribution:</strong> Tembo and public contributors, <a href="https://github.com/tembo/voxl">tembo/voxl</a>; MIT source with the distribution caveats above.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong damage-driven streaming and agent APIs, with real authentication and read-only enforcement. Pilot in an isolated desktop behind TLS; shared-password authority, broad file defaults and resource limits are operator responsibilities. Static review only; benchmarks were not reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/tembo/voxl">tembo/voxl</a> · MIT source; x264-linked binary GPL caveat</span>
+    <span><a href="voxl.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
