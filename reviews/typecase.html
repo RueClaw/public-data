@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typecase — Review</title>
+<meta name="description" content="A Linux font library, preview installer, and layered typesetting canvas.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / typecase</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">iretonsean/typecase · reviewed 2026-11-10</div>
+    <h1>Typecase</h1>
+    <p class="one-liner">A Linux font library, preview installer, and layered typesetting canvas.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Application license unspecified · harfbuzzjs MIT</span>
+      <span class="chip">Python · JavaScript · Chromium · Fontconfig · WASM</span>
+      <span class="chip"><a href="https://github.com/iretonsean/typecase">iretonsean/typecase ↗</a></span>
+      <span class="chip"><a href="https://github.com/iretonsean/typecase/tree/082a60ea78944f6e9e116719271a192a84c236fb">reviewed revision ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Small, integrated Linux workflow</h3><p>Font browsing, link previews, comparison, and editable outlines share one local app. Python uses standard-library networking while Chromium and Fontconfig do substantial work.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local does not mean authenticated or risk-free</h3><p>Loopback, Host/Origin checks, font allowlists, and archive limits are real safeguards. Local callers need no token; URL validation does not pin DNS results, and aggregate job quotas are missing.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Licensing and recovery need attention</h3><p>No application-wide license was found. SVG embeds used font bytes, downloads omit license sidecars, and failed installation can leave unrecorded fonts. Twenty isolated synthetic tests passed; GUI and installation workflows were not run.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Backend</td><td>Python stdlib HTTP, urllib, zipfile, JSON</td></tr><tr><td>Frontend</td><td>Vanilla JavaScript, DOM, SVG, Canvas 2D</td></tr><tr><td>Desktop/fonts</td><td>Chromium, Fontconfig, harfbuzzjs WASM</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Typecase targets Omarchy and other Linux desktop users who want to browse installed fonts, compare two to four families, acquire fonts from public links, and compose a simple page without switching tools. Fontconfig supplies installed family/style metadata. The UI exposes favorites, filters, glyph details, variable axes, and supported OpenType features.</p><p>The canvas supports text, path, and path-group layers; transforms, direct point editing, and outlines derived from HarfBuzz shaping. It is a small desktop workflow, not a multiuser font service, cloud design suite, or full font editor. The README's screenshots and feature descriptions are supported by implementation paths, but visual fidelity was not independently exercised.</p><h4>Preview before installation</h4><p>GitHub repository/folder/file links, Google Fonts family names/links, and direct TTF/OTF/TTC/ZIP links become temporary staging collections. Files must pass a font magic check and fc-query before preview; family-name collisions are surfaced. Selected files are copied into a new user-font collection. Duplicate detection is by family name, not content hash or license equivalence. Google Fonts requests resolve through the public google/fonts GitHub repository, not an authenticated Google integration. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L464-L828">Backend evidence</a></p><h4>Typography plus editable outlines</h4><p>The frontend probes font features and axes, supports shared comparison text, and maintains up to 200 in-memory canvas snapshots. Outlining uses local HarfBuzz WASM, browser line measurements, and a custom direction-run heuristic. This is a useful bridge from text composition to editable glyph paths, but not evidence of complete Unicode bidirectional-layout equivalence across every script. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/static/app.js#L334-L398">Canvas</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/static/layers.js#L750-L880">outlines</a></p><h4>Portable exports have different tradeoffs</h4><p>JSON saves the document model, not a bundled font package; reopening on another machine can substitute an available family. PNG is rasterized at 2× artboard dimensions. SVG embeds complete used font/face bytes as base64 rather than subsetting or checking embedding restrictions. This improves portability but can disclose or redistribute commercially licensed font programs. Outlining removes the live-text font dependency but is not a blanket exemption from the font license. Exported artwork and JSON contain the user's text. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/static/app.js#L614-L739">Export implementation</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Revision and verification</h4><p><strong>Repo:</strong> https://github.com/iretonsean/typecase<br><strong>License:</strong> No project-wide license found. Bundled harfbuzzjs has an MIT notice; that does not license Typecase itself. Do not assume permission to redistribute or adapt the application.<br><strong>Reviewed:</strong> 2026-11-10 (UTC)<br><strong>Revision:</strong> 082a60ea78944f6e9e116719271a192a84c236fb; whole repository, focused on backend, launcher, installer, frontend, vendored dependency notices, and tests.<br><strong>Verification:</strong> Static inspection plus 20 selected synthetic unit tests passed in a secret-free, network-isolated Bubblewrap sandbox. No installation, desktop launch, font installation, live URL probe, or browser E2E execution.<br><strong>Stack:</strong> Python standard library HTTP server; vanilla JavaScript/CSS; Chromium app window; Fontconfig; vendored harfbuzzjs/WebAssembly.<br><strong>What it is:</strong> A Linux font library, link-based font installer, comparison viewer, and layered typesetting canvas—not a keyboard remapper or text-expansion tool.</p><h4>Architecture</h4><p>The launcher selects a local port, starts the Python process, opens Chromium in app mode with a dedicated profile, and attempts to stop its child when the window/browser exits. Python serves the static frontend, allowlisted font bytes, and JSON APIs. Fetch jobs run on daemon threads; jobs and previews live in process-global dictionaries. State updates use a lock and temporary-file replacement. No database, account backend, API key, AI service, telemetry client, or arbitrary shell-command API was found in the reviewed application paths.</p><p>External processes are invoked with argument lists rather than interpolated shell commands in the Python backend. The small codebase is easy to trace, though the frontend shares global state and packs substantial parsing, geometry, persistence, and UI logic into two large files. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase">Launcher</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py">backend</a></p><h4>Security and boundaries</h4><ul><li><strong>Local, not authenticated:</strong> The server binds 127.0.0.1, checks Host, checks Origin and Sec-Fetch-Site on API/font routes, requires JSON POSTs, and caps request bodies at 10 MiB. These are meaningful browser cross-site defenses. Requests without Origin/Fetch metadata are accepted; there is no token or OS-user authentication. Other local processes able to reach the port can read state and invoke operations. Do not expose it through a proxy or broaden its bind address. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L839-L1010">HTTP boundary</a></li><li><strong>Restricted file access:</strong> Font endpoints require exact normalized allowlisted paths discovered through Fontconfig/staging. Uninstall resolves the collection directory, verifies files remain within it, refuses symlink files, and removes recorded files rather than indiscriminately deleting a collection. Useful protections, not a sandbox for the whole app. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L160-L171">Allowlist</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L802-L828">uninstall</a></li><li><strong>Outbound downloads are explicit:</strong> Public-IP DNS validation applies before downloads and redirects, with a 400 MiB download ceiling and ZIP limits of 60 MiB/file and 500 MiB unpacked. However validation and urllib connection perform separate resolution; addresses are not pinned, leaving a DNS-rebinding/TOCTOU gap in the intended public-only boundary. HTTP is permitted, and no artifact signature or checksum verification is performed. This is static analysis, not a demonstrated live exploit. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L482-L554">Download checks</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L623-L667">ZIP handling</a></li><li><strong>Preview already parses untrusted fonts:</strong> fc-query handles downloaded bytes before the final install click, followed by browser and WASM font parsing. Magic checks are not malware validation. Keep Chromium and Fontconfig current; use trusted font sources.</li><li><strong>Resource limits are incomplete:</strong> Each fetch creates a thread/job without a global concurrency, job-retention, or cumulative-stage quota. Direct-file downloads use the 400 MiB ceiling, not the ZIP per-file limit. Multiple requests can exhaust memory/disk despite individual caps. Imported JSON is parsed before sanitization; large artboards and many layers can be expensive.</li><li><strong>Credentials/privacy:</strong> No accounts or credential store are required. Source URLs are retained verbatim in installation records; avoid token-bearing URLs. Download servers see the request/IP and Typecase user agent. The README's “nothing is loaded from the internet at run time” accurately describes bundled UI/shaping assets, not the font-download workflow. It is not a network-free application in installer use.</li></ul><h4>Data and recovery</h4><p>State and installation records default to the user's local Typecase data directory; fonts live in the user's Typecase font collection directory; staged downloads default to the source checkout's .cache/staging. Chromium maintains a separate persistent profile. Files are ordinary local data, with permissions inherited from the user's environment rather than application encryption or a documented retention policy.</p><p>Successful installs and explicit cancels remove staged directories; startup clears the staging root. Failed/abandoned fetches can leave files until a later startup. Completed jobs remain in memory until exit. Install records retain source URLs, dates, families, and absolute font paths. Corrupt JSON is renamed with a .bad timestamp, preserving a recovery copy; writes use os.replace but no fsync or versioned backup. These damaged copies have no automatic retention limit. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L283-L331">State</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L670-L800">staging lifecycle</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L994-L1010">startup</a></p><p>Installation copies fonts and runs fc-cache before recording ownership. A copy/cache exception or crash can leave partially installed fonts without an install record; there is no rollback transaction. Uninstall removes files before persisting the revised ledger. Back up both data JSON files and font collections, not just the canvas. Autosave is debounced and ignores request failures, so manual JSON exports remain advisable; browser closure is not proof that the last save persisted. In-memory undo is not crash recovery. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase.py#L756-L828">Install ordering</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/static/app.js#L385-L398">autosave</a></p><p>Font acquisition also drops non-font archive files, including license/readme notices; the Google Fonts fetcher selects only font files. Preserve source licensing material separately before distributing fonts or font-bearing SVGs.</p><h4>License, dependencies, tests, maturity</h4><p>No root LICENSE or application-wide grant was present; GitHub metadata reports license null. The MIT notice under static/vendor/harfbuzz applies to that component. The vendor version file identifies harfbuzzjs 1.6.4, but no reproducible vendoring recipe, dependency lockfile, or upstream-byte verification was established. This review does not certify the WASM supply chain or vulnerability status. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/static/vendor/harfbuzz/LICENSE">Vendor notice</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/static/vendor/harfbuzz/VERSION.txt">version</a></p><p>Public GitHub metadata retrieved 2026-11-10 reports creation at 06:50:02Z, last push 06:50:08Z, 2 stars, 0 forks, and 0 open issues; releases endpoint returned an empty array. No checked-in CI workflow was found. This is an extremely new public project, not a maintenance track record. Shallow acquisition does not establish historical development depth. <a href="https://api.github.com/repos/iretonsean/typecase">Metadata</a>, <a href="https://api.github.com/repos/iretonsean/typecase/releases">releases</a></p><p><strong>Executed:</strong> 20 tests from ParseSource, Allowlist, StateFiles, ZipLimits, and GoogleLinkTests, all passed. They used disposable synthetic state/ZIP fixtures in a cleared-environment Bubblewrap sandbox without network or host home access. One test emitted an unclosed-file ResourceWarning, not a test failure. An initial sandbox mount setup failed before any tests ran; the disposable-copy invocation succeeded.</p><p><strong>Not executed:</strong> Full unit suite, font parsing against host fonts, install/uninstall integration, HTTP/browser security checks, rendering/outlining/export fidelity, and CDP E2E. The supplied E2E driver expects a separate Chromium debugging session and performs a live GitHub font fetch, so it was outside this review's execution scope. Existing tests are useful evidence of intent, not independent proof that all workflows pass. No install/config/desktop changes, accounts, model downloads, or paid calls were made. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/test_typecase.py">Unit tests</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/tests/e2e-drive.mjs">E2E driver</a></p><h4>Adoption gate</h4><p>Before relying on it: obtain a clear application license; test fonts/export fidelity on the intended platform; preserve font license notices; harden install rollback and autosave error reporting; pin validated download addresses and add global resource limits; and establish repeatable CI/release provenance. For now, study or evaluate with disposable documents and trusted, appropriately licensed fonts—not irreplaceable production work.</p><p><strong>Attribution:</strong> iretonsean/typecase. Application license not specified; bundled harfbuzzjs MIT notice retained upstream. Analysis cites public source at the exact reviewed revision; no application code extracted.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Library</td><td>Typecase integrates download previews and a canvas; Font Manager specializes in Linux font management.</td></tr><tr><td>Vector/layout</td><td>Inkscape offers broader vector editing; Scribus targets publishing. FontForge edits fonts themselves.</td></tr><tr><td>Evidence</td><td>Workflow comparisons only, not benchmarks or fresh alternative audits.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The README names Python 3, Chromium, and Fontconfig. The actual launcher additionally invokes common Linux shell tools including curl, readlink, sha1sum, cut, seq, and sed; it hardcodes /usr/bin/python3. There is no declared minimum Chromium/Python compatibility matrix. Omarchy is a target, not a required framework.</p><p>install.sh writes a per-user launcher symlink, desktop file, and icon, and changes script executable bits. It does not install OS dependencies or request root. It can overwrite an existing launcher/menu entry at those names. The launcher remains tied to the source checkout: moving/deleting it breaks the link. There is no signed release channel, pinned application updater, packaged dependency resolution, or uninstall script. Updating the checkout changes the executed code; review and pin revisions. Launcher PID files are checked for process existence rather than full process identity, so stale/reused PID behavior deserves hardening. <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/install.sh">Installer</a>, <a href="https://github.com/iretonsean/typecase/blob/082a60ea78944f6e9e116719271a192a84c236fb/typecase">launcher</a></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A cohesive local typography workbench with thoughtful staged previews and scoped uninstall. Missing application licensing, extremely early public history, installation recovery gaps, and font-bearing SVG exports prevent an unqualified deployment recommendation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/iretonsean/typecase">iretonsean/typecase</a> · Application license unspecified · harfbuzzjs MIT</span>
+    <span><a href="typecase.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

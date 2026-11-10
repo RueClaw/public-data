@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Desktop — Review</title>
+<meta name="description" content="An Omarchy chat companion for existing agents—not a model or a universal desktop safety boundary.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omarchy-plugin-grokbot-desktop</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">tcballard/omarchy-plugin-grokbot-desktop · reviewed 2026-11-10</div>
+    <h1>Agent Desktop</h1>
+    <p class="one-liner">An Omarchy chat companion for existing agents—not a model or a universal desktop safety boundary.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT · bundled OFL fonts</span>
+      <span class="chip">QML · Python · Quickshell · Hyprland</span>
+      <span class="chip"><a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop">tcballard/omarchy-plugin-grokbot-desktop ↗</a></span>
+      <span class="chip"><a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/actions/runs/42774839054">Exact-SHA CI</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">27</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">8</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A companion, not computer-use automation</h3><p>Routes chat to existing agents and webhooks. No autonomous screenshot-and-click loop was found in the reviewed runtime paths; raw mouse input and optional dictation still introduce real permission boundaries.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Privacy transport is not a sandbox</h3><p>Stdin, private pipes, bounded output and redirect rejection help. Normal chat still inherits provider tools, HOME access and credentials; avatar generation has separate, stricter restrictions.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Strong fixtures, pending live acceptance</h3><p>Public CI succeeded at the reviewed SHA. Tests were not reproduced, and the project explicitly leaves current Hermes and lifecycle acceptance pending.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Desktop</td><td>QML, Qt Quick, Omarchy Quickshell and Hyprland</td></tr><tr><td>Transport</td><td>Python providers over private subprocess pipes; webhook or local CLI</td></tr><tr><td>Hermes</td><td>Separately installed Python runtime, PyYAML and websockets</td></tr><tr><td>Revision</td><td>94def6267026bad4257dcd9cd7b7d834fc1f5f35</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The product is now <strong>Agent Desktop</strong>. The canonical repository still uses the Grokbot name; README says the rename is pending. The plugin ID and legacy configuration names deliberately remain stable. Roster sync imports appearance and identity from a locally signed-in Grok Bot cache; it does not connect replies. Actual replies require a configured webhook routine and return route, a local coding-agent CLI, or the experimental Hermes adapter. Local-agent mode speaks in the selected bot's name, not through that bot's actual cloud session. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/README.md">README</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/manifest.json">manifest</a>.</p>
+<p>The UI offers per-bot conversations/drafts, attachments, optional dictation, unread cues, cancellation, Markdown replies and custom avatars. Hermes adds streaming, history, approvals and questions on the standard backend. The opt-in daemon is a separate experimental path, not simply a more capable default. The latest public release observed was v0.3.0 (published 2026-11-10); reviewed main declares 0.3.1. README retains older status paragraphs, so pin a revision rather than conflating marketplace, release and main.</p>
+<h4>Useful provider separation, with substantial state complexity</h4>
+<p>Main.qml launches a compatibility client, which starts a provider process; GrokBot starts its transport worker, while Hermes attaches to existing Bot Chat sessions. Provider framing and request/session tracking separate presentation from adapters. The daemon ports conversation state to Python. This is maintainable in concept, but Main.qml is 4,012 lines and conversation behavior exists in both QML and Python, increasing parity and recovery testing needs. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/ARCHITECTURE.md">Architecture</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/protocol.py">protocol</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/state.py">state</a>.</p>
+<h4>Better privacy transport, not a secret-proof execution environment</h4>
+<p>Prompts use stdin rather than command arguments. Webhook keys are refused when their files are symlinks, non-regular, oversized or group/world-readable/writable. Redirects are disabled; reserved header names and control characters are rejected. Helpers constrain output, deadlines and process cleanup. Private sockets check ownership/peer UID, and private reply/dictation paths fail rather than retrying via argv. These protect against common accidental exposure and other local users, not code running under the same UID. Error output can still put a secret on screen; the security document acknowledges this. The key reader uses lstat followed by open, not an atomic no-follow descriptor check, so it is not a same-user race defense. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/transport.py#L179-L442">Transport</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/SECURITY.md">security</a>.</p>
+<h4>A genuinely more restricted avatar workflow</h4>
+<p>Avatar generation is separate from chat: describe, generate, preview, explicitly Apply. The helper uses an empty temporary working directory, bounded inputs/outputs and a 180-second timeout. Claude disables built-in tools/MCP/hooks; Grok uses an empty tool list and deny-all rule; Codex requests read-only operation with shell/image tools, apps, search, MCP and hooks disabled. The renderer consumes validated geometry JSON rather than model-written executable code. Actual CLI-version enforcement and provider behavior were not live-tested. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/agent-desktop-avatar">Generator</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/qml/openbotavatar.js">renderer</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Desktop capture, input and clipboard</h4>
+<p>This is a layer-shell chat UI, not a bundled screenshot-and-click computer-use loop. The reviewed runtime paths do not implement autonomous screen capture. The cursor helper reads Hyprland positions and optionally mouse event nodes, emitting left-button state and discarding other events. Access normally requires input-group membership; granting that group is much broader than the helper's current BTN_LEFT filter. Do not add broad raw-input access just for cosmetic cross-monitor dragging without accepting that system-wide consequence. Without it, dragging stops at the edge. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/grokbot-cursor">Cursor helper</a>.</p>
+<p>Clipboard image reads occur through attachment actions. Up to four regular files, 25 MiB each, are copied into a private runtime attachment directory with 0600 files; old copies are pruned and runtime storage normally clears at logout. This is staging, not an agent filesystem sandbox. Optional voice-watch can read recent backend transcript files and clipboard text during a short post-recording window, and matching wake phrases dispatch immediately. The wtype wrapper types nonmatching or failed-route text into the focused application; dictation backends retain their own privacy and focus risks. These are opt-in integrations, not always-on clipboard surveillance by the base companion. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/grokbot-attach">Attachments</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/grokbot-voice-watch">voice watcher</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/grokbot-dictation-route">router</a>.</p>
+<h4>Consequential actions and prompt injection</h4>
+<p>Ordinary agent chat uses commands such as codex exec --skip-git-repo-check or claude -p without the special avatar tool restrictions. HOME, selected credential variables and provider configuration remain available. A custom command is executable user configuration, not a declarative safe tool. No common plugin-level approval policy prevents filesystem edits, shell execution or network effects by every downstream agent. Attachments, dictated text, roster names and provider content must be considered untrusted input; model-facing persona instructions are not injection isolation. Restrict agent tools and workspace authority in the provider itself before using the companion for sensitive work. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/transport.py#L574-L649">Agent dispatch and environment</a>.</p>
+<p>Hermes offers real in-bubble approval responses with session/generation checks, advertised-choice validation and rejected-answer retention; unsupported prompts require Hermes itself. That is useful UI plumbing, not proof that every consequential tool call requires approval. Hermes authority comes from its existing Bot Chat session. Rendering escapes source markup, suppresses remote images and filters links to HTTPS or localhost HTTP; links still require a click. These controls reduce markup/executable-link risks but do not prevent persuasive malicious text or risky permitted links. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/hermes.py#L280-L303">Hermes approvals</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/qml/markdown.js">Markdown renderer</a>.</p>
+<h4>Accounts, network, privacy and cost</h4>
+<p>The plugin does not establish a new universal account system. Grok roster import reads local app cache schemas; it is not an OAuth integration. Webhook setup prompts privately for a sender key and sends a test ask before saving. The URL is user-configured HTTPS (or localhost HTTP), not restricted to one vendor; HTTPS private-network destinations are not blocked. Treat the endpoint and proxy configuration as trusted destinations. The payload includes prompt, bot ID/name, host label, ask correlation and an absolute local return-helper path. These reveal more than just question text to the webhook operator. Redirect rejection prevents forwarding auth via a redirect but does not make a chosen endpoint safe. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/transport.py#L261-L289">Webhook body</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/grokbot-connect">setup</a>.</p>
+<p>Local coding agents may call remote models and retain their own logs/history. The outer ask environment forwards a set of provider credentials; transport narrows variables for built-in local-agent children but retains HOME access. Avatar generation explicitly resolves supported Omarchy account homes. Hermes imports installed runtime modules, obtains a session ticket and may ensure its gateway is running; its configured Python/source paths are trusted executable dependencies, not inert data. This review neither read nor used an actual account. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/Main.qml#L2117-L2141">Environment</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/hermes.py#L77-L113">Hermes runtime</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/hermes_gateway.py#L328-L372">gateway</a>.</p>
+<p>The MIT plugin is free software, not free inference. Chat, webhook routines, optional voice backends and avatar generation can use metered or subscription services. No plugin-level monetary budget or token-spend cap was found in the inspected dispatch paths. Limits on time, prompt size and output bytes are not billing limits. Stopping a webhook ask stops local waiting; already-accepted remote work may continue and cost money.</p>
+<p>Standard conversations/drafts are shell-session memory, not durable storage; imported Hermes history comes from an external persistent provider. The daemon also loses held conversations on exit, and repeated startup failures fall back to standard mode. Webhook replies correlate to pending asks, expire after ten minutes, and depend on an independently arranged return path; submitting successfully does not prove the response can reach the desktop. Hermes reconnects with backoff and reattaches after event gaps. None of these paths establish exactly-once remote side effects. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/ARCHITECTURE.md">Architecture</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/agent_desktop/hermes_gateway.py#L296-L372">gateway reconnect</a>.</p>
+<p>Installation is delegated to Omarchy's plugin manager; this repository does not provide an independent cross-platform installer. The documented add command follows the repository, so it is not a reproducible reviewed-SHA pin by itself. The UI merges its own settings through updateEntryInline. grokbot-connect preserves unrelated JSON fields and attempts rollback of settings/key writes when setup fails. That is configuration rollback, not rollback of the test request already sent to a remote bot. Provider settings use an atomic writer; optional Voxtype hook installation refuses an existing post-process configuration rather than blindly replacing it. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/grokbot-connect">Connect implementation</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/agent-desktop-config">provider writer</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/bin/grokbot-voice-watch">voice integration</a>.</p>
+<p>The documented remove operation deletes the plugin checkout and shell entry, but deliberately leaves legacy configuration, roster and webhook secrets. Optional desktop-file copies, launcher helpers and user-added bindings need separate cleanup. Also audit the separate agent-desktop.json provider configuration and any opt-in dictation hook: removal documentation does not promise those are reverted. Runtime layer rules disappear on Hyprland reload. Back up relevant configuration and record the prior version before upgrades; there is no verified transactional upgrade/downgrade mechanism here. Retained settings aid recovery but retained credentials require conscious revocation/deletion when decommissioning.</p>
+<p>Target: Omarchy 4/Quattro on Linux/Hyprland with its Quickshell types and shell APIs. Stable-shell IPC fallback exists, but private dictation requires newer ShellIpc support and a private runtime socket. The cursor helper specifically expects a /run/user/numeric-id runtime path. This is not a generic GNOME/KDE/X11, macOS or Windows desktop client. Layer rules, multi-output surfaces, clipboard/file chooser and voice integrations make platform-version testing essential.</p>
+<p>At retrieval, GitHub metadata reported 27 stars, 8 forks and 4 open items (including pull requests), creation 2026-10-27 and last push 2026-11-10. This is a young, rapidly changing project; popularity is not safety evidence. Open PRs #36 and #37 propose OpenBot integration, not functionality established in this reviewed SHA. <a href="https://api.github.com/repos/tcballard/omarchy-plugin-grokbot-desktop">Public repository metadata</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/pulls">open work</a>.</p>
+<p>The test inventory is substantial: provider protocol, daemon state, cursor, dictation privacy, transport errors, connection rollback, roster sync, Markdown and native offscreen Qt tests. CI pins action SHAs and Python tool versions, uses read-only default permissions, and explicitly calls QML checking syntax-only because Omarchy/Quickshell types are absent. A separate release workflow checks an expected main SHA/version, runs tests and produces source manifests/SBOM and draft releases. These are useful safeguards, not a substitute for live compositor/provider testing. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/.github/workflows/ci.yml">CI</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/.github/workflows/release.yml">release workflow</a>, <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/actions/runs/42774839054">exact-SHA successful run</a>.</p>
+<p>The 0.3.1 acceptance record is explicitly pending-live: real Hermes streaming/history/approvals plus install, upgrade, removal and daemon smoke checks remain pending. Its portable evidence names an earlier input SHA; the public Actions result separately confirms a successful run at the reviewed SHA. We inspected source and public metadata only, did not reproduce tests, and did not inspect every dependency or validate downstream providers' security. Historical screenshots/owner acceptance are source claims, not independent current-version proof. <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop/blob/94def6267026bad4257dcd9cd7b7d834fc1f5f35/docs/ACCEPTANCE-v0.3.1.json">Acceptance record</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Agent Desktop</td><td>Unified floating bot identities and avatars; more integration boundaries.</td></tr><tr><td>Native agent UI / CLI</td><td>Prefer for native approvals, history and diagnostics.</td></tr><tr><td>Clippy / Clanky</td><td>Companion-pattern inspirations, not assumed provider-feature equivalents.</td></tr><tr><td>Hermes Blob</td><td>Hermes-specific bridge lineage to evaluate separately.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Use an existing trusted compatible Omarchy environment and already-installed agents; this is not a model server. Prefer the standard backend until daemon acceptance is demonstrated. Start with manual prompts, no raw-input group expansion and no global wake router. Verify chat tool restrictions, callback delivery, cancellation behavior and account selection with nonsensitive disposable data. Keep webhook secrets private, understand the destination's retention/cost policy, and do not treat local UI history clearing as provider-data deletion. Live validation and provider setup were deliberately not performed for this review.</p>
+<hr>
+<p><strong>Attribution:</strong> Tom Ballard / tcballard/omarchy-plugin-grokbot-desktop, MIT. Open Bot Avatar: Dominik Scholz, retained MIT notice; Inter: SIL OFL 1.1. Credits distinguish original code, measured Grok Bot shapes and third-party media; do not assume the repository MIT grant transfers rights to every depicted brand or wallpaper. No source assets or code were republished here.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful provider plumbing and private IPC, but ordinary chat inherits downstream tool authority. The reviewed 0.3.1 Hermes and lifecycle live acceptance is pending; use a narrowly trusted disposable setup first.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/tcballard/omarchy-plugin-grokbot-desktop">tcballard/omarchy-plugin-grokbot-desktop</a> · MIT · bundled OFL fonts</span>
+    <span><a href="omarchy-plugin-grokbot-desktop.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
