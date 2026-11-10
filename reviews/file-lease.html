@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>file-lease — Review</title>
+<meta name="description" content="Memory-backed secret files tied to a process — not distributed locking.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / file-lease</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">cachix/file-lease · reviewed 2026-11-10</div>
+    <h1>file-lease</h1>
+    <p class="one-liner">Memory-backed secret files tied to a process — not distributed locking.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0</span>
+      <span class="chip">Rust 1.92+ · Linux / macOS</span>
+      <span class="chip"><a href="https://github.com/cachix/file-lease">cachix/file-lease ↗</a></span>
+      <a class="chip" href="https://github.com/cachix/file-lease/actions/runs/42662217961">Upstream CI evidence</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">28</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Lifetime, not exclusion</h3><p>A helper hosts files for ordinary readers and watches an owner process. There is no TTL, renewal, fencing or distributed lock protocol; owner PID is not a reader ACL.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Strong storage mechanics, qualified guarantees</h3><p>Linux locks pages before writing and seals the memfd. macOS validates pinned HFS mounts and journals cleanup, but does not add memory locking or Linux-style immutability.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Failure paths matter</h3><p>Revocation cannot erase open-reader copies. Initial startup is bounded, but subsequent blocking IO and Drop have no overall deadline; pooled macOS manager failure affects all scopes.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Adoption</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>dd1527b4baebf37a688691a0f879e5c3b8321476</td></tr><tr><td>Scope</td><td>Library, helper, backends, recovery/pooling, tests, CI and docs</td></tr><tr><td>Common</td><td>Rust 2024; libc, rustix, zeroize</td></tr><tr><td>Linux</td><td>memfd / pidfd / mlock / memmap2</td></tr><tr><td>macOS</td><td>HFS RAM volumes / kqueue / IOKit / serde / tempfile / UUID</td></tr><tr><td>Evidence</td><td>Static review; no local execution. Upstream CI success, not independently reproduced.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>A Rust launcher sends bytes over an inherited private Unix socket to a separate helper. That helper hosts an ordinary-openable path and watches a selected process. Consumers need neither Rust integration nor inherited descriptors. This is useful for certificate, credential and generated-config arguments where stdin or an API is unavailable.</p>
+<p>The word “lease” describes <strong>storage lifetime</strong>, not exclusive ownership of a shared resource. Independent leases allocate independent files; multiple readers are expected. There is no lock acquisition queue, TTL, heartbeat, renewal, fencing token, distributed consensus or network-partition protocol. Internal mutexes and macOS setup-file locks serialize implementation work; they do not provide application-level access control or distributed mutual exclusion.</p>
+<ul><li><strong>Lazy and cloneable:</strong> FileLease::new(pid) stores a PID; first materialization starts the helper. Arc/Mutex serializes clone operations, transport and handoff state. A LeasedFile is only a name: retaining it does not keep storage alive.</li><li><strong>Explicit lifetime transitions:</strong> release(&amp;file) revokes one known path; final lease drop requests cleanup and waits. handoff() retains existing files for the original owner, while handoff_to(pid) changes the watcher. Handoff prohibits further allocations across all clones, but release remains available. Handoff on a genuinely unused lease is a no-op.</li><li><strong>Deploy the helper deliberately:</strong> default discovery uses a sibling of the current executable, not PATH. An explicit helper path or early maybe_run_helper() dispatch supports embedding. The binary alone is an internal helper, not a general user-facing CLI.</li><li><strong>Bounded inputs:</strong> payloads are capped at 64 MiB; suffixes at 80 ASCII alphanumeric/dot/underscore/hyphen bytes. Linux ignores suffix hints. Validation occurs before allocation-frame transmission; incoming frames are checked too.</li></ul>
+<p>The version handshake checks the crate version, protocol tag and shared-volumes build distinction before payload delivery. It is compatibility checking, <strong>not executable authentication or a source hash</strong>, and does not distinguish every possible build difference (for example unstable-profiling). Protect the executable and its directory; an attacker-controlled matching helper receives the bytes. See <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/helper.rs">helper</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/unix.rs">Unix lifecycle</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/protocol.rs">protocol</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/bin/file-lease.rs">CLI entry</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Linux: immutable file pages, temporary names</h4>
+<p>The helper creates an anonymous memfd, sets mode 0400, sizes it, maps it read-only, applies MADV_DONTDUMP and locks the zero-filled pages <strong>before</strong> writing secret bytes. It then seals WRITE/GROW/SHRINK/SEAL and returns /proc/&lt;helper-pid&gt;/fd/&lt;fd&gt;. A failed mlock fails allocation rather than falling back to pageable storage or a disk file. Empty payloads require no mapping.</p>
+<p>Release closes the hosted descriptor and unmaps/unlocks its pages. The allocator advances descriptor numbers and temporarily reserves retired numbers during subsequent creation, specifically preventing an old revoked path from capturing an intermediate allocation descriptor. This is a thoughtful regression-driven fix. It also means <strong>cumulative allocations</strong>, not only concurrent live files, consume the descriptor-number namespace; start new leases for refresh batches.</p>
+<p>The non-reuse guarantee is scoped to a live helper. A textual proc path is not a permanent globally unique capability: after helper exit, eventual PID/descriptor reuse elsewhere can give the same string a different meaning. Never persist/reopen stale paths as identity tokens. Source: <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/linux.rs">Linux implementation and tests</a>.</p>
+<h4>Ownership, PID reuse and races</h4>
+<p>Linux opens a pidfd before helper launch, pinning process identity for monitoring once captured. macOS records process birth time and verifies it before and after initial kqueue registration. A PID supplied at construction may already refer to an unrelated reused process by first allocation; the README explicitly acknowledges this. ProcessInfo is discovery metadata, not an atomic identity capability.</p>
+<p>handoff_to takes a <strong>numeric PID</strong>, not a birth-time or pidfd capability supplied by the caller. In particular its macOS path calls watch_owner directly, without the startup birth-time comparison. It watches whichever process registration resolves to, so do not generalize startup protection into a guarantee against stale caller-supplied handoff PIDs. Both old and new owners should remain alive through successful handoff. The next watcher starts before cancellation/join of the old one; an old owner's concurrent exit can still win cleanup. A successful call is not a promise that the new owner remains alive afterward.</p>
+<p>There is no clock-based expiry or stale-time heuristic. Process-exit notifications drive cleanup; a hung or stopped-but-live owner can retain files indefinitely. Instant-based timeouts bound selected startup/tool/recovery waits, not lease duration. Evidence: <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/unix.rs">Keeper::spawn, HANDOFF and OwnerWatch</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/macos.rs">macOS watcher</a>.</p>
+<h4>Crash, cancellation and restart behavior</h4>
+<p>Without handoff, controller EOF leads to cleanup; with handoff, EOF leaves the helper waiting for the selected owner. Normal final drop waits for helper termination. Owner exit triggers storage cleanup and helper exit; SIGKILL of the Linux helper lets the kernel close its descriptors. Rust panic unwinding can drop the final lease, but aborts rely on process/channel behavior. There is no async cancellation API or public cleanup-result-returning close method.</p>
+<p><strong>Do not read the ten-second startup deadline as a universal deadline.</strong> After readiness, the socket timeout is restored; allocation/release/handoff use blocking IO, and non-handed-off Drop calls child.wait() without an overall timeout. A stopped or wedged helper can therefore stall a caller or destructor. macOS setup additionally has a 120-second readiness loop, while individual volume tools have ten-second deadlines. No runtime hang reproduction was attempted.</p>
+<p>There is no persisted payload or resumable lease object after application restart. New leases create fresh resources; macOS journals help remove leftovers, not recover secret bytes into a new API session. The current Keeper is not automatically respawned following transport failure; a new lease is the practical recovery unit. <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/unix.rs">Lifecycle</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/helper.rs">startup</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/macos/setup.rs">setup</a>.</p>
+<h4>macOS: guarded ordinary paths, different security properties</h4>
+<p>The backend attaches a 64 MiB RAM disk, formats HFS and mounts with owners,noexec,nosuid,nodev,nobrowse. A 0700 root contains payloads created with openat CREATE|EXCL|NOFOLLOW relative to a pinned validated directory, initially 0600 and then 0400. Before allocation/release it validates mounted filesystem/device identity, owner, private root permissions and flags, preventing an absent/replaced mount from silently redirecting payload writes into its disk-backed mountpoint.</p>
+<p>Suffix validation excludes separators; monotonically increasing file counters avoid name reuse within a volume. This is not Linux-style immutable sealing: the same filesystem owner can chmod, modify, delete or replace files. Normal consumers only receive the path after writing/permission changes complete, but creation is not an atomic rename publication against a hostile same-user directory observer. The private-user boundary, not secrecy of a predictable filename, is the assumption.</p>
+<p>Default pooling shares volumes among overlapping leases in one process with the matching helper path. Per-scope path sets reject cross-scope release requests. Only ENOSPC causes spillover, with at most one new volume per request; filesystem overhead means a full 64 MiB payload may not fit. Released space is reused and surplus empty volumes are detached, retaining at most one empty volume. Total pool growth has no fixed cap. A scope helper crash normally affects that scope; a manager crash, or unrevocable scope cleanup that deliberately exits the manager, affects the entire pool. Disable shared-volumes consistently in library/helper for separate-volume failure domains; Cargo feature unification can re-enable it.</p>
+<p>Sources: <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/macos/storage.rs">payload operations</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/macos/setup.rs">root validation/setup</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/volume_pool.rs">pool manager and scope checks</a>.</p>
+<h4>Recovery, atomicity and durability</h4>
+<p>Each macOS setup worker remains an independent guardian. It monitors the manager/keeper, retries cleanup up to three times, and leaves metadata for later startup recovery if cleanup or both processes fail. This is not guaranteed immediate cleanup after every multi-process failure, and there is no installed recovery daemon. Startup recovery shares a five-second budget; individual OS calls may exceed it.</p>
+<p>Recovery uses UUID drive-key registration, device-node identity and mount checks to avoid detaching a recycled disk number. Unknown/in-flight attachments are conservatively retained. A setup.lock file coordinates cooperating setup/recovery actors, including tools inheriting the open lock through stdout; it is <strong>advisory internal coordination</strong>, not protection from a malicious process under the same user. No TTL-based lock stealing occurs.</p>
+<p>lease.json is written to a temporary file, synced, persisted over the target and followed by directory sync: a real attempt at crash-consistent metadata, not a transactional guarantee covering all OS attachment operations. Payloads intentionally have no durable-on-disk persistence guarantee. Metadata and cleanup diagnostics do touch the normal filesystem, so “memory-backed payloads” is not “no filesystem writes whatsoever.” See <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/macos/recovery.rs">recovery</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/macos_registry.rs">registry identity</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/command.rs">bounded tools</a>.</p>
+<h4>Security and Operational Boundaries</h4>
+<ul><li><strong>Owner means cleanup trigger, not exclusive reader.</strong> OS UID/proc visibility restrictions protect access; the selected PID is not an ACL. Authorized same-user processes and privileged administrators are outside the isolation guarantee. The private socket controls helper operations, not all reads of the resulting path.</li><li><strong>Revocation is not erasure.</strong> Open descriptors, mappings and copied consumer bytes can outlive pathname revocation. Source/transport/consumer buffers are not locked; helper receive vectors use Zeroizing, but this does not erase every copy. Linux locking lasts only while its helper mapping survives; macOS adds no memory-lock guarantee. Hibernation and diagnostic capture remain concerns.</li><li><strong>Trusted executable and filesystem namespace required.</strong> Sibling-helper discovery prevents PATH substitution, not tampering with that sibling or its parents. macOS NOFOLLOW and pinned-root checks are strong local safeguards, not a complete defense against hostile same-UID namespace mutation. The metadata root comes from HOME, checks its final directory, then canonicalizes it; it is not an arbitrary untrusted-path sandbox.</li><li><strong>Local only.</strong> Linux requires usable memfd/seals/pidfd/mlock and accessible proc-fd paths; pidfd_open implies a sufficiently recent kernel (introduced in Linux 5.3). Container PID/mount namespaces, proc access policy and memory-lock limits can break usability. macOS depends on native tools, HFS support and IOKit tagging. Windows and other OS allocations are Unsupported.</li><li><strong>Not an NFS/SMB lease.</strong> Payload backends are local kernel storage. A network-mounted HOME may put macOS metadata/locks on a network filesystem, but no cross-host recovery/lock correctness is established; prefer local private metadata. Exporting the path does not create distributed safety.</li><li><strong>Qualify the actual reader.</strong> Applications that canonicalize proc-fd paths to the deleted memfd backing name can fail; upstream specifically calls out PHP opens. Test reopen behavior, namespace visibility and suffix expectations before adopting.</li></ul>
+<h4>Tests, CI, Maturity and Performance Evidence</h4>
+<p>The reviewed tree includes regression coverage for concurrent clones, per-file release, failed/successful handoff, SIGKILL, closed stdio, old-helper rejection, PATH avoidance, protocol truncation/oversize, Linux memlock exhaustion and descriptor reuse. macOS tests exercise missing/replaced mounts, weakened permissions, interrupted setup, guardians, recovery budgets, reused device numbers, pool isolation and capacity. These are substantive tests, not just API smoke checks: <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/lib.rs">core tests</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/tests/helper.rs">integration tests</a>, <a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/src/macos/tests.rs">macOS regressions</a>.</p>
+<p><a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/.github/workflows/ci.yml">CI configuration</a> runs Ubuntu, macOS 15 and macOS 26, default/no-default/all-feature tests, clippy and formatting; Linux additionally checks docs/package creation. Actions are SHA-pinned and checkout disables persisted credentials. <a href="https://github.com/cachix/file-lease/actions/runs/42662217961">Exact-SHA run 42662217961</a> was completed/success in the public API on the review date. Logs and artifacts were not independently audited or rerun, and no dependency vulnerability scan was performed.</p>
+<p>Public repository metadata on 2026-11-10: created November 6, last push November 9, 28 stars, 0 forks, 0 open issues/PRs reported by the aggregate counter. The manifest/changelog say 0.1.0, dated November 9; the GitHub releases endpoint returned no releases. That does not establish whether crates.io publication occurred. These signals indicate a very young public project, not proven deployment maturity. Attribution is Cachix; the reviewed release-preparation commit is by Domen Kožar.</p>
+<p><a href="https://github.com/cachix/file-lease/blob/dd1527b4baebf37a688691a0f879e5c3b8321476/docs/performance.md">Performance documentation</a> links native diagnostic runs and honestly reports tradeoffs: historical cold macOS setup around 209–290 ms; a pooled-overlap experiment reduced macOS 26 sequential joins from 263.68 to 6.64 ms, without making cold setup free. Later preflight/reclamation results trade faster allocation/teardown for some longer drops. These are author-reported synthetic measurements on earlier revisions, not independently reproduced performance for this SHA or universal throughput/memory claims.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Alternative</td><td>Prefer it when</td><td>Tradeoff versus file-lease</td></tr><tr><td>stdin / anonymous pipe</td><td>Consumer already supports streaming input</td><td>Simpler, no reopenable pathname; caller still manages process lifetime and copies</td></tr><tr><td>tempfile on a deliberately selected filesystem</td><td>Ordinary temporary-file semantics suffice</td><td>Less helper/OS complexity; disk avoidance, crash cleanup and RAM policy are your responsibility</td></tr><tr><td>memfd / memfile / memfd_path</td><td>Linux-only and you can manage descriptors/lifetimes</td><td>Smaller primitive; file-lease adds independent path hosting, owner monitoring and handoff</td></tr><tr><td>systemd service credentials</td><td>Linux service-manager lifecycle already owns the workload</td><td>Integrates with service supervision; not the same portable Rust embedding API</td></tr><tr><td>flock / application locking or a distributed coordinator</td><td>You need exclusion, leader ownership or fencing</td><td>Different problem entirely; file-lease supplies none of these protocols</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a library/helper deployment, not a hosted service. Pilot with synthetic payloads and the exact target reader first. Ship a trusted matching helper (or embed it), budget Linux locked pages and cumulative descriptor use, select a live owner deliberately, and complete handoff before launcher exit/exec. Keep metadata local/private on macOS and choose pooling versus separate volumes by failure-domain needs. Put synchronous allocation/cleanup off latency-sensitive async/UI threads and plan for hung-helper supervision. Do not treat this as credential rotation, reader authentication, secure erasure, a secret vault or distributed locking.</p>
+<p><strong>Bottom line:</strong> the interesting reusable engineering is identity-checked resource recovery and process-bound file presentation. Adopt only after consumer and crash-path qualification; for exclusive leases or strong same-user isolation, choose another design.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Carefully engineered secret-file delivery for a constrained pilot. Linux pre-write page locking and macOS identity-checked recovery are strong; same-user exposure, blocking cleanup, consumer compatibility and very early maturity remain limits. Static review only; exact-SHA upstream CI reports success.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/cachix/file-lease">cachix/file-lease</a> · Apache-2.0</span>
+    <span><a href="file-lease.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
