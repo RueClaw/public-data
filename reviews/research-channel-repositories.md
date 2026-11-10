@@ -4,6 +4,7 @@ Public repository links, review coverage and review artifact dates. Private sour
 
 | Repository | Reviewed | Last review | Review artifact |
 |---|---|---|---|
+| [nchudleigh/oma-cast](https://github.com/nchudleigh/oma-cast) | yes | 2026-11-10 | [reviews/nchudleigh-oma-cast.md](nchudleigh-oma-cast.md) |
 | [zhaoxuya520/reverse-skill](https://github.com/zhaoxuya520/reverse-skill) | yes | 2026-08-30 | [reviews/reverse-skill.md](reviews/reverse-skill.md) |
 | [0xSero/local-ai-registry](https://github.com/0xSero/local-ai-registry) | yes | 2026-08-30 | [reviews/local-ai-registry.md](reviews/local-ai-registry.md) |
 | [open-telemetry/semantic-conventions-genai](https://github.com/open-telemetry/semantic-conventions-genai) | yes | 2026-08-29 | [reviews/semantic-conventions-genai.md](reviews/semantic-conventions-genai.md) |

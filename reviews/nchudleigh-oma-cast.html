@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>omacast — nchudleigh fork — Review</title>
+<meta name="description" content="An Omarchy-native launcher, not screen casting: richer search and capture with privacy and recovery caveats.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / nchudleigh-oma-cast</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">nchudleigh/oma-cast · reviewed 2026-11-10</div>
+    <h1>omacast — nchudleigh fork</h1>
+    <p class="one-liner">An Omarchy-native launcher, not screen casting: richer search and capture with privacy and recovery caveats.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT · component terms separate</span>
+      <span class="chip">QML · JavaScript · Bash · optional Rust</span>
+      <span class="chip"><a href="https://github.com/nchudleigh/oma-cast">nchudleigh/oma-cast ↗</a></span>
+      <span class="chip"><a href="https://github.com/nchudleigh/oma-cast/tree/18f35f49ebf78b644934c0498d64ff8b481bd2a4">Pinned source ↗</a></span><span class="chip"><a href="nchudleigh-oma-cast.md">Evidence and full review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">8</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Different repository, real changes</h3><p>This is a fork, not a renamed upstream. Compared with the October upstream baseline, it adds MIT licensing, clipboard/calculator tools, optional Rust search and CI. README installation examples still target upstream.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Clipboard capture is enabled by default</h3><p>Sensitive markers and app filtering help, but active-window attribution is best effort. Storage is owner-only plaintext; broken config reverts privacy settings to defaults. Disabling capture does not erase history.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery remains the gate</h3><p>Native search has timeout/fallback and hotkey setup preserves existing files. JSON save failure can suppress an identical retry; clipboard blob deletion is not transactional with JSON persistence. The fork exposes no public CI runs.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Installation</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Omarchy 4 / Hyprland 0.56+ claimed; exact compatibility untested</td></tr><tr><td>UI</td><td>Qt Quick / Quickshell PanelWindow</td></tr><tr><td>Data</td><td>Five versioned JSON stores; no SQLite runtime</td></tr><tr><td>Search</td><td>JavaScript plus optional Rust NDJSON child processes</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Features and Capture Boundaries</h4><p>- <strong>Search and actions:</strong> aliases, favorites, learned searches, calculator conversions/history, emoji and theme selection; apps can be focused instead of relaunched. Script Commands support up to three arguments and optional confirmation. FullOutput/inline modes are downgraded to compact output, not full Raycast parity. Extensions, snippets, quicklinks and broader window management remain roadmap. [2,3]<br>- <strong>Clipboard is real capture:</strong> enabled by default while the plugin remains loaded, independently of the launcher being visible. It stores text, links, file URIs, images and source-app metadata. Default retention is one week with at most 1,000 unpinned entries; pins bypass age/count pruning. Disabling recording does not erase existing history. Large blobs have time-limited reads but no explicit byte quota; entry count is not a disk-space bound. [3,5]<br>- <strong>Sensitive-copy filtering has limits:</strong> CLIPBOARD_STATE and the password-manager MIME hint are checked before capture. App denylisting happens later in Backend using the currently active toplevel, after the watcher may have written an image/long-text blob. Focus changes or missing metadata can defeat source attribution; blocked blobs are deleted when no retained entry uses them. “Password managers are never recorded” is stronger than this best-effort mechanism proves. [3,5]<br>- <strong>Dictation is delegated:</strong> Superwhisper commands start/stop recording, select microphone/language/mode and read recent transcription history (up to 500 entries). This repository does not itself implement a microphone/audio pipeline. Superwhisper permissions, processing destination, models, accounts and costs are separate and were not audited. The optional Python helper publishes card geometry on the session bus, not screen pixels or audio. [7]</p><h4>Security, Privacy and Network</h4><p>Local search requires no account or API key. No direct telemetry client or Raycast-server integration was found in the reviewed runtime. Nevertheless, default-enabled currency conversion fetches public rates from api.frankfurter.dev on stale-cache refresh, with a 12-hour cache, 30-minute failure retry and 15-second request timeout. The request has no search query payload. Currency networking can be disabled through config. Browser-search actions intentionally disclose queries; menus/scripts can use arbitrary network services; Superwhisper may have independent egress. Thus the README's “only network request” describes direct built-in rate fetching, not an enforced offline boundary. [2,3,7,9]</p><p>The plugin exposes general backend calls and run through local Quickshell IPC without plugin-level authentication or method-specific capabilities. No HTTP listener/CORS policy is relevant here; host IPC permissions were not audited, so this is not evidence of remote unauthenticated access. Treat same-session callers, menu JSONC, shell environment and script directories as trusted code. Guards may execute during menu refresh before selecting an action. Script argument arrays avoid query-to-shell interpolation, but password arguments still appear in the script process argv. CLI run explicitly skips script confirmation; callers can supply confirmed through the backend. Confirmation is a user-interface safeguard, not authorization. User “Disable Command” hides search entries rather than forming a comprehensive execution denylist. [3,4,10]</p><p>Owner-only roots and recursive permission tightening are a meaningful improvement: setup uses umask 077, removes group/other access and precreates store files. Clipboard copies pass text through stdin instead of process arguments. But stores are <strong>plaintext</strong>, not encryption against the account, root or backups. Permission-repair failure is logged and directoriesReady is still set true, so this guarantee is not fail-closed. Malformed/unreadable config falls back to defaults, including clipboardHistory=true and currencyRates=true; privacy opt-outs can therefore revert on a broken config file. These are static code-path findings, not reproduced incidents. [3,5]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Identity and Update Notes</h4><p>Checked 2026-11-10. GitHub identifies this as the public <strong>nchudleigh fork</strong> of typecraft-dev/oma-cast, not a redirect or rename of upstream. README installation examples still target typecraft-dev, and both use plugin ID typecraft.omacast. Do not assume those examples install the fork reviewed here. [1,2]</p><p>The existing <a href="oma-cast.md">upstream review</a> is dated 2026-10-19 at 107484e4836195e89d50975568c6ee75c6c51853. No prior public review of this fork was found in the review collection, README or repository index. This distinct canonical identity receives an owner-qualified artifact; the upstream review remains a historical, pinned review rather than being silently overwritten.</p><p>The old commit was fetched and an actual tree diff against this fork was inspected: 112 files changed, 11,710 insertions and 2,421 deletions. This is a <strong>cross-revision, cross-repository comparison</strong>, not a claim that every change originated in this fork. Material differences include MIT licensing, root-level marketplace packaging, IpcHandler/PanelWindow replacing ShellIpc/OverlayWindow, clipboard/calculator/emoji/theme/Script Commands/Superwhisper features, owner-only storage setup, preserving hotkey setup, optional Rust search and CI. The old missing-type blocker and absence-of-license finding must not be mechanically carried over to this snapshot. [2–8]</p><h4>What It Is and Architecture</h4><p>The keep-loaded menu plugin receives global shortcuts or local shell IPC in Launcher.qml. LauncherWindow presents results and Backend dispatches registered methods. Apps, Omarchy JSONC menus, built-ins and executable Script Commands become candidates; JavaScript ranks titles, aliases, learned terms and frecency. Settings and histories use five versioned JSON documents, not the reference corpus's SQLite schema. [2,3,5]</p><p>The optional Rust helper uses bounded NDJSON over stdin/stdout, not a TCP service. It matches titles/alternate names/subtitles/keywords while JavaScript retains ranking policy. Separate helper instances serve root and emoji search. Request IDs reject stale replies; a one-second timeout or helper failure disables native matching until reload and falls back to JavaScript. Cargo.lock and --locked builds improve reproducibility; serde/serde_json remain build dependencies that Cargo may download. The vendored matcher has explicit provenance hashes and retained MIT attribution. [6]</p><p>No receiver, discovery/mDNS, AirPlay, Chromecast, Miracast, WebRTC, video encoder or streaming transport is implemented. No casting-compatible TV, special Wi-Fi adapter, LAN topology or GPU encoder requirement applies. Normal launcher operation needs a working Omarchy/Wayland desktop; clipboard capture/paste additionally calls wl-paste, wl-copy, wtype and common Linux utilities (including timeout, jq and setpriv). Rust is optional; Python/PyGObject is optional for the recording-overlay integration. No minimum RAM/GPU performance budget is established by this review. [2–7]</p><h4>Reliability and Recovery Findings</h4><p>1. <strong>Save-retry bug persists:</strong> JsonStore records _lastWritten before setText; onSaveFailed logs without clearing it. An identical next write can be skipped after a failure. Atomic replacement prevents partial-file writes but is not a retry or durability guarantee. [5]<br>2. <strong>Mutation success can overstate persistence:</strong> several action handlers ignore JsonStore.update's false result when read-only. Clipboard blob deletion also occurs before the debounced JSON save succeeds; a save failure/crash can leave persisted entries pointing at deleted blobs. New blob capture followed by unavailable/read-only storage can leave unindexed files. [3,5]<br>3. <strong>Recovery is partial:</strong> invalid JSON/newer schema is preserved read-only, but general document-shape validation is incomplete. Config fallback has the privacy-default issue described above. No automatic restore procedure is established. [3,5]<br>4. <strong>Process bounds are uneven:</strong> native search, currency requests and clipboard reads have timeouts, and a dead clipboard watcher restarts after two seconds. Menu guards/providers and ScriptRunner lack comparable execution deadlines; ScriptRunner collects all stdout/stderr. Hung or noisy trusted scripts can stall refresh or consume memory. [6,9,10]<br>5. <strong>Compatibility remains coupled:</strong> runtime dynamically uses Omarchy's menu guard compiler with a fallback and validates complete guard output, but the user-menu path still hardcodes HOME/.config instead of XDG_CONFIG_HOME. Host-internal API changes and Lua-only hotkey setup remain real portability limits. [4,10]</p><h4>Tests, Maturity and Claims</h4><p>The tree contains 23 Node test files, Rust unit/protocol tests, synthetic menu fixtures, privacy/marketplace/native-transport checks and a live shell smoke script. CI specifies Node 24 tests, locked Cargo tests/build, search integration, shell syntax and manifest parsing on a WarpBuild runner. Presence of that workflow is not passing evidence: the fork's public Actions endpoint returned zero workflow runs. None of its tests were executed for this review. [11]</p><p>Public metadata checked 2026-11-10: fork created November 3, last pushed November 7 at 18:31:10 UTC, 8 stars, 0 forks, issue tracker disabled, no releases and no pull requests returned. Source HEAD's commit time is November 7 at 18:31:02 UTC. These describe activity, not quality. The 40 ms opening claim, approximately 400 menu actions, clean-room provenance and exact compatibility were not independently demonstrated. Root/backend versions both say 0.1.0; pin SHA rather than inferring release assurance. [1,2,11]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Stock Omarchy</td><td>Less extra maintenance/capture</td></tr><tr><td>Vicinae</td><td>Broader independent launcher and extension ecosystem</td></tr><tr><td>Walker</td><td>GTK4/Rust frontend plus Elephant providers</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Installation, Preservation and Rollback</h4><p>This is desktop integration, not server self-hosting. The CLI installs no system packages itself, but if Cargo is available install builds the optional helper and can fetch crates. A marketplace installation and a development checkout share one plugin ID; both cannot independently occupy the same slot. Development install links the source tree and CLI, refuses an existing non-symlink plugin directory, but can replace symlinks. Updates therefore change executable desktop code; pin and review the intended repository. [2,4,6]</p><p>Hotkey setup now displays a plan and confirms (or accepts --yes), preserves an existing omacast.lua, appends/replaces a require statement and reloads Hyprland. Legacy setup can rename/mutate old binding files; legacy config/data/cache/state directories are moved when the new destination does not exist. It is not transactional: install can move directories before a build fails, and there is no automatic snapshot/rollback. Uninstall offers hotkey removal, removes owned links or delegates marketplace removal, but deliberately retains histories/config/cache/state. It can remove a customized hotkey file after confirmation; back it up first. [4,5]</p><p>While open, the UI enters a Hyprland submap so Super navigation reaches the launcher. Closing and normal QML destruction reset it, but that does not prove recovery after abrupt shell death. Keep an independent recovery path and the stock menu available; exercise reload, crash, hotkey restoration and data restoration in a disposable desktop profile before everyday use. No such operations were performed here. [8]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantial native launcher evolution, but default-on clipboard capture, trusted local IPC and incomplete persistence recovery need evaluation. Static review only: no tests, installation, capture or compatibility measurements performed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/nchudleigh/oma-cast">nchudleigh/oma-cast</a> · MIT · component terms separate</span>
+    <span><a href="nchudleigh-oma-cast.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
