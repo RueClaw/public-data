@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [grokbot-telegram-bridge.md](reviews/grokbot-telegram-bridge.md) [page](reviews/grokbot-telegram-bridge.html) | [eladb/grokbot-telegram-bridge](https://github.com/eladb/grokbot-telegram-bridge) | MIT | 📚 Study | Tiny Telegram-to-Grok Bot relay; prompt-only boundaries and non-durable forwarding limit unattended use. |
 | [customer-player-cards.md](reviews/customer-player-cards.md) [page](reviews/customer-player-cards.html) | [jonzobrist/customer-player-cards](https://github.com/jonzobrist/customer-player-cards) | MIT | 📚 Study | Fictional customer-card mockups and integration specs; no production backend or authorization. |
 | [librepaper.md](reviews/librepaper.md) [page](reviews/librepaper.html) | [LibrePaper/librepaper](https://github.com/LibrePaper/librepaper) | MIT; dependency terms separate | ⚠️ Interesting | Collaborative multi-format technical writing; strong authorization, but native execution, format fidelity and backup-completeness caveats. Static review. |
 | [nchudleigh-oma-cast.md](reviews/nchudleigh-oma-cast.md) [page](reviews/nchudleigh-oma-cast.html) | [nchudleigh/oma-cast](https://github.com/nchudleigh/oma-cast) | MIT; component terms separate | ⚠️ Interesting | Omarchy launcher fork with clipboard, dictation integration and optional Rust search; privacy defaults and persistence recovery caveats. Static review. |
