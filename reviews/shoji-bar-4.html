@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>shoji-bar-4 — Review</title>
+<meta name="description" content="A native Rust Material 3 Expressive desktop shell for ShojiWM—not just a bar.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / shoji-bar-4</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">bea4dev/shoji-bar-4 · reviewed 2026-11-10</div>
+    <h1>shoji-bar-4</h1>
+    <p class="one-liner">A native Rust Material 3 Expressive desktop shell for ShojiWM—not just a bar.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT OR Apache-2.0 declared; license texts absent</span>
+      <span class="chip">Rust · AntiWebUI · Wayland · PAM</span>
+      <span class="chip"><a href="https://github.com/bea4dev/shoji-bar-4">bea4dev/shoji-bar-4 ↗</a></span>
+      <span class="chip"><a href="shoji-bar-4.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">19</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A complete, compositor-specific shell</h3><p>Bar, dock, launcher, settings, clipboard, notifications and locker share native reactive UI and colors. ShojiWM-specific theme IPC and logout mean generic Wayland compatibility is not established.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Security scope exceeds a status bar</h3><p>PAM passwords, clipboard images, network controls and session locking share the process. IPC relies on runtime-directory isolation; a blocking unbounded line read presents a local availability concern.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Performance intent is not measurement</h3><p>Conditional animation tickers and diagnostics support an event-driven design, but no CPU/RSS/GPU measurements were run. Even offscreen previews can operate real services and are not a sandbox.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>UI</td><td>Rust 2024, AntiWebUI, MD3E</td></tr><tr><td>System</td><td>Wayland, Linux-PAM, NetworkManager, BlueZ, PipeWire, logind</td></tr><tr><td>Helpers</td><td>cliphist, wl-clipboard, zenity</td></tr><tr><td>Revision</td><td>bc42d4e049da15368c2efb997a5e4ba8a1bf4631</td></tr><tr><td>Verification</td><td>Static review only; no builds, tests or live service operations</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/README.md">README</a> and <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/docs/features.md">feature guide</a> describe floating bar islands, animated workspaces/window titles, an auto-hiding dock, launcher, quick settings, calendar, clipboard history, media controls, notification daemon, OSD, wallpaper and lock screen. These have corresponding Rust modules; this is substantive implementation, not a mock-up README. Visual quality and real-device behavior were not independently verified.</p>
+<p>Its audience is ShojiWM users and developers exploring a native Rust animated desktop shell. Linux Wayland, layer-shell/session-lock support and the compositor's workspace/toplevel integration matter. There is no demonstrated X11, Windows or macOS support. Hyprland/Sway compatibility is not established by using Wayland: ShojiWM theme IPC, logout command and documented startup/keybinding integration are specific. Do not substitute it into another desktop on that assumption.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Key Features and Architecture</h4><p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/main.rs">main.rs</a> separates msg and preview modes from normal Shell startup. Normal startup installs IPC, theme sharing, notification popups, OSD and lock hooks, then creates bar/dock/wallpaper/panels per output. Components are organized by desktop surface rather than backend/frontend services; there is no web server or hosted account required by this repository's documented model.</p>
+<ul><li><strong>Coordinated motion and colors:</strong> shared settings/theme signals drive Material color schemes and spring animations. <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/wm.rs">wm.rs</a> sends JSON theme.set roles to ShojiWM, reconnecting with a 500 ms to 30 s backoff and resending the latest scheme. This is a useful integration pattern, not a portable theme API.</li><li><strong>Practical controls:</strong> <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/qs_pages.rs">qs_pages.rs</a> includes Wi-Fi joining/password prompts and attempts to reconnect the previous network after failure. Bluetooth, audio and power controls are actual operations, not read-only status widgets. NetworkManager/polkit/system service policy ultimately determines permissions.</li><li><strong>Integrated session UI:</strong> <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/power_dialog.rs">power_dialog.rs</a> confirms logout/restart/power-off. Logout invokes shoji_wm --quit. Application launching and desktop actions in the dock use AntiWebUI app adapters; trusted desktop entries/helper PATH are execution inputs.</li><li><strong>Observability:</strong> counted animation clocks, msg status and a CPU-report script offer useful diagnostics. They are not published benchmark results.</li></ul>
+<h4>Security, Privacy and Failure Boundaries</h4><h4>IPC: local, but relies on the runtime directory</h4>
+<p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/ipc.rs">ipc.rs</a> binds a Unix socket under XDG_RUNTIME_DIR, falling back to a predictable temporary-directory name if unset. There is no explicit peer-credential authorization or socket permission hardening in this file. A correctly private runtime directory is consequently important; the temporary fallback should not be treated as equivalent isolation.</p>
+<p>A single listener thread performs an unbounded blocking read_line before dispatching. A client that connects and never sends a newline can monopolize the command listener; a huge line can grow memory. The two-second timeout covers the UI reply, not socket reads. This is a static local availability finding, not a tested exploit or remote network vulnerability. Commands include quit and theme changes but no unlock command. Arbitrary shell commands are not accepted by the IPC parser.</p>
+<h4>Locker: correct protocol intent, important assurance gaps</h4>
+<p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/lock.rs">lock.rs</a> uses ext-session-lock through AntiWebUI, closes panels, shares password state across outputs, authenticates off the UI thread and hooks logind lock/sleep events. The <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/docs/features.md">documented recovery</a> says ShojiWM remains locked if the shell dies and another locker such as swaylock can take over from a TTY. This is a compositor/dependency claim, not an independently verified recovery guarantee.</p>
+<p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/pam.rs">pam.rs</a> calls pam_authenticate for the login service, not account/session management. Its conversation supplies the same password to all hidden prompts, so arbitrary MFA/challenge flows are not established. The username comes from USER in <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/user.rs">user.rs</a>, not a UID-derived account lookup. Password buffers use String/CString and ordinary overwrite loops; that is not proof of compiler-resistant zeroization, and clearing UI strings does not guarantee all copies disappear. There is no visible sleep-inhibitor/locked-ack handshake in the shell's sleep callback; whether the dependency guarantees suspend ordering remains unverified. These are review questions before relying on it as a security boundary, not a demonstrated bypass.</p>
+<p>The fixed preview password is restricted to the separate preview path; it is not evidence of a production backdoor. Crucially, <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/docs/development.md">development docs</a> explicitly warn that preview clicks can change real network/Bluetooth/audio services and clipboard contents. Offscreen rendering is <strong>not</strong> a safe sandbox. No previews were run.</p>
+<h4>Clipboard, notifications and credentials</h4>
+<p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/clipboard.rs">clipboard.rs</a> lists cliphist entries, keeps previews in memory and decodes image contents to runtime-directory files. Despite thumbnail-oriented wording, decode writes the clipboard image data to disk for display. There is no shell-level secret exclusion/encryption policy. The app expects an external wl-paste --watch cliphist store recorder; removing the shell does not erase that history or stop a separately configured recorder.</p>
+<p>Copy/delete use fixed sh scripts with the entry supplied as quoted positional argument $1, not interpolated command source—a meaningful distinction from shell injection. Deleting an image removes its local cached file, but external history changes do not imply automatic cache cleanup. XDG_RUNTIME_DIR fallback again weakens assumptions about private, session-lifetime storage.</p>
+<p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/notify.rs">notify.rs</a> tries to own the notification service and logs failure if another daemon owns it. It shows up to three popups and exposes notification history through the service adapter; persistence/retention limits inside AntiWebUI were not verified. Notification image hints accept local absolute/file paths and image bytes, putting sender-controlled content through image decoding. No HTML/JavaScript execution sink was established in the inspected UI. Do not run it alongside an existing daemon expecting both to receive the same notifications.</p>
+<p>Wi-Fi passwords pass from UI signals to the network adapter; their final storage and authorization belong to NetworkManager/dependencies and were not audited. No direct telemetry uploader or remote API client was identified in the inspected shell code. That is not a guarantee of zero network traffic: helpers, launched applications, media artwork loading and dependencies have their own behavior.</p>
+<h4>Performance: evidence versus claims</h4><p>The README claims no frames when nothing moves and “0% CPU when idle.” <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/ui.rs">ui.rs</a> does condition ticker continuation on live/running state, and exposes an active-clock count. This supports a deliberate event-driven design, not a measured universal zero-CPU claim: clocks, service events, animations, media and reconnection can still wake work.</p>
+<p>There are no reviewed reproducible measurements for CPU, RSS, GPU, startup, multi-monitor scaling or long-running clipboard/history size. The <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/scripts/cpu-report.sh">diagnostic script</a> samples process/thread counters, perf and D-Bus profile traffic and writes local reports. Its optional sudo mode refreshes credentials and also uses sudo chown on perf output, so “only perf runs under sudo” in the docs is imprecise. Reports can expose local process/bus details; review before sharing. The script was not executed.</p>
+<h4>Maturity, Tests and Licensing</h4><p>The <a href="https://api.github.com/repos/bea4dev/shoji-bar-4">public repository API</a> reported creation on 2026-11-10, last push 2026-11-10T12:48:23Z, 19 stars, 0 forks and 0 open issues at retrieval on 2026-11-10. <a href="https://api.github.com/repos/bea4dev/shoji-bar-4/releases">Releases</a> and <a href="https://api.github.com/repos/bea4dev/shoji-bar-4/tags">tags</a> were empty. Public repository age is not proof the code was written in one day, and popularity is not quality evidence.</p>
+<p>The package is version 0.1.0. Two unit tests in <a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/bar.rs">bar.rs</a> cover small title-change detection; no CI workflow, dedicated integration suite or security/locker regression suite was found in this tree. Tests were <strong>not run</strong>. The shallow acquisition does not support claims about full historical coverage or maintenance trajectory.</p>
+<p>Cargo.toml declares MIT OR Apache-2.0, but no LICENSE/NOTICE text was present and the GitHub API license field was null. Treat this as an explicit manifest declaration with incomplete bundled licensing material, not “no license declared” and not a completed licensing audit. Confirm applicable texts/notices and transitive/asset licenses before distributing a fork; no code or assets were extracted.</p>
+<h4>Verification and Limitations</h4><p>Public HTTPS source acquisition succeeded; canonical identity and exact SHA were confirmed. Existing public Markdown reviews/index content were searched without finding a prior matching source. Source-level findings above are reproducible by reading the cited pinned files. No source code, tests, scripts, binaries, previews or dependency build hooks were executed; no devices, credentials, private data or live desktop services were accessed. AntiWebUI and compositor internals, actual PAM policy, dependency vulnerabilities, performance and runtime security remain outside this static review.</p>
+<hr>
+<p><strong>Attribution:</strong> bea4dev/shoji-bar-4; manifest-declared MIT OR Apache-2.0 (license texts absent in reviewed tree).<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Waybar + separate tools</td><td>Smaller replacement scope, more assembly, less unified motion.</td></tr><tr><td>Quickshell</td><td>Alternative Qt/QML shell-development foundation, not the same turnkey UI.</td></tr><tr><td>swaylock</td><td>Dedicated locker; verify compositor and takeover compatibility separately.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Upstream instructs cloning under ~/.config/shoji-bar-4 and cargo build --release, with ShojiWM starting the binary. These are upstream paths, not actions performed by this review. Use a pinned revision and cargo build --release --locked for a future controlled evaluation; exact native build prerequisites and clean-machine success were not established. No release binaries, package-manager lifecycle or built-in updater were found in the reviewed repository.</p>
+<p>Before any adoption, preserve existing compositor config, notification/clipboard startup entries, locker and working binary. Merge startup/keybindings rather than replacing a config. Keep a known-good separate session and TTY recovery route; validate lock/refusal/suspend/crash takeover before enabling automatic locking. No installation or configuration changes were made here.</p>
+<p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/settings.rs">settings.rs</a> reads XDG_STATE_HOME/shoji-bar-4/settings.json (HOME fallback, then /tmp), defaults malformed/missing values, debounces changes by 400 ms and writes a neighboring partial file before rename. This avoids partially replaced JSON, but errors are ignored, there is no fsync guarantee, no schema version/migration/backup and unknown keys are lost on a subsequent save. Manual edits are not shown being watched/reloaded live. Invalid files may silently become defaults and later be overwritten. Multiple display instances share this state location.</p>
+<p><a href="https://github.com/bea4dev/shoji-bar-4/blob/bc42d4e049da15368c2efb997a5e4ba8a1bf4631/src/user.rs">user.rs</a> copies avatars and removes older avatar-* files; reset removes the configured avatar path without checking it is inside the managed directory. Hand-edited avatar settings should therefore not point at a valued original file. Preserve the state directory separately from source/build updates.</p>
+<p>Rollback means restoring the prior executable/revision <strong>and</strong> compatible saved state/config, not merely pulling an old commit. Uninstall has no dedicated script: remove only this shell's startup/keybindings, restore the prior notification/lock components, and then remove its source/build artifacts if desired. State, reports, runtime clipboard images and the external cliphist database have separate lifetimes; erase only deliberately. Do not terminate a locked shell assuming that will safely unlock the session.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Cohesive reactive desktop UI worth studying or evaluating in an isolated ShojiWM session. Early maturity, incomplete license packaging and unverified lock, suspend, compatibility and performance guarantees prevent a daily-driver recommendation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/bea4dev/shoji-bar-4">bea4dev/shoji-bar-4</a> · MIT OR Apache-2.0 declared; license texts absent</span>
+    <span><a href="shoji-bar-4.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
