@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [tahadx-reel.md](reviews/tahadx-reel.md) [page](reviews/tahadx-reel.html) | [tahadx/reel](https://github.com/tahadx/reel) | MIT | ⚠️ Interesting | Omarchy bar screen recorder with editable zoom projects; sidecar retention and permanent-delete fallback need attention |
 | [shoji-bar-4.md](reviews/shoji-bar-4.md) [page](reviews/shoji-bar-4.html) | [bea4dev/shoji-bar-4](https://github.com/bea4dev/shoji-bar-4) | MIT OR Apache-2.0 (manifest; texts absent) | ⚠️ Interesting | Native Rust ShojiWM desktop shell; cohesive UI, early maturity and unverified lock/performance guarantees. |
 | [grokbot-telegram-bridge.md](reviews/grokbot-telegram-bridge.md) [page](reviews/grokbot-telegram-bridge.html) | [eladb/grokbot-telegram-bridge](https://github.com/eladb/grokbot-telegram-bridge) | MIT | 📚 Study | Tiny Telegram-to-Grok Bot relay; prompt-only boundaries and non-durable forwarding limit unattended use. |
 | [customer-player-cards.md](reviews/customer-player-cards.md) [page](reviews/customer-player-cards.html) | [jonzobrist/customer-player-cards](https://github.com/jonzobrist/customer-player-cards) | MIT | 📚 Study | Fictional customer-card mockups and integration specs; no production backend or authorization. |

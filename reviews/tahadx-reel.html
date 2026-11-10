@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reel — Review</title>
+<meta name="description" content="An Omarchy screen recorder with local history and editable camera projects.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / tahadx-reel</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">tahadx/reel · reviewed 2026-11-10</div>
+    <h1>Reel</h1>
+    <p class="one-liner">An Omarchy screen recorder with local history and editable camera projects.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Rust · QML · gpu-screen-recorder · FFmpeg</span>
+      <span class="chip"><a href="https://github.com/tahadx/reel">tahadx/reel ↗</a></span>
+      <span class="chip"><a href="https://github.com/tahadx/reel/commit/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961">Reviewed SHA ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">39</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Local recording, not a hosted AI tool</h3><p>Omarchy Quattro/Hyprland integration with screen, audio and webcam capture. Auto zoom is deterministic pointer and frame-change processing; no model or provider account is needed.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Trash has two important surprises</h3><p>The inspected CLI deletes previews but leaves project and telemetry sidecars despite documentation. If gio trash fails or is unavailable, it permanently removes the video.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery design and tests are real</h3><p>Raw captures are separated from completed takes, with quarantine and state reconciliation. Upstream CI succeeded for the exact reviewed SHA, but no code or hardware tests were run by this reviewer.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Engine</td><td>Rust; clap, serde, libc, anyhow</td></tr><tr><td>UI</td><td>QML / Quickshell / Omarchy</td></tr><tr><td>Media</td><td>gpu-screen-recorder, FFmpeg, mpv</td></tr><tr><td>Data</td><td>MP4/MKV, JSON projects, JSONL telemetry</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4>
+<p>Reel wraps gpu-screen-recorder in an Omarchy Quattro shell widget, with a Rust CLI usable independently. It selects a monitor, region or a window's visible rectangle; supports pause/resume, audio, webcam overlay, manual zoom and local history. Window capture is explicitly not isolated application capture: overlap and movement can expose other windows. Desktop audio and cursor capture default on; microphone, webcam and auto zoom default off. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/README.md">README</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/manifest.json">manifest</a>.</p>
+<p>Automatic zoom is local deterministic processing, not AI: pointer clicks become camera blocks; low-resolution frame differences help retarget quiet clicks toward changing content. No LLM provider, account, API key, model download or paid inference is involved. Compute, disk capacity and encoding time are the operating costs; performance was not measured. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/activity.rs">activity.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/project.rs">project.rs</a>.</p><h4>Key Features and Architecture</h4>
+<p>1. <strong>Separated UI and engine.</strong> QML launches argument-array CLI commands. The service watches state, refreshes history and polls every three seconds while busy to notice dead workers. Rust separates recording, targeting, telemetry, camera planning, rendering, finalization and quarantine recovery. This is real implementation, not a UI-only demo. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/Service.qml">Service.qml</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/main.rs">main.rs</a>. 2. <strong>Two recording stages.</strong> A raw capture is hidden from ordinary history until the save pass trims/normalizes/processes it. New recordings are gated while saving. State reconciliation detects exited recorder/finalizer PIDs; a durable quarantine ledger preserves problematic captures rather than presenting unfinished footage as completed. This is useful recovery design, not a guarantee against power loss or corrupted media. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/recorder.rs">recorder.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/finalize.rs">finalize.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/state.rs">state.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/quarantine.rs">quarantine.rs</a>. 3. <strong>Editable camera projects.</strong> Takes with telemetry get a hidden project JSON and raw JSONL, even when auto zoom is disabled. Keyframes are normalized/clamped and rendered through FFmpeg; dense paths use generated sendcmd scripts. Re-rendering normally writes a separate rendered video. The original recorded cursor remains baked into the pixels; this is not a fully separated cursor/video editing system. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/project.rs">project.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/render.rs">render.rs</a>. 4. <strong>Practical history.</strong> Thumbnails can be rebuilt; files can open in mpv or Omacut, be renamed with companion data, copied by path, dragged out or shared. Rename validates names and recording-folder containment; companion moves are best-effort, not a transactional archive operation. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/commands.rs#L475-L733">commands.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/Panel.qml">Panel.qml</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><strong>Revision:</strong> da2174b6a4a53133d82fa04b03d8ef4a1e9bd961. Reviewed 2026-11-10 UTC. Static source inspection only; no execution, install, recording or device access.</p><h4>Security, Permissions and Privacy</h4>
+<h4>Desktop authority, not a sandbox</h4>
+<p>This runs as the logged-in desktop user, launching tools from PATH and controlling the compositor, capture, audio and camera. There is no web server, multi-user authentication layer or CORS surface in the inspected design. Local state and a Unix recorder socket replace HTTP APIs. Treat the plugin, native binary and all helper executables as trusted desktop code—not as an untrusted-document viewer.</p>
+<p>Pointer telemetry opens Linux input devices and filters for pointer capabilities; persisted events contain timed coordinates/buttons and capture metadata, not a general typed-text log. The recommended membership in the input group nonetheless grants broader raw-input access to processes running as that user, not a narrow Reel-only permission. Avoid granting that capability casually. A denied input device degrades telemetry/auto zoom rather than blocking ordinary recording. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/telemetry.rs#L600-L737">telemetry.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/telemetry.rs#L1145-L1210">event schema</a>.</p>
+<p>Capture rectangles, previews, window labels, audio and screen pixels can reveal sensitive material. Runtime, thumbnail and sidecar directories are set owner-only, and persisted telemetry is chmod 0600, but several permission-setting errors are ignored. These are best-effort local protections, not encryption; normal videos are not shown to have the same enforced mode. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/paths.rs#L61-L132">paths.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/paths.rs#L221-L232">sidecar directory</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/telemetry.rs#L557-L570">telemetry persistence</a>.</p>
+<h4>Confirmed static retention mismatch</h4>
+<p>Documentation says project and telemetry files are removed when a take is trashed. However, main dispatches Trash directly to commands::trash, which removes/trashes the video and removes three preview locations only. Neither the successful-video nor missing-video branch deletes the hidden project or telemetry. The panel delegates to that CLI and adds no sidecar cleanup. <strong>At this revision, deleting a take through Reel can leave interaction traces and project metadata on disk.</strong> This is established by source-path inspection, not a runtime reproduction. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/docs/reference.md">docs claim</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/main.rs#L42-L49">dispatch</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/commands.rs#L414-L471">complete trash function</a>.</p>
+<p>The same function falls back from gio trash to fs::remove_file whenever gio is absent or unsuccessful. Therefore the UI promise to move a file to trash is not a recovery guarantee. There is no fallback confirmation distinguishing permanent deletion. Recommend failing closed or explicitly asking before permanent removal, and deleting/retaining companion artifacts under one clear policy.</p>
+<h4>Network, credentials and updates</h4>
+<p>The shell checks at startup and hourly; the engine fetches the installed git origin's HEAD with a timeout and caches results for an hour. It reads the fetched manifest without executing it during the check. This reveals routine Git connection metadata to the configured origin; it is not a video upload. Git can inherit local credential helpers/SSH context even though terminal prompting is disabled. No application credential store was found. “Only network access” should be read narrowly: user-triggered sharing delegates to LocalSend through omarchy share, and actual updating also contacts the remote. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/commands.rs#L55-L236">update code</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/Panel.qml#L733-L738">share action</a>.</p>
+<p>Updating executes omarchy plugin update followed by bash on the newly fetched installer; this is an explicit upstream-code trust boundary. The installer restarts the shell, and active recording/saving is refused. Release hashes and CI byte-comparison improve integrity diagnostics but do not substitute for independent signatures or trust in the upstream account. The shipped native engine is not independently rebuilt in this review.</p>
+<h4>Project imports are trusted local inputs</h4>
+<p>Project loading validates schema version and camera geometry, but accepts absolute take paths and normalized relative paths outside the project folder. It is not a confined importer. The render CLI's original-file protection compares paths lexically; equivalent paths using symlinked parent directories are not canonicalized before the final rename. Existing rendered outputs can be replaced. Treat third-party project JSON and explicit output paths as trusted instructions to read/write local media; review paths and back up inputs. This is a static robustness concern, not a demonstrated remote exploit. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/project.rs#L917-L960">project path resolution</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/render.rs#L31-L177">render guards/output publication</a>.</p><h4>Data Handling, Export and Recovery</h4>
+<p>Default videos live in the user's XDG Videos/Reel folder. Companion data lives in a hidden .reel directory beside takes; durable previews live in the user's .reel/previews directory. Runtime logs/state and the persistent quarantine ledger occupy separate XDG locations. There is no inspected timed-retention policy, encrypted archive, automatic backup or cloud synchronization. Uninstall intentionally preserves recordings, settings and state. Include companions when backing up editable projects, and deliberately audit them when deleting sensitive footage. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/paths.rs">paths.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/bin/uninstall">uninstaller</a>.</p>
+<p>Export is ordinary MP4/MKV plus editable JSON, not a proprietary hosted format. Re-rendering re-encodes video to H.264 and audio to AAC; it can retry without audio after failure, so check the resulting file rather than assuming every successful render retained sound. Recovery preserves failed raw captures, but hidden/quarantined footage may still contain the countdown/overlay content intentionally withheld from history. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/render.rs#L108-L177">render.rs</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/src/state.rs#L130-L225">state.rs</a>.</p><h4>Maturity, Dependencies and Verification</h4>
+<p>Public GitHub metadata retrieved 2026-11-10: created 2026-10-20, pushed 2026-11-10T13:25:10Z, 39 stars, 1 fork, 0 open issues reported. Latest published release was v0.4.0 on 2026-11-09T17:39:41Z; the reviewed main SHA is the exact scope, not an assumption that release and main are identical. This is a young, actively changing project; popularity and an empty issue count do not establish reliability. <a href="https://api.github.com/repos/tahadx/reel">metadata</a>, <a href="https://github.com/tahadx/reel/releases/tag/v0.4.0">release</a>.</p>
+<p>There are 156 Rust #[test] annotations in the source, four QML test files, synthetic project/telemetry fixtures and installer rerun tests. CI declares formatting, cargo check/clippy/tests, ShellCheck, installer tests, QML checks, release consistency and byte-for-byte dist rebuilding. GitHub reported the build for this exact SHA completed successfully in <a href="https://github.com/tahadx/reel/actions/runs/42824341122">run 42824341122</a>. That is upstream CI evidence, not tests run by this reviewer. Some plugin-contract checking falls back to a minimal manifest assertion when Omarchy is unavailable; hardware capture is not thereby validated. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/.github/workflows/build.yml">build workflow</a>.</p>
+<p>Cargo.lock is committed and the Rust toolchain is pinned, but workflow actions use moving tags/branches, including the toolchain action's master branch. Native releases include checksums but explicitly no binary signature verification. The substantial runtime behavior also depends on external packages beyond Cargo's dependency graph. No dependency vulnerability audit, license audit of every transitive component or reproducible-build verification was performed. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/.github/workflows/release.yml">release workflow</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/crates/reel/Cargo.toml">Cargo manifest</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Omarchy stock recorder</td><td>Minimal native capture; fewer integrated history/camera features.</td></tr><tr><td>OBS Studio</td><td>Broader platform, scene and streaming support; larger setup surface.</td></tr><tr><td>gpu-screen-recorder directly</td><td>Lean capture; selection, history and processing are yours to orchestrate.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Installation and Operating Fit</h4>
+<p>This is a Linux/Omarchy Quattro/Hyprland integration, not a generic cross-platform recorder. The supplied binary is Linux x86_64; other architectures require a Rust source build. Capture needs gpu-screen-recorder and FFmpeg/ffprobe, with Omarchy's picker, slurp, grim and mpv supporting the advertised workflow. Installer checks classify some advertised workflow tools as optional, so a successful install alone does not prove every feature works. GPU/driver/compositor compatibility needs a real, separate desktop trial.</p>
+<p>The installer links the command, enables the plugin, optionally backs up/merges a marked Hyprland bindings block, and restarts the shell. Service startup also invokes configure automatically. The wrapper can prefer a sibling development native binary over the committed dist binary. Review what executable will run; do not treat enabling the plugin as a passive manifest import. <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/install.sh">install.sh</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/bin/configure">configure</a>, <a href="https://github.com/tahadx/reel/blob/da2174b6a4a53133d82fa04b03d8ef4a1e9bd961/bin/reel">wrapper</a>.</p><h4>Recommended Next Steps</h4>
+<p>Before routine use: fix sidecar cleanup and the permanent-delete fallback; canonicalize/protect render destinations; then test non-sensitive captures across pause, crash, low disk space, window overlap, audio failures and updates on supported hardware. Keep input-device permissions optional and narrow where possible. The code is worth studying, especially the two-phase capture/quarantine pattern, but the privacy cleanup gap prevents an unconditional deploy recommendation. </p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A substantive, focused desktop workflow, but not yet a privacy-clean deployment recommendation. Trash leaves project/telemetry companions behind and can permanently delete the video if desktop trash fails. Static review only; capture and recovery need real hardware validation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/tahadx/reel">tahadx/reel</a> · MIT</span>
+    <span><a href="tahadx-reel.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
