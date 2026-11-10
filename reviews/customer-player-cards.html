@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer Player Cards — Review</title>
+<meta name="description" content="Fictional customer-card mockups and integration specifications—not a working CRM service.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / customer-player-cards</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">jonzobrist/customer-player-cards · reviewed 2026-11-10</div>
+    <h1>Customer Player Cards</h1>
+    <p class="one-liner">Fictional customer-card mockups and integration specifications—not a working CRM service.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">React · TypeScript · esbuild · static HTML</span>
+      <span class="chip"><a href="https://github.com/jonzobrist/customer-player-cards">jonzobrist/customer-player-cards ↗</a></span>
+      <span class="chip"><a href="customer-player-cards.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A concept, not an integration</h3><p>Five visual styles and six audience previews use bundled fictional records. No Salesforce connection, API, database or model service is implemented.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Audience selection is not access control</h3><p>The full customer object stays in the browser, including commercial fields. Server filtering, record authorization, OIDC and audit retention are future requirements.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Specification exceeds the mock</h3><p>Risk logic omits the SLA-breach and executive-escalation rules. Application CI is parked outside the workflows directory, and no test suite is supplied.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Current UI</td><td>React/React DOM 18.3.1; strict TypeScript 5.6.3</td></tr><tr><td>Build</td><td>esbuild 0.24.0; lockfile; standalone HTML</td></tr><tr><td>Current backend</td><td>None; fixtures and React state only</td></tr><tr><td>Proposed services</td><td>Fastify, Postgres 16, Redis 7, SSE, CDC and webhooks</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Five styles—trading card, scoreboard, RPG sheet, wallet stack and roster heatmap—present fictional customer status for six audiences: executives, account teams, service owners, leaders, engineers and support. Long-term health is distinct from immediate risk. Glance, detail and drill-in form a sensible progressive-disclosure model.</p>
+<p>The README explicitly calls this a concept/specification repository. Inspection agrees: imported constants feed React components; local state controls customer, audience, sort and label choices. The build embeds React and application JavaScript into a single HTML file. The theme hook's name does not imply an AI service: it returns local color/font tokens. [1][2]</p><ul><li><strong>Concrete design alternatives:</strong> roster sorting, customer selection and audience previews make the brief useful for interviews rather than just aspirational prose.</li><li><strong>Explainability-first scoring:</strong> five weighted components, explicit override rules and link confidence are a good starting specification. The weights are heuristics, not validated churn predictions.</li><li><strong>Redundant visual signals:</strong> glyphs, text and color differentiate risk. Plain-label switching reduces the RPG metaphor's learning cost.</li><li><strong>Integration discipline on paper:</strong> explicit incident links precede tenant/service matching; time proximity alone is disallowed. Secrets-manager storage, signed webhooks, read-only access, freshness indicators and mocked tests are specified, not implemented. [3][4][5]</li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Current implementation</h4>
+<p>The main.tsx entry point renders all styles and passes the same full customer object into AudienceCard. Most presentation and fixtures live in components.tsx; prompts.ts duplicates specification text and audience metadata. This is convenient for a concept, not a production domain boundary. The build inlines a minified bundle and escapes closing script sequences. [2][6]</p>
+<h4>Risk rules are only partially implemented</h4>
+<p>The riskOf function computes the weighted rounded sum plus an optional floor of 80. It lacks the documented breached-SLA floor of 70, executive-escalation increment, general input validation and final cap for arbitrary inputs. The caller infers the floor from any SEV1 plus a top P1 case rather than verifying the required explicit case/incident link. Components are prefilled examples rather than computed from source signals. Extra roster tiles have manually assigned scores, including a breach-labeled tile below the documented breach floor. These are mock/spec inconsistencies, not vulnerabilities in a nonexistent production risk service. [2][4]</p>
+<p>Before adopting the scorer, implement one shared pure package; validate finite inputs/ranges; define missing and stale signals, rounding and override order; test every boundary; and calibrate against outcomes. Keep commercial importance and operational urgency inspectable independently.</p>
+<h4>Accessibility is a target, not certification</h4>
+<p>Labeled glyphs, focus styling and initial reduced-motion detection are present. Custom button-like cards handle Enter but not Space; radio-like audience controls lack arrow-key navigation. Reduced motion stops the pulse at mount but does not implement the specified double border or observe later preference changes. No supplied axe/Playwright tests or verified contrast/responsive results establish the documented accessibility targets. Static SLA strings are not a live countdown. [2][7]</p>
+<h4>Customer Data, Privacy and Security</h4>
+<h4>Actual collection, storage, export and retention</h4>
+<p>The mounted mockup contains no customer import/upload, network fetch, authentication flow, analytics client, database or browser-storage use in the inspected authored code. Records are explicitly labeled fictional; no individual records are reproduced here. UI selections exist in React memory and reset on reload. Bundled data persists in the HTML and copies or browser caches.</p>
+<p>There is no implemented CSV/PDF export, deletion workflow or retention engine. A prompt-copy component exists in source but is not exported/mounted by this page; it is not customer export functionality. Ordinary screenshots, browser printing and copying can retain displayed content. Sharing a real-data HTML variant would share the entire dataset, regardless of selected audience. [1][2][6]</p>
+<h4>Authentication, authorization and tenant boundaries</h4>
+<p>No login, server, record-level enforcement or tenant isolation exists today. The engineer preview omits commercial fields from its selected presentation, <strong>not</strong> from the browser payload: the full object is passed to it, and commercial views remain on the same page. Text claiming those fields are “not sent” describes the intended system, not the mock boundary. This is acceptable for fictional fixtures but must not become the production security design. [2]</p>
+<p>The proposed service specifies OIDC group mapping, a Salesforce read-only integration user, server-side field filtering, per-user queries where exact sharing rules must apply, masked wall displays and audits. Still needed: deny unauthorized requested views; enforce record access on detail, timeline, event and SSE routes; use permission-aware caches; handle stream revocation; define export controls and organization isolation. An operational tenant identifier for incident correlation is not an authorization boundary. [3][5][8]</p>
+<h4>Input, rendering and upload security</h4>
+<p>Authored components render strings through React JSX rather than raw HTML. No application dangerouslySetInnerHTML, eval or raw-HTML injection path was found; there is no upload surface to assess. This narrow finding is not a complete XSS/dependency audit. Future case text, external runbook/dashboard URLs and webhook fields require type/size validation, safe URL schemes and rendering rules. Production ingress needs replay protection, request limits, rate limiting and explicit CORS/session policy; no implementation is available to verify. [2][5]</p>
+<h4>Planned sensitive-data lifecycle</h4>
+<p>The proposed model copies commercial figures, opportunity/renewal data, contact/owner identity, case subjects/timelines, sentiment, SLA state, tenant mappings and incident context into new stores. Read-only source access does not remove the governance burden of those copies.</p>
+<p>The docs specify <strong>90-day audit retention</strong>, not comprehensive customer-data retention. Snapshot/history, cache, replay/dead-letter payload and backup lifetimes and deletion processes remain unspecified in the reviewed design. Regional residency is mentioned, not enforced. Define minimization, source-deletion propagation, backup expiry, encryption/key ownership and access reviews before real ingestion. Stable account IDs in logs still need protection; omitting names does not make IDs anonymous. [3][5][8]</p>
+<h4>Credentials, Network Flows and Costs</h4>
+<p>The current mockup requires no API key/account and makes no Salesforce, AI/model or other provider runtime calls in the inspected application. Rebuilding downloads npm dependencies. The screenshot helper requires Chrome/Chromium and invokes it with --no-sandbox; it was not executed and should not be used for untrusted browsing. [6]</p>
+<p>The planned integration uses Salesforce OAuth JWT bearer credentials in a secrets manager, a dedicated read-only user, REST/Composite or Bulk backfill, Pub/Sub CDC and SLA polling. PagerDuty, ServiceNow, status/monitoring webhooks, optional alerts and telemetry introduce more trust boundaries. Source API entitlements and quotas, polling/event volumes, database/cache hosting and telemetry retention determine cost; there is no validated cost model. The 20%-of-daily-Salesforce-allowance budget is a design target, not measured compliance. Generated summaries are a later roadmap item, not an embedded LLM feature. [3][5][8]</p>
+<h4>Persistence and Recovery</h4>
+<p>The mockup has no mutable customer store to recover: reload reconstructs fixtures and resets UI state. Stored CDC replay IDs, nightly resync, deduplication, backoff and dead-letter queues are sensible future requirements. They do not prove gap-free/exactly-once recovery: replay expiry, ordering, transactional publication, resync reconciliation, migration rollback and database restores still need implementation and tests. No deployable Compose stack, migrations or restore runbook is supplied. [3][5]</p>
+<h4>Maturity, License and Verification</h4>
+<ul><li>The reviewed SHA is the initial concept commit dated <strong>2026-11-10</strong>. Public metadata that day reported <strong>0 stars, 0 forks</strong>, last push <strong>13:12:35 UTC</strong>. These indicate age, not quality.</li><li>CHANGELOG.md labels the material 0.1.0, but the public releases endpoint returned an empty list. A changelog label is not proof of an available GitHub release. [9]</li><li><strong>Application CI is parked.</strong> The file is in .github/ci-pending/, not .github/workflows/. It would lint docs, check links, typecheck/rebuild the mockup and validate HTML when activated. Unit/integration/accessibility jobs are commented placeholders. Public Actions metadata showed Dependabot activity, not proof these application checks ran. [10]</li><li>The manifest offers build/typecheck/screenshot scripts but no test script; no test suite was found. Strict TypeScript, pinned versions and a lockfile help reproducibility but do not validate runtime behavior. Dependabot is configured, and a public dependency-update PR was visible. No vulnerability advisory audit or fresh build was performed. [6]</li><li>MIT terms were inspected. Preserve project and third-party notices on redistribution. The build uses legalComments: &quot;none&quot;, so audit bundled dependency notices rather than assuming the standalone file is a complete license-notice package. No source components were extracted. [6][11]</li></ul>
+<p><strong>Limits:</strong> Anonymous acquisition, tracked-file inventory, authored-code inspection, targeted network/storage/raw-HTML searches and spec/code comparison only. No source execution, build, typecheck, tests, browser rendering, screen-reader checks, provider integration, recovery tests, exhaustive secret/history audit or deployment. The checkout was shallow; findings concern this revision, not all history.</p><h4>Evidence and provenance</h4><p>Reviewed SHA: 6ff4c1e657e944b91d11fd38295d140b8ff38b8f. Whole repository, emphasizing authored mockup source and backend specification. Source availability confirmed anonymously.</p><p>Source links pin the reviewed SHA; API metadata was retrieved 2026-11-10.</p>
+<p>1. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/README.md">README/scope</a><br>2. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/mockups/src/components.tsx">Components</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/mockups/src/main.tsx">entry point</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/mockups/src/shim.tsx">theme shim</a><br>3. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/docs/data-model.md">Data model</a><br>4. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/docs/risk-score.md">Risk requirements</a><br>5. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/prompts/backend.md">Backend specification—not backend code</a><br>6. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/mockups/package.json">Manifest</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/mockups/build.mjs">build</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/mockups/screenshot.mjs">screenshot helper</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/mockups/README.md">mockup README</a><br>7. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/docs/visual-rules.md">Visual/accessibility rules</a><br>8. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/docs/audience-views.md">Audience policy</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/docs/build-plan.md">build plan</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/AGENTS.md">security/telemetry requirements</a><br>9. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/CHANGELOG.md">Changelog</a>, <a href="https://api.github.com/repos/jonzobrist/customer-player-cards">repository metadata</a>, <a href="https://api.github.com/repos/jonzobrist/customer-player-cards/releases">releases</a><br>10. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/.github/ci-pending/README.md">Pending CI explanation</a>, <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/.github/ci-pending/ci.yml">workflow</a>, <a href="https://api.github.com/repos/jonzobrist/customer-player-cards/actions/runs?per_page=1">Actions metadata</a><br>11. <a href="https://github.com/jonzobrist/customer-player-cards/blob/6ff4c1e657e944b91d11fd38295d140b8ff38b8f/LICENSE">License</a><br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>Fit and tradeoff</th></tr><tr><td>This concept</td><td>UI interviews; no operational service or access controls</td></tr><tr><td>Existing Salesforce dashboards</td><td>Existing CRM permissions; cross-tool incident joins still need work</td></tr><tr><td>Grafana OSS</td><td>Operational visualization; customer model and commercial access remain custom</td></tr><tr><td>Apache Superset</td><td>Governed warehouse analytics; ingestion and realtime workflows are separate</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>For a <strong>fictional-data demo</strong>, the checked-in mockups/index.html is intended to open directly in a JavaScript-enabled browser without a build or runtime network dependency. Node/npm are needed only to rebuild; documented commands are npm ci, npm run typecheck and npm run build in mockups/. None was run here.</p>
+<p>There is no production server to self-host. A real pilot requires a supported runtime/dependency baseline, source permissions, validated mappings, authenticated per-record/per-field APIs and streams, retention policy, tested risk logic, recovery procedures and activated CI. Revisit the proposed Node 20 baseline against supported runtimes instead of copying it mechanically.</p><p>Alternatives are architectural comparisons, not hands-on benchmarks or purchase recommendations.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Useful for stakeholder interviews and UI exploration. The backend, server authorization, customer-data lifecycle and recovery remain specifications; do not put real records into the static HTML. Static review only: no builds, tests, browser execution or provider calls.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/jonzobrist/customer-player-cards">jonzobrist/customer-player-cards</a> · MIT</span>
+    <span><a href="customer-player-cards.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
