@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flea — Review</title>
+<meta name="description" content="Keyboard-first Omarchy file manager with a Rust/GPUI frontend and defensive file-operation engine.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / flea</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">thisisgm/flea · reviewed 2026-11-10</div>
+    <h1>Flea</h1>
+    <p class="one-liner">Keyboard-first Omarchy file manager with a Rust/GPUI frontend and defensive file-operation engine.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; third-party terms separate</span>
+      <span class="chip">Rust · GPUI · Linux helpers</span>
+      <span class="chip"><a href="https://github.com/thisisgm/flea">thisisgm/flea ↗</a></span>
+      <a class="chip" href="https://github.com/thisisgm/flea/tree/e6044184bb7606a854bfefbd73cdbecf9970613a">Reviewed revision</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,144</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">122</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Current frontend is GPUI, not the old QML window</h3><p>The launcher selects flea-gui and a revision-pinned GPUI fork. Retained QML and older installation wording can obscure the 0.4 architecture transition.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Recovery and preview isolation are substantive</h3><p>Operations use file identities, bounded shared undo and separate durable trash-recovery records. Decoder jails reduce authority, but expose selected system/input mounts and have helper-specific resource limits.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Plugin labels do not restrict plugin authority</h3><p>Ordinary plugin executables retain user filesystem/network authority and inherited environment. Previewer plugins have a distinct sandbox; supervision cannot roll back external side effects.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Implementation</td></tr><tr><td>Launcher and terminal</td><td>Rust flea executable; explicit --tui mode; display/argument checks</td></tr><tr><td>GUI</td><td>flea-gui; revision-pinned thisisgm/gpui-omarchy fork; Vulkan/software-Vulkan/GL fallback</td></tr><tr><td>File engine</td><td>Rust backend with request/event loop, listing/search workers, operation jobs and thumbnail pool</td></tr><tr><td>OS integration</td><td>GIO/GVFS, D-Bus file chooser/FileManager1, UDisks2/polkit, XDG defaults, Omarchy shell</td></tr><tr><td>Preview tools</td><td>bubblewrap + prlimit; image/PDF/media libraries and external decoders; Qt WebEngine HTML helper</td></tr><tr><td>Persistence</td><td>XDG JSON settings, runtime undo journal, persistent recovery records, freedesktop trash/thumbnails, file xattrs</td></tr><tr><td>Extensions</td><td>Supervised executable plugins over bounded JSON lines; separately jailed previewers</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Flea combines list, grid, columns and dual-pane views with tabs, ranked search, tags, Quick Look, bulk rename, trash/undo, archives, a shelf, network shares and device browsing. It targets users who want fast keyboard navigation without giving up a graphical preview-oriented desktop. Its file-chooser and FileManager1 integrations can affect other applications, not just its own windows.</p>
+<p>Do not identify the current app from the repository's QML topic tags or older install text alone. The default launcher explicitly executes <strong>flea-gui</strong>, a Rust/GPUI application, while refusing the legacy frontend; the repository still contains a large QML tree and Qt-based HTML helper. Some installation text still calls the Quickshell UI the installed frontend. The executable entry point and current package manifest are stronger evidence than those stale descriptions. See <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/main.rs">src/main.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/crates/flea-gui/Cargo.toml">crates/flea-gui/Cargo.toml</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/docs/install.md">docs/install.md</a> and <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/PKGBUILD">PKGBUILD</a>.</p>
+<h4>Fast navigation, with useful benchmark caveats</h4>
+<p>The README reports a 319 ms first window and 0.75 s settled time for 100,000 empty files, and 166 ms first search result across a million files. These are upstream measurements of the 0.4.0 candidate <strong>8a7fd82f</strong>, not measurements of this reviewed 0.4.1 revision. The source candidly defines first window as compositor registration and settled as 500 ms CPU quiet: neither establishes painted, input-ready UI. Competitors use different view modes; unchanged rival samples are reused. Search excludes process creation and initial listing, and Flea acknowledges quality losses against nd/fff. Media memory data are incomplete and not uniformly superior. The “fastest” headline therefore applies to selected measured workloads, not a general theorem. No benchmark was independently reproduced. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/README.md">README.md</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/docs/bench/0.4.0-20261102.md">docs/bench/0.4.0-20261102.md</a>.</p>
+<h4>Operations designed around identity, not just filenames</h4>
+<p>Undo records device/inode/type plus metadata and, where available, birth time. Cross-device move checks ensure the source still matches the copied bytes before removal; directory/file undo checks distinguish untouched created entries from later user edits. Shared undo has an owner-only runtime directory, locking, a 32 MiB document bound and 50-entry undo depth. This is meaningful defensive implementation, not merely an “undo” menu label. It remains bounded history, not a backup or universal transaction rollback. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/undo.rs">src/backend/undo.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/undoshare.rs">src/backend/undoshare.rs</a>.</p>
+<h4>Rich previews, intentionally separated from ordinary app authority</h4>
+<p>The general decoder wrapper unshares namespaces, clears the environment, provides read-only system/input mounts and a caller-selected writable output, with CPU/address-space limits. It still exposes readable <strong>/etc</strong> and <strong>/usr</strong>; “sandboxed” does not mean a minimal empty machine. Office/archive/HTML paths have different limits: archive jobs omit the generic CPU cap; Chromium HTML has a CPU limit but no address-space cap. The HTML jail exposes the page's parent folder read-only at /page, not only the selected document, and uses a separate network namespace. Treat sibling content and generated previews as sensitive. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/sandbox.rs">src/backend/sandbox.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/htmlsandbox.rs">src/backend/htmlsandbox.rs</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Provenance and verification</h4>
+<p>Reviewed source e6044184bb7606a854bfefbd73cdbecf9970613a, version 0.4.1. Static review only; no source code, tests, providers or device operations were executed.</p>
+<p>The CLI routes GUI, TUI, backend, IPC, preview, plugin, shelf, update and desktop-integration modes. The backend uses a request/event loop with deferred workers, six thumbnail workers, filesystem watching, generation-aware search and bounded shutdown draining. File operations and rendering are separated so expensive decoding does not have to block directory navigation. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/main.rs">src/main.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/run.rs">src/backend/run.rs</a>.</p>
+<p>The GUI uses a specific GPUI fork revision rather than whatever upstream GPUI happens to release. Adapter selection tests actual surface/device creation; fallback goes from hardware Vulkan to software Vulkan to GL. Old GPUs can require Lavapipe, and GL fallback still needs storage-buffer support. Direct flea-gui invocation bypasses launcher environment cleanup. This is Linux/Omarchy software, not a demonstrated cross-platform GPUI application. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/docs/gui-renderer.md">docs/gui-renderer.md</a>.</p>
+<h4>Security and permissions</h4>
+<ul><li><strong>Desktop user is the authority boundary.</strong> Flea reads and changes files with the user's normal permissions. Opening files invokes handlers; terminal, run-file, custom script and plugin features intentionally execute programs. This is not a safe viewer for arbitrarily trusted extensions or an agent execution sandbox.</li><li><strong>Local IPC has meaningful filesystem controls.</strong> The runtime must be an absolute owner-only directory; its child directory is created 0700, and endpoints must be owner-only Unix sockets. Stale endpoint cleanup checks identity. This is local-user isolation, not per-agent authorization: another process under the same account can use window actions. No web-server/CORS security model is needed for this Unix-socket surface. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/ipc/endpoint.rs">src/ipc/endpoint.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/ipc/action.rs">src/ipc/action.rs</a>.</li><li><strong>Ordinary plugin access labels are declarations, not permissions.</strong> The host directly spawns the executable in its folder, sets LC_ALL but does not clear the inherited environment or apply an OS filesystem/network jail. It imposes memory/open-file limits and process-group lifecycle management. A plugin with an empty access list still has user authority and potentially inherited credentials. Only the specialized previewer path uses the stronger thumbnail sandbox. Treat installing/enabling a plugin as running third-party software. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/PLUGINS.md">PLUGINS.md</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/plugin_runtime/process.rs">src/plugin_runtime/process.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/pluginpreview_sandbox.rs">src/backend/pluginpreview_sandbox.rs</a>.</li><li><strong>Plugin supervision is not side-effect rollback.</strong> JSON-line size/time/progress bounds and cancellation reduce hangs and malformed output. They cannot undo a partial upload or filesystem change if the process dies; a failed result does not prove nothing happened. Reconcile external state before retrying non-idempotent actions.</li><li><strong>Disk-image flashing is destructive authority.</strong> The helper obtains an exclusive descriptor through UDisks/polkit, checks drive identity and has a separate fail-closed confirmation at flash time. Discovery fallback can retain candidates if the helper fails; it must not be mistaken for successful final authorization. Verification checks written bytes, not whether the user chose the right disk. Never rely on file-operation undo to recover an overwritten drive. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/flashhelper.rs">src/backend/flashhelper.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/flashop.rs">src/backend/flashop.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/tools/flea-udisks">tools/flea-udisks</a>.</li></ul>
+<p>These are source-level boundary observations, not proof of a remotely exploitable flaw or an exhaustive audit of every helper, decoder, race or archive traversal path.</p>
+<h4>Providers, privacy and costs</h4>
+<p>Flea has no required AI provider, model download, token billing or Flea cloud account. Local file browsing is distinct from explicitly using sharing/network features.</p>
+<p>Provider discovery checks executable availability and bounded Dropbox account metadata; provider status is requested on explicit UI entry. Adapters include Dropbox, Taildrop/Tailscale, LocalSend CLI, rclone and owly. Their daemons, accounts, configured remotes, transport security and destination access policies remain separate trust dependencies. A detected executable is not evidence of an authenticated or usable provider. Sharing sends selected content to the chosen destination; a public/share link changes who can retrieve it. Account/storage/bandwidth charges can apply according to those providers; this review did not verify current pricing or execute any provider flow. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/providers.rs">src/backend/providers.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/localsend.rs">src/backend/localsend.rs</a>.</p>
+<p>The GIO authentication helper reads one password from stdin, suppresses output, chooses “never” when prompted to store it, refuses insecure continuation prompts and rejects a second password challenge. The GPUI Secret buffer masks Debug output and wipes its owned bytes on growth/clear/drop. Those are good practices, not a proof that every toolkit/OS/remote-service copy is erased or that existing provider credential stores disappear. Prefer encrypted share protocols and understand that NFS/plain protocols have different authentication/confidentiality assumptions. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/tools/flea-gio-auth">tools/flea-gio-auth</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/crates/flea-gui/src/g2/pl1/secret.rs">crates/flea-gui/src/g2/pl1/secret.rs</a>.</p>
+<p>Local privacy is not zero retention: last folders/tabs, favourites, plugin settings, shelf paths, recovery manifests, thumbnails and converted document previews may remain on disk. Tags are file xattrs and may travel with files depending on copy/backup behavior. There is no verified universal retention deadline or one-button secure erasure here. Do not put secrets in plugin settings; the extension contract specifically warns against it.</p>
+<h4>Persistence and recovery</h4>
+<p>Settings and shelf state have compatibility guards that preserve unsupported future/foreign documents rather than silently rewriting them. Malformed non-object ui.json can be retained as ui.json.broken before replacement. The state inventory documents cache families, desktop-default changes and leftover atomic-write scratch. It is useful operational documentation, but parts are a 0.3.12 compatibility baseline and not a complete current-feature inventory. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/docs/state-compat.md">docs/state-compat.md</a>.</p>
+<p>The shared undo journal resides under XDG_RUNTIME_DIR, so it should not be treated as durable across logout/reboot. Durable interrupted-trash recovery is separate under XDG state: records are synced before claiming data, and recovery rechecks identities and preserves unresolved leftovers. Freedesktop Trash payloads, shelf archives and recovery data are not disposable thumbnails. A cache purge is not a backup restore, nor does uninstall imply all user data/default changes were removed. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/undoshare.rs">src/backend/undoshare.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/backend/trashdelete/recovery.rs">src/backend/trashdelete/recovery.rs</a>.</p>
+<h4>License, tests and maturity</h4>
+<p>The actual root LICENSE is MIT, copyright 2026 GM: preserve the copyright and permission notice when redistributing substantial source. THIRD-PARTY-LICENSES inventories the runtime closure, including MPL-2.0 and other terms; root MIT does not relabel all bundled code/assets or external helper programs. No source extraction was performed. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/LICENSE">LICENSE</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/THIRD-PARTY-LICENSES.txt">THIRD-PARTY-LICENSES.txt</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/deny.toml">deny.toml</a>.</p>
+<p>Public metadata on 2026-11-10 showed repository creation on 2026-09-02, last push 2026-11-08, <strong>1,144 stars</strong>, <strong>122 forks</strong> and <strong>84 open issues/PRs combined</strong>. Latest release v0.4.1 was published 2026-11-08. These are freshness/adoption signals, not reliability metrics. The open issue sample includes a paste-destination UX request (<a href="https://github.com/thisisgm/flea/issues/449">#449</a>); requests are not automatically defects.</p>
+<p>The <a href="https://github.com/thisisgm/flea/actions/runs/42511418356">release run for this exact SHA</a> was reported successful by GitHub. The checked workflows pin action revisions, test/build both architectures, and run cargo test --locked --workspace --no-fail-fast through the release helper. Candidate branches replay the release build path. This does not establish continuous PR coverage or that every committed shell/UI/real-device suite runs in that hosted lane. PKGBUILD explicitly skips selected sandbox integration tests when namespaces are unavailable. Test files cover IPC bounds, filesystem identities, state upgrades, plugin protocols, rendering and recovery, but <strong>none were run in this review</strong>. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/.github/workflows/candidate.yml">.github/workflows/candidate.yml</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/.github/workflows/release.yml">.github/workflows/release.yml</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/packaging/flea-release-build">packaging/flea-release-build</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/PKGBUILD">PKGBUILD</a>.</p>
+<p>Security policy supports only the latest release. The recent renderer migration and two-month public history make compatibility/upgrade regression testing particularly important. A lockfile, license inventory and passing upstream CI are welcome; no fresh dependency vulnerability scan or reproducible binary/signature audit was performed. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/SECURITY.md">SECURITY.md</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Choose it when</td><td>Tradeoff relative to Flea</td></tr><tr><td><a href="https://apps.kde.org/dolphin/">Dolphin</a></td><td>Mature general-purpose GUI, rich desktop/network integration</td><td>More established ecosystem; benchmark results depend on matching views/workloads</td></tr><tr><td><a href="https://docs.xfce.org/xfce/thunar/start">Thunar</a></td><td>Conventional lightweight file management</td><td>Less of Flea's integrated preview/shelf/search workflow; stable alternative to retain during a pilot</td></tr><tr><td><a href="https://github.com/lgse/strata">Strata</a></td><td>Keyboard-first GTK4 alternative</td><td>Similar audience; compare current security/license and renderer behavior, not only startup claims</td></tr><tr><td><a href="https://github.com/sxyazi/yazi">Yazi</a></td><td>Terminal-first keyboard navigation</td><td>No equivalent promise of a native graphical desktop file-chooser replacement</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The recommended distribution is Omarchy's package repository for x86_64/aarch64. Default-manager/chooser registration is a separate user-level action affecting MIME associations, D-Bus and portal routing, plus desktop bindings. Try the app without claiming defaults first; keep a known-good file manager and backups, and release its integration before removing the package.</p>
+<p>Updates are handed to Omarchy's updater rather than replacing the binary with an arbitrary downloaded executable. The source updater distinguishes signed repository ownership from local/unowned builds. The root PKGBUILD intentionally contains an all-zero checksum placeholder: directly using it against a release download should fail verification. The documented development-build path skips checksums for a locally generated git archive; that transfers trust to the inspected checkout, it does not authenticate arbitrary downloaded tarballs. Builds fetch locked Cargo inputs including the GPUI fork, and require substantial native dependencies. <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/src/update.rs">src/update.rs</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/PKGBUILD">PKGBUILD</a>, <a href="https://github.com/thisisgm/flea/blob/e6044184bb7606a854bfefbd73cdbecf9970613a/docs/install.md">docs/install.md</a>.</p>
+<h4>Practical adoption gate</h4>
+<p>Pilot on a supported Omarchy session with backed-up, noncritical files. Before making it the default, validate real renderer/input behavior, Unicode and non-UTF-8 filename limitations, cross-device copies, collision/undo behavior, restart/logout recovery, representative remote shares and portal dialogs. Start without third-party plugins or device flashing. Treat extension installation and provider sharing as explicit trust decisions, and keep irreversible disk operations outside an automated trial.</p>
+<p><strong>Bottom line:</strong> strong desktop-engineering ideas and a plausible daily-driver candidate for willing Omarchy testers; static evidence alone is insufficient to entrust it with the only copy of important data or unattended high-authority actions.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A credible Omarchy pilot, not an unconditional default-manager recommendation. Strong identity-aware undo and preview isolation meet a recent renderer transition, unrestricted ordinary plugins and destructive device capabilities. Static review only; no tests or live integrations run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/thisisgm/flea">thisisgm/flea</a> · MIT; third-party terms separate</span>
+    <span><a href="flea.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [flea.md](reviews/flea.md) [page](reviews/flea.html) | [thisisgm/flea](https://github.com/thisisgm/flea) | MIT; third-party terms separate | ⚠️ Interesting | Omarchy Rust/GPUI file manager; strong identity-aware recovery and preview isolation, with plugin authority, retention and renderer-transition caveats. Static review. |
 | [busy.md](reviews/busy.md) [page](reviews/busy.html) | [MatiSolina/busy](https://github.com/MatiSolina/busy) | Apache-2.0; third-party terms | ⚠️ Interesting | Vercel-native durable AI coworkers with cloud computers; strong recovery, but legacy credential, authority, retention and cloud-cost caveats. Static review. |
 | [ember-cloudflare.md](reviews/ember-cloudflare.md) [page](reviews/ember-cloudflare.html) | [NYLLON-SOFTWARE/ember-cloudflare](https://github.com/NYLLON-SOFTWARE/ember-cloudflare) | MIT; asset/dependency terms separate | ⚠️ Interesting | Cloudflare-native team chat with strong revocation and dual storage; permanent file links, provider egress, recovery and usage-cost caveats. Static review. |
 | [awesome-gpui.md](reviews/awesome-gpui.md) [page](reviews/awesome-gpui.html) | [zed-industries/awesome-gpui](https://github.com/zed-industries/awesome-gpui) | CC0-1.0 catalog; linked terms vary | 📚 Study | Structured GPUI discovery catalog; useful shortlist, metadata and version drift, platform/accessibility and licensing caveats. Static review. |
