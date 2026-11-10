@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Busy — Review</title>
+<meta name="description" content="Durable AI coworkers, each with a Vercel-hosted runtime and Linux computer.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / busy</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">MatiSolina/busy · reviewed 2026-11-10</div>
+    <h1>Busy</h1>
+    <p class="one-liner">Durable AI coworkers, each with a Vercel-hosted runtime and Linux computer.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; third-party terms apply</span>
+      <span class="chip">TypeScript · Eve · Vercel · Postgres · Electron</span>
+      <span class="chip"><a href="https://github.com/MatiSolina/busy">MatiSolina/busy ↗</a></span>
+      <span class="chip"><a href="busy.md">Full evidence and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">49</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">7</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Durability is the standout</h3><p>Stable delivery IDs, generation-fenced deploys, deletion tombstones and outboxes make recovery a first-class concern. They are not independent proof of exactly-once external effects.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Cloud self-hosting, not local execution</h3><p>The local Hub does not replace Vercel projects, Sandbox/Drives, Blob or model connections. One shared workspace is not multi-tenant isolation, and subscription inference does not remove infrastructure costs.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Separate policy from authority</h3><p>Reviewed MCP connections use an allowlist proxy, while legacy paths retain broader credential behavior. Browser/shell authority exceeds the MCP approval gate; full Drive erasure and restore remain unverified.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Hub</td><td>Next.js 16 / React 19 / TypeScript</td></tr><tr><td>State</td><td>PostgreSQL / Drizzle / private Blob</td></tr><tr><td>Agent</td><td>Eve 0.91 / AI SDK 7</td></tr><tr><td>Work</td><td>Workflow / Queues / Schedules</td></tr><tr><td>Computer</td><td>Sandbox / Drive / Linux</td></tr><tr><td>Desktop</td><td>Electron / macOS arm64</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p><br>Busy is not a productivity timer. The Hub owns the application state; Electron is a thin macOS shell around it. Each bot runs in a separate Vercel project, with a long-lived Eve conversation and a Sandbox computer backed by a persistent Drive. That computer contains Chrome, a Linux desktop, command execution and Office/PDF tools. People can view/control it, attach files, schedule routines and have bots consult peers.</p>
+<p>“Self-hosted” means operating the stack in your own cloud accounts. Starting the local Hub and Postgres does not run the full bot system locally. One shared workspace is not multi-tenant isolation; multiple permitted logins do not create separate data or capability domains. Sources: <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/README.md">README.md</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/docs/architecture.md">docs/architecture.md</a>.</p>
+<p>### Durable work instead of a disposable chat</p>
+<p>The UI projects persisted messages/events; delivery identities survive retries. Deployment workflows fence writes by generation, and deletion uses tokens/tombstones. Routines combine schedules with outboxes. Recovery distinguishes an uncertain earlier outcome from permission to repeat an external action. These are strong patterns, although static inspection cannot establish exactly-once behavior across providers. See <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/docs/agent-execution.md">docs/agent-execution.md</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/workflows/deploy-bot.ts">apps/hub/workflows/deploy-bot.ts</a> and <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/workflows/delete-bot.ts">apps/hub/workflows/delete-bot.ts</a>.</p>
+<p>### A cloud computer and inspectable memory</p>
+<p><a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/sandbox.ts">templates/bot/agent/sandbox.ts</a> opens computers in iad1, mounts the bot Drive at /data and sets a 45-minute sandbox timeout. Consultations receive a snapshot and deny-all network policy; normal computer sessions do not receive that restrictive policy. Fireside discussions get a separate writable workspace plus a context snapshot. Memory uses an Eve file-memory abstraction backed by Hub APIs, with version/session/turn provenance—not model-weight learning (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/memory/memory.ts">templates/bot/agent/memory/memory.ts</a>).</p>
+<p>### Explicit provider and billing choices</p>
+<p>AI Gateway and Token Pass are distinct from ChatGPT/Grok subscription OAuth. Saved defaults apply to new bots; existing bots keep their selected connection. Subscription grants are encrypted in the Hub and refreshed server-side. Bots use OIDC-authenticated Hub inference; normalization enforces the selected model, streaming and store:false. Subscription failures do not silently switch to paid Gateway usage. This is supported by the routing design, not by live account validation. See <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/docs/ai-connections.md">docs/ai-connections.md</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/ai/inference.ts">apps/hub/lib/ai/inference.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/ai/subscription-store.ts">apps/hub/lib/ai/subscription-store.ts</a>.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Revision: 7ad291731948a949c90220952fd1dfcb6d99950a. Static review; no source tests run.</p>
+<p>Browser/Electron → authenticated Hub → Postgres/control-plane state → per-bot Eve project → model and Sandbox/Drive. Blob stores uploaded/generated bytes. Workflow owns longer lifecycles; Queues and Schedules deliver and reconcile work. A generated template bundle deploys bots without runtime access to an operator checkout.</p>
+<p>The separation is coherent: deployments, conversations and files can fail independently, and the Hub does not need an always-running process per task. The cost is a substantial cloud product graph, wildcard bot DNS, management credentials and coupling between Hub, template, image and external Eve runtime. Installing one package is insufficient.</p>
+<p><strong>Positive controls:</strong> scrypt hashing with timing-safe comparison; signed 30-day HttpOnly/SameSite cookies; cross-site write checks; optional allowlisted Vercel login; bot OIDC matched to persisted project ID, with unlinked compatibility off by default; short-lived ES256 Hub tokens. MCP OAuth uses AES-256-GCM with connection-bound associated data. MCP App iframes use a separate origin and restrictive default CSP/permissions. Evidence: <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/auth/password.ts">apps/hub/lib/auth/password.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/auth/session.ts">apps/hub/lib/auth/session.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/proxy.ts">apps/hub/proxy.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/bot-auth.ts">apps/hub/lib/bot-auth.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/mcp/crypto.ts">apps/hub/lib/mcp/crypto.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/mcp/app-sandbox.ts">apps/hub/lib/mcp/app-sandbox.ts</a>.</p>
+<p><strong>Limits that matter:</strong></p>
+<p>- <strong>Shared authority:</strong> skills and connections are app-wide. Bot separation is not user tenancy. A compromised Hub has management authority, stored data and decryption material; RLS does not remove the privileged server from trust.<br>- <strong>Approval is not a universal computer firewall.</strong> MCP writes request approval through Eve and ACLs are re-read per call. Reads can run without asking; classification trusts remote readOnlyHint or a name heuristic. Such metadata does not guarantee confidentiality or harmlessness. Browser/shell actions have a wider surface than this MCP policy, and prompt instructions are not a comprehensive external-effect gate (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/lib/approval.ts">templates/bot/agent/lib/approval.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/instructions.ts">templates/bot/agent/instructions.ts</a>).<br>- <strong>Reviewed and legacy MCP differ.</strong> Reviewed connections go through a Hub allowlist proxy; at this SHA the raw-token route refuses connections with a tool policy. Legacy connections can still receive provider tokens and call providers directly. Thus “all MCP credentials remain in the Hub” is too broad. The proxy checks membership; it is not a separate signed approval-receipt verifier for every action (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/connections/marketplace.ts">templates/bot/agent/connections/marketplace.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/app/api/bot/mcp/%5Bid%5D/token/route.ts">apps/hub/app/api/bot/mcp/[id]/token/route.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/mcp/model-proxy.ts">apps/hub/lib/mcp/model-proxy.ts</a>).<br>- <strong>Consultation identity is transitional.</strong> Pair-scoped credentials exist, but sending them requires BUSY_CONSULTATION_CREDENTIALS=1; legacy peer OIDC remains accepted unless BUSY_LEGACY_PEER_OIDC=off. The helper explicitly says neither switch is set by the Hub yet. Architecture prose about pair-scoped identity is therefore not a description of every default deployment. This is a deployment caveat, not a demonstrated exploit (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/lib/consultation-auth.ts">templates/bot/agent/lib/consultation-auth.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/channels/eve.ts">templates/bot/agent/channels/eve.ts</a>).<br>- <strong>Network guards are not a proven egress perimeter.</strong> MCP HTTPS/private-address validation, redirect checks and credential stripping are useful. DNS validation precedes ordinary fetch without a visibly address-pinned connection, so rebinding resistance remains unproven. No live probe was performed (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/mcp/network.ts">apps/hub/lib/mcp/network.ts</a>).<br>- <strong>Revocation is coarse.</strong> Logout removes the local cookie; verification is stateless. A copied valid session is not visibly revoked by logout itself. Shared-secret rotation also affects encrypted connection records, requiring a deliberate recovery procedure.</p>
+<p>Busy is not local-only or end-to-end-encrypted storage. Conversations, instructions, selected files and tool context can reach models; connected services receive tool arguments; browsed sites see bot traffic. Vercel hosts application and computer workloads; Postgres, Blob and Drives persist content. Subscription store:false is a request option, not erasure of Busy history or a universal provider-retention guarantee. Optional Speed Insights is gated by NEXT_PUBLIC_RUM=1 (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/rum/client.ts">apps/hub/lib/rum/client.ts</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/app/layout.tsx">apps/hub/app/layout.tsx</a>).</p>
+<p>The agent declares default workflow retention and a one-year session timeout, neither a global content TTL (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/templates/bot/agent/agent.ts">templates/bot/agent/agent.ts</a>). Deletion is unusually careful: stop code tasks, delete the project by immutable ID, remove schedules/Blobs, write a tombstone, cascade owned rows and sweep late uploads after 30 minutes. Repeated failures become an attention-needed state (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/hub/lib/bots/deletion.ts">apps/hub/lib/bots/deletion.ts</a>).</p>
+<p><strong>Deleting a bot is not independently verified erasure everywhere.</strong> No explicit Drive/snapshot deletion call was found in the inspected deletion path; provider-side consequences of project deletion were not independently verified. Code tasks and other bots' consultation records may survive with null references; tombstones intentionally persist. Provider logs, backups and model-service retention require separate policies.</p>
+<p>Recovery handles interrupted work, not automatically complete disaster recovery. Before real use, define consistent database/Blob/Drive backups, preserve keys securely, test restoration into a disposable installation and verify orphan cleanup. The handbook warns that changing SESSION_SECRET can make encrypted grants unreadable; HUB_SIGNING_KEY rotation also requires bot public-key updates. No complete restore drill was performed or independently established (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/docs/handbook.md">docs/handbook.md</a>).</p>
+<p>Public GitHub metadata retrieved on 2026-11-10 showed creation on 2026-11-09, 49 stars, 7 forks, zero open issues and last push at 12:43:20 UTC. These are a snapshot, not quality evidence. Release v0.5.0 was published 2026-11-09 with no attached binary assets; the reviewed desktop manifest is 0.5.1. The public project is very young despite substantial implementation and documentation.</p>
+<p>There are extensive route, database, OAuth, policy, wrapper and updater tests. CI defines frozen-lockfile installs, lint/type/build checks, affected-task planning and macOS desktop tests. GitHub reported <a href="https://github.com/MatiSolina/busy/actions/runs/42818167590">Ultracite run 42818167590</a> successful for the reviewed SHA. This is upstream evidence, <strong>not tests run by this review</strong>. Default tests use mocks/PGlite; browser tests, real-Postgres concurrency and live provider evals have separate opt-in requirements. A green default workflow does not prove production integration (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/docs/testing.md">docs/testing.md</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/.github/workflows/ultracite.yml">.github/workflows/ultracite.yml</a>).</p>
+<p>Dependencies are locked but include early-version orchestration packages, patched frontend dependencies and a SheetJS tarball hosted on its own CDN. Actions use version tags rather than immutable commit pins. No dependency vulnerability/provenance audit, load test or macOS validation was performed. Published latency measurements are author-reported baselines, not independently reproduced gains. No deployment, subscription, deletion or real-browser success is claimed by this review.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>Prefer it for</th></tr><tr><td>OpenWorker</td><td>Local desktop coworker and local permission boundary</td></tr><tr><td>Hermes Bot Mode</td><td>Named profiles in an existing Hermes installation</td></tr><tr><td>OpenMuse</td><td>Forkable single-owner assistant template</td></tr><tr><td>Eve directly</td><td>Durable runtime without the full product control plane</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><br>- Node.js ≥24.15, pinned pnpm 12.16.1 and PostgreSQL; Docker supplies the documented local database example. Native packaging targets Apple Silicon macOS; the browser is the other client. The documented model path requires no local GPU or weight download.<br>- Full operation needs operator-owned Vercel Hub/bot projects, database, private Blob, Registry image, Sandbox/Drives, Workflow/Queues/Schedules, DNS and a model connection. Per-bot projects consume quotas. Account availability and free-tier sufficiency were not validated.<br>- Models, peer/fireside turns, coding tasks, embeddings, compute, retained storage and traffic can all cost money. Subscription inference does not make infrastructure free. Set separate provider/infrastructure budgets; no unified hard end-to-end spending cap was established here. Live provider eligibility, terms, consent and quotas remain account-dependent.<br>- Bot deployment requires a digest-pinned image, a useful safeguard. Building it still uses a tag-based Eve base, current Chrome, apt and unpinned Python packages. A digest pins the resulting output, not the safety or reproducibility of those ingredients (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/images/bot-base/Dockerfile">images/bot-base/Dockerfile</a>).<br>- Desktop defaults to the official hosted Hub unless BUSY_URL is overridden. Updates require confirmation, check SHA-256/bundle identity and use rollback-aware swapping. Hash and archive come from the same configured Hub—not independent publisher-signature verification. The manifest uses ad-hoc signing and disables hardened runtime; do not assume notarization (<a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/desktop/main.mjs">apps/desktop/main.mjs</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/desktop/update.mjs">apps/desktop/update.mjs</a>, <a href="https://github.com/MatiSolina/busy/blob/7ad291731948a949c90220952fd1dfcb6d99950a/apps/desktop/package.json">apps/desktop/package.json</a>).<br>- db:init is only for an empty database; upgrades require ordered migrations. Coordinate Hub, bot and image releases and verify a real first response/computer after deployment.</p>
+<p>Start with one disposable bot, synthetic files, no valuable logged-in browser accounts and a minimal reviewed MCP allowlist. Require consent for external effects, retire legacy credentials, set budgets, check image provenance and prove interruption recovery plus cleanup. Then test backup restoration and OAuth/quotas before expanding. Worth studying and piloting for cloud-native durable coworkers; unsuitable as-is for offline operation, minimal infrastructure, strict tenant isolation or independently proven deletion guarantees.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong durable orchestration and explicit billing, but not a local or turnkey assistant. Pilot with disposable data: broad computer authority, legacy credential paths, cloud costs and unverified full erasure remain material limits.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/MatiSolina/busy">MatiSolina/busy</a> · Apache-2.0; third-party terms apply</span>
+    <span><a href="busy.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
