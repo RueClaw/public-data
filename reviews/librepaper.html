@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LibrePaper — Review</title>
+<meta name="description" content="Collaborative technical writing across source formats, with a consequential desktop execution boundary.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / librepaper</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">LibrePaper/librepaper · reviewed 2026-11-10</div>
+    <h1>LibrePaper</h1>
+    <p class="one-liner">Collaborative technical writing across source formats, with a consequential desktop execution boundary.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; dependency terms separate</span>
+      <span class="chip">Rust · PostgreSQL · Loro · Svelte · Tauri</span>
+      <span class="chip"><a href="https://github.com/LibrePaper/librepaper">LibrePaper/librepaper ↗</a></span>
+      <span class="chip"><a href="librepaper.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">111</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Desktop server trust means native execution</h3><p>The authenticated local bridge is carefully bounded, but native tools run with user permissions. The served Run code switch is not an independent security gate against a compromised trusted server.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Portable source is not complete recovery</h3><p>Exports preserve project source and assets. Desktop ZIP copies omit comments/history and retain only the latest copy; server backup manifests can warn about missing source objects while verifying the bytes they did copy.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Real collaboration, qualified format support</h3><p>Loro, stable file identities, source-linked review and mutation-time authorization are substantive. Browser Quarto is a non-executing subset; native tools and external agents introduce additional trust and cost.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Server</td><td>Axum/Tokio; PostgreSQL and immutable objects</td></tr><tr><td>Editor</td><td>Svelte 5; CodeMirror 6; Loro CRDT</td></tr><tr><td>Render</td><td>Browser WASM and optional native tools</td></tr><tr><td>Desktop</td><td>Tauri 2; authenticated loopback companion</td></tr><tr><td>Revision</td><td>2c58e8aff047dad024b8ec18aa26156f28cda87e</td></tr><tr><td>Verification</td><td>Static review; no local tests. Exact-SHA upstream CI reports success.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Source-first collaboration with stable file identities</h4>
+<p>The document separates opaque file IDs from paths. Renames therefore do not inherently orphan comments; assets are addressed by digest, and source is authoritative rather than rendered HTML. PostgreSQL holds update logs with compressed base snapshots and compaction. Browser IndexedDB persistence appends deltas and compacts them, providing local recovery for opened editor projects. This is meaningful implementation, not just a realtime-editing claim. It does not prove every disconnected merge or annotation survives correctly. [S2]</p>
+<h4>Several formats, not universal interchange</h4>
+<p>Browser rendering chooses PDF for LaTeX/Typst and flow HTML for Markdown/Quarto/HTML. Quarto's browser path explicitly implements a subset: it does not execute code, filters, shortcodes or JavaScript. Full Quarto work needs the native toolchain. Browser LaTeX availability depends on a configured asset mirror. Native command records expose selected PDF/HTML/DOCX outputs, with configurable commands; DOCX output is not evidence of Word track-change/comment round-tripping or DOCX authoring support. [S3]</p>
+<p>CLI export captures text and digest-verified assets into a new directory, stages before publishing the result, and refuses an existing destination. Historical export requests a named-version archive. These are independent source snapshots, not a live sync folder and not a portable copy of all review state. Git transfer is separate: the sync crate tracks base state, pending pushes, conflict refusals and source-change operations. The README's narrow CLI summary does not capture all of the newer Git workflow documented elsewhere. [S4]</p>
+<h4>Agent integration with actual tool-side authority</h4>
+<p>External tokens are scoped to one project and Read/Comment/Edit permissions; Edit includes direct edits and file creation/deletion, not only suggestions. The server rechecks authorization at mutation time rather than relying solely on a previously admitted request. Built-in desktop delegation uses a five-minute document/link grant and rejects bearer-based or cross-origin attempts to mint it. Runtime permission logic refuses stale/cancelled turns, auto-allows permitted LibrePaper tools during a live task and asks for other requests. These controls constrain LibrePaper authority, not everything an independently installed agent can do. [S5]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The workspace separates base utilities/protocols, document representation, persistence engine, live rooms, HTTP server, CLI, companion and Git sync. The web shell is embedded in the application build, while browser rendering engines are consumed from sibling LibrePaper WASM repositories via asset pins. A production request flows through origin resolution and identity/access checks to room/storage operations; the desktop shell separately mediates local-feature requests into its loopback service. [S2, S3, S5, S6]</p>
+<p>Particularly useful patterns are typed authorization rungs with mutation-time revalidation, immutable object references in backups, source-based comment identity, staged exports, and distinct render-success versus fresh-output checks. Bound process lifetime/output and rejecting stale outputs are good reliability measures, but not sandboxing. [S4–S7]</p><h4>Security, permissions and privacy</h4><h4>The decisive desktop trust boundary</h4>
+<p>The local service uses a private per-instance bearer credential, validates the configured server origin, rejects ordinary browser-origin requests, checks Host, and proves possession of its control token during discovery. The shell only forwards trusted-origin requests. This is substantially better than an unauthenticated browser-accessible localhost API. [S6]</p>
+<p><strong>However, the trusted server is an execution authority.</strong> Native rendering constructs a subprocess in the project workspace and passes it to a bounded supervisor. The supervisor explicitly states that it is process hygiene, not a security boundary, and runs with the caller's permissions. The Run code switch lives in the served page: the architecture documentation explicitly acknowledges that a compromised server or injected application script can start builds without that switch, and that collaborative documents can execute collaborators' code locally. A “confined runner” phrase in a render-module comment must not be read as an OS sandbox guarantee. Local working-directory/path validation does not prevent a Quarto program from accessing other files or the network. [S6]</p>
+<p>Use the browser when native execution is unnecessary. For untrusted executable projects, use a separately isolated account or disposable environment with no valuable credentials; do not equate a server-origin allowlist with trustworthy project contents. This review did not attempt an exploit.</p>
+<h4>Authentication and capability handling</h4>
+<p>Self-hosting supports GitHub, Google, Entra, ORCID and configured OIDC providers. Provider policy controls publishing/commenting; the sample enables any GitHub account as a publisher, so restrict it for a private deployment. Identity-provider disablement does not immediately invalidate existing application sessions. Sessions default to 30 days; logout clears the browser cookie but does not revoke a copied session. These are documented lifecycle limits, not claims of a bypass discovered here. [S5, S8, S9]</p>
+<p>Read links expose source files as well as the rendered document. Comment/edit links require sign-in in the documented hosted policy. Share links and agent tokens are bearer capabilities: pasting agent connection instructions into model chat exposes the token to that provider and retained chat history. Environment/MCP configuration avoids the chat copy but remains sensitive local state. The CLI has an origin-keyed JSON token cache; that is not an OS-keychain guarantee. [S5, S9]</p>
+<h4>Network and provider flows</h4>
+<p>The application and published-document origins must use different hosts, not merely different ports. The server rejects an identical-host configuration. This protects application cookies/DOM from active document content, but published HTML can still load external resources and contact third parties; it is not a network-isolation or anti-tracking promise. [S5, S9]</p>
+<p>Hosted operators can read documents: no end-to-end encryption. The hosted privacy policy says data/backups are in Canada, no access logs/IP retention, and aggregate operational metrics are retained for 400 days. These are operator statements, not audited deployment facts. Browser asset/LaTeX mirror requests reveal IP and requested packages; embedded remote resources reveal reader traffic. Agents run locally but their selected AI service sees the content they read. Git uses the user's existing helper or SSH identity; the application does not need a new central GitHub credential to sync. [S4, S9]</p>
+<p>No model service is required for ordinary editing. Optional agents bring their own credentials, subscriptions/API costs and provider retention policies. Adapter installation/fallback acquisition adds npm supply-chain trust. Self-hosting still incurs server, database, storage, egress and backup costs; there is no validated operating-cost benchmark here. [S8, S9]</p><h4>Persistence and recovery</h4><ul><li><strong>Live state:</strong> PostgreSQL plus referenced objects must be backed up together. The session-signing key and deployment credentials also need protected recovery copies. Source history and named versions persist until deletion/trim; chat has its own retention behavior. [S2, S7, S8]</li><li><strong>Browser state:</strong> opened editor projects and caches remain on the device; clearing site storage removes local copies. Revoking server access is not remote erasure of downloaded data. [S2, S9]</li><li><strong>Desktop ZIP copies:</strong> only the latest ZIP per project is retained; source/assets only, no comments/history, and only server-saved changes. Restore imports a new project. Turning backups off or deleting the project leaves existing ZIPs on disk; shared projects can be included. [S7]</li><li><strong>Server backups:</strong> the implementation captures a consistent PostgreSQL snapshot and immutable referenced objects, records lengths/digests and verifies them. Importantly, it can report a “verified backup” while recording and warning about missing objects already absent from the source. Check the manifest's missing list; verified copied bytes are not proof of a complete original dataset. The standalone admin backup command does not itself encrypt or schedule copies. [S7]</li><li><strong>Hosted retention policy:</strong> inactive accounts are erased after 365 days without warning email; their owned shared documents go too. Deleted projects ordinarily spend seven days in trash. Offsite retained backups may preserve deleted data for about eleven weeks, longer if backup jobs stop. Other people's comments/chat attributed to an erased user may remain as “Deleted user.” These hosted settings are not universal self-hosting defaults. [S9]</li></ul>
+<p>Test full restore and source-only import separately. Restoring an older server backup can resurrect state predating deletion; the documented restore does not independently replay account-erasure requests. [S2, S7]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Need</td><td>LibrePaper</td><td>Alternative</td></tr><tr><td>LaTeX collaboration</td><td>Multi-format source review</td><td>Overleaf</td></tr><tr><td>Markdown collaboration</td><td>Broader rendering and desktop scope</td><td>HedgeDoc</td></tr><tr><td>Computational publishing</td><td>Browser subset plus native execution</td><td>Quarto + Git</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>A maintained PostgreSQL deployment, object data, two public hosts, HTTPS and at least one OAuth/OIDC provider are operational requirements. The bundled deployment helper validates candidate configuration, checks readiness and preserves settings during upgrades. Schema migrations run at startup; the helper refuses downgrade, so rollback is a restore/migration compatibility problem rather than simply selecting an older image. [S8]</p>
+<p>Release kits pin LibrePaper images by digest; PostgreSQL/Caddy use version tags. Upgrade attestation verification uses a pinned cosign image, but the simple first-install download/extract recipe does not itself verify the first kit. Verify initial provenance before executing it, and avoid the explicit unverified/skip-backup escape hatches. Tauri updater configuration contains a verification public key and GitHub release endpoint; release workflows describe signed Windows and signed/notarized macOS packaging. No downloaded binary signature was independently checked. [S8, S10]</p>
+<p>CLI targets include Linux x86-64/aarch64, macOS Intel/Apple Silicon and Windows x86-64; native desktop builds need platform webview/tooling. Optional desktop rendering requires installed LaTeX/Typst/Quarto and relevant R/Python dependencies; Claude/Codex adapters require Node.js 22+. Browser WASM packaging does not imply complete offline operation or renderer parity. [S1, S3, S10]</p><h4>Maturity and verification</h4><p>The actual root MIT license permits reuse with its notice. The vendored CodeMirror visual-markup notice is retained; fonts, photo assets, WASM engines and transitive packages need their own license inventory. Cargo/Bun and browser asset lockfiles support reproducibility; digest-pinned WASM assets are a useful supply-chain control, not a review of the sibling renderer implementations. No dependency vulnerability scan or full license audit was performed. [S1, S10]</p>
+<p>Public metadata observed on 2026-11-10: created 2026-09-02, 111 stars, 5 forks, 15 open issues/PRs combined, last push 2026-11-10. Latest release v0.0.71 was published November 9. These indicate a young, actively changing project, not production reliability. The reviewed main SHA is distinct from the release target. [M1, M2]</p>
+<p>CI defines Rust formatting/lint/tests, browser tests, PostgreSQL integration, SQLx cache checking, backup-sidecar restore drills, deploy-kit exercises and platform companion checks. PostgreSQL-dependent tests can skip when not configured; the dedicated job matters. The workflow explicitly omits a Quarto PDF-preview integration case after unexplained runner termination, retaining a separate native rendering test. Some Actions use moving version tags rather than commit pins. [S10]</p>
+<p>GitHub reports the <code>ci</code> run for the exact reviewed SHA as completed/successful: <a href="https://github.com/LibrePaper/librepaper/actions/runs/42692194050">run 42692194050</a>. This is upstream execution evidence, not tests run by this review, nor proof that every optional path executed. No performance, accessibility, concurrency, security or round-trip claim was independently reproduced.</p><h4>Adoption gates</h4><p>Inspected manifests, core origin/access and agent-delegation paths, desktop forwarding/control authentication, native rendering/process supervision, source export/sync, offline persistence, backup implementation, deployment documentation and CI definitions. No source code was executed. Renderer sibling repositories, production configuration, full dependency graph, binary attestations and end-to-end behavior were not audited.</p>
+<p>Before adopting: (1) test representative projects and export fidelity, (2) exercise disconnect/reconnect and comment anchoring, (3) prove complete server restore including missing-object handling, (4) shorten/restrict identity and sharing authority, and (5) decide explicitly whether the server and every coauthor may influence native code run on your computer.</p><h4>Commit-pinned evidence</h4><p>All S-links refer to the exact reviewed commit; paths within each group identify supporting implementation and documentation.</p>
+<ul><li><strong>S1 — Identity/packaging:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/README.md">README</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/Cargo.toml">Cargo manifest</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/LICENSE">LICENSE</a>.</li><li><strong>S2 — State model:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/architecture/document.md">document/storage</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/web/src/lib/offline-persistence.js">offline persistence</a>.</li><li><strong>S3 — Render paths:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/web/src/lib/renderers.js">renderers.js</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/web/src/lib/engines/quarto.js">Quarto subset</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-companion/src/local/render/tool.rs">native command records</a>.</li><li><strong>S4 — Portability:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper/src/cli/export.rs">export</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-sync/src/push.rs">sync push</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/git.md">Git guide</a>.</li><li><strong>S5 — Authority:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-server/src/server/access.rs">access guard</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-server/src/server/origins.rs">origin checks</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-server/src/server/agent_auth.rs">desktop grants</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-companion/src/assistant/runtime.rs">runtime permissions</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-server/src/server/signin.rs">sign-in/logout</a>.</li><li><strong>S6 — Native trust:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/architecture/local-service.md">local-service architecture</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-companion/src/local/render/mod.rs">render execution</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-base/src/process.rs">process supervisor</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-companion/src/local/service/control.rs">control auth</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/desktop/src/main.rs">desktop forwarding</a>.</li><li><strong>S7 — Recovery:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-engine/src/storage/backup.rs">server backup</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/backups.md">desktop backups</a>.</li><li><strong>S8 — Operations:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/host/simple.md">simple deployment</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/host/security.md">security/upgrade guide</a>.</li><li><strong>S9 — Privacy/providers:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/privacy.md">privacy</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/docs/agents.md">agents</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/crates/librepaper-companion/src/local/credentials.rs">token cache</a>.</li><li><strong>S10 — Supply chain/CI:</strong> <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/.github/workflows/ci.yml">CI</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/assets.lock">asset pins</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/desktop/tauri.conf.json">desktop updater</a>, <a href="https://github.com/LibrePaper/librepaper/blob/2c58e8aff047dad024b8ec18aa26156f28cda87e/web/package.json">web manifest</a>.</li><li><strong>M1:</strong> <a href="https://api.github.com/repos/LibrePaper/librepaper">Public repository metadata</a>, retrieved 2026-11-10.</li><li><strong>M2:</strong> <a href="https://github.com/LibrePaper/librepaper/releases/tag/v0.0.71">v0.0.71 release</a>, metadata retrieved 2026-11-10.</li></ul>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot browser-first with non-sensitive work. Strong source collaboration, mutation-time authorization and recovery engineering do not make the native tool runner a sandbox, or source ZIP copies complete backups.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/LibrePaper/librepaper">LibrePaper/librepaper</a> · MIT; dependency terms separate</span>
+    <span><a href="librepaper.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

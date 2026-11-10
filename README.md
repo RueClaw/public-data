@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [librepaper.md](reviews/librepaper.md) [page](reviews/librepaper.html) | [LibrePaper/librepaper](https://github.com/LibrePaper/librepaper) | MIT; dependency terms separate | ⚠️ Interesting | Collaborative multi-format technical writing; strong authorization, but native execution, format fidelity and backup-completeness caveats. Static review. |
 | [nchudleigh-oma-cast.md](reviews/nchudleigh-oma-cast.md) [page](reviews/nchudleigh-oma-cast.html) | [nchudleigh/oma-cast](https://github.com/nchudleigh/oma-cast) | MIT; component terms separate | ⚠️ Interesting | Omarchy launcher fork with clipboard, dictation integration and optional Rust search; privacy defaults and persistence recovery caveats. Static review. |
 | [omanova.md](reviews/omanova.md) [page](reviews/omanova.html) | [shaggyrs6-netizen/omanova](https://github.com/shaggyrs6-netizen/omanova) | MIT code; mixed data terms | ⚠️ Interesting | Omarchy astronomy dashboard with careful uncertainty handling, manual runtime upkeep and dated catalogues. |
 | [flea.md](reviews/flea.md) [page](reviews/flea.html) | [thisisgm/flea](https://github.com/thisisgm/flea) | MIT; third-party terms separate | ⚠️ Interesting | Omarchy Rust/GPUI file manager; strong identity-aware recovery and preview isolation, with plugin authority, retention and renderer-transition caveats. Static review. |
