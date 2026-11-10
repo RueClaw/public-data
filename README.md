@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ember-cloudflare.md](reviews/ember-cloudflare.md) [page](reviews/ember-cloudflare.html) | [NYLLON-SOFTWARE/ember-cloudflare](https://github.com/NYLLON-SOFTWARE/ember-cloudflare) | MIT; asset/dependency terms separate | ⚠️ Interesting | Cloudflare-native team chat with strong revocation and dual storage; permanent file links, provider egress, recovery and usage-cost caveats. Static review. |
 | [awesome-gpui.md](reviews/awesome-gpui.md) [page](reviews/awesome-gpui.html) | [zed-industries/awesome-gpui](https://github.com/zed-industries/awesome-gpui) | CC0-1.0 catalog; linked terms vary | 📚 Study | Structured GPUI discovery catalog; useful shortlist, metadata and version drift, platform/accessibility and licensing caveats. Static review. |
 | [voxl.md](reviews/voxl.md) [page](reviews/voxl.html) | [tembo/voxl](https://github.com/tembo/voxl) | MIT source; x264 binary GPL caveat | ⚠️ Interesting | Browser desktop streaming with agent APIs; strong pipeline, broad desktop/file authority and benchmark caveats. Static review. |
 | [hyprglass.md](reviews/hyprglass.md) [page](reviews/hyprglass.html) | [hyprnux/hyprglass](https://github.com/hyprnux/hyprglass) | BSD-3-Clause; MIT protocol | ⚠️ Interesting | Hyprland glass renderer with cache and unload safeguards; ABI, GPU/HDR and runtime-config recovery caveats. Static review. |
