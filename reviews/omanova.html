@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OMANOVA — Review</title>
+<meta name="description" content="A local astronomy Observatory and satellite-pass bar widget for Omarchy Quattro.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omanova</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">shaggyrs6-netizen/omanova · reviewed 2026-11-10</div>
+    <h1>OMANOVA</h1>
+    <p class="one-liner">A local astronomy Observatory and satellite-pass bar widget for Omarchy Quattro.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code · separately licensed data</span>
+      <span class="chip">QML · Python · Skyfield · Quickshell</span>
+      <span class="chip"><a href="https://github.com/shaggyrs6-netizen/omanova">shaggyrs6-netizen/omanova ↗</a></span>
+      <a class="chip" href="https://github.com/shaggyrs6-netizen/omanova/tree/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf">Reviewed source</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Geometry, not guaranteed sightings</h3><p>Freshness gates and explicit uncertainty are real implementation features. Plume predictions need sourced timed trajectories; none are bundled for real launches.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Per-feed consent is not global offline mode</h3><p>Orbital and weather requests default off, but live launch schedules and NOAA guidance are fetched separately. Opted-in weather sends rounded coordinates.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>A promising early release with maintenance costs</h3><p>The foreground worker has no supervisor, and plugin/runtime versions must remain aligned. The comet catalogue expires on 17 November 2026; MIT does not cover all bundled data.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Desktop</td><td>Omarchy Quattro / Hyprland / Wayland / Quickshell</td></tr><tr><td>Runtime</td><td>Python 3.12+, Skyfield, SGP4, NumPy, jplephem, certifi</td></tr><tr><td>Storage</td><td>Private JSON, flock, atomic replacement</td></tr><tr><td>Revision</td><td>ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf (v0.1.1)</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4>
+<p>OMANOVA is the renamed Omasky project. The plugin ID now ends in <code>omanova</code>; runtime state and environment variables intentionally retain <code>omasky</code> / <code>OMASKY_</code> names. The bar opens a standalone Observatory, with a compact panel fallback. Users enter a location manually; this is not a geolocation service.</p>
+<p>It combines ISS/Tiangong predictions, weather context, orbit tracks, Moon/planet calculations, meteor/eclipses/comet views, launch schedules, experimental plume/Starlink screens, NOAA aurora guidance, a regional dark-site catalogue, and a local observing log. Breadth does not imply uniform validation: the station predictor has a specific independent trajectory regression; many other views are approximate geometry or dated source snapshots.</p>
+<h4>Key Features and Evidence</h4>
+<h4>Geometry is not a sighting guarantee</h4>
+<p><a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/astronomy.py">astronomy.py</a> predicts passes locally, samples approximately every two seconds, and requires a sunlit station, at least 10° elevation and Sun altitude no higher than −6°. Windows must last at least ten seconds. Elements older than 72 hours at the pass are labelled stale and kept off the bar; over seven days are excluded. <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/conditions.py">conditions.py</a> grades weather over the viewing interval and excludes poor conditions from bar candidates. Terrain, brightness and real cloud breaks are not modelled.</p>
+<h4>Useful restraint in speculative views</h4>
+<p><a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/observatory/plumes/plumes.py">plumes.py</a> requires fresh schedule data, a sufficiently precise go-for-launch time and matching sourced timed ascent samples. No real verified trajectory file is bundled, so this is infrastructure for a future capability, not a working catalogue of guaranteed plume sightings. Starlink trains test compact group geometry rather than apparent magnitude; NOAA sightlines are not a calibrated local aurora probability.</p>
+<p>The comet positions expire at 2026-11-17 00:00 UTC. Meteor entries cover a limited November 2026–April 2027 selection; dark-sky sites are five regional examples, not a worldwide location-aware directory. These constraints are stated in the <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/README.md">README</a>.</p>
+<h4>Privacy controls are per feed, not a global offline switch</h4>
+<p>Orbital downloads, weather and notifications default off. Weather additionally requires orbital/network refresh enabled and transmits coordinates rounded to two decimals to Open-Meteo. CelesTrak calls do not include observer coordinates. But the live Observatory fetches Launch Library 2 when opened and the aurora view fetches NOAA separately: turning off orbital/weather switches does <strong>not</strong> make the live UI fully offline. Providers still see ordinary connection metadata such as the public IP. Clicking source/map/webcast links opens an external browser.</p>
+<p>Evidence: <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/worker.py">worker.py</a>, <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/preview-observatory">preview-observatory</a>, <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/observatory/aurora/aurora.py">aurora.py</a>.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4>
+<p>The small bar plugin is only one component. <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/SkyState.qml">SkyState.qml</a> watches the snapshot, retains the last parsable version and invokes a separate Python runtime for settings changes. The runtime is a permanent checkout reached via a data-directory symlink. <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/worker.py">worker.py</a> serializes refreshes/settings mutations under flock, computes predictions, writes snapshots and, in watch mode, checks alerts once per minute.</p>
+<p>Standalone QML pages launch focused Python modules on demand. Live launch/weather/orbit state is split between the user data directory and checkout-local .preview caches; some page outputs go into a freshly created temporary runtime directory. This modularity makes fixture previews convenient, but cache ownership and lifecycle are more complex than a single packaged application.</p>
+<p>The worker downloads at most once per station query per two hours; HTTP errors can latch an orbital source into a blocked state until explicitly resumed. Cached data survive fetch failures and freshness is surfaced. The UI's live snapshot staleness indicator does not restart a failed worker.</p>
+<h4>Security and Privacy Boundaries</h4>
+<ul><li><strong>Same-user desktop code, not sandboxed plugin code.</strong> QML can spawn processes, the launcher invokes Bash and Hyprland control commands, and Python reads/writes local files. No privileged daemon, network listener, authentication server, API key or account requirement was found in the reviewed paths. Installing the plugin/runtime grants normal user-process authority; a benign-looking manifest is not a permission sandbox.</li><li><strong>Good transport limits.</strong> The shared JSON fetcher uses certificate validation, a ten-second timeout, response-size limits and a redirect-denying handler. Network/cache data receive purpose-specific validation. User locations are range/finite-value checked; log input has length limits.</li><li><strong>No obvious shell interpolation of user settings.</strong> The UI uses process argument arrays; notifications use subprocess arguments with a separator and escaped body text. This is positive evidence, not a claim of a complete security audit.</li><li><strong>Link validation is narrower than a public-destination policy.</strong> Launch webcast normalization accepts credential-free HTTPS URLs with a hostname, but does not enforce a domain allowlist or reject private/loopback IPs. These links are user-clicked, not automatically fetched by that helper; still treat third-party links as untrusted. See <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/observatory/events/launches.py">launches.py</a>.</li><li><strong>Local does not mean encrypted.</strong> Coordinates, notes and alert history are plaintext JSON. The CLI sets umask 077 and new state directories use mode 0700; it does not repair permissions on pre-existing directories. Backup/access discipline still matters.</li></ul>
+<h4>Persistence and Recovery</h4>
+<p>Writes use a temporary file, flush/fsync and atomic replacement under locks. This reduces partial JSON reads and concurrent edits, but the parent directory is not fsynced and no backup/version history is provided. Settings/cache reads can fall back to defaults on malformed JSON; malformed persisted settings may therefore appear lost or be replaced by later edits. Existing observing logs instead reject invalid formats rather than silently reinitializing them; the entire log is loaded and rewritten on append, without a total-entry cap. See <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/observatory/observing-log/observing_log.py">observing_log.py</a>.</p>
+<p>The notification ledger is updated after successful notify-send, so a crash between delivery and ledger persistence can cause a duplicate: this is best-effort deduplication, not exactly-once delivery. A deleted ledger similarly loses deduplication history. Orbital HTTP blocks need explicit recovery; optional watchlist/train recovery currently involves closing the UI and backing up/moving the relevant cache.</p>
+<h4>Tests, Maturity and Claims</h4>
+<p>There are 43 test methods across 14 Python test files. <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/tests/test_astronomy.py">test_astronomy.py</a> compares one ISS pass against interpolated NASA/JSC trajectory samples with 15-second timing, 1° elevation and 3° bearing tolerances. That is stronger evidence than comparing only against the same propagator. The Tiangong comparison uses a dense scan of the same published elements/model, so it is a consistency check, not an independent orbit validation. Other tests cover opt-in/rate limits, stale inputs, weather boundaries, log persistence and feature fixtures.</p>
+<p>The README reports Wayland and live-session smoke tests; those are author claims, not reproduced here. No CI workflow, dependency lock with hashes, or automated GUI compatibility coverage was found in the snapshot. Unit tests need the external DE440s asset and installed dependencies. None were run during this static review.</p>
+<p>Public GitHub metadata checked on 2026-11-10: repository created 2026-11-09, last pushed 2026-11-09, 4 stars, 1 fork, 0 open issues. Tags v0.1.0 and v0.1.1 exist; v0.1.1 resolves to the reviewed SHA and its release was published 2026-11-09. These are maturity context, not quality guarantees. Only a shallow checkout was acquired; earlier development history and release binaries were not audited.</p>
+<h4>License and Reuse</h4>
+<p><a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/LICENSE">LICENSE</a> is MIT, copyright 2026 Lee Shand: preserve its notice in code reuse. <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/DATA-SOURCES.md">DATA-SOURCES.md</a> explicitly separates provider rights: the COBS-derived catalogue includes CC BY-NC-SA 4.0 data, and Open-Meteo's free hosted API is non-commercial. The whole repository is therefore not an unrestricted MIT-only data bundle. Natural Earth is identified as public domain; other sources retain their usage/attribution obligations. No source code or datasets were extracted for reuse in this review.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Stellarium</td><td>Broad interactive planetarium rather than Omarchy bar integration</td></tr><tr><td>Gpredict</td><td>Dedicated satellite tracking rather than mixed astronomy dashboard</td></tr><tr><td>Skyfield</td><td>Scriptable calculations without this ready-made desktop UI</td></tr><tr><td>NASA Spot the Station</td><td>ISS sighting information without maintaining this runtime</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Installation, Updates and Removal</h4>
+<p><a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/setup-runtime">setup-runtime</a> creates a checkout-local virtualenv using system Python, installs exact package versions, downloads DE440s via HTTPS and verifies a hard-coded SHA-256. It refuses to replace an existing runtime symlink pointing elsewhere. It does not install a service, timer or autostart, and does not rewrite desktop configuration itself.</p>
+<p>Important limits:</p>
+<ol><li>Version pins are not a hash-locked Python supply chain. The requirements have no wheel hashes, and compatible wheel availability was not checked. Setup can leave a partly prepared checkout after failure; it is not an atomic release transaction.</li><li>Runtime and plugin are installed separately. The README pins the runtime checkout to v0.1.1 but gives an unqualified repository URL to the plugin installer. Without validating Omarchy's installer resolution, matching plugin/runtime revisions cannot be assumed. Keep both aligned when updating.</li><li>Omarchy Quattro APIs, Quickshell and the launcher's Hyprland <code>hyprctl eval</code>/hl interface are specific dependencies, not a generic Linux desktop promise. No compatibility matrix or exact desktop version bounds were found.</li><li>A foreground watch process must remain alive for periodic updates and alerts. There is no supervisor/restart policy. Alerts also require fresh favourable weather, so merely enabling alerts without usable opted-in weather is insufficient.</li><li>The documented migration disables the old plugin, preserves the existing runtime location, changes to the renamed repository/tag and reruns setup. State intentionally remains under the old name. No general schema migration or automatic downgrade path was found.</li></ol>
+<p>Before a real upgrade, stop the worker, back up profiles/logs and relevant caches, record both revisions, and use a clean checkout. A source checkout rollback alone does not roll back the virtualenv, plugin copy or JSON schema. Recreate a matching dependency environment and restore data only deliberately. These are recommendations, not operations performed in this review.</p>
+<p>Removal is documented as stopping the worker/window and removing the plugin; it deliberately keeps user data. Retiring the runtime additionally requires verifying and unlinking its pointer and moving the checkout. Checkout-local caches and temporary runtime directories are separate from retained logs. The preview launcher creates a temporary runtime directory and execs Quickshell without an explicit cleanup trap; cleanup is not a complete uninstall workflow. See <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/README.md">README</a> and <a href="https://github.com/shaggyrs6-netizen/omanova/blob/ab4d12d3ef06c62d223deffb6a6b86688e0b0fbf/preview-observatory">preview-observatory</a>.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Thoughtful uncertainty handling and local-first astronomy, but not yet a low-maintenance deployment. Desktop coupling, a manually supervised worker, short-lived catalogues and split plugin/runtime updates require care. Static review only; tests and desktop behavior were not reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/shaggyrs6-netizen/omanova">shaggyrs6-netizen/omanova</a> · MIT code · separately licensed data</span>
+    <span><a href="omanova.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

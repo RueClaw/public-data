@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [omanova.md](reviews/omanova.md) [page](reviews/omanova.html) | [shaggyrs6-netizen/omanova](https://github.com/shaggyrs6-netizen/omanova) | MIT code; mixed data terms | ⚠️ Interesting | Omarchy astronomy dashboard with careful uncertainty handling, manual runtime upkeep and dated catalogues. |
 | [flea.md](reviews/flea.md) [page](reviews/flea.html) | [thisisgm/flea](https://github.com/thisisgm/flea) | MIT; third-party terms separate | ⚠️ Interesting | Omarchy Rust/GPUI file manager; strong identity-aware recovery and preview isolation, with plugin authority, retention and renderer-transition caveats. Static review. |
 | [busy.md](reviews/busy.md) [page](reviews/busy.html) | [MatiSolina/busy](https://github.com/MatiSolina/busy) | Apache-2.0; third-party terms | ⚠️ Interesting | Vercel-native durable AI coworkers with cloud computers; strong recovery, but legacy credential, authority, retention and cloud-cost caveats. Static review. |
 | [ember-cloudflare.md](reviews/ember-cloudflare.md) [page](reviews/ember-cloudflare.html) | [NYLLON-SOFTWARE/ember-cloudflare](https://github.com/NYLLON-SOFTWARE/ember-cloudflare) | MIT; asset/dependency terms separate | ⚠️ Interesting | Cloudflare-native team chat with strong revocation and dual storage; permanent file links, provider egress, recovery and usage-cost caveats. Static review. |
