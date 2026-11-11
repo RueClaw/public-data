@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [stela.md](reviews/stela.md) [page](reviews/stela.html) | [tylertms/Stela](https://github.com/tylertms/Stela) | GPL-2.0-or-later; binary/component terms | 📚 Study | ARM macOS on x86 through UEFI translation and NVIDIA Metal; experimental boot, software-SEP trust and recovery/privacy caveats. Static review. |
 | [file-lease.md](reviews/file-lease.md) [page](reviews/file-lease.html) | [cachix/file-lease](https://github.com/cachix/file-lease) | Apache-2.0 | ⚠️ Interesting | Process-owned memory-backed secret files; strong recovery, but reader isolation, blocking cleanup and early-maturity caveats. Static review. |
 | [omarchy-plugin-grokbot-desktop.md](reviews/omarchy-plugin-grokbot-desktop.md) [page](reviews/omarchy-plugin-grokbot-desktop.html) | [tcballard/omarchy-plugin-grokbot-desktop](https://github.com/tcballard/omarchy-plugin-grokbot-desktop) | MIT | ⚠️ Interesting | Omarchy agent companion with private IPC; provider authority and pending live acceptance limit deployment confidence. |
 | [typecase.md](reviews/typecase.md) [page](reviews/typecase.html) | [iretonsean/typecase](https://github.com/iretonsean/typecase) | Not specified (harfbuzzjs: MIT) | ⚠️ Interesting | Linux font library, preview installer, and typesetting canvas; licensing and early reliability caveats. |

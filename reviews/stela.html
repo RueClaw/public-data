@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stela — Review</title>
+<meta name="description" content="Experimental ARM macOS on x86 PCs through a UEFI translation and hardware layer.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / stela</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">tylertms/Stela · reviewed 2026-11-11</div>
+    <h1>Stela</h1>
+    <p class="one-liner">Experimental ARM macOS on x86 PCs through a UEFI translation and hardware layer.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">GPL-2.0-or-later; EFI GPL-2.0-only; CLI GPL-3.0-or-later</span>
+      <span class="chip">Rust · UEFI · Mesa/NVK · LLVM · SwiftUI</span>
+      <span class="chip"><a href="https://github.com/tylertms/Stela">tylertms/Stela ↗</a></span>
+      <span class="chip"><a href="https://github.com/tylertms/Stela/commit/9c190f250930e54dd74d2396c17400e6e212160b">Source 9c190f2</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">389</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">11</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A translation platform, not an ordinary app</h3><p>ARM64 code, M2 device models and Metal graphics converge in a bare-metal UEFI runtime. NVIDIA support and macOS startup remain upstream claims, not independently reproduced guarantees.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Apple-like behavior is not Apple hardware trust</h3><p>Stela implements its own SEP; it cannot execute Apple’s encrypted sepOS. Secure Boot is disabled, Wi-Fi keys are stored in plaintext, and exported machine state contains keys without export encryption.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Real recovery engineering; very early acceptance</h3><p>Setup rechecks disk identity and supports interrupted updates, state backups and repair. There is no rollback, uninstall retains installed macOS/SEP state, and ordinary CI covers CLI tests rather than full hardware boot.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Translation</td><td>Rust compiler and execution engine</td></tr><tr><td>Hardware</td><td>M2 SoC model and UEFI-native PC drivers</td></tr><tr><td>Graphics</td><td>Guest kext/Metal bundle → host service → Mesa/NVK</td></tr><tr><td>Setup</td><td>Rust CLI, IPSW restore, bounded caches</td></tr><tr><td>Guest UI</td><td>SwiftUI system/setup inspection</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>ARM translation with retained work</h4>
+<p>The README claims more than 3,000 AArch64 instruction encodings and x86-64-v2 compatibility. The compiler and engine are substantive implementations rather than just command wrappers; this review did not enumerate encoding coverage or establish instruction-level equivalence. Translation packs are keyed to translator identity, bounded, and recoverable on corruption; the installer provisions a spare so firmware need not grow files at boot. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/setup/translations.rs">Translation-store management</a> keeps one translator pack and a 64 MiB pipeline store, and prunes stale packs during repair/update. Checksums and identity binding provide corruption/staleness checks, not a reason to trust writable boot media against a malicious local actor.</p>
+<h4>Metal on supported NVIDIA hardware</h4>
+<p>The project advertises GTX 16/RTX 20 and newer, Metal3 and Apple7, with AIR shader IR translated toward NIR. Source includes a Metal service, resource/queue/lifecycle handling, a guest IOKit user client and Objective-C Metal bundle, plus Mesa/LLVM integration. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-driver-gpu/src/lib.rs">GPU discovery</a> carefully distinguishes an enumerated adapter from an initialized accelerator. Finding AMD/Intel vendor enums is not proof those GPUs work. No GPU, Metal conformance, application compatibility, or speed claim was independently tested.</p>
+<h4>Installer repair is more developed than the short README suggests</h4>
+<p><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/setup/create.rs">Creation</a> rejects internal disks for the USB-erasure path, requires confirmation for destructive formatting, checks input placement, and rechecks selected-media identity before erase. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/setup/update.rs">Updates</a> prepare new content first, activate recorded state, then prune old content; interrupted operations can be repeated. These are useful safeguards, not transactional protection against every power failure or wrong operator choice. The update implementation explicitly says <strong>there is no rollback</strong>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Bare-metal trust, not a sandbox</h4>
+<p>Setup needs administrator/root disk authority and intentionally erases the selected USB. Installation also requires an empty target GPT partition and destructive restore choices. Boot requires <strong>Secure Boot off</strong> per upstream requirements. The boot program then manages physical memory, PCI/MMIO, interrupts, DMA, networking and storage. There is no SaaS login/RBAC/CORS boundary to evaluate; possession of the boot medium, local administrative access, guest driver interfaces, and firmware/device isolation are the relevant boundaries. Do not treat this layer as an isolation boundary for hostile guests.</p>
+<h4>The SEP is Stela's software, not Apple's hardware security</h4>
+<p><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-soc/src/sep/firmware.rs">SEP firmware</a> states that Apple's encrypted sepOS cannot run here: Stela implements its own SEP under an explicit TSS-free trust policy. Container measurements/signature evidence are not asserted to be Apple-verified boot. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-soc/src/sep/keys.rs">Key derivation</a> likewise distinguishes its UID/GID substrate from Apple's secret hardware KDF. A familiar macOS login or encryption UI therefore must not be read as equivalent Secure Enclave, physical extraction resistance, or verified-boot assurance. This is an architectural distinction, not a claimed exploit.</p>
+<h4>Credentials and exports need physical protection</h4>
+<p><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/setup/wifi.rs">Wi-Fi setup</a> masks interactive input but writes the passphrase in <strong>plaintext</strong> to <code>EFI/stela/wifi.key</code> on the ESP; the plan discloses this. The setup record keeps the SSID/country, not the password. Prefer a disposable isolated network or wired install rather than putting a valuable network password on a portable USB.</p>
+<p><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/setup/state.rs">State backup</a> exports NVRAM and the SEP area, including machine keys, with identity metadata and SHA-256. It creates a new file with mode 0600 on Unix; Windows inherits directory ACLs. It does <strong>not encrypt that export</strong>. Restore checks the original machine identity; this is not a general migration facility. Protect backup media separately and do not attach state backups to public issue reports.</p>
+<h4>Egress is real and not uniformly HTTPS</h4>
+<p>Install preparation obtains macOS images/catalogues, public archive keys, signing responses, and sometimes hardware firmware. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/restore/history.rs">Historical image metadata</a> uses ipsw.me; public AEA keys use an <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/restore/aea.rs">HTTPS host/path allowlist and redirect restrictions</a>. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-boot/src/engine/remote.rs">Boot-time ranged downloads</a> use source length/entity-tag identity and manifest checks; HTTPS depends on admitted clock and entropy capabilities. Firmware recipes name <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-loader/src/host_firmware/recipes.rs">linux-firmware and wireless-regdb sources</a>.</p>
+<p>However, <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/boot/ticket.rs">setup TSS transport</a> explicitly POSTs to <code>http://{host}{path}</code>, with the <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-runtime/src/restore/tss.rs">TSS host</a> set to gs.apple.com. This exposes request metadata/identifiers to the network and lacks TLS server authentication on that leg. Recognizing a STATUS-prefixed response is not transport authentication; downstream ticket validation must be considered separately. This review did not prove ticket forgery or bypass.</p>
+<p>No model provider, API-token billing, paid AI call, or model download is part of the inspected purpose. Costs are compatible hardware, storage, substantial downloads/build time and power; Apple software/service terms remain separate. No application telemetry sink was identified in sampled paths, but this is not a whole-program no-egress certification. macOS and applications have their own networking and account behavior, untested here.</p><h4>Persistence and recovery</h4><ul><li>Installer USB: bootloader/configuration, setup record, restore bundles/media, firmware, translation/pipeline caches, and boot log. Some install flows stream images; larger media can hold the full image. The release history shows this policy evolving rapidly—do not assume every install is offline.</li><li>Installed system: macOS data plus NVRAM/SEP machine state on a recorded state partition or designated partition tail. Preserve both system data and machine keys; a state-only backup is not a full disk/user-data backup.</li><li>Boot logs persist on the USB and, when space permits, the machine-state area; <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-boot/src/log_file.rs">log code</a> spans firmware and native-driver phases. Logs can contain hardware identifiers, paths, addresses and download metadata. Inspect/redact before sharing; no comprehensive retention/privacy policy was established.</li><li><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/setup/uninstall.rs">Uninstall</a> removes recorded Stela USB artifacts and Wi-Fi key but <strong>keeps installed macOS, NVRAM and SEP state</strong>. Deleting the bootloader is not erasing the installation or its secrets; deletion is not secure sanitization.</li><li><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/crates/stela-cli/src/setup/update.rs">Update handling</a> distinguishes replacing Stela from replacing installer media; installed macOS has its own Software Update boot path. That code path is not proof arbitrary future macOS updates will work. Keep independent offline backups and a separate known-good boot environment.</li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Stela</td><td>ARM translation and modeled Apple hardware; experimental</td></tr><tr><td>OpenCore</td><td>Not an ARM translator or replacement SEP/GPU</td></tr><tr><td>QEMU</td><td>Mature emulator; generic ARM is not Apple-platform compatibility</td></tr><tr><td>Supported Mac / UTM</td><td>More practical for normal macOS guest/application use</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Upstream minimums are x86-64-v2, UEFI with Secure Boot disabled, 8 GB RAM, supported NVIDIA GPU, USB at least 8 GB, and an empty GPT partition at least 60 GB. These are stated requirements, not a qualified-machine matrix. The Linux release targets glibc 2.35+, Windows is x86-64, and macOS CLI archives are universal. A Mac installer binary does not make this an Apple-silicon Mac virtualization product.</p>
+<p>Source builds require Rust 1.99.1 per <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/rust-toolchain.toml">toolchain file</a>, Clang/LLVM 21+ per README, and fetch/build substantial Linux, Mesa, LLVM and related sources. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/.gitmodules">Git submodules</a> are commit-pinned by the repository; Cargo.lock and firmware recipes improve reproducibility. A plain GitHub source ZIP omits submodule contents; the release workflow separately assembles corresponding source.</p>
+<p><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/.github/workflows/release.yml">Release CI</a> checks version/tag alignment, constructs guest app → EFI → CLI artifacts, checks embedded EFI bytes, packages license texts, and publishes SHA256SUMS. Those checks are positive evidence of packaging discipline, not a boot test or an independent signature. Actions use version tags rather than immutable action SHAs; macOS signing shown is ad hoc. No independent release-signing/attestation guarantee was established. Do not run build or installer commands merely to inspect this project on a daily-use machine.</p><h4>Licensing</h4><p>The <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/LICENSE">LICENSE</a> supplies GPL v2 text; <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/NOTICE">NOTICE</a> and workspace manifest explicitly choose GPL-2.0-or-later for own code. NOTICE distinguishes the Linux-containing <strong>stela.efi (GPL-2.0-only)</strong> from the CLI linking Apache-licensed crates <strong>(GPL-3.0-or-later)</strong>; the EFI is aggregated inside, not linked into, the CLI. Other guest/maintenance components and third-party files retain their stated terms. Binary redistribution requires corresponding source, pinned dependencies/patches, scripts and notices—not just a link to a moving main branch. No code was extracted for this review.</p>
+<p>macOS, Apple firmware/services and third-party firmware do not become GPL merely because Stela is. Evaluate Apple's applicable software-license and hardware restrictions before use; the README's legal disclaimer is not permission or legal clearance.</p><h4>Evidence and limitations</h4><p>Public GitHub metadata observed on 2026-11-11: repository created 2026-10-12; 389 stars, 11 forks, two open issues; last push 2026-11-11T20:06:48Z. Both v0.1.0 and v0.2.0 were published on November 11, with v0.2.0 at 15:51:23Z. The reviewed main commit is later than that release; README prose still says “as of v0.1.0.” Do not conflate main with the downloadable binary.</p>
+<p><a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/.github/workflows/ci.yml">CI</a> formats the workspace and runs CLI-only Clippy/library tests on Linux, Windows and macOS. It does <strong>not</strong> run the full translator/SoC/GPU/boot acceptance suite. The inspected revision's public CI was pending during observation, not a passing result. <a href="https://github.com/tylertms/Stela/blob/9c190f250930e54dd74d2396c17400e6e212160b/xtask/src/check.rs">xtask check</a> defines broader cross-target checks, and the tree contains substantial synthetic tests for installer recovery, TLS, device models and translation. Their presence is not proof they pass or cover real machines.</p>
+<p>The <a href="https://github.com/tylertms/Stela/releases/tag/v0.2.0">v0.2.0 release notes</a> include reverts of native transition optimizations after early watchdog resets and a hold on firmware MMIO admission pending proof. <a href="https://github.com/tylertms/Stela/issues/10">Issue #10</a> reports a boot page fault on Ryzen 5 1600/RTX 3060 Ti. This is a user report, not a reproduced diagnosis, but consistent with upstream's explicit hardware warning.</p>
+<p><strong>Checks performed:</strong> anonymous public acquisition, exact source SHA, metadata/releases/workflow inspection, canonical-URL duplicate search, targeted source tracing, and publication-artifact validation. <strong>Not performed:</strong> compiling/running upstream code or tests, submodule acquisition, vulnerability scanning, binaries-to-source reproducibility, hardware/performance/conformance tests, account activation or future-update compatibility. No live exploit/security testing was attempted.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Substantial translator, hardware-model and GPU work, but not a dependable Mac replacement. Low boot-success warnings, bare-metal authority, plaintext Wi-Fi credentials and a software SEP keep this in disposable-lab territory. Static review only; no boot or performance claims reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/tylertms/Stela">tylertms/Stela</a> · GPL-2.0-or-later; EFI GPL-2.0-only; CLI GPL-3.0-or-later</span>
+    <span><a href="stela.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
