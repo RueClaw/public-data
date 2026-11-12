@@ -3,11 +3,24 @@
 **Repo:** https://github.com/meta/astryx
 **Author / owner:** Meta Open Source / meta; LICENSE names Meta Platforms, Inc. This attribution is supported by package manifests, the copyright notice, and the verified organization profile—not inferred from the repository name.
 **License:** MIT; retain copyright and permission notices in redistributed copies or substantial portions. Dependencies retain their own licenses.
-**Reviewed:** 2026-11-08 (UTC)
-**Revision:** 4e4c12a9dd528d879b684ea7838ed2522c9cbc75; main snapshot, committed 2026-11-08T17:43:30Z. Scope: root metadata, core component/theme/navigation implementations, CLI API and filesystem/module-loading/release/agent-doc/upgrade boundaries, manifests, representative tests and workflows. Not an exhaustive audit of all packages.
+**Reviewed:** 2026-11-12 (UTC; targeted refresh)
+**Revision:** 2025dc7302ffddf51067380283b9edb27178c3dd; current main snapshot, committed 2026-11-12T06:17:08Z. Prior baseline: 4e4c12a9dd528d879b684ea7838ed2522c9cbc75. Scope: root metadata, core component/theme/navigation implementations, CLI API and filesystem/module-loading/release/agent-doc/upgrade boundaries, manifests, representative tests and workflows. Not an exhaustive audit of all packages.
 **Verification:** Static review only. No installation, source execution, tests, build, model calls, or device access. Test files and workflow definitions were inspected, not verified passing.
 **Stack:** TypeScript/React 19+, StyleX, prebuilt CSS; Node.js ESM CLI, Commander, Zod, jiti, Babel/jscodeshift; pnpm monorepo, Vitest and Playwright.
 **What it is:** A customizable React web design system with components, themes, templates, and developer/agent-facing documentation and code-modification tooling. It is not an autonomous-agent runtime or model.
+
+## Update Notes — 2026-11-12
+
+- Checked 2026-11-12 UTC. Previous review: 2026-11-08 at 4e4c12a9dd528d879b684ea7838ed2522c9cbc75. Current main: 2025dc7302ffddf51067380283b9edb27178c3dd (committed 2026-11-12T06:17:08Z). Real Git history/diff: 511 intervening commits; 2,230 changed files, 221,673 insertions and 34,187 deletions. This is a targeted delta review, not a fresh exhaustive audit of that entire surface.
+- Releases advanced from v0.7.11 to v0.7.12 (November 10), v0.7.13 (November 10), and v0.7.14 (November 11); current main manifests already say 0.7.15. Main is not proof that 0.7.15 has shipped. MIT, React 19+, Node >=22.13.0 and the basic core/CLI/theme architecture remain.
+- Material UI/security changes: Markdown now rejects every data: link/image destination in the public parser, not only the render path. Root/component barrels no longer blanket-mark exports as client modules; server-safe components can render in React Server Components, while client components retain their own boundaries. v0.7.14 also changes touch-menu and anchored-layer entrance behavior. Recheck SSR and interaction assumptions on upgrade.
+- The experimental theme editor adds structured settings, palette generation, previews, bounded PNG inspection and per-theme undo history (80 steps). Its API is explicitly patch-unstable and it writes project artifacts; theme-editor undo is not general upgrade rollback. New kept search/build catalogs write to the user cache even for project-local installed CLI use: 0700 directory, 0600 files, a 64 MiB limit, input/module stamps and hashed environment values. Persistence is skipped under Yarn Plug’n’Play, without user IDs, and for source checkouts. Project-local does not mean read-only.
+- The key trust findings remain: loadModuleWithParser imports/executes modules before parsing exports; lazy jiti and serialized fresh imports improve performance/correctness, not isolation. Global handoff, agent-text defaults/writer, update-notifier opt-out, upgrade runner and partial-failure receipt test are unchanged in the compared range. No upgrade transaction rollback was added there. Release-cache stale-lock takeover now checks the moved directory identity before ending the recorded installer; this improves race handling, not package authenticity.
+- Tests grew from 1,578 to 2,356 tracked *.test.* files under packages (not executed cases). New scheduled/manual minimum-Node CLI coverage runs on main, not PRs; CI also expands changed-story/interaction selection. No tests, installs, builds, model calls, browser/device actions or runtime side effects were exercised. Verdict stays Interesting: pinned project-local pilot, with explicit acceptance of cache writes and executable extensions.
+
+**Delta evidence:** [Compared history](https://github.com/meta/astryx/compare/4e4c12a9dd528d879b684ea7838ed2522c9cbc75...2025dc7302ffddf51067380283b9edb27178c3dd); [Experimental API](https://github.com/meta/astryx/blob/2025dc7302ffddf51067380283b9edb27178c3dd/packages/cli/api/experimental.mjs); [Theme undo contract](https://github.com/meta/astryx/blob/2025dc7302ffddf51067380283b9edb27178c3dd/packages/cli/api/theme-edit/themeEditUndo.doc.mjs); [Kept catalogs](https://github.com/meta/astryx/blob/2025dc7302ffddf51067380283b9edb27178c3dd/packages/cli/foundation/fs/gather-cache.mjs); [Minimum Node workflow](https://github.com/meta/astryx/blob/2025dc7302ffddf51067380283b9edb27178c3dd/.github/workflows/cli-minimum-node.yml); [Server boundary change](https://github.com/meta/astryx/commit/108f354ae); [Current Markdown URL policy](https://github.com/meta/astryx/blob/2025dc7302ffddf51067380283b9edb27178c3dd/packages/core/src/Markdown/url.ts); [Current module loader](https://github.com/meta/astryx/blob/2025dc7302ffddf51067380283b9edb27178c3dd/packages/cli/foundation/fs/module-loader.mjs); [Release-cache lock correction](https://github.com/meta/astryx/commit/319528c5b); [v0.7.14](https://github.com/meta/astryx/releases/tag/v0.7.14); [v0.7.13](https://github.com/meta/astryx/releases/tag/v0.7.13); [v0.7.12](https://github.com/meta/astryx/releases/tag/v0.7.12).
+
+The detailed baseline below remains pinned to its original evidence where not explicitly updated. Current differences and unchanged trust boundaries are qualified above.
 
 ## Verdict
 
@@ -33,7 +46,7 @@ The README says the system grew inside Meta over eight years and powers 13,000+ 
 | Persistence | Generated project files and agent docs; CLI user settings/state/release cache; optional resizable UI state in localStorage |
 | Backend/auth | No required server/database/auth service for the core library; consuming applications provide these |
 
-The reviewed main manifests say 0.7.12, while the latest GitHub release returned at inspection was v0.7.11, published 2026-11-07. Do not equate a main package version with a published npm release. [2][5]
+At the original review, main manifests said 0.7.12 and the latest observed release was v0.7.11. At this refresh main says 0.7.15 and the latest observed GitHub release is v0.7.14, published 2026-11-11. Do not equate a main package version with a published npm release. [2][5]
 
 ## Key Features
 
@@ -96,11 +109,11 @@ Path helpers reject traversal, unsafe names, and symlink escapes in normal resol
 
 ## Tests, CI, and Maturity
 
-This is a substantial beta repository rather than a README-only launch. A filesystem inventory found 1,578 files matching *.test.* under packages (files, not executed test cases). Sampled suites cover malicious navigation values, filesystem safety, concurrent/no-clobber publication, module-output isolation, global release handling, and partial-upgrade failure receipts. Vitest separates UI, performance, and Node environments. [9][10][11][17][18]
+This is a substantial beta repository rather than a README-only launch. The original filesystem inventory found 1,578 files matching *.test.* under packages (files, not executed test cases). Sampled suites cover malicious navigation values, filesystem safety, concurrent/no-clobber publication, module-output isolation, global release handling, and partial-upgrade failure receipts. Vitest separates UI, performance, and Node environments. [9][10][11][17][18]
 
 CI defines PR/merge-queue checks, builds, accessibility/visual/RTL lanes, and release gating. Important nuance: not every heavy accessibility/visual job runs on every PR; some are scheduled/release checks or label opt-ins. The cross-platform global-CLI smoke workflow is manually dispatched and targets macOS, Windows, and Ubuntu. Workflow presence is not evidence that this exact SHA passed every lane. Current run conclusions and coverage percentages were not independently verified. [18]
 
-Public GitHub metadata at retrieval reported 15,925 stars, 1,279 forks, and 683 open items in the API's open_issues_count (which includes pull requests), with a recent push at the reviewed commit time. These are activity/discovery signals, not safety or support guarantees. The README explicitly says Beta; latest release notes contain numerous accessibility, hydration, interaction, and migration fixes, so pinning and upgrade rehearsal are sensible. [4][5]
+Public GitHub metadata at the original 2026-11-08 retrieval reported 15,925 stars, 1,279 forks, and 683 open items in the API's open_issues_count (which includes pull requests), with a recent push at the original reviewed commit time. The 2026-11-12 refresh returned 25,468 stars, 1,984 forks and 674 open items; these are mutable counts. These are activity/discovery signals, not safety or support guarantees. The README explicitly says Beta; latest release notes contain numerous accessibility, hydration, interaction, and migration fixes, so pinning and upgrade rehearsal are sensible. [4][5]
 
 ## Comparison
 
@@ -122,7 +135,7 @@ Practical pilot: choose a pinned published core/theme/CLI set, start project-loc
 
 ## Verification Limits
 
-No dependency installation, source/test execution, runtime/browser audit, npm-tarball equivalence check, vulnerability-database scan, bundle-size/performance benchmark, production deployment, or full dependency-license audit was performed. The README's adoption and accessibility claims remain upstream claims. This review is an implementation-grounded static assessment, not a security certification. Source continued evolving during review; all source citations below pin the inspected SHA.
+No dependency installation, source/test execution, runtime/browser audit, npm-tarball equivalence check, vulnerability-database scan, bundle-size/performance benchmark, production deployment, or full dependency-license audit was performed. The README's adoption and accessibility claims remain upstream claims. This review is an implementation-grounded static assessment, not a security certification. Source continued evolving during review; baseline source citations below pin the original inspected SHA; Update Notes separately pin current delta evidence.
 
 ## Evidence
 
