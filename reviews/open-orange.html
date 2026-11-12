@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenOrange — Review</title>
+<meta name="description" content="Cloudflare Workers APIs on Node.js and Rivet Actors, with qualified portability rather than identical platform semantics.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / open-orange</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">rivet-dev/open-orange · reviewed 2026-11-12</div>
+    <h1>OpenOrange</h1>
+    <p class="one-liner">Cloudflare Workers APIs on Node.js and Rivet Actors, with qualified portability rather than identical platform semantics.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; MIT components</span>
+      <span class="chip">TypeScript · Node.js · Rivet · SQLite</span>
+      <span class="chip"><a href="https://github.com/rivet-dev/open-orange">rivet-dev/open-orange ↗</a></span>
+      <span class="chip">Static review · tests not run</span><span class="chip">v1.0.1 · 0f3c2eac56d7</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">105</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Portability is real; parity is qualified</h3><p>Stateful bindings map to Rivet Actors, not workerd. Historical conformance reports 1,670/1,851 passes at an older revision; WebSocket hibernation keeps connected actors resident.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Three execution boundaries, not one</h3><p>Normal Workers use Node processes. Dynamic Worker Loader uses agentOS VMs, while the default local Sandbox provider executes host shell commands without isolation.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>A migration is not a lossless rollback</h3><p>D1 freezes writes and has no automated reverse migration after switching. Durable Object rollback resumes old Cloudflare state without subsequent Orange writes.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology and responsibility</td></tr>
+<tr><td>CLI/build</td><td>TypeScript, Wrangler config loader, esbuild, Node child-process IPC</td></tr>
+<tr><td>HTTP/runtime</td><td>Node.js, Undici, ws, custom Workers globals and import shims</td></tr>
+<tr><td>Stateful substrate</td><td>RivetKit 3.1.2-rc.1; Rivet Actors and SQLite; production durability delegated to Rivet/S3</td></tr>
+<tr><td>Binding providers</td><td>S3 SDK, OpenAI-compatible AI HTTP, SMTP/SES, browser CDP, optional sandbox SDKs</td></tr>
+<tr><td>Dynamic code</td><td>agentOS VM backend for Worker Loader; distinct from ordinary Workers and local Sandbox provider</td></tr>
+<tr><td>Tests/docs</td><td>Node test runner via tsx, conformance fixtures and saved results; Astro documentation site</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Rivet maintains OpenOrange independently of Cloudflare. The CLI reads existing Wrangler JSON/JSONC/TOML configuration, bundles Worker code and rewrites platform imports into its compatibility modules. Normal Worker code runs in a Node child process; Durable Objects become actors with individual SQLite state. KV, D1, queues, cron, workflows and other bindings are implemented above that actor substrate. This moves the platform dependency from Cloudflare services to Rivet plus configured external providers, not to a single self-contained Worker executable. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/README.md">README.md</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/build/rewrite-module-imports.ts">src/build/rewrite-module-imports.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/runner.ts">packages/runtime-node/src/runner.ts</a>.</p>
+<p>The intended audience is existing Workers users needing hardware control, colocated databases, fewer platform quotas or cloud portability. The README's “no changes” promise must be read alongside its Partial/Pluggable/Not supported matrix. Analytics Engine drops data points; several other unavailable bindings throw. API-shaped compatibility does not imply identical lifecycle, scaling, security or data migration.</p>
+<h4>Real platform adaptation, with explicit gaps</h4>
+<p>The runner builds binding objects and actor definitions, registers configured Durable Object classes, starts queue/cron/tail infrastructure, and dispatches fetch, scheduled, email and queue events. Multi-worker sessions share configured resource IDs while service calls use a separate internal transport. Storage code implements synchronous SQL, transaction gates/savepoints and durability synchronization; it is not merely an in-memory mock. These mechanisms still rely on the pinned Rivet runtime for durable storage and scheduling. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/runtime.ts">packages/runtime-node/src/runtime.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/bindings/durable-objects/storage.ts">packages/runtime-node/src/bindings/durable-objects/storage.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/runner.ts">packages/runtime-node/src/runner.ts</a>.</p>
+<h4>Hibernation is not scale-to-zero for connected objects</h4>
+<p>The documented implementation drops the application instance after idle time but keeps the actor, sockets and their state resident. A connected object therefore continues consuming resources; runner churn closes sockets. The documented default SQLite-session limit is 4,000 awake actors per runner connection. Upstream provides memory measurements, but none were reproduced here. Capacity-plan connected actors rather than treating Cloudflare hibernation economics as preserved. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/docs/modules/durable-objects.mdx">docs/modules/durable-objects.mdx</a>.</p>
+<h4>Migration has meaningful safeguards, not universal reversibility</h4>
+<p>The migration path wraps a copy of the Worker, protects export/import routes with a shared bearer token, copies SQLite-backed Durable Objects in pages and handles concurrent changes. D1 migration freezes writes, exports, imports and verifies rows/schema before switching. This is substantive engineering, but the Durable Object migrator is also an external dependency, not fully audited here. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/commands/migrate.ts">src/commands/migrate.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/commands/migrate-d1.ts">src/commands/migrate-d1.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/bindings/durable-objects/cloudflare-import.ts">packages/runtime-node/src/bindings/durable-objects/cloudflare-import.ts</a>.</p>
+<p>The documentation explicitly excludes KV-backed Durable Object classes, facets and various SQL cases; KV namespaces, R2, queues and workflow state do not move through this command. D1 has downtime, with upstream estimates rather than a guarantee. After a D1 switch there is no automated reverse migration. Durable Object rollback resumes the old Cloudflare state: post-cutover writes on Orange do not sync back. Preserve exports and a reconciliation plan; DNS reversal alone is not recovery. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/docs/migrate.mdx">docs/migrate.mdx</a>.</p>
+<h4>Claims, Tests and Maturity</h4>
+<p>The public repository was created on 2026-11-12; that dates this public repository, not the beginning of development. At retrieval, GitHub reported 105 stars, 3 forks, last push 2026-11-12T17:06:55Z and one open item (a documentation pull request). Releases v1.0.0 and v1.0.1 were published that day; v1.0.1 at 17:06:57Z. These are activity signals, not reliability proof. <a href="https://api.github.com/repos/rivet-dev/open-orange">Public metadata</a> / <a href="https://github.com/rivet-dev/open-orange/releases">releases</a>.</p>
+<p>The committed conformance snapshot reports <strong>1,670/1,851</strong> total passes, including <strong>1,602/1,774</strong> upstream and <strong>68/77</strong> synthetic. Its Cloudflare category is <strong>844/1,003</strong> and Node category <strong>758/771</strong>. It excludes 399 workerd-only Node cases and 19 infrastructure cases, with nine quota-only tests cut. Crucially it is dated 2026-11-10, identifies Orange ea40348 and a different RivetKit prerelease, and contains a composite-run label. It is useful historical author evidence, not a fresh pass report for the reviewed SHA. <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/cloudflare-conformance/results/latest.json">packages/cloudflare-conformance/results/latest.json</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/cloudflare-conformance/README.md">packages/cloudflare-conformance/README.md</a> explain scoring and exclusions.</p>
+<p>CI declares typecheck, build, example-manifest validation, npm pack inspection and full tests; the full suite uses a larger Depot runner because it starts many processes/engines. Actions use version tags rather than commit pins. A release run on the reviewed SHA reported success (<a href="https://github.com/rivet-dev/open-orange/actions/runs/43265786201">run</a>); that is not this review executing the suite or checking every deployed platform. Broad tests cover storage, RPC, gates, hibernation, migration and providers, but paid-provider/VM tests and upstream conformance require additional infrastructure. <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/.github/workflows/ci.yaml">.github/workflows/ci.yaml</a>.</p>
+<p><strong>Review limits:</strong> no dependency vulnerability scan, package artifact/source equivalence verification, cloud deployment, throughput/cost measurement, crash-recovery exercise or security exploit validation. Rivet Engine, cloud control-plane internals and provider SDK internals were not comprehensively reviewed. No source code was executed.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>1. <strong>Build authority:</strong> Wrangler configuration and custom build commands are executable project inputs. Installing/building an untrusted Worker is not safe merely because its deployment target resembles Workers. The generated image carries application code and the Orange runtime. Even deploy --dry-run calls the configured custom build before writing its output; no deployment API call does not mean no local execution.<br>2. <strong>Normal runtime:</strong> Node processes and module shims are compatibility machinery, not a workerd isolate security boundary. Some Node APIs are rewritten, including filesystem behavior and Worker-visible process environment; others use stock Node. Run only trusted application code within a container/OS boundary you control, and separate mutually distrustful workloads. Actor namespace identity and resource sharing are routing/storage scopes, not proof of hostile-tenant isolation.<br>3. <strong>Dynamic Worker Loader:</strong> This path deliberately uses agentOS VMs and fails instead of falling back to host execution. Default outbound allows network; null or Fetcher outbound produces a no-network VM with host-mediated operations. This is a strong design distinction, not evidence that every binding is sandboxed. VM escape resistance and required virtualization availability were not tested. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/bindings/worker-loader/agentos.ts">packages/runtime-node/src/bindings/worker-loader/agentos.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/docs/modules/worker-loader.mdx">docs/modules/worker-loader.mdx</a>.<br>4. <strong>Sandbox binding:</strong> The default provider is local. Its implementation executes shell commands as host processes with a scoped working directory and reduced environment, not a filesystem or network jail. Absolute paths and reachable host ports remain relevant. Choose a real isolation provider before accepting untrusted commands. Remote providers have their own credentials, retention and billing. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/modules/cloudflare-sandbox/providers.ts">packages/runtime-node/src/modules/cloudflare-sandbox/providers.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/docs/modules/sandbox.mdx">docs/modules/sandbox.mdx</a>.</p>
+<h4>Authentication and network exposure</h4>
+<p>There are real defensive controls: internal session RPC uses timing-safe token comparison; the runtime strips internal metadata headers from incoming requests; forwarded-host overrides require an HMAC secret; migration endpoints compare bearer tokens in constant time; metrics bind loopback. These are valuable transport controls. They do not add end-user login, application authorization, tenant membership checks or a universal CORS policy to Worker endpoints. The Worker and deployment gateway must supply those controls.</p>
+<p>Keep runtime/control-plane ports private behind the intended gateway. The front preserves an existing cf-connecting-ip header, while serve mode trusts forwarded scheme metadata: a trusted ingress must sanitize client-supplied forwarding headers before applications use them for authorization or rate limits. This is a static trust-precondition finding, not a demonstrated exploit against Rivet Cloud. No universal outbound deny policy was established for normal Workers; restrict network access at the infrastructure boundary where needed. Evidence: <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/serve/front.ts">src/serve/front.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/session/server.ts">packages/runtime-node/src/session/server.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/runner.ts">packages/runtime-node/src/runner.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/internal/metrics-server.ts">packages/runtime-node/src/internal/metrics-server.ts</a>.</p>
+<h4>Credentials and privacy</h4>
+<p>The CLI stores Rivet login/refresh credentials in a local credentials file using a temporary file, mode 0600 and rename; credentials are not encrypted merely by being permission-restricted. The runtime removes selected Rivet credentials before importing Worker code, and Worker-visible process.env is assembled from bindings. That reduces accidental exposure but is not a hostile-code sandbox. Deployment excludes common local secret/state files and supports cluster secret references rather than baking values into images. Audit build output, logs, arbitrary asset files and application-defined variables separately. Secret rollouts can affect other pools referencing the same cluster secret. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/commands/rivet-account.ts">src/commands/rivet-account.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/commands/deploy.ts">src/commands/deploy.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/internal/rivet-credentials.ts">packages/runtime-node/src/internal/rivet-credentials.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/modules/node/process-env.ts">packages/runtime-node/src/modules/node/process-env.ts</a>.</p>
+<p>Self-hosting changes who operates infrastructure; it does not guarantee local-only processing. AI binding requests default to OpenRouter when configured, or a chosen OpenAI-compatible endpoint. Prompts, messages and embeddings inputs then cross that provider boundary. R2, browser, email and sandbox integrations similarly send their respective data to configured providers. No provider retention agreement or zero-retention claim was independently verified. Tail consumers receive event records through Rivet Durable Streams; code defaults to one-hour segments with seven-day retention after segment end, deleting consumed segments as it advances. Application logs and external-provider copies require separate deletion policies. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/bindings/ai/backend.ts">packages/runtime-node/src/bindings/ai/backend.ts</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/internal-actors/tail.ts">packages/runtime-node/src/internal-actors/tail.ts</a>.</p>
+<h4>Persistence, Export and Recovery</h4>
+<p>Local state lives under the project's .open-orange directory; production placement/durability is supplied by Rivet and its storage backend. SQL transaction/output gating and a sync path are encouraging source-level mechanisms, not a disaster-recovery test. Storage objects, queue/workflow progress, application logs, provider sandboxes and object-store data are separate retention domains. A sandbox ID is saved for reconnect, but provider deletion or expiry can still remove the actual environment; inactivity timeout is documented as a no-op for the Sandbox API.</p>
+<p>Migration/import and logical SQLite snapshot code should not be confused with a complete operator backup/export product. Snapshot code preserves schema/rows and handles large integer/blob representation for actor/facet copies, but the inspected CLI's D1 surface is execute and migration operations rather than a universal export/restore command. Before adoption, define consistent backups of Rivet state and external buckets, protect encryption keys/cluster secrets, rehearse restore and test reconnection/idempotency across runner failure. The compatibility documentation marks ctx.restore unsupported. See <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/bindings/durable-objects/sqlite-snapshot.ts">packages/runtime-node/src/bindings/durable-objects/sqlite-snapshot.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/commands/d1.ts">src/commands/d1.ts</a>, <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/docs/modules/durable-objects.mdx">docs/modules/durable-objects.mdx</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/docs/modules/sandbox.mdx">docs/modules/sandbox.mdx</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff</td></tr>
+<tr><td>OpenOrange</td><td>Existing Workers apps needing portable stateful hosting</td><td>Many adapters; Node/Rivet semantics and operator responsibilities need qualification</td></tr>
+<tr><td>Cloudflare Workers/Durable Objects</td><td>Managed platform, existing production semantics and edge integration</td><td>Platform limits, service pricing and vendor coupling</td></tr>
+<tr><td>workerd</td><td>Original open-source Workers runtime semantics</td><td>A runtime, not all managed Cloudflare services or a full distributed control plane</td></tr>
+<tr><td>Miniflare</td><td>Local Workers development/testing</td><td>Not a substitute for production distributed hosting</td></tr>
+<tr><td>Rivet directly</td><td>New actor-oriented applications</td><td>Avoids compatibility translation, but requires using Rivet APIs rather than preserving Workers APIs</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The 4.8× compute and 8.7× storage claims compare selected Cloudflare meters to raw AWS Graviton/S3 prices with stated headroom. They omit a demonstrated application-level total-cost comparison: include utilization, control plane, replicas, egress, S3 requests, backups, monitoring, operators and managed Rivet fees. AI/browser/sandbox/email providers add separate bills. A quiet or spiky Worker can be cheaper on Cloudflare. No local AI model is required for basic runtime use, and AI inference is optional.</p>
+<p>There is also an actionable architecture mismatch to qualify: the cost illustration uses ARM Graviton, but the inspected generated Dockerfile and build command explicitly target linux/amd64. Do not apply that price model to the stock deployment without validating an appropriate ARM build and dependency/runtime support. Evidence: <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/README.md">README.md</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/src/commands/deploy.ts">src/commands/deploy.ts</a>.</p>
+<h4>Self-Hosting Notes</h4>
+<ul><li>Baseline requires Node.js 22+ and pnpm; deployment needs Docker plus a Rivet control plane, runners, registry and durable storage. The generated image uses Node 24 slim, linux/amd64, an unpinned base-image tag and no explicit non-root USER. Add deliberate image pinning, non-root qualification, resource limits and network policy.</li><li>Dependencies are mostly pinned, but include RivetKit 3.1.2-rc.1 and some ranged packages. The generated production layer uses a frozen lockfile and ignore-scripts, which reduces install-script exposure; it does not make the global CLI install or application build harmless. Source prepare/prepack builds and project custom builds are execution boundaries.</li><li>Inventory every binding and compatibility gap before migration. Exercise data types, concurrency, alarm retries, WebSocket reconnects, cron cutover, queue idempotency, provider outages and realistic capacity in a disposable staging deployment.</li><li>Keep old images/configuration and data backups, but distinguish code rollback from state rollback. Pin matched CLI/runtime/Engine versions and rehearse upgrade/restore before replacing live runners.</li></ul>
+<h4>License and Reuse</h4>
+<p>The root contains the Apache-2.0 license, including its notice, modification and patent conditions. The vendored Cloudflare Workflows engine includes a separate MIT attribution/license and a pinned upstream provenance note. Preserve applicable notices when redistributing; the npm dependency graph and external service contracts remain separate obligations. No code was extracted for this review. <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/LICENSE">LICENSE</a> and <a href="https://github.com/rivet-dev/open-orange/blob/0f3c2eac56d7f67d16398d54c4560543621f5582/packages/runtime-node/src/bindings/workflows/engine/LICENSE">packages/runtime-node/src/bindings/workflows/engine/LICENSE</a>.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Credible portability engineering for trusted Workers applications. Qualify compatibility, isolation, state recovery and actual total cost before production migration; this is not a blanket drop-in replacement.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/rivet-dev/open-orange">rivet-dev/open-orange</a> · Apache-2.0; MIT components</span>
+    <span><a href="open-orange.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

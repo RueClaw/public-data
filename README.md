@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [open-orange.md](reviews/open-orange.md) [page](reviews/open-orange.html) | [rivet-dev/open-orange](https://github.com/rivet-dev/open-orange) | Apache-2.0; MIT components | ⚠️ Interesting | Workers compatibility on Node/Rivet; substantial adapters, but partial parity, execution boundaries, migration recovery and cost-model caveats. Static review. |
 | [drowse.md](reviews/drowse.md) [page](reviews/drowse.html) | [stdlogits/drowse](https://github.com/stdlogits/drowse) | AGPL-3.0-or-later; component terms | ⚠️ Interesting | Local interpretability and activation-steering workbench; strong provenance, shared-session authority and research-validity/retention caveats. Static review. |
 | [mutinybim.md](reviews/mutinybim.md) [page](reviews/mutinybim.html) | [permitzip/mutinybim](https://github.com/permitzip/mutinybim) | Apache-2.0; asset/dependency terms | ⚠️ Interesting | Shared browser BIM/agent kernel; partial IFC conversion, host-dependent durability and isolation, engineering-validation caveats. Static review. |
 | [stela.md](reviews/stela.md) [page](reviews/stela.html) | [tylertms/Stela](https://github.com/tylertms/Stela) | GPL-2.0-or-later; binary/component terms | 📚 Study | ARM macOS on x86 through UEFI translation and NVIDIA Metal; experimental boot, software-SEP trust and recovery/privacy caveats. Static review. |
