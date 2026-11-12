@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [upcomputer.md](reviews/upcomputer.md) [page](reviews/upcomputer.html) | [krl-gr/upcomputer](https://github.com/krl-gr/upcomputer) | MIT; component/brand terms | ⚠️ Interesting | Multi-provider coding workbench with durable workers and desktop control; full-access defaults, telemetry, secret-storage and recovery caveats. Static review. |
 | [indexable-blaze.md](reviews/indexable-blaze.md) [page](reviews/indexable-blaze.html) | [indexable-inc/blaze](https://github.com/indexable-inc/blaze) | MIT OR Apache-2.0; component terms | ⚠️ Interesting | Experimental persistent Rust compiler; fine-grained reuse, historical benchmarks, compiler-parity and retention caveats. Static review. |
 | [makepad-relax.md](reviews/makepad-relax.md) [page](reviews/makepad-relax.html) | [makepad/relax](https://github.com/makepad/relax) | MIT root; component notices | ⚠️ Interesting | Live Rust compiler/JIT with hot patching and inspection; semantic compatibility, execution authority and performance caveats. Static review. |
 | [newmarchy.md](reviews/newmarchy.md) [page](reviews/newmarchy.html) | [yamz8/newmarchy](https://github.com/yamz8/newmarchy) | MIT; upstream content/assets separate | ⚠️ Interesting | Omarchy release checklist with bounded parsing and fixed actions; heuristic completion, desktop authority and recovery caveats. 45 offline tests pass. |

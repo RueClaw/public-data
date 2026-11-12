@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Up.computer — Review</title>
+<meta name="description" content="Local-first multi-provider coding-agent workbench with durable workers, browser automation and native desktop control.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / upcomputer</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">krl-gr/upcomputer · reviewed 2026-11-12</div>
+    <h1>Up.computer</h1>
+    <p class="one-liner">Local-first multi-provider coding-agent workbench with durable workers, browser automation and native desktop control.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; component and brand terms separate</span>
+      <span class="chip">TypeScript · Effect · SQLite · React · Electron</span>
+      <span class="chip"><a href="https://github.com/krl-gr/upcomputer">krl-gr/upcomputer ↗</a></span>
+      <span class="chip"><a href="upcomputer.md">Full Markdown review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">227</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">11</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real durable orchestration</h3><p>Threads, runs, execution nodes and provider sessions have separate identities. Task ownership, finalization and interrupted-run reconciliation are implemented rather than left to prompts.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Authority needs reducing</h3><p>New threads default to Full access. Native computer control is enabled without action approvals by default; the MCP path refuses approval-required actions rather than presenting a confirmation dialog.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local-first is not zero-egress</h3><p>Providers receive task context; PostHog telemetry is opt-out. Secrets use permission-protected local files, browser profiles persist, and whole-thread export is not yet available.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Node.js 24, Effect, typed RPC/MCP</td></tr><tr><td>Interface</td><td>Electron 44.10.1, React/Vite</td></tr><tr><td>State</td><td>SQLite WAL, event store, projections</td></tr><tr><td>Automation</td><td>Provider adapters, Playwright, open-computer-use 0.3.5</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Source identity and verification</h4><p>Reviewed SHA: <code>89354bf98008cbfbe4a85e5bcc56770cd604696a</code>. Up.computer is a T3 Code fork, not an isolated computer service. Public CI for this SHA reported success; application tests were not run locally.</p><p>The architecture tab contains the complete analytical sections, evidence links and limitations. <a href="upcomputer.md">Read the Markdown review</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Verdict</h4><p>⚠️ <strong>Interesting — a substantial agent workbench, but pilot with deliberately reduced authority.</strong> The durable orchestration graph, task reconciliation and provider-neutral handoffs are compelling. Full-access agent defaults, control-enabled desktop defaults, persistent browser credentials and opt-out telemetry mean this is not a safe-by-default sandbox or a zero-egress private assistant. Prefer a dedicated account or disposable machine and explicitly supervised threads before connecting important repositories or sessions.</p>
+<h4>What It Is</h4><p>The canonical project calls itself <strong>Up.computer</strong> and explicitly identifies as a fork of <a href="https://github.com/pingdotgg/t3code">pingdotgg/t3code</a>. It retains upstream package names, protocol identifiers and substantial runtime/release infrastructure. Its distinguishing workflow is conversation → task → saved worker → durable result, alongside the ordinary interactive coding-agent interface. It can commit, push, publish repositories and create pull requests: those are real external write capabilities, not merely suggested commands.</p>
+<p>The README names Codex, Claude Code, Cursor, Grok Build, OpenCode, Antigravity, Pi and registry/custom ACP agents. Codex and Claude are enabled by default; the others require configuration. The implementation also contains additional upstream adapters; presence of a package is not proof that every released build supports every provider identically. React Native mobile code and the Connect relay remain in-tree, but the README says mobile is not published and the UpComputer relay is not deployed. Generic remote-access documentation describes more than that declared release state. Evidence: [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/README.md">README.md</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/operations/upcomputer-connect-setup.md">docs/operations/upcomputer-connect-setup.md</a>]</p>
+<h4>Stack</h4><table><tbody><tr><td>Layer</td><td>Technology and responsibility</td></tr><tr><td>Desktop</td><td>Electron 44.10.1, local backend lifecycle, update integration, OS helpers</td></tr><tr><td>Web</td><td>React/Vite application; shared client runtime and typed WebSocket contracts</td></tr><tr><td>Server</td><td>Node.js, Effect services/layers/schemas, provider sessions, RPC, terminals, Git and MCP</td></tr><tr><td>Persistence</td><td>Node SQLite, WAL, migrations, normalized orchestration event store and projections</td></tr><tr><td>Providers</td><td>Claude Agent SDK, Cursor SDK, Codex app-server, ACP and provider-specific adapters</td></tr><tr><td>Automation</td><td>tasks-server/tasks-contracts; native open-computer-use 0.3.5; Playwright Core 1.60.0</td></tr><tr><td>Optional remote infrastructure</td><td>Direct pairing, SSH, Tailscale; upstream Cloudflare relay and Clerk account machinery</td></tr></tbody></table>
+<p>Evidence: <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/package.json">apps/server/package.json</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/desktop/package.json">apps/desktop/package.json</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/contracts/src/providerPolicy.ts">packages/contracts/src/providerPolicy.ts</a>.</p>
+<h4>Key Features and Architecture</h4><h4>Durable app state, not just terminal multiplexing</h4>
+<p>The V2 model separates AppThread, Run, ExecutionNode, ProviderThread and ProviderSession. ContextTransfer records lineage while ContextHandoff materializes portable history. Stored normalized events have monotonically increasing sequence numbers; clients read a snapshot at N and stream later events. The event-store API records pruning boundaries, so consumers must resynchronize rather than assume an infinite replay log. This is a useful separation between provider-native runtime state and application-owned state. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/orchestration-v2/core-graph-and-data-model.md">docs/orchestration-v2/core-graph-and-data-model.md</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/persistence/OrchestrationEventStore.ts">apps/server/src/persistence/OrchestrationEventStore.ts</a>]</p>
+<h4>Workers have real ownership and recovery logic</h4>
+<p>TaskAgentService uses persisted run ownership, finalization claims, run/thread reconciliation and explicit stopped/failed/interrupted outcomes. Startup preserves a still-active V2 run rather than indiscriminately restarting every worker; incomplete finalization can resume, while missing threads and start timeouts become actionable failures. This is stronger than “repeat a prompt until done.” It still does not establish exactly-once external side effects: an agent may have pushed, sent, or changed a website before losing its response. Inspect actual outcomes before retrying. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/tasks-server/src/agents/TaskAgentService.ts">packages/tasks-server/src/agents/TaskAgentService.ts</a>]</p>
+<h4>Portable context is bounded, not lossless runtime migration</h4>
+<p>Provider switching selects intact messages, original/recent requests and useful activity under a budget, retaining references to omitted history. It does not transfer reasoning, tool-call state or attachments. The documented initial history cap is 16,000 tokens, with conservative byte-based accounting and provider-capacity fallbacks. Keep essential constraints explicit when switching providers. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/user/portable-handoffs.md">docs/user/portable-handoffs.md</a>]</p>
+<h4>Permissions, Computer Control and Isolation</h4><p><strong>New threads default to Full access.</strong> This is explicit both in documentation and DEFAULT_RUNTIME_MODE. Supervised, Auto-accept edits and provider-specific Auto modes exist, and managed policy can cap modes, but enforcement differs by provider. A thread/worktree is an organizational boundary, not an OS tenant or secret boundary. Do not assume a project selection prevents tools from reading the rest of the account, invoking network clients, or affecting other repositories. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/contracts/src/providerPolicy.ts">packages/contracts/src/providerPolicy.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/user/permission-modes.md">docs/user/permission-modes.md</a>]</p>
+<p><strong>Native computer-use defaults are unusually permissive:</strong> enabled=true, mode=control, requireActionApproval=false, allowedApps=[]; coordinate fallback is false. The policy rejects unknown tools, disabled control, disallowed apps, Plan-mode actions and sensitive-app names. An app allowlist also prevents whole-screen captures lacking an app target. These are useful restrictions, but the sensitive-app test is based on the supplied app name/bundle identifier, not comprehensive identification of password/payment content in ordinary browser windows. Empty allowedApps means unrestricted app selection, not deny-all. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/computer-use-contracts/src/settings.ts">packages/computer-use-contracts/src/settings.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/computer-use-server/src/computerUse/ComputerUsePolicy.ts">packages/computer-use-server/src/computerUse/ComputerUsePolicy.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/computer-use-server/src/computerUse/SensitiveApps.ts">packages/computer-use-server/src/computerUse/SensitiveApps.ts</a>]</p>
+<p><strong>Approval settings fail closed on the inspected MCP path, rather than opening a confirmation UI.</strong> ComputerUseMcpTools resolves the calling thread on every call; a missing thread mode or Supervised thread is denied. If action approval is required, actions are refused because this adapter cannot solicit approval. Plan allows observation only. This is an important distinction: the existence of an “Action approvals” setting does not imply a working per-action consent dialog for agents. The sidecar starts on demand and is stopped with the service. OS accessibility/screen-capture permissions and actual cross-platform behavior were not exercised. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/computer-use-server/src/mcp/ComputerUseMcpTools.ts">packages/computer-use-server/src/mcp/ComputerUseMcpTools.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/computer-use-server/src/computerUse/ComputerUseService.ts">packages/computer-use-server/src/computerUse/ComputerUseService.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/computer-use-server/src/computerUse/ManagedComputerUseSidecar.ts">packages/computer-use-server/src/computerUse/ManagedComputerUseSidecar.ts</a>]</p>
+<p>Managed browser automation uses a persistent default Chrome/Edge profile shared by the preview host and settings. Cookies and logged-in sites are therefore authority available to automation; it is not an ephemeral per-task isolation container. Browser reset removes that profile. There is no evidence in this sampled browser-lifecycle module of a universal outbound/private-network sandbox. Use a separate low-privilege browser identity and treat screenshots/page content as sensitive provider input. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/computer-use-server/src/browser/BrowserAutomationService.ts">packages/computer-use-server/src/browser/BrowserAutomationService.ts</a>]</p>
+<h4>Authentication, Network and Credential Boundaries</h4><p>The backend is not merely an unauthenticated localhost RPC service. EnvironmentAuthPolicy distinguishes desktop-managed-local, loopback-browser and remote-reachable modes; bootstrap uses desktop handoff or one-time tokens, followed by cookie, bearer or DPoP sessions. Session code handles expiry/revocation; RpcAuthorization maps operations to scopes, including filesystem, terminal, provider-management, settings and maintenance. Cookie-authenticated requests have origin checks. Protect reverse-proxy forwarded-host handling and use TLS or a private encrypted transport for remote access; token auth alone does not encrypt LAN HTTP. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/auth/EnvironmentAuthPolicy.ts">apps/server/src/auth/EnvironmentAuthPolicy.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/auth/EnvironmentAuth.ts">apps/server/src/auth/EnvironmentAuth.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/auth/SessionStore.ts">apps/server/src/auth/SessionStore.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/auth/RpcAuthorization.ts">apps/server/src/auth/RpcAuthorization.ts</a>]</p>
+<p>These are meaningful access controls, not proof of hostile multi-user isolation. Terminal/full-access agents still execute as the environment user. Pairing a device or granting broad guest scopes should be treated as delegating machine authority. The direct-pairing/SSH/Tailscale paths are distinct from the hosted Connect offering; do not assume the latter is operational merely because upstream docs describe sign-in and machine limits. No live auth, proxy, relay or tenant-isolation test was conducted.</p>
+<p>Provider login may use existing CLI credentials or built-in flows (including ChatGPT/Cursor/Antigravity); selected prompts, repository contents, images and tool outputs go to the chosen provider as needed. Credential fields are redacted in settings views and moved into ServerSecretStore. <strong>That store is raw local binary files protected by 0700-directory/0600-file permissions, not encrypted-at-rest storage.</strong> It does not isolate secrets from arbitrary processes under the same account. The optional 1Password resolver keeps references in settings and resolves on use; supplied values still reach their intended consuming tools/providers. Agent secret requests avoid chat display, but command-consumable secrets can be materialized in private files for about 24 hours. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/settingsSecrets.ts">apps/server/src/settingsSecrets.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/serverSettings.ts">apps/server/src/serverSettings.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/auth/ServerSecretStore.ts">apps/server/src/auth/ServerSecretStore.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/secrets/SecretRequests.ts">apps/server/src/secrets/SecretRequests.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/user/secrets.md">docs/user/secrets.md</a>]</p>
+<h4>Privacy and Costs</h4><p>“Every chat stays on your computer” is best read as local application-history storage, <strong>not no data leaves the device</strong>. Model execution necessarily uses the configured provider; optional remote access and diagnostics introduce other recipients. AnalyticsService defaults T3CODE_TELEMETRY_ENABLED to true and sends to PostHog. The telemetry document describes hashed account/install identifiers, provider/model/mode, token totals, usage events and error categories; it explicitly excludes prompt/response bodies and raw provider events. Hashing is pseudonymization, not absence of tracking. Relay traces may go to Axiom, and configured OTLP receivers add another export surface. Opt out before launch if that is required. Static inspection did not independently prove every telemetry field excludes sensitive content. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/telemetry/AnalyticsService.ts">apps/server/src/telemetry/AnalyticsService.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/user/telemetry.md">docs/user/telemetry.md</a>]</p>
+<p>The app's MIT source does not make inference free. Existing subscriptions, API keys, rate limits and provider terms still apply; workers/schedules and ancillary title/commit/PR generation consume resources. Usage reports are API-equivalent estimates rather than invoices. Documentation explicitly excludes some Codex/Claude ancillary text generation and lacks some incomplete Grok records; provider-specific history/account APIs determine coverage. Do not treat that dashboard as a complete hard spending cap. Self-hosting the optional relay also adds infrastructure/account operating costs. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/user/usage.md">docs/user/usage.md</a>]</p>
+<h4>Persistence, Retention, Export and Recovery</h4><p>SQLite uses WAL with synchronous=NORMAL and checkpoint_fullfsync: a deliberate throughput tradeoff. App-process crashes differ from OS crashes or power loss; post-checkpoint committed work may roll back after the latter. Database migration snapshots V1 using SQLite's backup API and publishes a completed V2 copy without replacing an existing V2 database. This is good migration hygiene, not a full-machine backup. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/persistence/Sqlite.ts">apps/server/src/persistence/Sqlite.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/persistence/initializeV2Database.ts">apps/server/src/persistence/initializeV2Database.ts</a>]</p>
+<p>V1→V2 preserves conversation text and selected metadata but does not recreate old live sessions, approval history, checkpoints/diffs or all tool activity. Settings, attachments and workspace files remain shared between versions. The docs explicitly say there is <strong>no whole-thread export command</strong> and recommend a stopped-server userdata recovery copy. That copy alone is not a backup of external Git worktrees, provider-native histories, keychain items or password-manager accounts. Keep those dependencies in a tested restore plan. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/docs/user/thread-migration.md">docs/user/thread-migration.md</a>]</p>
+<p>Worktree, browser-artifact and log age retention defaults are null; merge/delete cleanup defaults are false. This favors preservation, but screenshots, logs, cookies and old histories can accumulate. Cleanup has active-session/ownership and uncommitted-change protections; configure retention deliberately. Deleting a conversation is not evidence of erasure from provider logs, retained backups or independent browser state. [<a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/packages/contracts/src/settings.ts">packages/contracts/src/settings.ts</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/server/src/storageCleanup.ts">apps/server/src/storageCleanup.ts</a>]</p>
+<h4>Installation, Updates, License and Maturity</h4><p>- README requires Vite+, Node 24.13.1+, Git and an authenticated supported agent for source use. Native dependencies include Electron, node-pty, keyring/FFI helpers and the computer-use sidecar; this is not a tiny pure-JavaScript install. The documented Vite+ curl-to-shell bootstrap and package lifecycle/native downloads warrant ordinary supply-chain review; none was executed.</p>
+<p>- Desktop builds target macOS Intel/Apple Silicon, Windows and Linux. README states macOS signing/notarization, Windows unsigned/SmartScreen warnings, and GitHub-release automatic updates. Those are source/release-process claims, not signatures independently checked here. Platform packaging is not proof of equal desktop-control behavior, especially across Linux display stacks.</p>
+<p>- Package versions are 0.0.39 and the desktop identifies as Alpha. Public release metadata includes v0.0.39-nightly.20261111.754 from November 11; its target differs from the reviewed HEAD. Pin source/release identity when reproducing findings. Upstream internal names and some docs remain, so do not substitute T3 Code installers or releases for Up.computer without checking identity.</p>
+<p>- MIT LICENSE includes T3 Tools Inc. and Kirill Gurianov. Retain notices when redistributing; third-party code/binaries have their own licenses and the Up.computer brand has separate restrictions. No source was extracted in this review.</p>
+<p>- Public metadata on review date: 227 stars, 11 forks, last push November 11, 2026, repository created May 8, 2026. The three open items returned by the issues endpoint were PRs, not three confirmed defects. These are activity observations, not safety ratings.</p>
+<p>- CI defines lint, typecheck, build, split server/web/package test jobs, plus release/platform workflows. The exact reviewed SHA's <a href="https://github.com/krl-gr/upcomputer/actions/runs/43084308412">CI run 43084308412</a> reported success. Numerous auth, task-recovery, policy and migration tests are present. This is upstream automation evidence, not a local test pass, audit, dependency-vulnerability scan or guarantee of production reliability. CI actions use version tags in the inspected workflow rather than universal commit pinning.</p>
+<p>Evidence: <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/LICENSE">LICENSE</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/README.md">README.md</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/.github/workflows/ci.yml">.github/workflows/ci.yml</a>, <a href="https://github.com/krl-gr/upcomputer/blob/89354bf98008cbfbe4a85e5bcc56770cd604696a/apps/desktop/package.json">apps/desktop/package.json</a>, <a href="https://github.com/krl-gr/upcomputer/releases">public releases</a>, <a href="https://api.github.com/repos/krl-gr/upcomputer">repository metadata</a>.</p>
+<h4>Comparison</h4><table><tbody><tr><td>Option</td><td>Prefer it when</td><td>Tradeoff versus Up.computer</td></tr><tr><td><a href="https://github.com/pingdotgg/t3code">T3 Code</a></td><td>You want the upstream product and release/docs alignment</td><td>Up.computer adds its own task/worker/browser/computer-use direction; assess fork drift rather than counting inherited features twice</td></tr><tr><td>Existing provider CLI + Git worktrees</td><td>You need one provider and explicit terminal control</td><td>Less cross-provider state/worker UI; fewer application, telemetry and desktop-control surfaces</td></tr><tr><td><a href="https://github.com/openai/symphony">OpenAI Symphony</a></td><td>Issue-tracker-driven unattended coding is the core requirement</td><td>Different operational model; not a desktop/browser companion. See the <a href="symphony.md">existing review</a></td></tr><tr><td><a href="https://github.com/stablyai/orca">Orca</a></td><td>Parallel coding workspace and review UX are the priority</td><td>Compare workflow needs, not claimed security parity; see the <a href="stablyai-orca.md">existing review</a></td></tr></tbody></table>
+<p>These are functional alternatives, not a fresh security assessment of their current revisions.</p>
+<h4>Practical Pilot / Self-Hosting Notes</h4><p>Start local-only on an expendable developer account; explicitly set new threads to Supervised, disable native computer use unless necessary, and use an app allowlist/observe mode for initial evaluation. Do not weaken action approvals simply to silence the MCP adapter's refusal. Keep provider and browser accounts least-privileged, opt out of unwanted telemetry, and keep LAN/Connect/SSH exposure off until actually needed. An external OS/container/VM boundary is required when untrusted code must be contained; an agent permission label or worktree is not that boundary.</p>
+<p>Before unattended workers: verify provider-specific approvals with harmless fixtures, review Git write authority, establish real billing limits, test interrupted-run reconciliation, and practice a full restore including external workspaces. Before upgrading: snapshot state with the server stopped and retain the prior known-good release, while recognizing shared settings/files complicate rollback.</p>
+<h4>Verification Limits</h4><p>This is a broad but sampled static review of the exact SHA, not exhaustive review of thousands of files or bundled binaries. No tests/builds/dependency audits were run locally; no provider authentication, cloud service, desktop, browser profile, model or dataset was accessed. Hosted availability, OS permissions, signatures, live replay/revocation, actual consent UX, restore fidelity, performance and task success rates remain unverified. README/doc claims are separated above from inspected code and public CI metadata. No prior review of this canonical source was found in the public review/index search.</p>
+<p><strong>Attribution:</strong> <a href="https://github.com/krl-gr/upcomputer">krl-gr/upcomputer</a>, Kirill Gurianov and upstream T3 Tools Inc.; MIT source, separate component/brand terms.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>T3 Code</td><td>Upstream alignment versus the fork’s worker/control direction</td></tr><tr><td>CLI + worktrees</td><td>Less integrated UX, smaller application/control surface</td></tr><tr><td>Symphony</td><td>Issue-driven coding automation rather than a desktop companion</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Start local-only on an expendable account. Set Supervised mode, disable unnecessary computer control and telemetry, constrain browser credentials, and verify provider-specific permissions with harmless fixtures. Use an external isolation boundary for untrusted execution.</p><p>Back up stopped-server state plus external workspaces/provider state. Test recovery before unattended schedules. Remote pairing and hosted Connect are distinct: the repository says the fork’s relay is not deployed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantial orchestration and recovery architecture, but not a safe-by-default sandbox. Pilot with reduced permissions: full-access threads, control-enabled desktop defaults, persistent credentials and opt-out telemetry need deliberate configuration. Static review only.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/krl-gr/upcomputer">krl-gr/upcomputer</a> · MIT; component and brand terms separate</span>
+    <span><a href="upcomputer.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
