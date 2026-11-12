@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [newmarchy.md](reviews/newmarchy.md) [page](reviews/newmarchy.html) | [yamz8/newmarchy](https://github.com/yamz8/newmarchy) | MIT; upstream content/assets separate | ⚠️ Interesting | Omarchy release checklist with bounded parsing and fixed actions; heuristic completion, desktop authority and recovery caveats. 45 offline tests pass. |
 | [wayshare.md](reviews/wayshare.md) [page](reviews/wayshare.html) | [wesleygrimes/wayshare](https://github.com/wesleygrimes/wayshare) | Apache-2.0; codec/component terms | ⚠️ Interesting | Hyprland remote desktop for native Mac Screen Sharing and RDP; useful integration, plaintext Apple channels, shared authority and recovery/admission caveats. Static review. |
 | [extendwrite-nla-paper-004.md](reviews/extendwrite-nla-paper-004.md) [page](reviews/extendwrite-nla-paper-004.html) | [Extend-Write / NLA](https://github.com/thePM001/ExtendWrite-NLA-Research-Paper-004) | Apache-2.0 | ❌ Pass | Theoretical HDC update proposal; classification gap, unproved exact undo and enrichment, no runnable evaluation. |
 | [open-orange.md](reviews/open-orange.md) [page](reviews/open-orange.html) | [rivet-dev/open-orange](https://github.com/rivet-dev/open-orange) | Apache-2.0; MIT components | ⚠️ Interesting | Workers compatibility on Node/Rivet; substantial adapters, but partial parity, execution boundaries, migration recovery and cost-model caveats. Static review. |

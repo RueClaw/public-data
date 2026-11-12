@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Newmarchy — Review</title>
+<meta name="description" content="An Omarchy release checklist in the bar—not an OS fork or update verifier.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / newmarchy</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">yamz8/newmarchy · reviewed 2026-11-12</div>
+    <h1>Newmarchy</h1>
+    <p class="one-liner">An Omarchy release checklist in the bar—not an OS fork or update verifier.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; upstream content/assets separate</span>
+      <span class="chip">QML · Quickshell · JavaScript · Bash</span>
+      <span class="chip"><a href="https://github.com/yamz8/newmarchy">yamz8/newmarchy ↗</a></span>
+      <span class="chip"><a href="https://github.com/yamz8/newmarchy/tree/23dcf122483bc65c622b9e6252d300c817f82d9d">reviewed source ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A plugin, not a distribution</h3><p>Version 1.6.1 adds progress and curated feature discovery to the existing Omarchy shell. It does not replace the compositor, installer or updater.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Good prose-to-action separation</h3><p>Release text is bounded and displayed as plain text. Try actions come from fixed local argument arrays; the current curated map covers stable 4.5.0.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Seen is not verified</h3><p>Local detection is heuristic, and Try saves the tick before detached execution succeeds. The theme action really changes the theme; uninstall does not undo it.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Lifecycle</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>UI</td><td>QML, Qt Quick and Omarchy Quickshell components</td></tr><tr><td>Logic</td><td>Pure JavaScript parsing/state and fixed per-release feature map</td></tr><tr><td>Effects</td><td>Bash, curl, jq, Hyprland and Omarchy commands</td></tr><tr><td>State</td><td>Atomic-write-requested JSON; no built-in backup journal</td></tr><tr><td>Tests</td><td>45/45 Node tests passed in a network-disabled sandbox</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Newmarchy reads the installed Omarchy version, fetches public upstream release notes and turns selected topics into checkboxes. A filling circle in the bar tracks progress. Opening a topic shows its details; keyboard controls support navigation, checking, expansion, trying a feature and marking everything seen. The source-notes button retains provenance when the checklist falls back from the stable release to release-candidate notes.</p>
+<p>The canonical repository is the public, non-fork GitHub project <strong>yamz8/newmarchy</strong>. Its manifest identifies <strong>yamz8.newmarchy</strong>, version <strong>1.6.1</strong>, as a single-instance bar-widget with entry point <strong>Newmarchy.qml</strong>. Its relationship to <a href="https://github.com/omacom/omarchy">Omarchy</a> is additive: it consumes Omarchy releases, imports host UI components and invokes host commands. It does not implement Omarchy's installer, package management, compositor, kernel or update machinery. Accordingly, there is no meaningful OS-fork feature comparison or upstream patch delta to claim. [1–3]</p><h4>A checklist, not a second release feed</h4>
+<p>For GitHub Markdown, breaking changes and highlights are counted preferentially; absent these, all parsed items count. For the news-page fixture, 22 checklist entries result after splitting the named apps, with 29 More features, 13 Security and 215 Fixes entries below as read-only collapsed lists. Thus <strong>100% does not mean the security/fix lists were read</strong>. These counts are fixture/test results, not a promise about later live posts. [3,6]</p>
+<h4>Explicit commands, not execution of release-note text</h4>
+<p>Try buttons resolve a release/title against a local static table and execute fixed argument arrays without a shell. Remote descriptions do not supply shell commands. Installed-app signals gate the individual app buttons. This is a useful separation between untrusted prose and executable behavior, although upstream text still influences which locally permitted action appears. The map currently covers stable <strong>4.5.0</strong>, not future releases or direct RC tags. [4]</p>
+<h4>Local inference with a durable opt-out</h4>
+<p>The detector reads language selection, workspace layouts, Quake-console presence, Elsewhen configuration, current theme/background and app directories. It emits allowlisted signal names; there is no network operation in the detector script. Auto-ticked IDs are separately remembered under an auto-tag, so unchecking an automatically detected item survives later detection. Directory existence or a pre-existing non-English configuration is only a proxy for experience, not proof someone tried the new release feature. [3–5]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><strong>Shell startup / panel open → local version and detector processes → release selection → GitHub notes → optional news-page replacement → derived checklist → JSON seen-state.</strong> A local hourly timer rereads version/detection; network refresh is startup/open-driven rather than periodic background polling. Successful GitHub fetches are throttled for ten minutes, while explicit refresh bypasses that throttle. Failed fetches do not receive the same successful-fetch cooldown. Only the latest 30 releases are requested; if the installed version is absent or unrecognized, the newest final release is displayed instead. [2,3]</p>
+<p>Newmarchy.js keeps network/filesystem effects outside the parser. It bounds release count, body length, section/item counts and text lengths; news parsing uses a small regex-based article/h2/p/li extraction rather than a browser DOM. It is appropriate for the current upstream page shape but needs fixture refreshes as editorial markup changes. IDs are 32-bit hashes of section/title, stable for unchanged names but not semantic identities or collision-proof identifiers. The changelog explicitly records lost RC-title ticks when the news source changed in 1.4.0; the later heading adjustment deliberately preserves the old hash namespace. [3,7]</p><h4>Security, network and privacy</h4><p>- <strong>Good input boundary:</strong> downloaded content is bounded and displayed with Text.PlainText, not rendered as active HTML. URLs passed through Bash fetch wrappers are positional arguments, not interpolated source prose. curl time/connect limits and a 4 MiB transfer/collector cap constrain responses; news parsing further limits its input to 2 MiB. These are useful bounds, not a formal complexity proof. [2,3]<br>- <strong>Redirect caveat:</strong> initial news URLs match a fixed HTTPS omarchy.org path and that fetch uses --proto =https, but curl follows redirects without a final-host/private-address allowlist. The GitHub fetch also follows redirects and lacks the news fetch's explicit protocol restriction. This is a trusted-upstream/redirect boundary, not an observed exploit or a claim that arbitrary note URLs are accepted. [2,3]<br>- <strong>No account or telemetry service found:</strong> core requests are unauthenticated public reads with a newmarchy user-agent. The inspected plugin has no credential store, token setup, listening HTTP service or analytics upload path. GitHub/omarchy.org still receive connection metadata; using the notes button opens a normal browser. Launched apps have their own network/privacy behavior, outside this review. [2,4,5]<br>- <strong>Desktop authority remains broad:</strong> this is executable code inside a user's shell session, not a permission-isolated reader. No sudo, package installation, remote-code download-and-execute or privilege elevation was found in the plugin implementation. That does not sandbox host commands or establish the safety of the external plugin manager. Local IPC delegates transport/access control to the host and exposes panel controls, unseen count and forced refresh. [2]<br>- <strong>Try is a real effect:</strong> the Jade Horse action switches the current theme; other entries launch apps, open menus, dispatch a workspace or send a notification. The checkbox is saved <strong>before</strong> detached execution, with no exit-status check, confirmation/undo transaction or restoration of the old theme. A checked item can therefore represent a failed launch. [2,4]</p><h4>Verification and maturity</h4><p>Public metadata retrieved on 2026-11-12 reports creation on 2026-11-05, last push 2026-11-11T22:57:22Z, <strong>0 stars, 0 forks and 0 open issues</strong>. The queried all-state issue list and GitHub Releases list were empty; tags include v1.6.1 at the reviewed SHA. Changelog 1.6.1 is dated November 12; the commit's UTC timestamp is November 11. This is a roughly week-old project with rapid UI iteration, not a long field history. Counts are a dated snapshot, not quality evidence. [7,8]</p>
+<p>The tree contains two test modules with <strong>45 passing tests</strong> covering parsing, text bounds, URL filtering, release fallback, stable IDs, progress round trips, feature mappings and automatic-override behavior. They use repository fixtures and synthetic inputs, requiring no packages, credentials or remote calls. Execution was isolated with networking disabled, a cleared environment, read-only source/system runtime mounts, an empty home and no host desktop/socket access. node:vm is used by upstream tests for compatibility, <strong>not relied on as the security sandbox</strong>. No CI workflow exists in the reviewed tree. No detector integration tests, QML lifecycle tests, desktop accessibility/rendering checks, plugin-manager validation, package audit or live redirect tests were run. [6]</p>
+<p>The root MIT text and manifest agree. The repository also includes preview.png and copied upstream release-page/Markdown fixtures; the MIT license should not be taken as independent proof that all third-party prose, screenshot elements, trademarks or font glyph designs are relicensed. The UI uses the host's Nerd Font rather than shipping a font file. This review redistributes neither the preview nor the upstream fixtures. [1,2,6]</p><h4>Revision and evidence</h4><p>Reviewed SHA: <code>23dcf122483bc65c622b9e6252d300c817f82d9d</code> (v1.6.1), full plugin source.</p><p>All implementation links below are pinned to the reviewed revision:</p>
+<p>1. <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/README.md">README and lifecycle documentation</a>, <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/manifest.json">manifest</a>, <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/LICENSE">MIT license</a>.<br>2. <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/Newmarchy.qml">Newmarchy.qml: host integration, fetching, state and actions</a>.<br>3. <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/Newmarchy.js">Newmarchy.js: parsers, selection and state transforms</a>.<br>4. <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/Features.js">Features.js: fixed action/signal map</a>.<br>5. <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/bin/newmarchy-detect">Read-only local detector</a>.<br>6. <a href="https://github.com/yamz8/newmarchy/tree/23dcf122483bc65c622b9e6252d300c817f82d9d/tests">Tests and fixtures</a>.<br>7. <a href="https://github.com/yamz8/newmarchy/blob/23dcf122483bc65c622b9e6252d300c817f82d9d/CHANGELOG.md">Changelog</a>.<br>8. <a href="https://api.github.com/repos/yamz8/newmarchy">Public repository metadata</a>, <a href="https://api.github.com/repos/yamz8/newmarchy/tags">tags</a>, <a href="https://api.github.com/repos/yamz8/newmarchy/releases">releases</a>, <a href="https://github.com/yamz8/newmarchy/issues">issues</a>; retrieved 2026-11-12.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Strength</td><td>Tradeoff</td></tr><tr><td>Newmarchy</td><td>Progress, local detection and curated Try actions</td><td>Host coupling and heuristic completion</td></tr><tr><td>Official news / GitHub releases</td><td>Original full context; no widget installation</td><td>No progress or local detection</td></tr><tr><td>Manual checklist</td><td>Explicit interpretation and easy archival</td><td>Manual upkeep</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The documented install is <code>omarchy plugin add https://github.com/yamz8/newmarchy.git --enable</code>; documented removal is <code>omarchy plugin remove yamz8.newmarchy</code>, followed by optional deletion of its state directory. These are source-documented commands, <strong>not commands run for this review</strong>. The README targets a standard Omarchy 4 installation, but the actual imports and commands require compatible contemporary Omarchy shell APIs. Generic Hyprland, an older Omarchy shell, macOS and Windows are not established supported targets. There is no CPU-specific binary here, but that is not proof of testing on every architecture supported by the host. [1,2]</p>
+<p>The plugin supplies no custom installer, updater, package lock, compatibility matrix or rollback command. Installation/update trust is delegated to the host plugin manager and the Git repository; the README install URL is not revision-pinned. For a controlled pilot, record the source SHA, preserve the plugin-manager configuration and current theme selection, and back up the state file before updating. Audit the manager's actual update/remove behavior separately rather than assuming config merge, pinning, signature verification or rollback guarantees.</p>
+<p>The plugin's own persistent file is <strong>~/.local/state/newmarchy/seen.json</strong>. FileView requests atomic writes and watches changes, but there is no backup/version journal or explicit write-failure UX; errors are suppressed. The directory is created asynchronously at startup, and no readiness gate around early state writes is visible. Invalid/missing state becomes an empty map. Also, this state path hardcodes HOME rather than honoring XDG_STATE_HOME, even though the detector honors XDG paths for the host data it reads. [2,3,5]</p>
+<p>There is no bulk dotfile replacement in the plugin itself. Removing the widget does not undo the theme change or other effects of apps launched with Try. Keep state if progress matters; deleting it resets both manual progress and automatic-detection history. A file backup supports manual recovery of progress, not a transactional desktop rollback. Notes are cached only in memory: a cold offline start has no persisted release catalogue, and a failed news-page fetch is remembered for that URL until shell restart rather than retried by the ordinary refresh path. [1–3]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A focused companion with bounded plain-text parsing, fixed actions and durable manual overrides. Completion remains heuristic: Try ticks before launch success, security/fix lists do not count, and recovery is limited. Pilot on a compatible Omarchy shell; 45 offline tests passed, desktop behavior remains unverified.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/yamz8/newmarchy">yamz8/newmarchy</a> · MIT; upstream content/assets separate</span>
+    <span><a href="newmarchy.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
