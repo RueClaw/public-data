@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MutinyBIM — Review</title>
+<meta name="description" content="A shared browser BIM engine for people and agents, with trade add-ons and explicit host boundaries.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / mutinybim</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">permitzip/mutinybim · reviewed 2026-11-12</div>
+    <h1>MutinyBIM</h1>
+    <p class="one-liner">A shared browser BIM engine for people and agents, with trade add-ons and explicit host boundaries.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 code; asset/dependency exceptions</span>
+      <span class="chip">TypeScript · React · IFC · MCP</span>
+      <span class="chip"><a href="https://github.com/permitzip/mutinybim">permitzip/mutinybim ↗</a></span>
+      <span class="chip"><a href="mutinybim.md">Full review and evidence</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">72</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">8</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real model semantics, not just a viewport</h3><p>People and agents share intent commands, typed units and trade registries. The PostgreSQL authority fences commits with revisions and leases; that is not the same as the in-memory demo.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>IFC needs independent acceptance testing</h3><p>Exports include diagnostics, proxy fallbacks and mesh rounding. Editable import supports a subset; linked-reference visibility does not prove preserved native semantics or engineering compliance.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Choose the trust and durability boundary</h3><p>Local scripts are not network-sealed; hosted scripts use a Linux sandbox. Web snapshots are debounced and deleted files retained; browser AI keys persist in localStorage and inference costs are separate.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Engine</td><td>TypeScript, typed units, command kernel, manifold-3d</td></tr><tr><td>UI / exchange</td><td>React 19, Three.js, web-ifc, IFC 4.3, PDF</td></tr><tr><td>Hosts</td><td>Node ≥22.13; SQLite/files or PostgreSQL; MCP</td></tr><tr><td>Source SHA</td><td><code>94513ba243fac72359573ee472481c4f33f949da</code></td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>PermitZIP maintains MutinyBIM and says it uses the engine in its engineering work. That is a maintainer claim, not independently verified production evidence. Its public repository was created on 2026-11-09; the inspected source is much larger than a three-day toy, but public operating history is very short. The README explicitly calls it early and distinguishes the engine from a complete hosted product. [S1]</p>
+<p>The workspace includes architecture, structural, civil, site, development, electrical, mechanical and plumbing/gas packages, a first-party bundle including fire protection, sheet/PDF tooling, and plan/3D editing. Some editor screens require host services and are unavailable in the local demo. A separate open web app adds accounts, sharing, saved models, external-assistant authorization and browser BYOK AI; do not assume all hosts have identical capabilities. [S1, S7]</p><p><strong>IFC is implemented, but interchange is not synonymous with lossless authoring.</strong> Export builds STEP Part 21 / IFC 4.3 data from class registries, units, spatial structure and properties. Missing/invalid IFC class hints fall back to <code>IfcBuildingElementProxy</code> with a diagnostic; some kinds are explicitly skipped. Consumers must read the export report, not just check that a file opens. Stable GUID and synthetic export tests are present. [S5]</p>
+<p>Geometry output uses extrusions and triangulated face sets; mesh vertices round to 0.01 mm, and elements without stated size can have placement without a body. That rounding is an implementation choice, not an accuracy certification. Core coordinates are millimetres, x east/y north/z up; non-length properties convert to appropriate coherent SI project units. Unknown/unmapped units can become plain IFC real values without unit metadata. [S5]</p>
+<p>Import reads neutral products and plans conversion through rules/registries. The geometry reader supports selected local placements, extruded rectangle/circle/polyline profiles, mapped items, bounding boxes and mesh bounds; a standard steel section may be represented by its bounding rectangle. Unsupported shapes are reported and retained on the linked reference rather than magically converted into fully editable solids. Conversion-based feet/inches and SI prefixes are recognized; absent/unrecognized length assignment falls back to 1000 mm per unit, so malformed files require explicit scale checks. A linked IFC viewport is therefore not proof that native editable semantics survived. [S6]</p>
+<p>The geometry package also exposes OBJ/glTF mesh-body readers. These are not equivalent to parametric CAD history, fabrication tolerances or native Revit-family round trips. No end-to-end native RVT/DWG fidelity was established. Before adoption, test known-size metric/imperial fixtures, rotated/nested placements, slopes, openings, space boundaries, GUIDs, classifications, properties, quantities and unsupported-element reports in an independent receiving application. Validate georeferencing and drawing/PDF scale separately. No such runtime exchange tests were performed here.</p><h4>Engineering authority</h4><p>This is an editing/calculation engine, not only visualization. Nevertheless, deterministic calculations, citations, clash lint and typed units do not make a permit-ready design. The README explicitly assigns responsibility to a licensed professional, notes values/formulas needing checks, and excludes licensed fitting-loss databases. Confirm adopted code edition, local amendments, manufacturer data, coefficient provenance, load cases and discipline review. A valid mesh or successful IFC export proves none of those. [S1, S3]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>One semantic editing path</h4>
+<p>Clients preview intent commands, while the authority re-executes against the current model and publishes changesets. The database store guards writes with revision, epoch and lease ownership/generation; idempotent outcomes help reconcile lost answers rather than blindly replaying edits. This is stronger than letting an agent directly rewrite a scene JSON file. The guarantee depends on the chosen store/host, not just the shared UI. [S2]</p>
+<h4>Trade extension contract</h4>
+<p>Add-ons contribute domain classes and services through a versioned contract. The kernel is meant to remain trade-neutral; import-layer, cycle and boundary checks appear in CI. Typed quantities and explicit unit conversions are a useful defense against silent dimensional mistakes, but cannot establish that the input, selected method or jurisdiction is correct. Calculation outputs distinguish code, design criteria and method citations and carry versioned inputs/results. [S1, S3, S10]</p>
+<h4>Scripts with preview and approval</h4>
+<p>The local MCP host defaults to elicitation approval and refuses clients unable to ask. There is also an explicit auto-approval demo mode. The generic host-decided gate returns approval and trusts the embedding application to have obtained it already. Thus “nothing lands until a person approves” is a host configuration/implementation obligation, not an unconditional property of every deployment. Hosted external-assistant approvals have database-backed pending records and a 30-minute decision window. [S4, S7]</p><h4>Security and privacy</h4><p>- <strong>Local versus hosted script execution:</strong> LocalScriptRunner creates a fresh capped Node child with empty environment and filesystem/process restrictions, but explicitly warns that Node permissions do not seal sockets. Its VM context is not a hostile-code security boundary. Hosted scripts instead have a Linux bubblewrap path with separate network/user/process namespaces, read-only runner files, dropped capabilities, prlimit controls, bounded concurrency and a fail-closed availability check. These are inspected controls, not penetration-tested guarantees; the JavaScript heap cap is not a total-process/cgroup memory limit. [S4, S7]<br>- <strong>Local MCP is not a public service:</strong> HTTP defaults to loopback, limits request bodies and enables SDK DNS-rebinding protection. No account authentication is implemented in that local transport. Do not expose it by changing the bind address or placing an unauthenticated proxy in front of it. The local Compose sign-in intentionally trusts anyone who reaches it; published ports are loopback-only. [S4, S9]<br>- <strong>Hosted identity:</strong> Passwords use scrypt; session/reset/assistant tokens are stored as digests. The web host has membership checks, same-site/origin defenses and separate assistant bearer/OAuth flows; the model authority verifies issuer/audience through configured JWKS sources. These paths are not interchangeable with the demo identity. Linked-host passes use AES-256-GCM with current/previous key support; encryption-key custody remains the operator's responsibility. [S7, S8]<br>- <strong>Outbound metadata hardening needs another pass:</strong> Assistant client metadata rejects private DNS answers and redirects, but then performs an ordinary hostname fetch rather than pinning the validated address. DNS re-resolution remains a security-review concern. The claimed 5 KB document limit is checked after <code>response.text()</code>, not as a streaming byte cap. These are static code observations, not demonstrated exploits. Configured OAuth/linked-host endpoints are trusted operator-controlled network destinations. [S7]<br>- <strong>BYOK means browser-retained, not secret-free:</strong> <code>client/ai.ts</code> stores provider settings including the key in localStorage and calls Anthropic/OpenAI/xAI or an HTTPS compatible endpoint directly. The model request sends system text and the question; connected assistants also receive tool/model data according to access. Same-origin script compromise or an exposed browser profile can disclose the key. Forgetting settings removes that local entry, not provider logs or previously transmitted content. Review model-data confidentiality and provider retention before enabling AI. [S8]</p><h4>Persistence and recovery</h4><p>There are three materially different storage stories:</p>
+<p>1. <strong>Demo/local memory:</strong> stopping the server loses unsaved model state. Local MCP script library/previews are also process memory.<br>2. <strong>Open web app:</strong> account/access records are SQLite; model history, branches and versions live in JSON snapshots. Changes schedule a save after 750 ms, using a temporary file and rename. Save failure is logged and retried on the next change. Atomic replacement reduces torn-file risk but is not synchronous commit durability; a crash can lose acknowledged recent edits, and there is no fsync in the inspected persistence path. Deletion renames a snapshot with a deleted timestamp rather than erasing it, so recovery and retention/privacy policies must account for these retained files.<br>3. <strong>Model authority:</strong> PostgreSQL provides durable fenced commits, lease renewal and outcome reconciliation. That architecture is stronger for shared use but still needs tested backups, migrations, restore and authorization configuration. A branch/version is not an independent disaster-recovery backup. [S2, S7, S9]</p>
+<p>Back up accounts/access records and model files together, preserve linked-host key material separately, and test full restore and permission revocation. Removing a Compose volume deletes its stored models. No crash drill, restore exercise or retention-erasure verification was run for this review.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Bonsai / IfcOpenShell</td><td>IFC-native desktop authoring and inspection</td></tr><tr><td>FreeCAD</td><td>Parametric desktop CAD/BIM</td></tr><tr><td>That Open</td><td>Browser IFC viewer/coordination components</td></tr><tr><td>Acceptance gate</td><td>Independent exchange, engineering, recovery and authorization checks before project use</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The declared minimum is Node 22.13. The simple demo needs no Docker; the full local authority stack uses Compose v2 and PostgreSQL 17. Browser 3D requires suitable graphics support/resources. The hosted sealed-script path specifically requires Linux, bubblewrap/prlimit, a compatible namespace configuration and its prebuilt runner; generic Node portability does not imply sandbox portability. [S1, S7, S9]</p>
+<p>The engine does not require a paid AI provider. BYOK calls and external assistant subscriptions/API usage are separate costs; “free hosted app” does not mean free inference. The browser adapter has no aggregate spend ledger/budget enforcement in the inspected file, and the OpenAI-compatible request does not set an explicit output-token cap. Also budget RAM/CPU, database storage, backups and operations; synthetic 250k-element perf gates are not guarantees for every real model or hardware configuration. [S8, S10]</p>
+<p>Root dependency versions and a lockfile are present, but npm installation runs a substantial tool/native/WASM dependency supply chain. Docker base-image tags and GitHub Action major-version tags are not immutable digests. Pin the reviewed revision, inspect release/migration differences, back up before upgrades and qualify exports after changes. No installs, package audit or dependency vulnerability scan were performed.</p><h4>License, tests and maturity</h4><p>Apache-2.0 allows commercial reuse subject to its terms, including notices and the patent conditions; it does not grant the MutinyBIM trademarks/artwork. NOTICE identifies OFL fonts, MIT shadcn components and unmodified MPL-2.0 dependencies including web-ifc/resvg/lightningcss. The generated dependency inventory also lists LGPL-3.0-or-later sharp-libvips platform artifacts: a redistributed bundle needs its own actual dependency/license inventory, not an “everything is Apache” assumption. No upstream code was extracted into this review. [S11]</p>
+<p>At retrieval, GitHub reported <strong>72 stars, 8 forks, 37 open issues/PRs combined</strong>, a last push of 2026-11-11T23:23:14Z and latest published release <strong>v0.2.18</strong> (2026-11-11T23:23:18Z). The inspected root manifest still says 0.2.0; use the SHA rather than treating package metadata as the release identity. Popularity and rapid release count are not quality evidence.</p>
+<p>Static inventory found <strong>857 files named <code>*.test.ts</code></strong> (not a test-case/pass count). Tests cover GUIDs, exports/import reports, units, geometry and architecture boundaries among many other areas. CI defines lint/license checks, typechecking, sharded Jest, authority typecheck/Docker build and secret scanning; a separate perf gate and optional million-element workflow exist. Public GitHub metadata reported successful <a href="https://github.com/permitzip/mutinybim/actions/runs/43118201151">CI</a>, <a href="https://github.com/permitzip/mutinybim/actions/runs/43118201192">Perf gate</a> and <a href="https://github.com/permitzip/mutinybim/actions/runs/43119246054">Release</a> runs for the exact reviewed SHA. This is upstream execution evidence, not locally reproduced test, benchmark or engineering validation. [S10]</p><h4>Evidence and limitations</h4><p>All source links below are pinned to the reviewed revision. Public source and metadata only; no private project context. Sampling is not an exhaustive security audit, code-compliance certification, performance measurement or BIM conformance assessment. UI rendering, installation/update compatibility, OAuth interoperability, native exports, provider behavior and recovery remain unverified locally.</p>
+<p>- <strong>S1:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/README.md">README and scope</a><br>- <strong>S2:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/services/bim-authority/src/pg-store.ts">Fenced PostgreSQL store</a><br>- <strong>S3:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-calc/src/types.ts">Calculation contract</a><br>- <strong>S4:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-mcp/src/approvals.ts">Approval gates</a><br>- <strong>S5:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-ifc/src/export.ts">IFC export</a><br>- <strong>S6:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-ifc/src/import/geometry.ts">Partial editable import</a><br>- <strong>S7:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/apps/mutinybim-web/src/app.ts">Web host</a><br>- <strong>S8:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/apps/mutinybim-web/client/ai.ts">Browser AI</a><br>- <strong>S9:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/docker-compose.yml">Local stack</a><br>- <strong>S10:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/.github/workflows/ci.yml">CI</a><br>- <strong>S11:</strong> <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/NOTICE">License notices</a></p>
+<p>Additional implementation evidence: <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-ifc/src/units.ts">IFC units</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-ifc/src/geometry.ts">geometry export</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-ifc/src/mapping.ts">IFC class fallback</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-ifc/src/import/read-products.ts">import units</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-script-runner/src/local.ts">local runner</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/packages/bim-mcp/src/transports.ts">HTTP transport</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/apps/mutinybim-web/src/script-sandbox.ts">hosted sandbox</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/apps/mutinybim-web/src/models.ts">snapshots</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/apps/mutinybim-web/src/assistant-auth.ts">metadata fetching</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/apps/mutinybim-web/src/linked-hosts.ts">linked-host encryption</a>, <a href="https://github.com/permitzip/mutinybim/blob/94513ba243fac72359573ee472481c4f33f949da/THIRD_PARTY_LICENSES.md">dependency inventory</a>, <a href="https://api.github.com/repos/permitzip/mutinybim">public repository metadata</a>.</p>
+<p>---<br><strong>Attribution:</strong> PermitZIP / permitzip/mutinybim; Apache-2.0 code and separately noted third-party/asset terms. Review is independent analysis.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot the shared command engine, not an unqualified production BIM replacement. IFC conversion is partial, storage and script isolation differ by host, and calculations still require licensed engineering judgment. Static review; no local runtime validation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/permitzip/mutinybim">permitzip/mutinybim</a> · Apache-2.0 code; asset/dependency exceptions</span>
+    <span><a href="mutinybim.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
