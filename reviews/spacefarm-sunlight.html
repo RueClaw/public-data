@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sunlight — Review</title>
+<meta name="description" content="A zoomable Mac window canvas with live Dock integration and optional cloud AI desktop actions.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / spacefarm-sunlight</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">spacefarm-digital/sunlight · reviewed 2026-11-12</div>
+    <h1>Sunlight</h1>
+    <p class="one-liner">A zoomable Mac window canvas with live Dock integration and optional cloud AI desktop actions.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; asset/dependency exceptions</span>
+      <span class="chip">Swift · AppKit · Objective-C · SkyLight</span>
+      <span class="chip"><a href="https://github.com/spacefarm-digital/sunlight">spacefarm-digital/sunlight ↗</a></span>
+      <span class="chip"><a href="https://github.com/spacefarm-digital/sunlight/tree/cf7aa16fa0035fa867529787dce02bd3d3ca5e60">reviewed source SHA</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">90</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">12</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real surfaces, real privilege</h3><p>Live mode transforms actual windows through a Dock payload and root helper. Lease expiry and restoration are thoughtful, but partial SIP disablement changes the machine trust boundary.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Optional AI changes the privacy claim</h3><p>Tell Sunlight is off by default. Enabling it and submitting a request sends window metadata and app text to Anthropic; heuristic approval gates are not complete action isolation.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery has explicit exceptions</h3><p>Atomic JSON and corrupt-file preservation help. Merged Desktops are not recreated, logs contain window information, and stopping an agent does not undo completed actions.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>cf7aa16fa0035fa867529787dce02bd3d3ca5e60 · 0.2.4/build 11</td></tr><tr><td>Platform</td><td>Apple silicon · macOS 15+ · experimental multi-display</td></tr><tr><td>UI / renderer</td><td>AppKit / SwiftUI · ScreenCaptureKit or private SkyLight</td></tr><tr><td>State / updates</td><td>JSON / UserDefaults / Keychain · Sparkle 2.10.1</td></tr><tr><td>Verification</td><td>Static only; upstream CI reports success, no independently run tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p> Sunlight preserves the positions of windows on an effectively unbounded canvas, with pan/zoom, minimap, snapping, saved layouts, desktop files/widgets and picture-in-picture tiles. It can hand a selected window back to normal native interaction. This is specifically Spacefarm's macOS project, not another product named Sunlight or a generic remote-desktop agent. The canonical source is the repository above; binaries and update feeds live separately in spacefarm-digital/sunlight-releases.</p>
+<p>The public requirements are macOS 15+ and Apple silicon, with administrator authorization for live windows. No Linux, Windows or Intel-Mac support is established. Stage Manager is temporarily disabled. Main-display use is the default; multi-display canvases and interaction at arbitrary zoom are experimental. Documentation says live windows received most testing on macOS 27; CI targets macOS 26, so neither proves the entire advertised OS range. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/README.md">README</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/CHANGELOG.md">changelog</a>. </p>
+<h4>Key Features and Architecture</h4><p> ### Two genuinely different rendering paths</p>
+<p>The capture path represents windows with ScreenCaptureKit images (README says eight largest streams at 30 fps and other updates once per second). The live path applies transforms to actual WindowServer surfaces through code injected into Dock. App/Desk/CanvasController coordinate window discovery and canvases; Camera maps world coordinates to screen coordinates; RealWindowDriver and LiveWindowsConnection serialize snapshots into the payload protocol. It is not merely a screenshot grid.</p>
+<p>The live driver replaces stale pending frames instead of accumulating animation history. A lease owns the windows it transforms; bounded I/O, acknowledgments, finite-transform and length checks, window-owner identity checks, and restoration on disconnect/lease expiry are meaningful defensive work. Up to eight leases can belong to the initial client process for multiple canvases. Recovery state is in Dock memory: a Dock crash destroys it, so timeout restoration is not a universal rollback guarantee. The documentation explicitly distinguishes compilation, synthetic socket tests and full visual/device validation. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/RealWindows/RealWindowDriver.swift">Sources/Canvas/RealWindows/RealWindowDriver.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/RealWindows/LiveWindowsConnection.swift">Sources/Canvas/RealWindows/LiveWindowsConnection.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LiveWindows/osax/sunbeam.h">LiveWindows/osax/sunbeam.h</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LiveWindows/README.md">LiveWindows/README.md</a>.</p>
+<p>### Permissions and privileged execution</p>
+<p>Demo mode asks for Accessibility and Screen Recording. Accessibility allows focus, moving/closing windows and reading/acting on UI; it is substantial authority even without SIP changes. Live rendering can avoid ScreenCaptureKit when available, but fallback may request Screen Recording. Live setup requires disabling SIP filesystem protections and debugging restrictions, an arm64e boot argument and root-assisted installation of the scripting addition. These are machine-wide security trade-offs, not a narrowly scoped app permission.</p>
+<p>The signed helper checks a code-signing requirement containing Sunlight's bundle identifier and its own team; the XPC service only dispatches load and bootarg, serializes execution and exits when idle. Ad-hoc builds instead use an administrator prompt and a SHA-256-pinned sudoers rule for the helper's load operation. This is stronger than arbitrary shell-command RPC, but still creates persistent privileged integration. The source packaging path is unsandboxed. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LiveWindows/helper.m">LiveWindows/helper.m</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Resources/LaunchDaemons/com.spacefarm.sunlight.live-windows.plist">Resources/LaunchDaemons/com.spacefarm.sunlight.live-windows.plist</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/RealWindows/AdditionReloader.swift">Sources/Canvas/RealWindows/AdditionReloader.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/scripts/package.sh">scripts/package.sh</a>.</p>
+<p>The Dock socket is user-owned and mode 0600. That excludes other OS users under ordinary filesystem permissions; it does not authenticate Sunlight's code identity. PID-based lease ownership prevents a competing process from taking simultaneous leases, not an unauthorized same-user process from being the first client. Move/order/level/Spaces dispatch is also present. Treat this as same-user desktop IPC, not a hardened multi-tenant or hostile-local-process isolation layer. There is no HTTP server, hosted account system or organizational RBAC in the reviewed architecture. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LiveWindows/osax/payload.m">LiveWindows/osax/payload.m</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LiveWindows/osax/sunbeam.h">LiveWindows/osax/sunbeam.h</a>.</p>
+<p>### Takeover is not fully reversible</p>
+<p>The README says every setting touched returns on quit. Code and the 0.2 changelog qualify that: takeover can move windows from other Desktops onto one Desktop per display and remove emptied Desktops. Consent text explicitly says merged Desktops are not recreated. Full-screen Spaces are treated separately. Preference restoration, Stage Manager restoration, watchdog/crash guard and safe-mode support are welcome, but do not restore the original Spaces topology. This matters before enabling takeover, even if no files are deleted. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Takeover/TakeoverMode.swift">Sources/Canvas/Takeover/TakeoverMode.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Spaces.swift">Sources/Canvas/Spaces.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Stability/Stability.swift">Sources/Canvas/Stability/Stability.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/CHANGELOG.md">CHANGELOG.md</a>. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Optional AI: Consent, Data and Costs</h4><p> Tell Sunlight is real, shipped source, off by default in Experimental settings. It requires a user-supplied Anthropic key stored as a login-Keychain generic password, accessible when unlocked; settings can remove it. On submission, the request and current window list (including app names, titles and positions) go to Anthropic. Reads inside applications can send document/page/UI text and subsequent tool results. Settings discloses this. Therefore the README's absolute “only update checks” network statement is false when this feature is enabled. No model endpoint was contacted in this review. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Settings.swift">Sources/Canvas/Settings.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Agent/AgentKey.swift">Sources/Canvas/Agent/AgentKey.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Agent/ClaudeClient.swift">Sources/Canvas/Agent/ClaudeClient.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Agent/AgentRun.swift">Sources/Canvas/Agent/AgentRun.swift</a>.</p>
+<p>The client hard-codes claude-sonnet-5-5 and the Anthropic Messages endpoint, requests up to 16,000 output tokens per response, and uses ephemeral prompt caching. A separately toggled server-side fallback option is off by default. Model availability, provider pricing, retention and fallback behavior were not independently verified. There is no demonstrated offline/local-model path or included inference allowance. The app may be free, but enabled AI incurs the user's API usage charges.</p>
+<p>Code caps requests at 60 tool calls and checks a 300-second duration limit before executing tools; these are not a dollar budget or a strict end-to-end deadline, since HTTP replies and other work can extend wall time. Older reads are compacted in the in-memory conversation. Stop cancels further work, not effects already completed; no transactional undo or durable resumable-agent journal is established.</p>
+<p>The guardrails block named settings/password/terminal apps, refuse typing into recognized secure fields, and require approval for pressing controls with certain English send/delete/pay/publish words or non-search Return. References must come from a snapshot in the current request. Those are useful code-level checks, not just a prompt. However they remain heuristic: renamed/unlisted apps, unlabeled/localized controls, auto-saving fields and operations whose consequences are not reflected in button names are not comprehensively covered. Blocked app contents and blocked app titles are different boundaries: initial canvas metadata is still sent. App/page text is declared untrusted in the model prompt, but there is no isolation sandbox preventing prompt-influenced actions in allowed apps. Supervise it on non-sensitive material; do not equate the UI's approval promise with complete authorization enforcement. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Agent/Guardrails.swift">Sources/Canvas/Agent/Guardrails.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Agent/AppTools.swift">Sources/Canvas/Agent/AppTools.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Agent/AppReader.swift">Sources/Canvas/Agent/AppReader.swift</a>. </p>
+<h4>Persistence, Retention, Export and Recovery</h4><p> Canvas.json and Layouts.json in the app's Application Support directory contain arrangement information, names/titles and, for named layouts, document URLs used for reopening files. JSON writes are atomic; malformed saved-list entries can be recovered individually, and the original unreadable file is set aside before replacement. This is a good recovery pattern. Saved layouts are not backups of document contents, unsaved edits or application sessions. Plain JSON is manually portable, but no general export/import compatibility guarantee was established. Keep a backup before editing or migration. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Layouts.swift">Sources/Canvas/Layouts.swift</a>.</p>
+<p>Logs deliberately contain app/window information, rotate around 2 MB with one previous file, and are created with requested mode 0644 subject to umask and directory permissions; “local” does not mean encrypted or owner-only. Crash collection keeps up to 20 reports each for Sunlight and Dock. Diagnose summarizes rather than attaching the full title-bearing log/report text. Review diagnostic output before sharing. User-data removal covers preferences, support files, caches and logs, but the inspected removal function does not delete AgentKey; remove the API key explicitly in settings rather than assuming uninstall revokes it. Provider-side retention is separate and not controlled by deleting local files. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Stability/Log.swift">Sources/Canvas/Stability/Log.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Stability/CrashReports.swift">Sources/Canvas/Stability/CrashReports.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Setup/SetupDiagnose.swift">Sources/Canvas/Setup/SetupDiagnose.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Setup/Uninstall.swift">Sources/Canvas/Setup/Uninstall.swift</a>.</p>
+<p>Uninstall is a guided reversal of Dock addition, boot argument/password rule, helper/login registration and SIP changes, with a Recovery step. Trashing the app alone is not equivalent. The implementation preserves unrelated boot arguments when constructing removal commands; merged Desktops remain a documented exception. </p>
+<h4>Build, Update, License and Maturity</h4><p> The recommended make run builds a signed app and launches it; it is not a harmless test command. Packaging searches the keychain for signing identities, builds the helper, embeds Sparkle and signs nested components; release tooling can notarize and publish. None of those scripts was executed here. SwiftPM locks Sparkle to an exact revision but the manifest permits compatible updates; CI actions use major-version tags rather than immutable SHAs. Third-party binaries/frameworks and the separate release repository remain supply-chain inputs.</p>
+<p>Sparkle configuration supplies HTTPS feed and EdDSA public key; upstream release tooling describes signing/notarization. Binary-to-source reproducibility, actual downloaded signature/notarization validity and update rollback were not verified. A missing manual-check feed returning 404 is displayed as “up to date,” which can obscure an absent/misconfigured release feed rather than prove freshness. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/Sources/Canvas/Updater.swift">Sources/Canvas/Updater.swift</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/packaging/release.conf">packaging/release.conf</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/scripts/package.sh">scripts/package.sh</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/scripts/release.sh">scripts/release.sh</a>.</p>
+<p>As observed 2026-11-12, public GitHub metadata showed 90 stars, 12 forks, 10 open issues/PRs in the combined repository count, creation 2026-10-28 and last push 2026-11-08. The source repository had no GitHub releases; the separate binary repository's latest was v0.2.4, published 2026-11-08. These are a young project's activity signals, not quality scores. <a href="https://api.github.com/repos/spacefarm-digital/sunlight">Metadata</a>, <a href="https://github.com/spacefarm-digital/sunlight-releases/releases/tag/v0.2.4">binary release</a>.</p>
+<p>There are 63 Swift test files spanning geometry, packing, socket behavior, recovery, setup and agent policy, plus Objective-C synthetic/live harnesses. The CI workflow builds Swift release, runs swift test and builds live-window components on macos-26. <a href="https://github.com/spacefarm-digital/sunlight/actions/runs/42494404329">Run 42494404329</a> reports success for the reviewed SHA. CI does not install/inject the payload or establish real desktop safety, visual smoothness, energy use or cross-version compatibility. The README still calls 0.1 the first public beta while the code is 0.2.4, and older live-validation counts are historical, not current test totals. The “first” canvas-manager and energy/refresh claims were not independently benchmarked. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/.github/workflows/ci.yml">.github/workflows/ci.yml</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LiveWindows/VALIDATION.md">LiveWindows/VALIDATION.md</a>.</p>
+<p>Root code is MIT (copyright spacefarm); retain that notice and the yabai MIT notice when reusing adapted code. The DMG hill photo is credited to Zongnan Bao under the Unsplash license, so not every packaged asset is simply MIT. Sparkle and other redistributed components retain their own terms. No code or media was extracted into this review. <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LICENSE">LICENSE</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/LiveWindows/osax/LICENSE-yabai.txt">LiveWindows/osax/LICENSE-yabai.txt</a>, <a href="https://github.com/spacefarm-digital/sunlight/blob/cf7aa16fa0035fa867529787dce02bd3d3ca5e60/packaging/dmg/README.md">packaging/dmg/README.md</a>. </p>
+<h4>Verification Limits</h4><p> Only public source, public metadata and repository documentation were used. No private data, accounts, secrets, model requests, installations, dependency downloads, builds, runtime tests or desktop/device access were used. All runtime, latency, energy, release-integrity and protection-restoration conclusions remain unverified beyond static evidence and identified upstream reports. This is not a security audit or a vulnerability reproduction.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> spacefarm-digital/sunlight, MIT; yabai-derived Dock integration retains its MIT notice; image terms as noted above. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Rectangle</td><td>Conventional snapping; simpler when zoom is unnecessary</td></tr><tr><td>AeroSpace</td><td>Keyboard tiling and workspaces rather than a live spatial canvas</td></tr><tr><td>yabai</td><td>Scriptable window management; similar SIP trade-offs for privileged addition features</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Comparison and Practical Adoption</h4><p> | Option | Better fit | Trade-off versus Sunlight | |---|---|---| | <a href="https://github.com/rxhanson/Rectangle">Rectangle</a> | Conventional keyboard snapping | Less spatial expressiveness; a simpler alternative when a zoomable world is unnecessary | | <a href="https://github.com/nikitabobko/AeroSpace">AeroSpace</a> | Keyboard-driven tiling/workspaces | Different mental model, not a live zoom canvas; investigate its own platform requirements | | <a href="https://github.com/koekeishiya/yabai">yabai</a> | Scriptable macOS window management | Relevant ancestor for Dock integration; privileged scripting-addition features carry similar SIP concerns | | Sunlight demo mode | Try the spatial interaction without Dock injection | Screen-capture permission and capture-renderer costs remain; not equivalent to real-window mode |</p>
+<p>This is a desktop app, not something to self-host as a server. Start with demo mode and AI disabled on a non-critical Mac. Evaluate exact OS compatibility, recoverability after Dock/app failure, multi-display behavior and layout restore before relying on it. Keep SIP intact unless the live-window benefit justifies the explicitly understood platform-security cost. For managed or sensitive desktops, prefer simpler snapping/tiling until those boundaries and organizational policy are satisfied. The best reusable ideas here are lease-based restoration, stale-frame replacement and corrupt-layout preservation—not the assumption that a beautiful UI makes broad desktop authority safe. </p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Compelling spatial-desktop engineering, not a low-risk replacement. Start with demo mode and AI disabled: live windows require partial SIP disablement, while optional AI sends window metadata and app text to Anthropic. Static review only; actual desktop recovery and binary integrity were not tested.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/spacefarm-digital/sunlight">spacefarm-digital/sunlight</a> · MIT; asset/dependency exceptions</span>
+    <span><a href="spacefarm-sunlight.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
