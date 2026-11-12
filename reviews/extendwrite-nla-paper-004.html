@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extend-Write: claims versus guarantees — Review</title>
+<meta name="description" content="A theoretical HDC memory-update proposal whose published rules do not establish its preservation, enrichment or exact-undo claims.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--pass);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / extendwrite-nla-paper-004</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">the.PM / New Lisbon Agency · reviewed 2026-11-12</div>
+    <h1>Extend-Write: claims versus guarantees</h1>
+    <p class="one-liner">A theoretical HDC memory-update proposal whose published rules do not establish its preservation, enrichment or exact-undo claims.</p>
+    <div class="verdict-pill">❌ Pass — specification repair needed</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 repository</span>
+      <span class="chip">Theoretical paper · static analysis</span>
+      <span class="chip"><a href="https://github.com/thePM001/ExtendWrite-NLA-Research-Paper-004">the.PM / New Lisbon Agency ↗</a></span>
+      <span class="chip"><a href="extendwrite-nla-paper-004.md">Full review and pinned sources</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">21</div><div class="lbl">PDF pages</div></div>
+      <div class="stat"><div class="num">2026-06-10</div><div class="lbl">Release date</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Factors can fall between categories</h3><p>Shared requires similarity ≥ 0.7, while preserved/novel require no match ≥ 0.3. A 0.5-similarity pair belongs to none of them: this defeats the claimed exhaustive partition.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Undo and enrichment are not guaranteed</h3><p>Unit-weight reconstruction lacks original weights and residuals. Novel anchoring is undefined with no preserved factors; no explicit enrichment check prevents success with zero novelty.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Design sketches, not demonstrated learning</h3><p>Read all 21 PDF pages, both diagrams and appendices. There is no executable package, dataset, baseline, ablation or timing log; primary resonator references do not supply the missing guarantees.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Definitions, evidence and practical limits.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Claims audit</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Methods and prior work</button>
+
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Practical limits</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Author</td><td>the.PM / NLA</td></tr><tr><td>Revision</td><td>04df43898ab577d36c6768eeaac30934de998a35</td></tr><tr><td>PDF SHA-256</td><td style="overflow-wrap:anywhere">918dfbea36a3b8bb65e2a33ea0b300cc815f89f24ac56e83900c553e53374465</td></tr><tr><td>Evidence</td><td>Full PDF, figures, README, license, sketches, sidecar inventory; static analysis only</td></tr><tr><td>Publication</td><td>Self-published; no peer-review evidence supplied</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Summary</h4>
+<p>Extend-Write decomposes an existing and incoming hypervector with resonator networks, classifies recovered factors as shared, novel or preserved, and recomposes them with different weights. Shared pairs are bundled at weight 1.5, novel factors are bound to their nearest preserved neighbor at weight 0.8, and preserved factors retain weight 1.0. A domain-supplied predicate accepts or rejects the output; a diff supports undo (§§3.1–3.6).</p>
+<p>At the graph level, a new capsule is located among nearby capsules, relationships are classified, and node insertion, edge insertion and attractor-field changes are proposed as one atomic transaction. Sector boundaries and trust rings are checked before commit (§4). Figures 1 and 2 illustrate this pipeline and before/after connectivity; they are conceptual diagrams, not experimental results.</p>
+<p>The author claims five universal properties: preservation, relationship modification, structural integrity, strict enrichment and reversibility (§5). The larger thesis is that this operation resolves forgetting and superposition degradation for indefinitely growing autonomous intelligence (§6). Those conclusions substantially exceed the evidence. Section 7 explicitly leaves convergence guarantees, formal verification and empirical scaling to future work; the data statement says no external datasets were used and executable code is available only upon request.</p>
+<h4>Key claims and technical assessment</h4>
+<h4>1. The classification is not an exhaustive partition</h4>
+<p><strong>Author claim:</strong> Every old factor is either preserved or represented in a shared pair (§5, Invariant 1).</p>
+<p><strong>Independent deduction from §3.3:</strong> Shared pairs require similarity at least 0.7; an old factor is preserved only if no new factor reaches 0.3. Consequently an old factor whose maximum new-factor similarity is 0.5 is neither shared nor preserved. The analogous incoming factor is not novel either. The entire interval [0.3, 0.7) is a classification gap.</p>
+<p>This is not merely floating-point ambiguity. For an admissible bipolar example of dimension 10,000, take an all-positive old vector and a new vector with 2,500 negative entries: their cosine is exactly 0.5. Conditional on recovering these as singleton factor sets, the stated rules produce no shared, novel or preserved factor. This is an analytical counterexample to the partition claim, not a measured resonator experiment. An unspecified predicate could reject the resulting state, but that does not make the partition correct or recover the discarded old factor in the proposed diff.</p>
+<p>Shared is also a set of all qualifying pairs, not a one-to-one matching. One old factor can be paired with several new factors. Appendix A's loops can then reinforce and restore that factor multiple times; lattice connection strength can exceed one when pair count exceeds new-factor count. A matching policy, duplicate semantics and explicit handling of ambiguous factors are needed.</p>
+<h4>2. Recomposition is partial, and enrichment is not checked</h4>
+<p><strong>Author claim:</strong> Every successful update preserves all knowledge and yields a strictly richer result (§5).</p>
+<p><strong>Finding:</strong> Novel-factor integration calls nearest(preserved, new_factor). Suppose all old factors have shared matches while the incoming set also contains an orthogonal novel factor: preserved is empty, and the nearest-neighbor call has no defined result (§3.4; Appendix A.1). Empty existing memories also lack an initialization rule.</p>
+<p>Conversely, identical old and new factors can produce no novel factors at all. The sketch still returns success whenever the generic structure checker accepts; there is no explicit novel-count or recoverable-count gate. The published type of P accepts only the output vector, not the input pair or classification. Captured context could supply relational checks, but that interface and required checks are not specified.</p>
+<p>Moreover, the displayed enrichment condition is only output recoverable count ≥ old recoverable count plus a separate requirement that the input classification contains novelty. It does not state a strictly larger output count or verify that each new concept survives decoding. Binding a new factor to a neighbor changes its representation; counting the resultant composite as a reliably recoverable concept requires an explicit decoder and codebooks. Preserving an additive component before normalization does not guarantee its later retrieval.</p>
+<h4>3. Exact undo requires more information and stronger assumptions</h4>
+<p>Section 3.6 reconstructs old shared and preserved factors with unit weights. The diff does not retain original coefficients, normalization residuals, representation parameters or the original vector bytes. The existing vector may itself be the output of a previous weighted update. There is no lossless factorization/recomposition theorem ensuring that unit-weight bundling recreates it.</p>
+<p>The hash can detect a mismatch if checked; it cannot restore missing information. Appendix A.1's undo ignores the extended vector and does not verify the stored previous-state hash. The classification gap further omits old factors altogether; many-to-many matches can duplicate them. Even cosine 1 is not general byte-for-byte equality, particularly for representations with scale. Exact undo is feasible with a full before-image or a proved sufficient invertible representation, but neither is established here. Audit/history storage must be counted in any memory-efficiency comparison.</p>
+<h4>4. The underlying representation and lattice remain underspecified</h4>
+<p>The paper ranges over binary, bipolar and complex hypervectors but does not define their distinct binding, bundling, normalization and similarity conventions. Real-weighted addition needs a projection rule to stay within a binary/bipolar space. Standard resonator factorization recovers factors of a specified compositional encoding from codebooks; it is not automatically a generic semantic decomposition oracle for arbitrary weighted sums of bound and bundled structures.</p>
+<p>The cited <a href="https://arxiv.org/abs/2007.03748">Frady et al. primary abstract</a> specifically describes factoring products of code vectors. Its <a href="https://arxiv.org/abs/1906.11684">companion analysis</a>, absent from the nine-item bibliography, explicitly says global convergence is not guaranteed. This supports using resonators as a research component, not assuming reliable decomposition across Extend-Write's recursive outputs. Stable fixed-point convergence alone also does not establish correct factor recovery.</p>
+<p>At lattice level, (N, E, A) describes nodes, weighted edges and a continuous attractor field. No order/join/meet or hyperoperation axioms establish the claimed mathematical hyperlattice, and no field equation, distance, update law or retrieval algorithm lets the reader verify geodesic preservation. Sector and trust constraints are named rather than defined. Local graph neighborhoods do not by themselves prove noninterference when the continuous field or other state is shared.</p>
+<h4>5. Transactional guarantees are requirements, not implemented evidence</h4>
+<p>Appendix A.2 pipelines add_node, add_edges and update_attractor_field, then returns either a new lattice and diff or an error. For purely functional immutable helpers, returning no candidate on failure could preserve the caller's original value. Their definitions are absent, however, so this is not evidence of rollback for external effects, atomic visibility, locking, serialization or durable crash recovery. Returning an in-memory diff is not itself durable storage. The timestamp source and attractor-change capture are external, undefined helpers.</p>
+<p>The Rust sketch likewise omits all core types/helper implementations and does not visibly propagate factorization failure despite the prose's error contract. These are reasons to treat the appendices as API illustrations, not tested implementations or demonstrated ACID semantics.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Methodology, evaluation and reproducibility</h4>
+<p>This is a theoretical/design contribution; absence of a dataset is not inherently a defect. The problem is that its universal guarantees are not proved and some stated rules undermine them. The river/bridge/dam example (§3.7) assigns similarities and asserts recoverability without supplying actual vectors, codebooks or decoding traces. It cannot establish robustness.</p>
+<p>There are <strong>no empirical datasets, task streams, train/test splits, baseline runs, controls, uncertainty estimates, significance tests or ablations</strong>. Leakage and contamination therefore cannot be evaluated—not a clean bill of health, simply no experimental protocol to inspect. No empirical evidence supports superiority to replay, EWC, progressive networks, ordinary HDC bundling, event-sourced graph updates or a transactional memory with stored before-images.</p>
+<p>Section 3.8 asserts sub-millisecond execution at d = 10,000, codebook size ≤ 1,000 and factor count ≤ 50, but provides no hardware identity, implementation, iteration distribution, timing protocol or measurements. Its complexity formula is not a latency benchmark. Because shared includes all qualifying pairs, its count can reach k_old × k_new; recomposition is not necessarily linear in k_old + k_new as stated unless a bounded matching rule is added. Approximate-neighbor O(log n × d) is also index/recall/distribution-dependent, not an unconditional guarantee.</p>
+<p>A meaningful next evaluation would first repair the definitions, then publish executable codebooks/encoders/decoders, seeded property tests for round-trip undo and preservation, and a pinned reproduction environment. Tests should include intermediate similarities, duplicate matches, empty anchors, repeated identical updates, contradictory facts, failed convergence, capacity saturation and long repeated updates. Compare equal total storage and compute—including diffs—with ordinary bundling, explicit factor storage and a versioned graph. Ablate factorization, weights, anchoring and predicate gating. Report old/new retrieval accuracy, forgetting, order sensitivity, rejection rate, latency distributions and memory growth across seeds; tune thresholds separately from held-out evaluation. These are proposed tests, not work performed in this review.</p>
+<h4>Novelty, citations and counterarguments</h4>
+<p>The nine references connect the proposal to genuine established topics: AGM belief revision; CRDTs; EWC, progressive networks and PackNet; resonator networks; and VSA/HDC work by Gayler, Kanerva and Plate. Selected primary abstracts were checked for resonators, EWC and progressive networks; the entire bibliography was not exhaustively audited and no systematic novelty search was possible with the available search service.</p>
+<p>The narrow claim—this exact named combination may be new—is plausible but unverified. It does not establish a new computational capability. Ordinary reads/writes can implement a factorize/classify/recompose transaction; abstraction into a useful semantic operation is different from proving those underlying operations insufficient. Table 1 compares a rich operation with verification and history against bare storage operations without the same infrastructure. A fair comparison would give conventional updates validation, provenance and undo too.</p>
+<p>CRDT convergence is not obtained simply by discussing merges: order-dependent nearest anchoring and repeated reinforcement are not accompanied by commutativity, associativity or idempotence proofs. AGM's central challenge includes revising contradictory beliefs; geometric similarity alone does not distinguish confirmation, contradiction, redundant evidence or a false statement. Preserving every previously accepted belief and maintaining truth across changing evidence can require explicit retraction, which is outside this mechanism.</p>
+<p>Calling all gradient updates destructive by construction is too broad. <a href="https://arxiv.org/abs/1612.00796">EWC</a> studies task retention with measured classification/game tasks; <a href="https://arxiv.org/abs/1606.04671">progressive networks</a> preserve old columns while transferring features. Both have limitations, but an external knowledge-store update is not a substitute for solving continual parameter learning. The paper supplies no bridge experiment between the two.</p>
+<p>Finally, a fixed finite-precision hypervector has finite information capacity. Unbounded recoverable knowledge requires growing storage, external factor records, increasing precision/dimension or lossy tradeoffs. The lattice and diff chain may grow, but then their full storage/retrieval costs must be analyzed. Reweighting alone cannot remove the capacity limit or guarantee all signal-to-noise ratios improve simultaneously.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Strengths and practical relevance</h4>
+<ul><li>Separates decomposition, reconciliation and checked commit into understandable stages.</li><li>Treats reversibility and provenance as first-class design concerns rather than incidental debugging features.</li><li>States defaults, sketches interfaces and openly lists convergence, scaling and proof work still needed.</li><li>Publishes a readable paper and accessible textual counterpart, with a drafting-assistance disclosure.</li></ul>
+<p>For engineers, the useful takeaway is modest: retain provenance, define invariants, validate candidate knowledge updates and make rollback concrete. A conventional versioned graph or explicit factor store is an adequate comparison before adopting an unspecified hypervector primitive. For HDC researchers, the edge cases above offer a clear specification-repair agenda. Neither audience should rely on the ASI or forgetting-resolution claims.</p>
+<h4>Security, privacy and cost implications</h4>
+<p>No deployed service, provider integration, credential handling or executable implementation is supplied, so no operational security assurance is possible. There is no demonstrated requirement for paid LLM APIs; drafting-tool disclosures are not runtime dependencies. No provider calls or paid experiments were made for this review.</p>
+<p>In a future implementation, input provenance and authorization must be independent of cosine similarity: repeated or adversarially similar claims could be reinforced without becoming true. Named trust rings and a boolean structural predicate are not an access-control or poisoning defense. Diff chains can retain sensitive or retracted information indefinitely, so reversible history conflicts with irreversible erasure unless retention, access, encryption and purge semantics are specified. Convergence bounds, factor-count limits, storage budgets and admission limits are needed to contain compute/memory costs. These are architectural implications, not observed exploits in runnable code.</p>
+<h4>Verification limits and decision</h4>
+<p>The actual 21-page PDF was extracted locally and read through its references and end statements; diagram pages were visually inspected. The repository and supplementary timestamp sidecar were inventoried, and public metadata/releases were checked. No private correspondence or author-only code was accessed. No software was installed, no benchmark/model/data workloads were downloaded, and no implementation, formal proof or empirical result was fabricated. The illustrative counterexample is a deduction from the published equations, not a reproduction claim.</p>
+<p>The decisive blocker is not merely missing experiments: the current specification does not support its stated invariants. Repair the partition and matching rules, specify the representation and decoder, prove or store enough information for undo, and publish a fair reproducible evaluation before treating Extend-Write as more than a speculative design.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">❌ Pass — specification repair needed</div>
+      <p>Useful checked-update and provenance instincts, but the classification has a gap, novel anchoring can be undefined, and exact undo is not established. No runnable implementation or empirical evaluation supports the continual-learning or sub-millisecond claims.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/thePM001/ExtendWrite-NLA-Research-Paper-004">the.PM / New Lisbon Agency</a> · Apache-2.0 repository</span>
+    <span><a href="extendwrite-nla-paper-004.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
