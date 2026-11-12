@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drowse — Review</title>
+<meta name="description" content="Local mechanistic interpretability: inspect, branch and steer Hugging Face language models.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / drowse</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">stdlogits/drowse · reviewed 2026-11-12</div>
+    <h1>Drowse</h1>
+    <p class="one-liner">Local mechanistic interpretability: inspect, branch and steer Hugging Face language models.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">AGPL-3.0-or-later; component terms separate</span>
+      <span class="chip">Python · PyTorch · FastAPI · Svelte</span>
+      <span class="chip"><a href="https://github.com/stdlogits/drowse">stdlogits/drowse ↗</a></span>
+      <span class="chip">6.1.3 · static review</span><span class="chip">SHA d47bf5365f7e</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">15</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real interventions, not prompt presets</h3><p>Steering hooks and a separate measurement plane share one generation engine. Manifolds, Jacobian lenses, neurons, heads and SAEs support paired experiments; labels still require independent validation.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Strong local boundaries, not tenancy</h3><p>Loopback/Host/Origin checks, bearer authentication and bounded archives are real implementation controls. One key grants shared session authority, and enabling model repository Python grants local execution privileges.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Back up chats; inspect pack exports</h3><p>Saved chats live in browser IndexedDB, while fitted artifacts and corpora live on disk. Pack publishing includes corpora and defaults new repositories to public; a manifold pack is not a full backup.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+<tr><td>Inference</td><td>PyTorch ≥2.13, Transformers ≥5.22, Accelerate; one loaded model per session</td></tr>
+<tr><td>API</td><td>FastAPI/Uvicorn; native REST/WebSocket plus OpenAI/Ollama adapters</td></tr>
+<tr><td>UI</td><td>Svelte 5/TypeScript/Vite; committed compiled bundle ships in the wheel</td></tr>
+<tr><td>Research</td><td>Safetensors, fitted manifolds, lens families, SAE sources, neuron catalogs</td></tr>
+<tr><td>Durable state</td><td>Configurable Drowse home directory; browser IndexedDB for saved chats</td></tr>
+<tr><td>Optional acceleration</td><td>CUDA bitsandbytes/kernels, FlashAttention; Apple MPS and CPU paths</td></tr>
+</tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The canonical repository is <strong>stdlogits/drowse</strong>, attributed to Drowse Contributors; the README credits a9lim with Claude. The distribution is <strong>drowse.ai</strong>, while the CLI/import is <strong>drowse</strong>. Releases through 5.3.0 used <strong>saklas</strong>. This review concerns the Python server and bundled dashboard, not the separate <strong>stdlogits/drowse.ai</strong> browser/WebGPU runtime or its hosting infrastructure. Shared frontend code is not proof of backend parity. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/README.md">README</a></p>
+<p>Researchers can generate a reply, select tokens, inspect alternative-token probabilities and internal measurements, and fork the conversation with altered steering. Six rooms organize Workbench, Units, Lens, Probes, Artifacts and Model. OpenAI- and Ollama-compatible endpoints are local serving interfaces: their names do <strong>not</strong> imply forwarding prompts to those companies.</p><h4>One intervention engine, separate measurement plane</h4>
+<p>A DrowseSession owns a GenerationEngine. SteeringComposer resolves expressions and installs per-layer SteeringManager hooks; the read plane independently plans hidden-state capture and instrument measurements. Probe-dependent gates connect them. Generation transactions and the server session lock serialize access to the mutable model. OpenAI/Ollama stateless requests do not append to the native conversation tree. This is a consistent research core, not independent implementations behind each UI surface. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/ARCHITECTURE.md">Architecture</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/session/engine.py">engine</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/steering/composer.py">composer</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/server/app.py">app</a>.</p>
+<h4>Geometry is more than a named prompt preset</h4>
+<p>Concepts are fitted from authored or generated corpora. A two-node flat manifold represents a bipolar direction; other fits use affine or curved geometry. Neutral-activation whitening separates write directions from read covectors. Layer selection, ablation, token/layer scopes and probe-triggered gates act inside model forwards, rather than merely prepending an instruction. Fit identity includes authored content, rendered token positions, model identity and policy version; stale results are not silently treated as current. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/fit/pipeline.py">Fit pipeline</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/geometry">geometry</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/steering">steering</a>.</p>
+<h4>Rich readouts are hypotheses, not semantic guarantees</h4>
+<p>R-family lenses rank what a vector tends to make the model say; S-family lenses rank input-like content, with depth-dependent weighting. Units expose neuron/head writes and reads; optional neuron-lens catalogs supply generated labels and firing normalization. SAEs add sparse features. These are implemented mechanisms, but a probe named “deceptive” is not independently calibrated evidence of deception. Corpus construction, neutral baseline, model/dtype, layer choice and intervention strength can change a reading's meaning. Generated unit labels are interpretation aids, not ground truth. Reproduce paired unsteered/steered experiments and held-out behavioral effects before using a score in consequential decisions. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/lens">Lens</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/units/catalog.py">catalog</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/README.md#how-drowse-works">methods</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Authentication and execution</h4>
+<p><strong>Good defaults:</strong> the CLI binds loopback. Without a key, API access checks the peer and Host; browser Origins must match or be explicitly allowed. Bearer comparison is constant-time. WebSockets authenticate before acceptance using a bearer header or encoded subprotocol, not URL credentials; stale token query parameters are scrubbed. Private responses are no-store. CSP, frame denial, no-referrer and device-permission restrictions are set. Request bodies default to a 64 MiB cap. Security tests cover cross-origin clearing, authentication before body consumption and response headers. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/server/security.py">Security middleware</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/tests/server/test_http_security.py">tests</a>.</p>
+<p><strong>Not tenant isolation:</strong> one server owns one shared session/model with one configured API key, not per-user roles or independent stores. Native API access includes conversation and artifact operations. A trusted local process can call a keyless service; browser-origin defenses do not stop local malware. An authenticated collaborator is not a read-only viewer. Use separate processes/stores for mutually untrusted users, and TLS plus deliberate proxy handling for remote access. Body bounds are not GPU quotas or fair scheduling.</p>
+<p><strong>Model code remains a major trust boundary:</strong> repository Python defaults off; the environment toggle or explicit Python argument enables it. That grants model code the server process's privileges, not a sandbox. Config/tokenizer/weight reads are pinned to one resolved Hub revision, a consistency control but not a publisher signature. Native dependencies and optional acceleration packages still execute code during install/runtime. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/model/load.py">Loader</a>.</p>
+<p><strong>Archive handling is substantive:</strong> .drowse imports reject absolute/traversal/noncanonical paths, duplicate and case-colliding names, special files, and oversized/high-ratio archives. Limits include 4,096 entries, 512 MiB per file and 2 GiB expanded total. Tensor validation is separate. CRC and cache fingerprints do not prove author identity; a valid pack is not necessarily trustworthy science or authenticated provenance. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/store/archive.py">Archive codec</a>.</p>
+<h4>Network and costs</h4>
+<ul><li>Local inference needs no OpenAI/Anthropic subscription or per-token provider payment. Costs are hardware memory, electricity, disk, downloads and fitting time. First default launch downloads weights and fits 17 bundled probes; lens/SAE fitting is additional work. No hardware budget was measured here.</li><li>Hugging Face serves weights, packs, lenses/catalogs and optional datasets. Gated models may require accepted terms and Hub credentials. Drowse delegates Hub authentication to the client library; this is not an isolated credential broker.</li><li>The dashboard API key is held in a module variable rather than written to browser storage by the HTTP-auth module. This does not protect against trusted-origin script compromise or an unencrypted remote connection. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/webui/src/lib/runtime/http-auth.ts">HTTP auth</a></li><li>Optional Neuronpedia detail retrieval sends model/source/feature identifiers to Neuronpedia. External catalog links leave the local origin. The contact form explicitly POSTs entered fields to drowse.ai and retains drafts in sessionStorage; server-side contact retention is outside scope. “Local” does not mean “no network anywhere.” <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/webui/src/lib/saeDescriptions.ts">SAE descriptions</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/webui/src/lib/stores/contact.svelte.ts">contact</a></li><li><strong>Pack publishing can disclose corpora.</strong> Push always exports the corpus, filters fitted tensors, and defaults new repositories to public unless private is requested. It removes stale root pack/artifact layout in the target Hub repository. Use a dedicated destination, inspect exports and dry-run before publication; excluding tensors does not exclude training text. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/store/hub.py">Hub publishing</a></li></ul>
+<h4>Persistence and recovery</h4>
+<p>The filesystem store holds authored manifolds/corpora, templates, fits, neutral statistics, lenses, SAEs and source bindings. It is not a conversation database. The live server does hold the native tree in memory: “keeps no conversations” means no automatic durable server chat storage, not that requests never enter memory. The browser saves chats between replies in IndexedDB; preferences/drafts use browser storage. No application-level encrypted-at-rest chat vault or centrally managed retention policy was established. Treat browser profiles, downloads, corpora and backups as sensitive. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/webui/src/lib/conversationLibrary.ts">Conversation library</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/README.md#state-and-distribution">state documentation</a>.</p>
+<p>Chat backups contain a versioned record plus SHA-256, validate before import and enforce size limits; archives can carry multiple chats. Hashes detect accidental changes, not malicious rewriting by someone who can recompute them. Explicit deletion exists, but no universal time-based purge was found in reviewed chat/store paths. Browser clearing, quota errors, origin changes or an unsaved in-flight reply can affect recovery. Export before clearing data or upgrading. Python users explicitly choose a LoomTree save path. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/webui/src/lib/chatBackup.ts">Chat backup</a>.</p>
+<p>Artifact writes use same-directory staging, fsync/replace and stable cross-process locks. Fits publish only if the authoring revision still matches; incomplete tensor/sidecar pairs are cache misses. These are strong crash/concurrent-edit measures, not a substitute for backing up authored corpora. A .drowse pack transports one manifold closure and referenced template, <strong>not</strong> model weights, lenses, SAEs or the full home directory. GGUF control-vector export is narrower still. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/base/atomic.py">Atomic IO</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/drowse/fit/publish.py">fit publication</a>.</p>
+<p>Migration is an operational cost: README documents no general automatic old-format migration, no reading the old Saklas home, a pre-5.4 lens conversion script, incompatibility with 5.x saved conversations in 6.0, and refitting changed frames in 6.1. Current backup code recognizes some legacy names/versioned records; that is not blanket historical compatibility. Keep pre-upgrade exports and the original environment until restore is proven.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td><a href="https://github.com/vgel/repeng">repeng</a></td><td>You want compact activation steering</td><td>Smaller conceptual surface; no equivalent integrated dashboard implied</td></tr><tr><td><a href="https://github.com/TransformerLensOrg/TransformerLens">TransformerLens</a></td><td>Notebook-first custom interpretability experiments matter most</td><td>More experiment authoring; inspect model compatibility separately</td></tr><tr><td><a href="https://github.com/jbloomAus/SAELens">SAELens</a></td><td>SAE training/analysis is the primary objective</td><td>Specialized ecosystem; Drowse can consume SAELens sources</td></tr><tr><td><a href="https://github.com/ollama/ollama">Ollama</a></td><td>You mainly need convenient local chat/model serving</td><td>Not a replacement for internal readouts and intervention engine</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Python 3.11+ is required. CUDA or Apple Silicon MPS is recommended; CPU support is not a promise of interactive large-model performance. Quantization is CUDA-specific and ignored with a warning elsewhere. FlashAttention auto-selects when installed. A model fitting in RAM does not assure that retained activations, KV cache and analysis fits fit too. UI builds require Node 24, but the packaged server already includes the built UI.</p>
+<p>Support is feature-dependent: README lists exercised model families but says lens fits/unit reads refuse MoE and hybrid stacks, role extraction needs a suitable chat template, and published lenses/SAEs cover selected checkpoints. MPS fallbacks and text-only extraction from some multimodal checkpoints are real code, not universal compatibility. Windows is declared OS-independent and has lock handling; this review did not establish Windows GPU/packaging parity.</p>
+<p>Python dependencies mostly use lower bounds, not a full environment lock. Frontend dependencies are pinned with a package-lock, including a tagged GitHub tarball for Ledger. Use a version-pinned isolated environment, retain dependency resolution records and qualify a small checkpoint before investing in large fits. No installer, updater or migration was run.</p><h4>Maturity and verification</h4>
+<p>Public GitHub metadata on 2026-11-12 showed <strong>15 stars, 1 fork, 1 open issue/PR aggregate</strong>, creation on 2026-04-09 and last push on 2026-11-12. These are context, not quality measurements. <strong>6.1.3</strong> was released that day with wheel/sdist and attestation files; attestations were listed, not cryptographically verified.</p>
+<p>CI defines lint, whole-project type checks, four CPU-test shards and frontend checks/build freshness. Tests cover security, archive IO, tiny-model sessions, geometry, concurrency, stream backpressure and browser persistence. <strong>Upstream CI for this exact SHA reported success</strong> (<a href="https://github.com/stdlogits/drowse/actions/runs/43144334805">run 43144334805</a>); GPU tests are excluded from the CPU job. README real-model CUDA/MPS coverage was not reproduced. No local source tests or dependency vulnerability audit were run.</p>
+<p>The release workflow runs independently on main pushes with no declared CI-success dependency. A released package alone is therefore not a test-pass guarantee. Mutable action tags and broad dependency ranges remain supply-chain inputs. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/.github/workflows/ci.yml">CI</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/.github/workflows/release.yml">release workflow</a>, <a href="https://github.com/stdlogits/drowse/releases/tag/v6.1.3">release</a>.</p>
+<p>The root license is AGPLv3 and the manifest explicitly specifies <strong>AGPL-3.0-or-later</strong>. Distribution and modified network-served versions carry copyleft/source obligations; this is not permissive code to silently embed in a proprietary service. Torph's included notice is MIT and Wix Madefor is OFL-1.1. Model, dataset, catalog and dependency terms remain separate. No implementation code was extracted. <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/LICENSE">License</a>, <a href="https://github.com/stdlogits/drowse/blob/d47bf5365f7e199404dbf003894f195e14d4eaf1/webui/public">font notices</a>.</p><p>Reviewed source: d47bf5365f7e199404dbf003894f195e14d4eaf1. No application tests, downloads or benchmarks run; separate browser backend not reviewed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A serious local research workbench with deliberate provenance, API boundaries and artifact recovery. Pilot on a supported checkpoint; trait labels are not calibrated truth detectors, and shared sessions, browser retention and format changes require care. Static review only; exact-revision upstream CI succeeded.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/stdlogits/drowse">stdlogits/drowse</a> · AGPL-3.0-or-later; component terms separate</span>
+    <span><a href="drowse.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
