@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blaze — Review</title>
+<meta name="description" content="Experimental Rust compiler and persistent build daemon for fine-grained edit loops.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / indexable-blaze</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">indexable-inc/blaze · reviewed 2026-11-12</div>
+    <h1>Blaze</h1>
+    <p class="one-liner">Experimental Rust compiler and persistent build daemon for fine-grained edit loops.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT OR Apache-2.0; component terms</span>
+      <span class="chip">Rust · stencils · LLVM · Wasmtime</span>
+      <span class="chip"><a href="https://github.com/indexable-inc/blaze">indexable-inc/blaze ↗</a></span>
+      <span class="chip">Static source review</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2,230</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">84</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A compiler, not a Cargo speed wrapper</h3><p>Content-addressed source views and dependency-tracked queries reuse work across edits. Current native policy uses stencils and LLVM.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>The headline measures v1</h3><p>The 10–24× edit speedups are historical. Current-v2 benchmarks and compiler equivalence were not reproduced; keep pinned Cargo CI.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Sandboxing is not secret isolation</h3><p>Build scripts inherit invocation inputs, normal tests run as the user, and daemon cache history outlives workspace cleanup. HTTP is owner-level authority.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>043896a73e63240444c70dbfbcc5f730d459bdf9</td></tr><tr><td>Verification</td><td>Static only; no repository code executed</td></tr><tr><td>Compiler</td><td>rust-analyzer-derived frontend; custom query engine; stencils and LLVM</td></tr><tr><td>State</td><td>Merkle VFS, BLAKE3 packs, versioned CBOR API</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <ul><li><strong>Warm fine-grained rebuilds:</strong> retain frontend/code state and invalidate by observed inputs; cold startup, memory and semantic correctness remain separate questions.</li><li><strong>Structured agent operations:</strong> commits/edits, builds, diagnostics, launch and digest-pinned fetching. This is a powerful control plane, not a read-only inspection service. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-api/src/lib.rs">API</a>.</li><li><strong>Tracked build-time code:</strong> sandboxed build scripts, cached observed inputs, constant-output elision with a verification switch, and Wasm proc macros. Opt-outs deliberately restore broader host authority. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/serve/unit/script.rs">scripts</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-macro-eval/src/wasm.rs">macros</a>.</li><li><strong>Explainable persistence:</strong> build explanations, profile history, explicit layout markers and recovery rules are valuable; they are not backup or secure deletion.</li></ul><h4>Historical speedups do not measure this implementation</h4>
+<p>The README reports approximately <strong>10× / 24× / 11×</strong> faster edits on macOS arm64 / Linux aarch64 / Linux x86-64. It and the benchmark document explicitly identify these as <strong>v1</strong> results; no published v2 run supports transferring them to this SHA. The old ~20 ms live-edit headline needs the same qualification. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/docs/benchmarks.md">methodology and raw-result links</a>.</p>
+<p>Positive evidence includes pinned project revisions, cold/no-op/body/signature edit cases, warm incremental Cargo baselines, repeated medians, raw JSON, machine/load details, fallback labels and memory/disk accounting. Limits include small samples (often three or five edits), different machines across platforms, busy Mac measurements and no confidence interval establishing a universal multiplier. Download time is excluded. Headline Cargo uses the default linker rather than the fastest mold/wild configuration; separate setup experiments should not be conflated with that baseline.</p>
+<p>Historical memory costs are substantial: Linux x86-64 reports roughly <strong>1.7 GB versus 528 MB</strong> for a ripgrep edit and <strong>28.9 GB versus 8.5 GB</strong> for Bevy. Historical optimized-runtime geometric means are <strong>1.10–1.18× slower</strong> than Cargo release. These are old measurements, not current resource guarantees.</p>
+<p><strong>The edit harness is not a compiler-equivalence proof.</strong> In the inspected harness, expected output comes from Blaze's cold program, and later edited outputs are compared against that. Cargo is primarily the speed baseline. Some fixtures only build or run help/version commands. Self-consistency can preserve an existing miscompile. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/harness/bench.py">harness/bench.py</a>.</p>
+<h4>Borrow-checking scores need dates and exclusions</h4>
+<p>The detailed page reports historical <strong>1587/1590 Polonius</strong> and <strong>1585/1588 NLL</strong> matches, with <strong>460 units out of scope</strong>. It says the rustc-comparison harness was deleted on 2026-10-30 and a successor application check was queued; later application false positives are also recorded. The short usage guide still says “about two thirds.” Neither is a fresh pass rate for this revision. Acceptance of known valid cases cannot establish soundness. Preserve normal Cargo checks and representative full tests on the project's actual toolchain. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/docs/borrowck.md">borrow checker</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/docs/usage.md">usage</a>.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <table><tbody><tr><td>Layer</td><td>Implementation</td></tr><tr><td>Entry/orchestration</td><td>blaze-engine launcher; blaze-cargo CLI and daemon</td></tr><tr><td>Frontend</td><td>rust-analyzer-derived parsing/HIR; Blaze MIR and analyses</td></tr><tr><td>Incrementality</td><td>blaze-query dependency fingerprints, constructive traces, early cutoff and single-flight work</td></tr><tr><td>Source state</td><td>blaze-vfs Merkle trees, named heads, rebased transactions and journals</td></tr><tr><td>Native code</td><td>opt-level 0/1: copy-and-patch stencils; 2/s/z: LLVM O2; 3: LLVM O3</td></tr><tr><td>Proc macros</td><td>wasm32-wasip1 modules in Wasmtime with host bridge/WASI imports</td></tr><tr><td>Storage</td><td>BLAKE3-keyed packs, mmap indexes, content hashes and block CRCs</td></tr><tr><td>API</td><td>Versioned CBOR frames over local socket; optional bearer-authenticated HTTP/JSON responses</td></tr></tbody></table>
+<p>Results are shared by equal inputs, not just whole-crate or checkout identity. Reuse checks recorded dependency fingerprints; a changed result can stop propagating when its fingerprint stays equal. VFS views are immutable and edits rebase file by file or report conflicts. The useful pattern is precise dependency accounting—not hashing alone: an incomplete cache key can consistently return the wrong answer. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-query/src/lib.rs">queries</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-vfs/src/lib.rs">VFS</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cas/src/lib.rs">store</a>.</p>
+<p><strong>Read implementation ahead of overview prose.</strong> README credits Cranelift, but current native policy selects stencils/LLVM; Cranelift still participates in Wasm/IR work. The usage guide says v2 has no live edits, yet current code selects Live mode for eligible dev executables and implements shared-code-memory launch/patch handling. That is substantive code, not an independently verified platform or latency guarantee. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-codegen/src/plan.rs">backend policy</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/serve/unit/codegen.rs">build wiring</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/serve/unit/run/inproc.rs">dev runtime</a>.
+</p><h4>Security and privacy</h4><p>
+<strong>Owner authority, not multi-tenant isolation.</strong> Unix sockets check ownership/peer identity and private permissions. The active API uses schema-versioned CBOR with size and queued-output bounds. Optional HTTP requires a nonempty BLAZE_API_TOKEN; its comparison is written to avoid secret-content-dependent timing. This is HTTP, not intrinsic TLS. Prefer local sockets or a separately secured transport, and do not expose a shared public compiler. One bearer credential reaches broad daemon operations rather than per-workspace RBAC. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/socket.rs">socket</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-api/src/server.rs">server</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/serve.rs">startup</a>.</p>
+<p><strong>Sandboxed does not mean secret-free.</strong> Build scripts receive the invocation's environment, with tracing/lending for cache keys; enumeration or child execution can expose all of it. The documented default filesystem view is broadly read-only, not necessarily project-only. Network denial and OUT_DIR write limits matter, but readable secrets can still enter outputs/logs. macOS also allows a per-user compiler cache. Workspace opt-outs and BLAZE_SANDBOX=off are execution grants. Plain tests and launched programs run as the user; test sandboxing is an opt-in experiment. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/docs/cargo.md#build-scripts-and-proc-macros-run-in-a-sandbox">sandbox contract</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/sandbox/v2.rs">implementation</a>.</p>
+<p><strong>Credentials/configuration are executable trust.</strong> Registry support reads Cargo-compatible tokens and can spawn configured credential-provider/token-from-stdout commands. They are local executables, not isolated provider APIs. Registry credential files have private-mode handling, not an encrypted-keystore guarantee. Review repository/config provenance before use. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-registry/src/auth.rs">registry auth</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-registry/src/auth/process.rs">provider processes</a>.</p>
+<p><strong>Network is broader than building.</strong> Dependencies, toolchains, native inputs and releases are fetched. Update warning mode checks release metadata by default; automatic installation and offline modes are distinct. Digest-pinned fetch-url can retrieve bytes/Git trees and optionally write an output directory. A digest validates content, not permission to contact a host. Treat API callers as trusted owners and apply external egress controls where needed. No LLM provider, model or paid inference API is required by the compiler itself. Costs are CPU/RAM/disk plus any separately chosen hosted infrastructure; no hosted pricing/service guarantee was established. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-engine/src/update.rs">updates</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/serve/fetch_url.rs">fetch handler</a>.</p>
+<p><strong>Remote-store machinery is not a secure shared service.</strong> SECURITY.md says no shared store is active. The source nonetheless contains remote client/server machinery that explicitly trusts its channel, lacks its own TLS/auth, refuses non-loopback TCP listeners, and verifies content without proving key-to-value mappings. No remote-store wiring was found in sampled normal daemon startup paths. Do not infer active cloud caching or tenant security from this module/roadmap. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cas/src/remote.rs">remote tier</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/.github/SECURITY.md">security policy</a>.</p>
+<p>The policy calls Blaze a prototype without a security review. Its Windows warning also trails code: socket/windows.rs contains SID/DACL and peer-process checks where the policy says they are absent. This review does not validate Windows protection. Source inspection found meaningful controls, not proof against hostile code or sandbox escapes.
+</p><h4>Persistence and recovery</h4><p>
+Build directories, fetched source, compiled objects, VFS journals, images, build-script outputs, profiles and logs may contain proprietary material. State is local by default; no at-rest encryption or comprehensive secret-redaction guarantee was established. Keep stores owner-only: checksums detect damage, not a malicious writer substituting build code.</p>
+<p>The detailed reference puts builds outside the checkout under the cache root, keyed by workspace path; the short guide's target/ wording is stale. Large output placement requires filesystem cloning according to the reference, failing on unsupported/cross-volume layouts instead of silently copying. Check filesystem fit. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/docs/cargo.md#where-a-build-writes">storage layout</a>.</p>
+<p>Recovery includes VFS torn-tail handling, block/content checks, explicit format mismatch rules, and daemon-image cold-start/refusal behavior. A graceful stop makes state durable. These were inspected, not crash-tested; retain source/lockfiles separately rather than treating cache state as backup. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-vfs/src/lib.rs">VFS</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cas/src/lib.rs">store</a>.</p>
+<p>GC protects leased/live directories, uses marked trash and rejects dangerous cleanup targets. Defaults include a 14-day workspace TTL, a 16 GiB workspace cap and grace periods. <strong>Daemon state/store/image/journal are excluded from GC, and store-value eviction is not implemented.</strong> Workspace cleaning therefore does not erase all retained source/build history or guarantee a total disk bound. serve.log rotates to two files totaling 16 MiB, not a global retention limit. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/docs/gc.md">GC contract</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-gc/src/lib.rs">collector</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/crates/blaze-cargo/src/serve/fetch_url.rs">fetch retention</a>.</p>
+<p>Outputs are native build artifacts and local diagnostic/profile formats, not an application-data export service. No complete portable backup/restore or secure-purge procedure was validated. Stop the daemon and inventory all retained roots before migration/decommissioning.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Better fit</td><td>Tradeoff</td></tr><tr><td>Cargo/rustc with tuned profiles and mold/lld/wild where supported</td><td>Lower-risk improvements retaining upstream semantics</td><td>Less radical fine-grained reuse</td></tr><tr><td>sccache</td><td>Reusing unchanged compilations across builds/CI</td><td>Not per-function edit invalidation</td></tr><tr><td>rustc_codegen_cranelift</td><td>Faster dev code generation behind rustc's frontend</td><td>Nightly/platform and optimization constraints</td></tr><tr><td>Dioxus subsecond</td><td>State-preserving reload in integrated applications</td><td>Requires integration/platform qualification</td></tr><tr><td>Blaze</td><td>Warm-daemon build research and carefully measured local pilots</td><td>Compiler divergence, memory, documentation drift and current evidence gaps</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <ul><li><strong>Toolchain substitution:</strong> Blaze builds with its own pinned Rust rather than the project's rustup pin. Check MSRV/nightly assumptions independently.</li><li><strong>Installer trust:</strong> the advertised curl-to-shell executes a moving installer. Its code enforces HTTPS and release checksums, but sums from the same release origin are not independent publisher authentication. Inspect/pin installers and artifacts. Updates may replace the default binary; explicit pins and update policy matter. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/site/install.sh">installer</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/docs/cargo.md#pinning-a-release-of-blaze">pinning</a>.</li><li><strong>Dependencies:</strong> Cargo/Blaze/Nix locks and pinned native LLVM inputs help; heavily patched/vendor components, native libraries and bootstrap tooling enlarge the trust surface. No vulnerability scan or reproducible binary comparison was performed.</li><li><strong>License:</strong> actual MIT/Apache texts exist. NOTICE attributes rust-analyzer, rowan-derived syntax-tree, Hegel and separate harness/font components. Preserve notices and check each bundled component before redistribution. No code extraction accompanies this review. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/licenses/NOTICE">NOTICE</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/LICENSE-MIT">MIT</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/LICENSE-APACHE">Apache</a>.</li><li><strong>CI:</strong> substantial unit/property/fuzz/scenario infrastructure exists. The merge gate is narrower than the post-merge train. Current workflow comments identify ARM64 as primary, x86-64 cross-compilation rather than execution there, and Mac coverage on main. Actions such as checkout use version tags rather than immutable SHAs. Promotion logic is a policy, not proof this SHA passed. <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/.github/workflows/blaze.yaml">merge gate</a>, <a href="https://github.com/indexable-inc/blaze/blob/043896a73e63240444c70dbfbcc5f730d459bdf9/.github/workflows/promote.yaml">promotion</a>.</li><li><strong>Public metadata snapshot:</strong> created 2026-10-19; 2,230 stars, 84 forks, 437 open issues/PRs combined, and last push 2026-11-12. The first returned release was <strong>v0.20261105.4</strong>, a bootstrap canary/prerelease. This is very young, fast-moving software. Sampled recent workflows were unrelated fork-PR runs awaiting action, not evidence of this SHA's result. <a href="https://api.github.com/repos/indexable-inc/blaze">metadata</a>, <a href="https://github.com/indexable-inc/blaze/releases">releases</a>.</li></ul><p>
+Start with an authorized non-sensitive project and a pinned release/SHA, not a global Cargo replacement. Compare cold/warm edits, runtime behavior, full tests, memory, retained disk and restart recovery on the actual platform. Keep normal Cargo CI. Untrusted repositories belong in an external disposable secret-free sandbox even when Blaze's internal sandbox is enabled. Reconsider broad deployment after current-version benchmarks, representative correctness evidence and platform/security acceptance.
+</p><p>
+All conclusions derive from public source at the recorded SHA and dated public metadata. No repository code ran; <strong>no tests were run or claimed passing</strong>. Binary provenance, crash recovery, sandbox resistance, benchmark numbers, live patching and hosted services were not independently reproduced. Documentation conflicts are reported, not resolved by assumption.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot beside Cargo, not instead of its correctness gate. Strong incremental architecture, but headline benchmarks are historical and current compiler equivalence is unproven. Static review only; no tests run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/indexable-inc/blaze">indexable-inc/blaze</a> · MIT OR Apache-2.0; component terms</span>
+    <span><a href="indexable-blaze.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
