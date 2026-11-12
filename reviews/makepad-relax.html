@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relax — Review</title>
+<meta name="description" content="A live Rust compiler and JIT for development iteration—not a replacement for release rustc.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / makepad-relax</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">makepad/relax · reviewed 2026-11-12</div>
+    <h1>Relax</h1>
+    <p class="one-liner">A live Rust compiler and JIT for development iteration—not a replacement for release rustc.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT root; component notices</span>
+      <span class="chip">Rust · custom JIT · x86-64 / AArch64</span>
+      <span class="chip"><a href="https://github.com/makepad/relax">makepad/relax ↗</a></span>
+      <span class="chip"><a href="https://github.com/makepad/relax/tree/82b568b00473e749d5217a309f2e72bdb364cc39">pinned source</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">220</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">14</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real compiler, separate from Makepad UI</h3><p>Relax owns the Rust pipeline and patches function bodies while preserving process state. The bare runner does not include Makepad’s window host and app restart UX.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Faster iteration is not faster code</h3><p>Developer benchmarks report strong cold/warm startup, but 1.22×/1.25× runtime against native-CPU rustc on x64/arm64. Results were not independently reproduced.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Trusted code only, correctness gates intact</h3><p>Bare proc macros use an open capability policy; background borrow checking can report errors after code is installed. A pinned-revision enum constructor limitation reinforces the need for rustc parity tests.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Build &amp; adoption</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Verification</td><td>Static review only; no builds, tests or benchmarks run.</td></tr><tr><td>Source SHA</td><td>82b568b00473e749d5217a309f2e72bdb364cc39</td></tr><tr><td>Metadata</td><td>2026-11-12 snapshot; popularity is not quality evidence.</td></tr><tr><td>Layer</td><td>Implementation</td></tr><tr><td>Source/graph</td><td>relax-lex/base/session/front: tokens, manifests, registry/git handling, hashes and macro expansion</td></tr><tr><td>Semantics</td><td>relax-types: inference, traits, layouts, constant evaluation and borrow checking</td></tr><tr><td>Optimization</td><td>relax-codegen over Relax IR (RIR), interpreter and O1/O3 optimization</td></tr><tr><td>Backend</td><td>relax-backend: register allocation, ABI planning, x86-64/AArch64 emission</td></tr><tr><td>Runtime</td><td>relax-compiler: lazy slots, tiering, reload, std, macro world, tests and inspect</td></tr><tr><td>CLI</td><td>relax-runner, package version 0.1.0, publish=false</td></tr><tr><td>Storage/network</td><td>Rebuildable local cache stores; registry/git fetching through bundled HTTP and OS networking</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Relax runs a Cargo package from source, compiling functions when demanded and promoting hot functions to optimized native code while the application runs. It implements parsing, typing, borrow checking, code generation and loading itself. Rust/cargo are still needed to build Relax; “no rustc/LLVM/linker in the loop” describes ordinary JIT execution after bootstrap, not installation or every optional native dependency path. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/README.md">Overview</a></p>
+<p>It comes from Makepad, but this repository's binary is the <strong>bare runner</strong>. Its entry point calls relax_runner::main with BARE; BARE registers no Makepad window host or provided crates. The README explicitly places makepad run, the caption-ring UI, retained-window restart and devhub integration in the Makepad project. Those are not turnkey UI features delivered by installing this CLI. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/tools/run/runner/src/lib.rs">Runner</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/tools/run/runner/src/bin/relax.rs">Entry</a></p>
+<p>The best audience is toolchain researchers and developers of trusted, repeatedly exercised Rust applications who can compare outputs against rustc. It is not a guarantee that arbitrary crates.io graphs behave identically.</p>
+<h4>Demand-driven compilation and live editing</h4>
+<p>The JIT maintains per-function identities and code slots, choosing interpreter/baseline execution before background optimized code. Reload parsing/classification and installation are organized as a patch transaction; old code remains valid for existing frames. Body edits are the reliable advertised case. Structural changes can require restart. The implementation attempts guarded layout/macro/visibility changes beyond the README's conservative description, so neither “every layout edit works” nor “no layout edit can ever work” is accurate. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/jit.rs">JIT</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/reload.rs">Reload</a></p>
+<p>Default execution runs borrow checking beside the program; --check-first waits instead. A live-reload regression test explicitly expects a lazy-mode borrow error to be reported <strong>after installation</strong>, rather than as “live edit refused.” Do not equate successful startup or type checking with rustc-style completed borrow verification. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/lazy_reload_tests.rs">Reload tests</a></p>
+<h4>Runtime diagnostics, not only hot reload</h4>
+<p>The inspect tree implements profiling/call trees, stacks and locals, breakpoints, panic handling, heap views, code versions and a flight recorder. README claims include bounded recorder memory, automatic saves on panic/fault/long hitch and selective warm test reruns. These are implemented surfaces, not independently reproduced guarantees. Heap tracking's documented qualified targets are Linux x86-64 and macOS arm64. Panic retry/restart is debugging control, <strong>not rollback of network, filesystem or application effects</strong>. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/inspect/mod.rs">Inspect</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/README.md">Overview</a></p>
+<h4>Content-derived caches with deliberate crash handling</h4>
+<p>Cache keys include compiler/codegen identity, function body, positions, crate interfaces and dependencies, including inlined code. This is much more precise than timestamp-only reuse. The store uses shared/exclusive locks, appended payloads and alternating index slots; recovery validates pending tails/checksums and can fall back to the previous commit. Generational files avoid replacing mappings held by other processes. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/cache.rs">Cache</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/store.rs">Store</a></p>
+<p>The store explicitly promises <strong>rebuildable-cache crash safety, not durable application state</strong>. README reports 120–190 MB of cache even for hello. cache.rs describes a default cap at least 4 GB and twice the run's use; native-build storage is outside that cap. Published JIT code is append-only during the process lifetime, so long editing sessions need memory monitoring and eventual restart. Checksums detect corruption, not malicious local writers; do not share writable executable caches across trust boundaries.</p>
+<h4>Performance Evidence</h4>
+<p>The README's developer measurements dated 2026-11-12 report 11 seconds cold and 1.15 seconds warm to a large game's first frame on an M4, and 3.7/0.41 seconds for a small app. These are startup/iteration observations, <strong>not</strong> proof of faster steady-state execution or representative third-party benchmarks. Makepad agent-loop results include 3.6-second median patch latency but 86-second p90; the tail matters.</p>
+<p>For 21 workloads, reported Relax/rustc elapsed-time geomeans are 1.12× on x64 and 1.24× on arm64 against stock release; against native-CPU release they are 1.22×/1.25×. Lower is better: Relax is slower overall. The two largest stock-x64 wins disappear against the like-for-like native baseline; 3D model building is roughly twice as slow. Methods name median-of-three rounds, OS/architecture and rustc/LLVM versions, which is better than a headline alone, but no independent replication was performed here. Kernel figures are explicitly provisional because of a warm-cache tier-up bug. Cold relax check is acknowledged to be slower and more memory-intensive than cargo check. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/README.md">Measurements</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The layered pipeline combines lexer/base/session, frontend, semantics, IR optimization/backend and runtime/runner, with local serialization, profiling, remote-control and native-macro support. The executable is intentionally thin. A separate proc-macro “world” has its own Program, type context and JIT unit; source-matched native macros can bypass JIT compilation, otherwise macro code runs in-process. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/pmhost.rs">Macro host</a></p>
+<p>The standout combination is stable function identity, indirection for code publication, hash-bound cache reuse and observable compiler work. It is also a large trusted computing base: a Rust implementation must agree on name resolution, layout, drops/unwinding, ABI, unsafe operations and optimizer assumptions—not merely accept familiar syntax.</p>
+<h4>Concrete semantic risk at this revision</h4>
+<p>Open <a href="https://github.com/makepad/relax/pull/95">PR #95</a>, observed on the review date, reports wrong constructor dispatch and a heap abort with large enums. Static inspection corroborates the narrow representation: FnKey::Glue(u8, TyId), GLUE_CTOR = 16, and constructor keys formed as GLUE_CTOR + vi as u8 in jit.rs/lower.rs. That cannot uniquely encode every constructor of an enum with hundreds of variants. The reported crash was not independently reproduced, and the proposed fix was not in this pinned revision. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/jit.rs">JIT</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/lower.rs">Lowering</a></p>
+<p><a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/KNOWN_GAPS.md">KNOWN_GAPS.md</a> is useful but not a fresh test report: it lists macro collisions, an unreproduced serde trait issue, an unreproduced slow check and lint discrepancies. The current macro registry already contains caller-dependency lookup/collision handling beyond the document's “first bare name wins” explanation. Treat listed repros as things to rerun on a pinned build, not independently verified current failures. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/front/src/macro_reg.rs">Macro registry</a></p>
+<h4>Security and Privacy Boundaries</h4>
+<ul><li><strong>Bare runner means trusted-code execution.</strong> BARE chooses pmhost::Policy::Open: proc macros retain unsafe and std filesystem/network/process/environment capabilities. Even checking/expanding a crate can execute compile-time code. The stricter Makepad policy is not the bare runner's default. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/tools/run/runner/src/lib.rs">Runner</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/pmhost.rs">Macro host</a></li><li><strong>Sandbox code is not blanket containment.</strong> sandbox.rs implements module arenas, rewritten memory accesses, thunk call targets, shadow stacks and fuel; Windows arena allocation is explicitly unsupported. Its presence does not confine ordinary relax run or establish audited isolation. --no-asm is a narrower refusal, not a complete OS sandbox. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/sandbox.rs">Sandbox</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/tools/run/runner/src/help.rs">CLI help</a></li><li><strong>Native escape paths are explicit.</strong> --allow-c invokes cargo/system C builds and links native dependencies, adding build-script/compiler/linker authority. Target programs run with the runner's machine authority. Use disposable OS isolation without credentials for untrusted projects; none was executed here. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/tools/run/runner/src/help.rs">CLI help</a></li><li><strong>Local inspection is powerful.</strong> Unix transport uses a user-owned 0700 directory, 0600 socket and peer-UID checks. This protects against other users, not another process/agent running as the same user; evaluation/debugging can expose program data. Shared remote infrastructure also includes loopback-token and paired LAN/TLS carriers: “nothing on the network” must be scoped to ordinary local inspection, not every library capability. No listener was enabled. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/remote/src/carrier/unix.rs">Unix carrier</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/remote/src/server.rs">Remote server</a></li><li><strong>Offline mode scopes compiler acquisition.</strong> Missing registry packages may be downloaded, with archive SHA-256 checked against the index. HTTPS redirects are bounded and must remain HTTPS. MAKEPAD_RUN_OFFLINE=1/Cargo offline settings suppress this acquisition, not arbitrary networking by the program/open proc macros. Public git fetch stores repository data separately. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/base/src/registry.rs">Registry</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/src/registry_net.rs">Network</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/tools/run/runner/src/fetch.rs">Fetch</a></li><li><strong>Diagnostics can be sensitive.</strong> Locals, evaluation, source names, traces and saved recorder files may contain application data. Review diagnostics before sharing. No credentials, accounts or model service are inherently required by the compiler; no blanket no-egress claim can cover all target programs.</li></ul>
+<h4>Tests, License and Maturity</h4>
+<p>There are substantial unit/integration fixtures for reload, borrow checking, caching, macros, ABI, std behavior and negative cases. Static enumeration found <strong>208 Cargo.toml files under compiler/tests</strong>, including nested fixture crates; that is not 208 passing suites or independent confirmation of the README's “96 end-to-end packages.” The compiler manifest disables Cargo autotests for intentionally failing fixture programs, so ordinary Cargo tests alone do not establish all fixture parity. CONTRIBUTING recommends release workspace tests plus differential runs against rustc, and explicitly says <strong>there is no GitHub CI</strong>. No .github workflow files were found. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/Cargo.toml">Manifest</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/tests">Tests</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/CONTRIBUTING.md">Contributing</a></p>
+<p>Public GitHub metadata retrieved 2026-11-12 showed creation on 2026-11-11, last push 2026-11-12 18:48:47 UTC, 220 stars, 14 forks and 16 open issues/PRs combined; the releases API returned no releases. Public youth does not establish the age of all Makepad-derived code, and popularity is not correctness evidence. <a href="https://api.github.com/repos/makepad/relax">Metadata</a> <a href="https://api.github.com/repos/makepad/relax/releases">Releases</a></p>
+<p>The root license is MIT, copyright 2026 makepad. Several manifests declare MIT OR Apache-2.0; preserve applicable notices rather than assuming the root string covers everything. std/CREDITS records smallvec, arrayvec, Rust/portable-simd, libm and dlmalloc origins and MIT/Apache or per-file notices. Branding/favicon provenance was not independently audited; those assets are not copied. No source extraction is included. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/LICENSE">License</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/compiler/std/CREDITS.md">Credits</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>What it buys</td><td>What it does not replace</td></tr><tr><td>Cargo + rustc/LLVM</td><td>Reference semantics, standard ecosystem and release artifacts</td><td>Retained-state per-function JIT editing</td></tr><tr><td>rustc_codegen_cranelift</td><td>Alternative faster compilation backend retaining rustc's frontend</td><td>Relax's runtime/inspection/hot-patching; check its own feature matrix</td></tr><tr><td>cargo-watch / bacon</td><td>Low-disruption watch/check/test workflow</td><td>Runtime state retention across rebuild/restart</td></tr><tr><td>evcxr</td><td>Interactive Rust REPL/notebook experimentation</td><td>Equivalent large-application live runtime or compatibility guarantee</td></tr><tr><td>Makepad runner</td><td>UI-host integration around Relax</td><td>Not the same artifact as this repository's bare CLI</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The upstream-qualified fresh-clone targets are <strong>Linux x86-64 and macOS arm64</strong>. Native emission supports x86-64/AArch64. Windows-specific code exists but the README calls Windows untested; module arenas are not implemented there. Android/web/wasm modules show implementation work, not a verified standalone support matrix.</p>
+<p>The documented source build is:</p>
+<pre><code>cargo build --release --manifest-path relax/Cargo.toml -p relax-runner --bin relax</code></pre>
+<p>It needs a stable Rust toolchain. Run from the target Cargo package directory with the <strong>package name</strong>, not a filesystem path. Keep the Relax checkout: the runner reads std sources from the tree used to build it. This is not a freely relocatable single-binary installation. No installation was performed. <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/README.md">Setup</a> <a href="https://github.com/makepad/relax/blob/82b568b00473e749d5217a309f2e72bdb364cc39/libs/relax/CONTRIBUTING.md">Contributing</a></p>
+<p>For updates, deliberately select a revision and rebuild; retain the matching std tree and isolate cache directories for A/B comparisons. CONTRIBUTING documents MAKEPAD_RUN_STD and MAKEPAD_RUN_CACHE_DIR for this. Do not replace std underneath an old binary or infer safe upgrades from a changed executable alone. relax clean removes rebuildable compilation artifacts; application backups/state migration remain application responsibilities. This is developer tooling, not a self-hosted web service.</p>
+<h4>Practical Adoption Gate</h4>
+<p>Pilot a trusted non-critical package on a qualified platform. Pin Relax/std together, retain rustc check/test/release gates, compare outputs and drop/panic behavior, use check-first when correctness matters more than speculative latency, and measure cold/warm startup, p95 editing latency, RSS and disk growth. Test successful body edits, rejected edits, restart and crash recovery separately. Broader adoption needs demonstrated dependency compatibility and externally inspectable regression/release evidence—not just a faster first frame.</p>
+<p><strong>Bottom line:</strong> compelling compiler/runtime engineering and development ergonomics; not yet a substitute for Rust's production correctness contract.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A bounded development pilot is reasonable for trusted packages. Keep rustc correctness and release gates: semantic bugs, speculative borrow checking and unverified runtime performance prevent a production-toolchain recommendation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/makepad/relax">makepad/relax</a> · MIT root; component notices</span>
+    <span><a href="makepad-relax.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
