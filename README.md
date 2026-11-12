@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [wayshare.md](reviews/wayshare.md) [page](reviews/wayshare.html) | [wesleygrimes/wayshare](https://github.com/wesleygrimes/wayshare) | Apache-2.0; codec/component terms | ⚠️ Interesting | Hyprland remote desktop for native Mac Screen Sharing and RDP; useful integration, plaintext Apple channels, shared authority and recovery/admission caveats. Static review. |
 | [extendwrite-nla-paper-004.md](reviews/extendwrite-nla-paper-004.md) [page](reviews/extendwrite-nla-paper-004.html) | [Extend-Write / NLA](https://github.com/thePM001/ExtendWrite-NLA-Research-Paper-004) | Apache-2.0 | ❌ Pass | Theoretical HDC update proposal; classification gap, unproved exact undo and enrichment, no runnable evaluation. |
 | [open-orange.md](reviews/open-orange.md) [page](reviews/open-orange.html) | [rivet-dev/open-orange](https://github.com/rivet-dev/open-orange) | Apache-2.0; MIT components | ⚠️ Interesting | Workers compatibility on Node/Rivet; substantial adapters, but partial parity, execution boundaries, migration recovery and cost-model caveats. Static review. |
 | [drowse.md](reviews/drowse.md) [page](reviews/drowse.html) | [stdlogits/drowse](https://github.com/stdlogits/drowse) | AGPL-3.0-or-later; component terms | ⚠️ Interesting | Local interpretability and activation-steering workbench; strong provenance, shared-session authority and research-validity/retention caveats. Static review. |
