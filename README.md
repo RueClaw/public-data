@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [expo-exact.md](reviews/expo-exact.md) [page](reviews/expo-exact.html) | [expo/exact](https://github.com/expo/exact) | MIT; component/media terms | ⚠️ Interesting | Contract-based cross-platform app runtime with agent testing and signed recovery; web grant boundaries, host parity and pre-1.0 verification caveats. Static review. |
 | [spacefarm-sunlight.md](reviews/spacefarm-sunlight.md) [page](reviews/spacefarm-sunlight.html) | [spacefarm-digital/sunlight](https://github.com/spacefarm-digital/sunlight) | MIT; asset/dependency exceptions | ⚠️ Interesting | Zoomable Mac window canvas; strong lease recovery, but SIP/Dock authority, optional AI egress and irreversible Spaces-merging caveats. Static review. |
 | [upcomputer.md](reviews/upcomputer.md) [page](reviews/upcomputer.html) | [krl-gr/upcomputer](https://github.com/krl-gr/upcomputer) | MIT; component/brand terms | ⚠️ Interesting | Multi-provider coding workbench with durable workers and desktop control; full-access defaults, telemetry, secret-storage and recovery caveats. Static review. |
 | [indexable-blaze.md](reviews/indexable-blaze.md) [page](reviews/indexable-blaze.html) | [indexable-inc/blaze](https://github.com/indexable-inc/blaze) | MIT OR Apache-2.0; component terms | ⚠️ Interesting | Experimental persistent Rust compiler; fine-grained reuse, historical benchmarks, compiler-parity and retention caveats. Static review. |

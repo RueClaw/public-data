@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exact — Review</title>
+<meta name="description" content="A Contract compiler and cross-platform native runtime built for agent-driven app development.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / expo-exact</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">expo/exact · reviewed 2026-11-13</div>
+    <h1>Exact</h1>
+    <p class="one-liner">A Contract compiler and cross-platform native runtime built for agent-driven app development.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT core; component/media exceptions</span>
+      <span class="chip">Rust · Contract · TypeScript · native + DOM</span>
+      <span class="chip"><a href="https://github.com/expo/exact">expo/exact ↗</a></span>
+      <span class="chip"><a href="expo-exact.md">Full evidence and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3,352</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">82</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A runtime, not a React wrapper</h3><p>Contract compiles typed views and actions into a shared plan. Apple presenters and browser DOM take different paths; there is no JSX tier.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Recovery is designed in</h3><p>Signed updates check identity, compatibility, hashes and rollback floors. Atomic entries and boot fallback are real mechanisms, but first pixel is not application health.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Host parity is not security parity</h3><p>Web fetch checks final redirect URLs after contact; grants do not sandbox page code. Early hosts and incomplete public test coverage constrain production confidence.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operations &amp; limits</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Review scope</td><td>6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63 · sampled static review; tests not run</td></tr><tr><td>Core</td><td>Rust runner/kernel, Contract compiler, patched Taffy</td></tr><tr><td>Hosts</td><td>DOM/CSS, AppKit/UIKit, GPU/CPU painted surfaces</td></tr><tr><td>Toolchain</td><td>Bun 1.4.2, Rust 1.97.0, Hermes</td></tr><tr><td>License</td><td>MIT core; separate vendored/font/media terms</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>One plan, multiple presentation strategies</h4>
+<p>The compiler is not transpiling an ordinary React application. It restricts view expressions and routes effects through named data sources. The runner checks data shapes and maintains keyed component identity; the kernel uses generated property/opcode tables, generation-checked IDs and validate-before-apply transactions. Both runner and kernel forbid unsafe Rust in their own crates, not in the entire native dependency graph. This architecture makes inspection and deterministic state transitions much more tractable than arbitrary UI scripting.</p>
+<p>The web JS target emits an ES module over a small DOM runtime, while other web paths include Wasm. Apple uses a C ABI and native presenters; Linux paints its own tree. Optional canvas, GPU, editor and other modules are separate artifacts rather than prerequisites for the first frame. TypeScript is baked to Hermes bytecode for native use after first pixel. The no-app-JavaScript-before-first-pixel claim is a boot architecture objective—not a promise that apps never execute JavaScript or lack native interop.</p>
+<h4>Agent-facing tests are a first-class interface</h4>
+<p>The ten operations are tree, screenshot, tap, type, state, layout, logs, clock, prefer and perf. Contract test files target the shared driver; seekable time avoids sleep-driven animation tests, and stale-build checks aim to stop tests running against old sources. Test mode substitutes or holds sensitive effects: storage defaults to scratch/none, and subprocesses require declared scripts. These are useful testing controls, not a sandbox around the coding agent itself. A green synthetic drive does not establish real permission prompts, provider responses, accessibility or device behavior. The README itself advises inspecting screenshots because assertions can pass with broken layout.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/scripts/agent.mjs">scripts/agent.mjs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/runner/src/agent.rs">runner/src/agent.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/data/host/src/lib.rs">data/host/src/lib.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/packages/child-process/README.md">packages/child-process/README.md</a>.</p>
+<h4>Update delivery has real recovery machinery</h4>
+<p>The production store verifies Ed25519 signatures against baked keys, checks app/channel/compatibility identity, verifies digests and rejects sequences below its accepted floor. An authenticated envelope is checked before its referenced index is fetched. Downloaded entries are assembled temporarily and renamed into place. Selection/activation is separate from download; verified generations pin assets, and a live-record recheck protects against stale download state overwriting newer decisions.</p>
+<p>Boot failure counters are written before launch and cleared after first pixel, with last-good/embedded fallback. Unknown store codecs leave the record alone and choose the embedded bundle. This is stronger than simply replacing files in place. <strong>First pixel is not application health</strong>, however: later data corruption or functional regressions need app-level validation and backups. Trust-key rotation requires a new binary; development can explicitly admit unsigned heads. Windows durable update storage refuses rather than claiming parity. Apple TypeScript/Rust and Linux Rust update support are not interchangeable, nor does an update grant new installed capabilities.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/update/src/lib.rs">update/src/lib.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/update/src/store.rs">update/src/store.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/update/src/store/disk.rs">update/src/store/disk.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/update/src/envelope.rs">update/src/envelope.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/README.md">README.md</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Grants are valuable, but not universal isolation</h4>
+<p>The grant parser models exact network origin tuples, explicit wildcard/scheme grants and filesystem prefixes compared by whole path components. Traversal-shaped paths are refused rather than normalized into authority. The filesystem helper walks owned directory descriptors with no-follow opens and rejects symlinks/non-regular static files. That is concrete hardening, not merely a permission paragraph.</p>
+<p>Still, builders, Cargo build scripts, native modules and ordinary native Rust code execute with their process&#39;s authority. Treat source checkouts, build dependencies and native extensions as trusted software; do not use a declared grant list as a substitute for OS sandboxing. A broad scheme grant is broad authority. Camera, microphone, files and other optional modules add platform permissions when used; their availability and operating-system prompts differ by host.</p>
+<p>The child-process package supports macOS/Linux, requires a named process grant and rejects tool/wake/device-origin calls as person-required; app-authored code remains allowed. A permitted executable can itself perform work outside Exact&#39;s API grant checks. This package is unsupported on the other listed hosts at this revision.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/grants/src/lib.rs">grants/src/lib.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/filesystem/src/directory.rs">filesystem/src/directory.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/packages/child-process/README.md">packages/child-process/README.md</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/runner/src/process.rs">runner/src/process.rs</a>.</p>
+<h4>Web redirects expose a meaningful parity limit</h4>
+<p>The web JS admission code calls browser fetch and checks the <strong>final response URL afterward</strong>. The public reference explicitly documents that native fetch checks each redirect before contact, whereas browser-controlled intermediate hops may already receive a request—including a POST body preserved by a 307 redirect. Static/dev pages have no supplied CSP; render-server CSP bounds app-wide origins, not necessarily the originating source&#39;s narrower grants. Ordinary page code can also call browser fetch directly.</p>
+<p>Therefore, Exact grants are <strong>not a browser sandbox or a reliable per-source egress boundary</strong>. CORS does not undo a request already sent. For sensitive data, design a trusted server-mediated flow, constrain redirect behavior and set an appropriate deployment CSP; do not send secrets assuming a final-URL refusal prevents disclosure. This is a documented/code-confirmed limitation, not a live exploit claim.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/host/web-js/admission.js">host/web-js/admission.js</a> (fetch and post-response check), <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/host/web/http-body.js">host/web/http-body.js</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/docs/reference.md">docs/reference.md</a> (network grants/redirect discussion).</p>
+<h4>Authentication and local development</h4>
+<p>The shared auth-session layer validates authorization/callback URL structure, refuses URL userinfo, requires nonempty state and centralizes callback admission. It deliberately treats a returned callback as delivery, not completed sign-in; provider token exchange and server-side authorization remain app responsibilities. Sign-in helpers and OAuth fixtures do not make every app a complete secure identity service. Platform secret storage and presence policies also need host-specific qualification, not an assumption that browser storage equals an Apple Keychain.</p>
+<p>The web dev server defaults to loopback, with explicit LAN/tunnel host admission and a Host gate; local installer access is separated from shareable page access. Keep development interfaces private. The optional Linux VNC surface is development-only and uses an explicitly configured short password; do not treat it as encrypted Internet-facing remote access.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/runner/src/auth.rs">runner/src/auth.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/runner/src/secrets.rs">runner/src/secrets.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/packages/sign-in/web/index.js">packages/sign-in/web/index.js</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/host/web/dev.mjs">host/web/dev.mjs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/scripts/install-page.mjs">scripts/install-page.mjs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/README.md">README.md</a>.</p>
+<h4>Feedback is consent-oriented, not nonexistent</h4>
+<p>The CLI keeps command metadata and agent-authored diaries locally. Default feedback policy is ask; local/never policies and EXACT_FEEDBACK=0 refuse sending. Policy is keyed to the real project path in user configuration, so cloning a project does not import consent. Sending goes to Expo&#39;s collector (or an override), includes redacted diary/command metadata, and attaches project README material only through a separate option/confirmation. A receipt supports deletion; concurrent sends are explicitly not coordinated.</p>
+<p>This is considerably better than automatic hidden upload. But regex redaction cannot guarantee anonymity, and an agent can invoke the explicit yes flag: consent remains a responsibility of the authoring harness and operator. Diaries, logs and sent copies are retained local artifacts; use the local/never controls for confidential work. Nothing was sent during this review.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/scripts/feedback.mjs">scripts/feedback.mjs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/scripts/feedback-note.mjs">scripts/feedback-note.mjs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/docs/diary.md">docs/diary.md</a>.</p>
+<h4>Persistence, Providers and Costs</h4>
+<p>UI state is not automatically durable. The README todo example keeps data in memory; persistent apps explicitly use files/SQLite. Native data storage distinguishes durable data, evictable cache and temporary directories; browser storage is subject to browser-origin lifecycle/quotas. The Fieldnotes example demonstrates backup/restore, but this is not a framework-wide guarantee of database migration, synchronization or recovery. Test recovery of app data separately from signed bundle rollback. Snapback is optional and its source directory is absent in the reviewed repository; related commands refuse without it.</p>
+<p>Exact itself requires no model account to compile and run an ordinary app. External coding agents have their own subscriptions/API costs and see whatever source/screenshots their workflow supplies. Optional language-model adapters include Apple&#39;s Foundation Models and the browser Prompt API, with availability checks, device/OS restrictions and scripted agent substitutes. Browser downloads and model readiness are additional lifecycle concerns, not universal offline availability.</p>
+<p>The Messages demo instead uses a local Bun transport to OpenRouter: key stays in the service, messages leave the machine, jobs/results are held in memory, and the service caps six active generations, a two-minute timeout and 2,048 output tokens. Host/Origin checks and JSON validation reduce browser abuse, but requests without an Origin are accepted and there is no per-user authentication or monetary budget. Local processes and allowed development origins remain trusted. Restart loses active jobs; request-ID reuse is not durable exactly-once billing protection. This is a demo service, not a public multi-tenant gateway. Provider/model pricing, hosting, signing and store distribution costs are separate from Exact&#39;s MIT license.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/data/host/src/lib.rs">data/host/src/lib.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/apps/fieldnotes/app.ts">apps/fieldnotes/app.ts</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/apps/messages/service.ts">apps/messages/service.ts</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/packages/language-model/web/index.js">packages/language-model/web/index.js</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/packages/language-model/apple/LanguageModelApple.swift">packages/language-model/apple/LanguageModelApple.swift</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/README.md">README.md</a>.</p>
+<h4>Maturity, Tests and Claims</h4>
+<p>Public GitHub metadata retrieved on 2026-11-13 UTC reported creation on 2026-11-02, 3,352 stars, 82 forks and 58 open issues/PRs combined. The public releases endpoint returned an empty list. Those are a dated visibility snapshot, not evidence of engineering age or quality: checked-in documentation predates public repository creation.</p>
+<p>There is substantial test infrastructure: Rust tests, compiler corpus, browser/script tests, cross-host Contract fixtures, update recovery tests and benchmark directories. But the fast GitHub CI workflow performs checks/lint rather than tests; the separate tests workflow runs default-member Cargo tests and Linux script tests. Its comments explicitly exclude Apple app/XCTest/simulator drives and Android/Windows builds from CI. Actions use version tags rather than immutable action SHAs. No passing run at this revision was established; the queried ci run was queued during inspection.</p>
+<p>More importantly, a current public issue records missing async-lane notes and pre-existing main-branch test failures. That is an upstream report, not a failure reproduced in this review. Another open select-menu issue has already updated its progress to say accessibility support landed while native popup presentation remains unfinished—its older title/body alone would overstate the remaining defect. This is a fast-moving tree that needs revision-specific verification.</p>
+<p>The README&#39;s ~20 KB runtime, 100 ms startup/restart budgets, ~99 ms edit loop and comparison against React are upstream measurements/targets on specific applications and conditions, not independent general benchmarks. Shared clocks cannot eliminate real network, OS, permission or scheduling failures. Private design-document citations do not add publicly reproducible evidence. No performance, battery, accessibility or security certification is inferred.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/.github/workflows/ci.yml">.github/workflows/ci.yml</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/.github/workflows/tests.yml">.github/workflows/tests.yml</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/issues/20261110-async-lane-results-are-not-on-origin.md">issues/20261110-async-lane-results-are-not-on-origin.md</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/issues/20261111-select-menu-reaches-no-assistive-technology.md">issues/20261111-select-menu-reaches-no-assistive-technology.md</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/SECURITY.md">SECURITY.md</a>, <a href="https://api.github.com/repos/expo/exact">public repository metadata</a>, <a href="https://api.github.com/repos/expo/exact/releases">releases</a>, <a href="https://github.com/expo/exact/actions/runs/43332991873">revision CI run</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>React Native + Expo</td><td>Established React/mobile ecosystem; Exact instead offers Contract and its own runtime</td></tr><tr><td>Flutter</td><td>Established cross-platform widgets; Exact mixes native Apple controls and DOM</td></tr><tr><td>Tauri</td><td>Reuse web UI in a shell; Exact requires a different authoring model</td></tr><tr><td>Qt/QML or Slint</td><td>Conventional desktop/embedded tooling; Exact emphasizes agent inspection/testing</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <ul><li><strong>Web:</strong> fastest accessible authoring path; DOM/CSS, browser-dependent APIs and the security differences above.</li><li><strong>macOS/iOS:</strong> AppKit/UIKit, Xcode/signing/SDK requirements; native validation requires actual Apple runtime access. Linux cross-compilation does not execute an iOS Simulator.</li><li><strong>Linux:</strong> GPU/CPU painted runtime, documented DRM/KMS/headless paths and direct input/display dependencies. Do not equate the headline with a turnkey GTK/Qt desktop integration. The Linux source now names Parley text measurement while the README architecture paragraph still names cosmic-text—a small but concrete documentation drift signal. Editing and some language segmentation remain limited in the documented matrix.</li><li><strong>Android/Windows:</strong> present but explicitly early/unfinished; module capability, platform-control presentation and delivery parity vary. Read individual package manifests rather than assuming every host supports every device API.</li></ul>
+<p>There is no packaged stable CLI: generated apps refer to a source checkout by path. Tooling pins Bun 1.4.2, Rust 1.97.0 and numerous JS dependencies; Cargo/Bun lockfiles and vendored patch inventories improve reproducibility. Setup still installs toolchains, components, npm packages, Binaryen and Hermes artifacts, and builds execute source-controlled scripts. Pinned/attested Hermes bundles are a good provenance measure, not proof that every transitive dependency is safe. Offline ordinary builds depend on prior provisioning; no clean-machine build or artifact attestation was independently exercised here. Freeze the whole checkout and archive working toolchain/SDK inputs before updating.</p>
+<p>Evidence: <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/rust-toolchain.toml">rust-toolchain.toml</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/package.json">package.json</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/Cargo.toml">Cargo.toml</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/host/linux/src/lib.rs">host/linux/src/lib.rs</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/vendor/taffy/EXACT-PATCHES.md">vendor/taffy/EXACT-PATCHES.md</a>, <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/README.md">README.md</a>.</p>
+<h4>License and Review Limits</h4>
+<p>The root MIT license names 650 Industries, Inc. (Expo); retain its copyright/license notice when reusing substantial code. NOTICE identifies separately licensed vendored components, OFL/other fonts, permission-based media and a CC BY 4.0 animation/model contribution. Do not assume every screenshot or asset is MIT. This review extracts no implementation or media.</p>
+<p>This is a sampled static review, not a full audit. No dependencies installed, source tests run, simulator/device/desktop accessed, accounts created, deployments performed or paid calls made. Network use was limited to public source/metadata acquisition and publication. Native grant enforcement, every provider adapter, binary supply-chain receipts and platform permissions were not exhaustively audited. Public documentation drift and references to unavailable design materials limit certainty. Review conclusions apply only to the recorded SHA.</p>
+<p><strong>Attribution:</strong> <a href="https://github.com/expo/exact">Expo / expo/exact</a>, MIT core; see <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/LICENSE">LICENSE</a> and <a href="https://github.com/expo/exact/blob/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63/NOTICE">NOTICE</a> for scope and exceptions.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Compelling for a pinned experimental app, not a stable cross-platform foundation yet. Strong typed plans, agent testing and recoverable updates; uneven hosts, browser grant limits and incomplete public validation need qualification.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/expo/exact">expo/exact</a> · MIT core; component/media exceptions</span>
+    <span><a href="expo-exact.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
