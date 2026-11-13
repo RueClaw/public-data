@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exploring Super-agent Design — Review</title>
+<meta name="description" content="An architecture essay on running one always-on agent across many parallel tasks. The design patterns are strong; the evidence is only indicative.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td { overflow-wrap: anywhere; } td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* ── Explainer additions (local, no external assets) ── */
+  :root { --bg-inset: #1b2232; --c1: #7aa2ff; --c2: #3fb96f; --c3: #d9a13b; --c4: #9a6fd8; --danger: #d15454; }
+  [data-theme="light"] {
+    --bg: #f5f7fb; --bg-raised: #ffffff; --bg-card: #ffffff; --line: #d5dbe6; --bg-inset: #eef1f7;
+    --text: #141a26; --text-dim: #44506a; --text-faint: #6b7487;
+    --accent: #2f5fd0; --accent-soft: rgba(47,95,208,.10);
+    --c1: #2f5fd0; --c2: #1d8a4c; --c3: #a86a00; --c4: #6a3fb0; --danger: #b83434;
+    --deploy: #1d8a4c; --interesting: #a86a00; --study: #2f6fc0; --harvest: #6a3fb0; --pass: #b83434;
+  }
+  [data-theme="light"] nav { background: rgba(245,247,251,.88); }
+  .theme-btn {
+    appearance: none; font: inherit; font-size: 12px; cursor: pointer; margin-left: 8px; white-space: nowrap;
+    color: var(--text-dim); background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;
+  }
+  .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+  .lede { color: var(--text-dim); font-size: 15px; margin: 8px 0 16px; }
+  .panel h5 { font-size: 14px; margin: 18px 0 6px; color: var(--text); }
+  .panel strong, .step strong { color: var(--text); }
+
+  /* Trait cards — titles use the page text colour, never browser-default button black */
+  .traits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0 20px; }
+  @media (max-width: 720px) { .traits { grid-template-columns: 1fr 1fr; } }
+  .trait {
+    appearance: none; font: inherit; text-align: left; cursor: pointer; color: var(--text);
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+    transition: border-color .15s, transform .15s;
+    display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start;
+  }
+  .trait:hover, .trait[aria-expanded="true"] { border-color: var(--accent); transform: translateY(-1px); }
+  .trait .glyph { font-size: 18px; display: block; margin-bottom: 4px; color: var(--accent); }
+  .trait strong { display: block; font-size: 15px; margin-bottom: 2px; color: var(--text); }
+  .trait .short { font-size: 13px; color: var(--text-dim); }
+  .trait .detail { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--text-dim); }
+  .js .trait .detail { display: none; }
+  .js .trait[aria-expanded="true"] .detail { display: block; }
+
+  /* Diagrams */
+  .diagram { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin: 12px 0 18px; }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  .diagram .caption { font-size: 12px; color: var(--text-faint); text-align: center; margin-top: 6px; }
+  .diagram text { font-family: var(--sans); }
+  .hot { cursor: pointer; }
+  .hot:hover rect, .hot:focus rect { stroke-width: 2.5; }
+  .hot:focus { outline: none; }
+  .hot:focus-visible rect { stroke: var(--text); }
+
+  /* Tooltips (definitions) */
+  .tip { border-bottom: 1.5px dotted var(--accent); cursor: help; position: relative; }
+  .tip:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tip[data-tip]::after {
+    content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 8px);
+    transform: translateX(-50%) scale(.96); width: max-content; max-width: min(280px, 70vw);
+    background: var(--text); color: var(--bg); font-size: 12px; font-weight: 500; line-height: 1.4;
+    padding: 7px 10px; border-radius: 8px; opacity: 0; pointer-events: none; z-index: 20;
+    transition: opacity .12s, transform .12s; white-space: normal;
+  }
+  .tip:hover::after, .tip:focus::after { opacity: 1; transform: translateX(-50%) scale(1); }
+
+  /* Segmented toggles and module switcher (not role=tab, so template tab JS is unaffected) */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0 6px; }
+  .toggle-row .lbl { font-size: 13px; color: var(--text-dim); }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--text-dim); font: inherit; font-size: 13px;
+    padding: 7px 12px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .modnav { margin: 4px 0 8px; }
+  .js .mod[hidden] { display: none; }
+  .mod { border-top: 1px solid var(--line); padding-top: 8px; }
+  .js .mod { border-top: 0; padding-top: 0; }
+
+  /* Accordions */
+  details.acc { border: 1px solid var(--line); border-radius: 10px; background: var(--bg-raised); margin: 8px 0; }
+  details.acc summary { cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 14px; color: var(--text); list-style: none; }
+  details.acc summary::-webkit-details-marker { display: none; }
+  details.acc summary::before { content: "▸ "; color: var(--accent); }
+  details.acc[open] summary::before { content: "▾ "; }
+  details.acc .body { padding: 0 14px 12px; }
+  details.acc .body p { color: var(--text-dim); font-size: 14px; margin-bottom: 8px; }
+
+  .callout { background: var(--bg-inset); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: 10px 14px; font-size: 14px; color: var(--text-dim); margin: 12px 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 680px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* Result tiles and bars */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+  @media (max-width: 720px) { .tiles { grid-template-columns: 1fr 1fr; } }
+  .tile { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 10px; padding: 10px; text-align: center; }
+  .tile .v { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .tile .k { font-size: 12px; color: var(--text-dim); line-height: 1.3; }
+  .tile.best .v { color: var(--c2); } .tile.warn .v { color: var(--c3); }
+  .bar-row { display: grid; grid-template-columns: 10rem 1fr 5rem; gap: 10px; align-items: center; margin: 6px 0; font-size: 13px; color: var(--text-dim); }
+  @media (max-width: 560px) { .bar-row { grid-template-columns: 1fr; gap: 2px; } }
+  .bar-track { height: 10px; background: var(--bg-inset); border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; background: var(--c1); transition: width .5s ease; }
+  .bar-fill.g { background: var(--c2); } .bar-fill.o { background: var(--c3); } .bar-fill.p { background: var(--c4); }
+  .bar-val { font-variant-numeric: tabular-nums; text-align: right; }
+  .note { font-size: 12px; color: var(--text-faint); }
+  @media (prefers-reduced-motion: reduce) { .trait, .bar-fill { transition: none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / deepseek-harness-super-agent</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+  <button class="theme-btn" type="button" id="themeBtn" aria-label="Switch between dark and light theme" hidden>Light mode</button>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Yujia Qiao · DeepSeek Harness team · reviewed 2026-11-13</div>
+    <h1>Exploring Super-agent Design</h1>
+    <p class="one-liner">An architecture essay on running one always-on agent across many parallel tasks. The design patterns are strong; the evidence is only indicative.</p>
+    <div class="verdict-pill">📚 Good reference</div>
+    <div class="chips">
+      <span class="chip">Article: license unspecified</span>
+      <span class="chip">X Article · machine translation · 2026-11-01</span>
+      <span class="chip"><a href="https://x.com/DeepSeekHarness/status/2116857257245987236">@DeepSeekHarness on X ↗</a></span>
+      <span class="chip"><a href="https://github.com/deepseek-ai/dsh-superagent-prototype/tree/8c32a9dc5d72c033816c6a8110b37f40cf94fba4">Prototype @ 8c32a9d (MIT) ↗</a></span>
+      <span class="chip"><a href="deepseek-harness.md">Related: DeepSeek Harness repo review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4 · 5</div><div class="lbl">Traits · modules</div></div>
+      <div class="stat"><div class="num">5 runs</div><div class="lbl">Per design, synthetic</div></div>
+      <div class="stat"><div class="num">Static</div><div class="lbl">Review method</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Sessions become an implementation detail</h3><p>The essay argues that human attention, not the model, limits multi-tasking; the authors say a person can follow only 3–5 sessions. A long-lived Router handles every human interaction and dispatch but never executes tasks. Isolated Workers each run one task.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Classic systems ideas, applied to agents</h3><p>Fast/Slow-Path event filtering, Thread subscriptions with pass-through, “Inline &amp; Spill” context, speculative execution, asynchronous <code>start()</code>/<code>stop()</code> tools, compute/state/environment separation and an external Watchdog. The authors present this as engineering practice, not new theory.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>The ablation favors structure over prompting</h3><p>Task time at p50/p95 was 12.4/15.7 min for Super-agent and 20.4/29.5 min for a single session that never delegated (0 of 5 runs). A single session with a delegation prompt reached 13.8/29.0 min. These are author-reported results from synthetic traffic with simulated coding.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>It costs more tokens</h3><p>Super-agent used 23.2M cache-read tokens per run, against 6.1M and 10.8M for the single-session designs. Removing pass-through raised it to 31.8M (about +37%) with no change in speed. Total tokens and cost are not reported.</p></div></div>
+      <div class="step"><div class="n">5</div><div><h3>The prototype covers part of the design, with broad local authority</h3><p>The MIT prototype has a main Session, an Executor per Ticket and Thread subscriptions. No Watchdog or BYOM daemon was found, and its docs say workers run with <code>danger-full-access</code> as the operator’s OS user.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Provenance, design, modules, evidence and limits.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Design</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Modules</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Evidence</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Limits and action</button>
+    </div>
+
+    <!-- Provenance -->
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Source</td><td><a href="https://x.com/DeepSeekHarness/status/2116857257245987236">X Article by @DeepSeekHarness</a>: “Exploring Super-agent Design: Towards a More Autonomous Agent System”</td></tr>
+        <tr><td>Author</td><td>Yujia Qiao (implementation and writing), with DeepSeek Harness team reviewers named in the article</td></tr>
+        <tr><td>Published</td><td>2026-11-01 (created_at 11:37:54 UTC); no edits in edit history</td></tr>
+        <tr><td>Language</td><td>Machine translation of a Chinese original, according to the article</td></tr>
+        <tr><td>Retrieved</td><td>Body: X API read, 2026-11-01 UTC. Metadata re-read 2026-11-13 UTC, unchanged.</td></tr>
+        <tr><td>Text SHA-256</td><td>720f0530d4f30277fed04d6a9310ab618286eba02b9eb0dd29acf040bbe79a61 (plain text, 43,292 bytes)</td></tr>
+        <tr><td>Prototype</td><td><a href="https://github.com/deepseek-ai/dsh-superagent-prototype/tree/8c32a9dc5d72c033816c6a8110b37f40cf94fba4">deepseek-ai/dsh-superagent-prototype</a> @ 8c32a9dc5d72c033816c6a8110b37f40cf94fba4, MIT</td></tr>
+        <tr><td>Cited work</td><td><a href="https://www.anthropic.com/research/managed-agents">Anthropic, “Scaling Managed Agents: Decoupling the brain from the hands”</a> (2026-04-08)</td></tr>
+        <tr><td>Verification</td><td>Static: article text and results table, prototype README and docs, cited article. Figures not inspected; nothing run or reproduced.</td></tr>
+      </tbody></table>
+    </div>
+
+    <!-- Design: problem, traits, map -->
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>The bind: single-session agents</h4>
+      <p>Today’s agents use a <span class="tip" tabindex="0" data-tip="One continuous model context. Most agent products make users create and switch between these by hand.">session</span> as the unit of work, and sessions are isolated from one another. Running tasks in parallel means switching between sessions and remembering what each one contains. Adding MCP or CLIs so a local agent can read chat does not fix this: one synchronous session still blocks, mixes contexts, and stops when the device sleeps.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 720 180" role="img" aria-labelledby="svg-bind-t">
+          <title id="svg-bind-t">A person juggling isolated sessions, compared with one Super-agent running many Workers</title>
+          <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="var(--accent)"/></marker></defs>
+          <rect x="20" y="20" width="300" height="140" rx="14" fill="var(--bg-inset)" stroke="var(--line)"/>
+          <text x="170" y="44" text-anchor="middle" fill="var(--text-faint)" font-size="11">Today · you manage sessions</text>
+          <rect x="40" y="58" width="70" height="36" rx="8" fill="var(--danger)" fill-opacity=".18" stroke="var(--danger)"/><text x="75" y="80" text-anchor="middle" fill="var(--text)" font-size="10">S1</text>
+          <rect x="120" y="58" width="70" height="36" rx="8" fill="var(--c3)" fill-opacity=".18" stroke="var(--c3)"/><text x="155" y="80" text-anchor="middle" fill="var(--text)" font-size="10">S2</text>
+          <rect x="200" y="58" width="70" height="36" rx="8" fill="var(--c4)" fill-opacity=".18" stroke="var(--c4)"/><text x="235" y="80" text-anchor="middle" fill="var(--text)" font-size="10">S3</text>
+          <rect x="80" y="108" width="70" height="36" rx="8" fill="var(--c1)" fill-opacity=".18" stroke="var(--c1)"/><text x="115" y="130" text-anchor="middle" fill="var(--text)" font-size="10">S4</text>
+          <rect x="160" y="108" width="70" height="36" rx="8" fill="var(--c2)" fill-opacity=".18" stroke="var(--c2)"/><text x="195" y="130" text-anchor="middle" fill="var(--text)" font-size="10">S5…</text>
+          <text x="170" y="156" text-anchor="middle" fill="var(--danger)" font-size="10">attention bottleneck (~3–5 sessions)</text>
+          <path d="M340 90 H380" stroke="var(--accent)" stroke-width="2" marker-end="url(#arr)"/>
+          <rect x="400" y="20" width="300" height="140" rx="14" fill="var(--bg-inset)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="550" y="44" text-anchor="middle" fill="var(--text-faint)" font-size="11">Super-agent · one continuous entity</text>
+          <ellipse cx="550" cy="100" rx="95" ry="42" fill="var(--c1)" fill-opacity=".12" stroke="var(--accent)" stroke-width="2"/>
+          <text x="550" y="96" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">You talk to one agent</text>
+          <text x="550" y="114" text-anchor="middle" fill="var(--text-dim)" font-size="10">the system runs many Workers</text>
+        </svg>
+        <p class="caption">The essay’s example: the same agent continues a task across IM and GitHub while tasks stay isolated underneath.</p>
+      </div>
+
+      <h4>Four traits of a Super-agent</h4>
+      <p class="lede">Select a card for details. The essay argues no single <span class="tip" tabindex="0" data-tip="Reason, act with a tool, observe, repeat: the classic single-agent loop.">ReAct</span> loop can provide all four, so they must come from the architecture around it.</p>
+      <div class="traits" id="traitGrid">
+        <button type="button" class="trait" aria-expanded="false">
+          <span class="glyph" aria-hidden="true">∞</span>
+          <strong>Continuous</strong>
+          <span class="short">Feels like one agent everywhere</span>
+          <span class="detail">Plan A agreed in IM, switched to Plan B in a pull-request comment: the agent follows the change. Users never ask whether session X has context Y.</span>
+        </button>
+        <button type="button" class="trait" aria-expanded="false">
+          <span class="glyph" aria-hidden="true">⚡</span>
+          <strong>Productive</strong>
+          <span class="short">Several complex tasks in parallel</span>
+          <span class="detail">Responds quickly, keeps each task to a high standard, and accepts the next instruction before the previous command or task has finished.</span>
+        </button>
+        <button type="button" class="trait" aria-expanded="false">
+          <span class="glyph" aria-hidden="true">◎</span>
+          <strong>Proactive</strong>
+          <span class="short">Watches its environment</span>
+          <span class="detail">Does not wait for step-by-step instructions. Acts on chat, CI or email events worth handling and stays quiet otherwise.</span>
+        </button>
+        <button type="button" class="trait" aria-expanded="false">
+          <span class="glyph" aria-hidden="true">☁</span>
+          <strong>Persistent</strong>
+          <span class="short">Always online, self-recovering</span>
+          <span class="detail">Connects directly to real working environments and recovers automatically from anomalies during long-running operation.</span>
+        </button>
+      </div>
+
+      <h4>Five modules, one system</h4>
+      <p class="lede">Select a block to open its module in the Modules tab.</p>
+      <div class="diagram">
+        <svg id="archSvg" viewBox="0 0 760 320" role="img" aria-labelledby="svg-arch-t">
+          <title id="svg-arch-t">Super-agent architecture overview: channels, Triggers, full-duplex, separation, Watchdog, Router and Workers</title>
+          <rect x="40" y="18" width="680" height="44" rx="10" fill="var(--bg-inset)" stroke="var(--line)"/>
+          <text x="380" y="45" text-anchor="middle" fill="var(--text-dim)" font-size="12">Channels · IM · GitHub · email · calendar · CI</text>
+          <g class="hot" data-mod="events" tabindex="0" role="button" aria-label="Open module 3, Triggers">
+            <rect x="40" y="78" width="160" height="56" rx="12" fill="var(--c1)" fill-opacity=".14" stroke="var(--c1)" stroke-width="1.5"/>
+            <text x="120" y="102" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700">[3] Triggers</text>
+            <text x="120" y="118" text-anchor="middle" fill="var(--text-dim)" font-size="10">event-driven</text>
+          </g>
+          <g class="hot" data-mod="duplex" tabindex="0" role="button" aria-label="Open module 4, full-duplex multi-channel">
+            <rect x="220" y="78" width="160" height="56" rx="12" fill="var(--c2)" fill-opacity=".14" stroke="var(--c2)" stroke-width="1.5"/>
+            <text x="300" y="102" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700">[4] Full-duplex</text>
+            <text x="300" y="118" text-anchor="middle" fill="var(--text-dim)" font-size="10">multi-channel</text>
+          </g>
+          <g class="hot" data-mod="separate" tabindex="0" role="button" aria-label="Open module 5, separating compute, state and environments">
+            <rect x="400" y="78" width="160" height="56" rx="12" fill="var(--c3)" fill-opacity=".14" stroke="var(--c3)" stroke-width="1.5"/>
+            <text x="480" y="102" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700">[5] Separation</text>
+            <text x="480" y="118" text-anchor="middle" fill="var(--text-dim)" font-size="10">compute · state · env</text>
+          </g>
+          <g class="hot" data-mod="watchdog" tabindex="0" role="button" aria-label="Open module 6, Watchdog">
+            <rect x="580" y="78" width="140" height="56" rx="12" fill="var(--c4)" fill-opacity=".14" stroke="var(--c4)" stroke-width="1.5"/>
+            <text x="650" y="102" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700">[6] Watchdog</text>
+            <text x="650" y="118" text-anchor="middle" fill="var(--text-dim)" font-size="10">external control loop</text>
+          </g>
+          <g class="hot" data-mod="twolevel" tabindex="0" role="button" aria-label="Open module 2, two-level architecture">
+            <rect x="120" y="160" width="520" height="54" rx="14" fill="var(--c1)" fill-opacity=".10" stroke="var(--c1)" stroke-width="2"/>
+            <text x="380" y="182" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">[2] Router layer · global continuity</text>
+            <text x="380" y="200" text-anchor="middle" fill="var(--text-dim)" font-size="10">talks to humans · dispatches · global memory · does not execute tasks</text>
+            <rect x="80" y="240" width="140" height="50" rx="10" fill="var(--bg-inset)" stroke="var(--c2)"/>
+            <text x="150" y="270" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Worker A</text>
+            <rect x="240" y="240" width="140" height="50" rx="10" fill="var(--bg-inset)" stroke="var(--c2)"/>
+            <text x="310" y="270" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Worker B</text>
+            <rect x="400" y="240" width="140" height="50" rx="10" fill="var(--bg-inset)" stroke="var(--c2)"/>
+            <text x="470" y="270" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Worker C</text>
+            <rect x="560" y="240" width="140" height="50" rx="10" fill="var(--bg-inset)" stroke="var(--c2)"/>
+            <text x="630" y="270" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Worker …</text>
+          </g>
+          <text x="380" y="310" text-anchor="middle" fill="var(--text-faint)" font-size="10">Worker layer · isolated contexts · strongest models · no direct human chat</text>
+        </svg>
+        <p class="caption">Redrawn from the essay’s description; not the authors’ figure.</p>
+      </div>
+    </div>
+
+    <!-- Modules -->
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <div class="toggle-row modnav">
+        <span class="lbl">Module</span>
+        <div class="seg" role="group" aria-label="Choose a module" id="modSeg" hidden>
+          <button type="button" data-mod="twolevel" aria-pressed="true">2 · Two-level</button>
+          <button type="button" data-mod="events" aria-pressed="false">3 · Triggers</button>
+          <button type="button" data-mod="duplex" aria-pressed="false">4 · Full-duplex</button>
+          <button type="button" data-mod="separate" aria-pressed="false">5 · Separation</button>
+          <button type="button" data-mod="watchdog" aria-pressed="false">6 · Watchdog</button>
+        </div>
+      </div>
+
+      <div class="mod" id="mod-twolevel">
+        <h4>2 · Router + Workers: continuity and throughput</h4>
+        <p>Routing every event to one session maximizes shared context but caps throughput and interleaves task details. A new session per event does the reverse. The two-level split aims to get both.</p>
+        <div class="toggle-row">
+          <span class="lbl">Compare designs</span>
+          <div class="seg" role="group" aria-label="Session design trade-off" id="tradeSeg" hidden>
+            <button type="button" data-view="one" aria-pressed="false">One mega-session</button>
+            <button type="button" data-view="many" aria-pressed="false">Session per event</button>
+            <button type="button" data-view="two" aria-pressed="true">Two-level</button>
+          </div>
+        </div>
+        <div class="diagram">
+          <svg viewBox="0 0 700 150" role="img" aria-labelledby="svg-trade-t">
+            <title id="svg-trade-t">Continuity and throughput for the selected session design</title>
+            <rect x="30" y="30" width="200" height="90" rx="12" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="130" y="60" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700" id="boxLT">Continuity</text>
+            <text x="130" y="85" text-anchor="middle" fill="var(--text-dim)" font-size="11" id="boxLS">High: Router sees all</text>
+            <text x="130" y="105" text-anchor="middle" fill="var(--text-dim)" font-size="11" id="boxLT2">Throughput: via Workers</text>
+            <rect x="250" y="55" width="40" height="40" rx="8" fill="var(--c1)" fill-opacity=".14" stroke="var(--c1)"/>
+            <text x="270" y="80" text-anchor="middle" fill="var(--accent)" font-size="16">+</text>
+            <rect x="310" y="30" width="200" height="90" rx="12" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="410" y="60" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700" id="boxRT">Throughput</text>
+            <text x="410" y="85" text-anchor="middle" fill="var(--text-dim)" font-size="11" id="boxRS">High: parallel Workers</text>
+            <text x="410" y="105" text-anchor="middle" fill="var(--text-dim)" font-size="11" id="boxRT2">Continuity: via Router</text>
+            <rect x="530" y="40" width="150" height="70" rx="12" fill="var(--c2)" fill-opacity=".14" stroke="var(--c2)"/>
+            <text x="605" y="70" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="700" id="boxVT">Both</text>
+            <text x="605" y="92" text-anchor="middle" fill="var(--text-dim)" font-size="10" id="boxVS">sessions = impl. detail</text>
+          </svg>
+        </div>
+        <details class="acc"><summary>Router layer: thin, global, non-executing</summary>
+          <div class="body">
+            <p>A long-lived node for all human interaction and cross-task coordination, acting as the system’s global sequence point and memory. It does not execute tasks and can run without a Bash tool. The authors report that a lighter model is often enough.</p>
+            <p>Triggers that arrive during one inference turn queue up and are merged into the next call. Because the Router’s steps have long inputs and short outputs, <span class="tip" tabindex="0" data-tip="The phase where the model reads the whole input in parallel before generating output tokens.">prefill</span> processes the batch in parallel, so amortized time per decision falls as backlog grows, up to a point.</p>
+            <p>Unlike an Agent Team lead that plans one task’s subtasks, the Router only dispatches tasks and tracks how they relate at a high level.</p>
+          </div>
+        </details>
+        <details class="acc"><summary>Worker layer: one task, isolated context, full tools</summary>
+          <div class="body">
+            <p>Each Worker owns one task, usually runs the most capable model, and never talks to people directly. It reports to the Router, which writes every reply. Workers that overlap on a shared pull request subscribe to the same <span class="tip" tabindex="0" data-tip="A stream of related events: consecutive messages on one pull request, IM topic or email chain.">Thread</span> and can spot conflicts without messaging each other directly. A Worker may itself use subagents or an Agent Team.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="mod" id="mod-events">
+        <h4>3 · Triggers: the environment drives the agent</h4>
+        <p>The main input is semi-structured events (chat, email, calendar, code-review comments, CI results) rather than typed prompts. Most of these events are noise.</p>
+        <div class="diagram">
+          <svg viewBox="0 0 720 200" role="img" aria-labelledby="svg-events-t">
+            <title id="svg-events-t">Event pipeline: Fast Path code filters, Slow Path model filters, then routing to subscribed Workers or the Router</title>
+            <rect x="20" y="70" width="100" height="50" rx="10" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="70" y="100" text-anchor="middle" fill="var(--text)" font-size="11">Events</text>
+            <path d="M125 95 H155" stroke="var(--accent)" stroke-width="2"/>
+            <rect x="160" y="40" width="120" height="50" rx="10" fill="var(--c1)" fill-opacity=".14" stroke="var(--c1)"/>
+            <text x="220" y="62" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="700">Fast Path</text>
+            <text x="220" y="78" text-anchor="middle" fill="var(--text-dim)" font-size="9">code policies</text>
+            <rect x="160" y="110" width="120" height="50" rx="10" fill="var(--c3)" fill-opacity=".14" stroke="var(--c3)"/>
+            <text x="220" y="132" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="700">Slow Path</text>
+            <text x="220" y="148" text-anchor="middle" fill="var(--text-dim)" font-size="9">LLM semantic policies</text>
+            <path d="M285 65 H315" stroke="var(--accent)" stroke-width="2"/>
+            <path d="M285 135 H315 V100" stroke="var(--c3)" stroke-width="2" fill="none"/>
+            <rect x="320" y="70" width="120" height="50" rx="10" fill="var(--bg-inset)" stroke="var(--c2)"/>
+            <text x="380" y="92" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="700">Route</text>
+            <text x="380" y="108" text-anchor="middle" fill="var(--text-dim)" font-size="9">subscribe / pass-through</text>
+            <path d="M445 95 H475" stroke="var(--accent)" stroke-width="2"/>
+            <rect x="480" y="40" width="100" height="50" rx="10" fill="var(--c2)" fill-opacity=".14" stroke="var(--c2)"/>
+            <text x="530" y="70" text-anchor="middle" fill="var(--text)" font-size="11">Worker</text>
+            <rect x="480" y="110" width="100" height="50" rx="10" fill="var(--c1)" fill-opacity=".14" stroke="var(--c1)"/>
+            <text x="530" y="140" text-anchor="middle" fill="var(--text)" font-size="11">Router</text>
+            <path d="M585 65 H625" stroke="var(--c2)" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <path d="M585 135 H625" stroke="var(--c1)" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text x="632" y="69" fill="var(--text-dim)" font-size="10">subscribed</text>
+            <text x="632" y="139" fill="var(--text-dim)" font-size="10">new / cold start</text>
+          </svg>
+          <p class="caption">Code drops noise cheaply; the model judges the remaining candidates; follow-ups on a subscribed Thread skip the Router.</p>
+        </div>
+        <details class="acc"><summary>Filtering and routing</summary>
+          <div class="body">
+            <p><strong>Fast Path:</strong> deterministic checks on source, group and user/bot allowlists. Each source can be set to “respond only to explicit requests”, “treat as candidate events” or “ignore”. <strong>Slow Path:</strong> an LLM judges the remaining candidates against policies written as prompts, which people can change at any time.</p>
+            <p>The Router handles only cold starts and cross-task coordination. Subscriptions between Threads and Workers are many-to-many, and a Worker can unsubscribe or hand an event back to the Router.</p>
+          </div>
+        </details>
+        <details class="acc"><summary>Inline &amp; Spill and Chain of Recall</summary>
+          <div class="body">
+            <p>The essay treats the context window as a cache. <strong>Inline</strong> puts information likely to be needed soon into the window. <strong>Spill</strong> keeps the rest outside, leaving a pointer or summary. Start with an ID and summary, add nearby content by locality, and truncate anything over the cap with a pointer to the rest.</p>
+            <p><strong>Chain of Recall:</strong> Triggers, Threads and Worker Sessions get unique IDs. Related IDs are inlined, forming a reference graph that the model can follow hop by hop to recover the context of an old task.</p>
+          </div>
+        </details>
+        <details class="acc"><summary>Acting ahead (speculative execution)</summary>
+          <div class="body">
+            <p>The agent starts background work before it knows whether the result will be used. The internal example is a “silently reproduce and fix” policy: deliver only when the issue is confirmed and a simple fix exists, otherwise stay quiet. The essay gives no figures for hit rate or wasted compute.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="mod" id="mod-duplex">
+        <h4>4 · Full-duplex, multi-channel: talk while work runs</h4>
+        <p>A classic ReAct loop blocks on a synchronous <code>run()</code>. Here, long calls become asynchronous <code>start()</code>, which returns “Started” immediately, and <code>stop()</code>. Results arrive later as new events.</p>
+        <div class="grid2">
+          <div class="callout"><strong>Half-duplex:</strong> the user waits until the tool finishes, and new messages pile up unread.</div>
+          <div class="callout"><strong>Full-duplex:</strong> the conversation stays responsive and new input is handled after the current inference step.</div>
+        </div>
+        <p class="note">According to the essay, DeepSeek Harness already implements this asynchronous mechanism, but it is not enabled by default.</p>
+        <details class="acc"><summary>Channel norms</summary>
+          <div class="body">
+            <p><strong>IM:</strong> interrupt rarely, ask direct questions, give short conclusions. The essay cites a “verified” hard cap of 100 words per reply, without data.</p>
+            <p><strong>GitHub, email, documents:</strong> structured, dense output, such as a pull request with background, the change and verification results.</p>
+            <p>Workers keep verbose reasoning and tool logs internal; only the Router speaks externally.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="mod" id="mod-separate">
+        <h4>5 · Separating compute, state and environments</h4>
+        <p>Local agents tie the agent loop, session state and the execution environment to one device. The essay separates them in two steps.</p>
+        <div class="diagram">
+          <svg viewBox="0 0 720 210" role="img" aria-labelledby="svg-sep-t">
+            <title id="svg-sep-t">Compute in stateless cloud containers, state in a database, environments left on devices behind lightweight daemons</title>
+            <rect x="40" y="30" width="200" height="150" rx="14" fill="var(--c1)" fill-opacity=".10" stroke="var(--c1)"/>
+            <text x="140" y="58" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">Compute</text>
+            <text x="140" y="80" text-anchor="middle" fill="var(--text-dim)" font-size="10">stateless agent loop</text>
+            <text x="140" y="100" text-anchor="middle" fill="var(--text-dim)" font-size="10">elastic cloud containers</text>
+            <text x="140" y="150" text-anchor="middle" fill="var(--text-faint)" font-size="9">scale out, restart, replace</text>
+            <rect x="260" y="30" width="200" height="150" rx="14" fill="var(--c2)" fill-opacity=".10" stroke="var(--c2)"/>
+            <text x="360" y="58" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">State</text>
+            <text x="360" y="80" text-anchor="middle" fill="var(--text-dim)" font-size="10">sessions in a database</text>
+            <text x="360" y="100" text-anchor="middle" fill="var(--text-dim)" font-size="10">continuity across restarts</text>
+            <text x="360" y="150" text-anchor="middle" fill="var(--text-faint)" font-size="9">outside the loop</text>
+            <rect x="480" y="30" width="200" height="150" rx="14" fill="var(--c3)" fill-opacity=".10" stroke="var(--c3)"/>
+            <text x="580" y="58" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">Environments</text>
+            <text x="580" y="80" text-anchor="middle" fill="var(--text-dim)" font-size="10">stay where they are</text>
+            <text x="580" y="100" text-anchor="middle" fill="var(--text-dim)" font-size="10">lightweight stateless daemon</text>
+            <text x="580" y="120" text-anchor="middle" fill="var(--text-dim)" font-size="10">BYOM · cloud · on-demand</text>
+            <text x="580" y="150" text-anchor="middle" fill="var(--text-faint)" font-size="9">commands in, results out</text>
+          </svg>
+          <p class="caption">This parallels Anthropic’s “brain vs hands” decoupling. The essay’s stated difference is support for intermittently online personal machines (<span class="tip" tabindex="0" data-tip="Bring Your Own Machine: connecting a user’s own development machine or personal computer to the cloud agent.">BYOM</span>).</p>
+        </div>
+        <div class="callout">The essay argues that syncing real environments (uncommitted changes, private credentials, intranet dependencies, hardware) into a cloud sandbox is expensive and lossy, so it leaves them in place and reaches them on demand. Its own security section notes that this design assumes the cloud and the endpoints trust each other.</div>
+      </div>
+
+      <div class="mod" id="mod-watchdog">
+        <h4>6 · Watchdog: an independent control loop</h4>
+        <p>A running process does not mean the agent is healthy: a model can be stuck in an unproductive loop or drifting from its goal.</p>
+        <ul>
+          <li>An independent Watchdog Session runs outside the main system and is driven by scheduled messages.</li>
+          <li>It handles infrastructure failures such as API errors and failed state recovery, and retries transient external failures until they resolve.</li>
+          <li>It uses the model to judge whether each Worker is making substantive progress or drifting from the goal.</li>
+          <li>Maintainers can ask it in natural language why something failed, and have it adjust prompts or trigger rules while the system runs.</li>
+        </ul>
+        <p class="note">A keyword search of the public prototype found no Watchdog implementation.</p>
+      </div>
+    </div>
+
+    <!-- Evidence -->
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <h4>Ablation: four designs, synthetic workload</h4>
+      <p>About 300 group-chat and GitHub CI messages per run, of which about 20 were work requests. Coding was simulated by a tool that only consumes time, so this measures scheduling and coordination, not task quality. Each design ran 5 times. All figures are author-reported and were not reproduced.</p>
+      <div class="tiles">
+        <div class="tile best"><div class="v">12.4 / 15.7</div><div class="k">Super-agent<br>p50 / p95 min</div></div>
+        <div class="tile"><div class="v">12.6 / 15.5</div><div class="k">No pass-through<br>p50 / p95 min</div></div>
+        <div class="tile warn"><div class="v">20.4 / 29.5</div><div class="k">Single session, neutral prompt</div></div>
+        <div class="tile"><div class="v">13.8 / 29.0</div><div class="k">Single session, delegation prompt</div></div>
+      </div>
+      <div class="toggle-row">
+        <span class="lbl">Show</span>
+        <div class="seg" role="group" aria-label="Metric" id="metricSeg" hidden>
+          <button type="button" data-metric="time" aria-pressed="true">Task time p50</button>
+          <button type="button" data-metric="p95" aria-pressed="false">Task time p95</button>
+          <button type="button" data-metric="tok" aria-pressed="false">Cache-read tokens</button>
+        </div>
+      </div>
+      <div id="bars">
+        <div class="bar-row" data-time="12.4" data-p95="15.7" data-tok="23.2"><span>Super-agent</span><div class="bar-track"><div class="bar-fill g" style="width:42%"></div></div><span class="bar-val">12.4 min</span></div>
+        <div class="bar-row" data-time="12.6" data-p95="15.5" data-tok="31.8"><span>No pass-through</span><div class="bar-track"><div class="bar-fill" style="width:43%"></div></div><span class="bar-val">12.6 min</span></div>
+        <div class="bar-row" data-time="20.4" data-p95="29.5" data-tok="6.1"><span>Single · neutral</span><div class="bar-track"><div class="bar-fill o" style="width:69%"></div></div><span class="bar-val">20.4 min</span></div>
+        <div class="bar-row" data-time="13.8" data-p95="29.0" data-tok="10.8"><span>Single · delegation</span><div class="bar-track"><div class="bar-fill p" style="width:47%"></div></div><span class="bar-val">13.8 min</span></div>
+      </div>
+      <p class="note">Bars are scaled to the largest value of the selected metric. Shorter is better for time; tokens are cache-read tokens per run, all sessions.</p>
+      <details class="acc"><summary>What the ablation shows, and what it does not</summary>
+        <div class="body">
+          <p>With the neutral prompt the model never delegated (0 of 5 runs): all work ran in the main session, new messages kept interrupting it, and p95 reached 29.5 min. With the delegation prompt it delegated in 4 of 5 runs, and the run where it did the work itself produced the long tail.</p>
+          <p>Without pass-through, the Router made about 30% more decisions and cache-read tokens rose from 23.2M to 31.8M (about +37%), with similar task times.</p>
+          <p>The two-level design used about 2–4× the cache-read tokens of the single-session designs. Total tokens, cost, quality and variance are not reported, and no harness or raw data is published.</p>
+        </div>
+      </details>
+      <h4>Router batching stress test</h4>
+      <table><thead><tr><th>Measure</th><th>~1 Trigger/min</th><th>~40 Triggers/min</th></tr></thead><tbody>
+        <tr><td>Average batch size</td><td>1.0</td><td>2.8</td></tr>
+        <tr><td>Time per request</td><td>2.5 s</td><td>3.9 s</td></tr>
+        <tr><td>Amortized time per decision</td><td>6.4 s</td><td>1.6 s</td></tr>
+      </tbody></table>
+      <p>The Router used a real model (not named in the essay) and the Workers used mock models. A decision can span several requests, so time per decision can exceed time per request. Decision accuracy under batching was not reported.</p>
+      <h4>Design versus public artifacts</h4>
+      <div style="overflow-x:auto"><table><thead><tr><th>Aspect</th><th>Essay design</th><th>dsh-superagent prototype</th><th>Anthropic Managed Agents</th></tr></thead><tbody>
+        <tr><td>Coordinator</td><td>Router that does not execute and writes all replies</td><td>Main Session evaluates Triggers, dispatches Tickets and replies</td><td>Stateless harness (“brain”)</td></tr>
+        <tr><td>Task isolation</td><td>One Worker per task</td><td>Executor Session and directory per Ticket</td><td>Many brains, many hands</td></tr>
+        <tr><td>Event routing</td><td>Fast/Slow Path, Thread subscriptions</td><td>Eval gate, many-to-many Thread subscriptions with fan-out</td><td>Not the focus</td></tr>
+        <tr><td>Async tools</td><td><code>start()</code>/<code>stop()</code></td><td>Foreground shell moved to background after 5 s</td><td>Not the focus</td></tr>
+        <tr><td>Environments</td><td>Cloud loop plus endpoint daemons (BYOM)</td><td>Local; workers run as the operator’s OS user</td><td>Sandboxes via <code>execute()</code>; credentials kept out of the sandbox</td></tr>
+        <tr><td>Watchdog</td><td>External session</td><td>Not found in a keyword search</td><td>Not described</td></tr>
+      </tbody></table></div>
+      <p class="note">Prototype column from its README and docs at commit 8c32a9d (static reading). Anthropic column from its 2026-04-08 article.</p>
+    </div>
+
+    <!-- Limits and action -->
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Open problems the authors name</h4>
+      <div class="grid2">
+        <details class="acc" open><summary>Scaling the two layers</summary><div class="body"><p>When to shard the Router, when Workers should talk directly, and possibly training a model for Router work. Long-term memory over months is the main bottleneck beyond Chain of Recall.</p></div></details>
+        <details class="acc"><summary>Working without sessions</summary><div class="body"><p>How to present tasks once sessions are hidden. More interaction may move into domain interfaces such as Issues and pull requests, and people still need to step in and take over during background work.</p></div></details>
+        <details class="acc"><summary>Context boundaries and A2A</summary><div class="body"><p>Choosing which parts of an organization share an instance, and how isolated agents with different permission boundaries collaborate securely.</p></div></details>
+        <details class="acc"><summary>Security and privacy</summary><div class="body"><p>Event-driven input is untrusted. A compromised cloud loop could take over every connected endpoint, and credentials must be usable without ever entering model context.</p></div></details>
+      </div>
+      <h4>Reviewer’s limitations</h4>
+      <ul>
+        <li><strong>Not reproducible:</strong> there is no public harness, workload or raw results; only five runs per design; and coding was simulated, so quality is untested.</li>
+        <li><strong>Weak baseline:</strong> the neutral-prompt single session never delegated. Tuned orchestration or agent-team frameworks were not compared.</li>
+        <li><strong>Cost understated:</strong> only cache-read tokens are reported, and Super-agent uses more of them.</li>
+        <li><strong>Prototype gap:</strong> by its own README, the prototype is not identical to the essay’s design. Its deployment docs say workers run with <code>danger-full-access</code> as the operator’s OS user and recommend a dedicated OS account for isolation.</li>
+        <li><strong>Provenance:</strong> the text is a machine translation, models and team size are undisclosed, and the figures were not inspected for this review.</li>
+      </ul>
+      <h4>Practical implications</h4>
+      <p>For teams building always-on agents, these patterns are worth borrowing:</p>
+      <ul>
+        <li>A thin coordinator that does not execute work and owns all replies</li>
+        <li>An isolated worker per task</li>
+        <li>Deterministic filtering before any model call</li>
+        <li>Thread-subscription routing for follow-ups</li>
+        <li>Asynchronous long-running tools</li>
+        <li>An external progress watchdog</li>
+      </ul>
+      <p>Before relying on them, measure task quality, total token cost per task, p50/p95 latency and Router accuracy under batching on your own workload. Keep credentials out of model context, and run prototypes under a dedicated low-privilege account.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Good reference</div>
+      <p>The essay gives a clear systems-engineering vocabulary for always-on, multi-task agents, and some of it appears in an MIT prototype. Its experiments are synthetic and indicative: five runs per design, simulated coding, and no public harness. The design also trades 2–4× more cache-read tokens for shorter, steadier completion times. Use it for the design patterns, not the benchmark. Static review only; nothing was run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://x.com/DeepSeekHarness/status/2116857257245987236">Yujia Qiao · DeepSeek Harness team (@DeepSeekHarness)</a> · Article: license unspecified · Prototype: MIT</span>
+    <span><a href="deepseek-harness-super-agent.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+
+  // ── Explainer interactivity (progressive enhancement; content is readable without JS)
+  (function () {
+    const root = document.documentElement;
+    root.classList.add('js');
+
+    // Theme toggle
+    const themeBtn = document.getElementById('themeBtn');
+    function applyTheme(t) {
+      root.setAttribute('data-theme', t);
+      themeBtn.textContent = t === 'light' ? 'Dark mode' : 'Light mode';
+    }
+    let saved = null;
+    try { saved = localStorage.getItem('review-theme'); } catch (e) {}
+    applyTheme(saved === 'light' ? 'light' : 'dark');
+    themeBtn.hidden = false;
+    themeBtn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      applyTheme(next);
+      try { localStorage.setItem('review-theme', next); } catch (e) {}
+    });
+
+    // Trait cards: one open at a time
+    const traits = [...document.querySelectorAll('.trait')];
+    traits.forEach(btn => btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      traits.forEach(b => b.setAttribute('aria-expanded', 'false'));
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+    }));
+
+    // Module switcher inside the Modules tab
+    const modSeg = document.getElementById('modSeg');
+    const modBtns = [...modSeg.querySelectorAll('button')];
+    const mods = [...document.querySelectorAll('.mod')];
+    function showMod(id) {
+      modBtns.forEach(b => b.setAttribute('aria-pressed', b.dataset.mod === id ? 'true' : 'false'));
+      mods.forEach(m => { m.hidden = m.id !== 'mod-' + id; });
+    }
+    modSeg.hidden = false;
+    modBtns.forEach(b => b.addEventListener('click', () => showMod(b.dataset.mod)));
+    showMod('twolevel');
+
+    // Architecture diagram hotspots open the matching module
+    function openMod(id) {
+      document.getElementById('btn-arch').click();
+      showMod(id);
+      document.getElementById('deep-dive').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.querySelectorAll('#archSvg .hot').forEach(g => {
+      g.addEventListener('click', () => openMod(g.dataset.mod));
+      g.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMod(g.dataset.mod); }
+      });
+    });
+
+    // Session-design trade-off toggle
+    const views = {
+      one:  { LS: 'Max: one context', LT2: 'Throughput: capped', RS: 'Low: serial ReAct', RT2: 'Contexts interleaved', VT: 'Trade-off', VS: 'continuity wins' },
+      many: { LS: 'Broken: no shared memory', LT2: 'Many separate replies', RS: 'Max concurrency', RT2: 'Results disconnected', VT: 'Trade-off', VS: 'throughput wins' },
+      two:  { LS: 'High: Router sees all', LT2: 'Throughput: via Workers', RS: 'High: parallel Workers', RT2: 'Continuity: via Router', VT: 'Both', VS: 'sessions = impl. detail' }
+    };
+    const tradeSeg = document.getElementById('tradeSeg');
+    tradeSeg.hidden = false;
+    const tradeBtns = [...tradeSeg.querySelectorAll('button')];
+    tradeBtns.forEach(b => b.addEventListener('click', () => {
+      tradeBtns.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+      const v = views[b.dataset.view];
+      Object.keys(v).forEach(k => { const el = document.getElementById('box' + k); if (el) el.textContent = v[k]; });
+    }));
+
+    // Metric bars
+    const metricSeg = document.getElementById('metricSeg');
+    metricSeg.hidden = false;
+    const rows = [...document.querySelectorAll('#bars .bar-row')];
+    const fmt = { time: v => v.toFixed(1) + ' min', p95: v => v.toFixed(1) + ' min', tok: v => v.toFixed(1) + 'M' };
+    function renderBars(metric) {
+      const vals = rows.map(r => parseFloat(r.dataset[metric]));
+      const max = Math.max(...vals);
+      rows.forEach((r, i) => {
+        r.querySelector('.bar-fill').style.width = (vals[i] / max * 100) + '%';
+        r.querySelector('.bar-val').textContent = fmt[metric](vals[i]);
+      });
+    }
+    const metricBtns = [...metricSeg.querySelectorAll('button')];
+    metricBtns.forEach(b => b.addEventListener('click', () => {
+      metricBtns.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+      renderBars(b.dataset.metric);
+    }));
+    renderBars('time');
+  })();
+</script>
+</body>
+</html>
