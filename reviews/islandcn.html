@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>islandcn — Review</title>
+<meta name="description" content="A source-owned React activity island with custom springs—not a native OS integration.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / islandcn</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">opencoredev/islandcn · reviewed 2026-11-14</div>
+    <h1>islandcn</h1>
+    <p class="one-liner">A source-owned React activity island with custom springs—not a native OS integration.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; font and dependency terms separate</span>
+      <span class="chip">React 19 · TypeScript · SVG springs</span>
+      <span class="chip"><a href="https://github.com/opencoredev/islandcn">opencoredev/islandcn ↗</a></span>
+      <a class="chip" href="islandcn.md">Full source-cited review</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">390</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">38</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>An activity renderer, not a task service</h3><p>A priority/group store drives compact, split and expanded views. Your app still owns execution, authorization, persistence and recovery.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Detailed motion, incomplete public proof</h3><p>Analytic springs, mid-flight retargeting and a pausable clock are inspectable. Reference recordings are absent; the launch-day repository has no checked-in CI workflows.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Accessibility and link bounds need attention</h3><p>Keyboard, focus and reduced-motion provisions are real, but hit targets lack click activation. The share-link size check runs after full decompression, not before allocation.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Boundaries &amp; access</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Adoption &amp; evidence</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Engine</td><td>React 19 / React DOM, custom SVG geometry and springs</td></tr><tr><td>Site</td><td>Next.js 16.4.1, Blume, Tailwind 4</td></tr><tr><td>Distribution</td><td>shadcn copied source; optional agent skill</td></tr><tr><td>Revision</td><td>0011a41ea4882f3818caf35c98f3ee46b80c4a2c</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>islandcn places a black pill at the top of a page or positioned container. Activities supply compact, minimal and expanded React content; the engine selects idle, single-activity, split and expanded presentations. Priorities select the foreground activities, while groups allow several activities from one source to take turns. Upload, timer, music, incoming-call, ETA, recording, nearby-transfer and battery presets demonstrate the UI vocabulary.</p><p>Those names describe presentation, not service integrations. The reviewed engine/presets do not implement microphone capture, telephony, transport, background upload execution, or an OS-level island. The embedding app supplies real state, media permissions and callbacks. A playground edits activities and motion, exports code, and serializes designs into shareable URLs. An optional coding-agent skill teaches installation and composition; it is not an embedded model or paid provider integration. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/README.md">README</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/components/islandcn/recording-activity.tsx">recording preset</a></p><h4>Activity state is separate from rendering</h4><p>actions → in-memory store → derived scene → measured geometry/choreography → SVG and content layers</p><p>The store exposes start/update/end/expand/collapse, stable handles and subscriptions. Reusing an ID updates rather than duplicates an activity. Priority sorting is stable by start order; group handoffs have explicit timers, and delayed alert content has cancellation/flush paths. React consumers use useSyncExternalStore; useIslandActions avoids unnecessary consumer subscriptions. This is more substantial than a CSS morph demo. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/store.ts">Store</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/use-island.ts">hooks</a></p><h4>Motion is interruptible and inspectable</h4><p>Closed-form spring evaluation and per-transition choreography let shape targets change mid-flight instead of restarting an unrelated CSS animation. A controllable frame clock supports pause, step and seek for captures; the optional window devtools object is off by default. SVG pill/bubble/neck geometry and separate entering/leaving content layers produce the characteristic split and merge effects. Frame work writes DOM properties without requiring a React rerender for every frame. The main surface is nevertheless 2,296 lines, a significant maintenance and regression surface for copied source. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/spring.ts">Spring solver</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/choreography.ts">choreography</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/surface.tsx">surface</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/clock.ts">clock</a></p><h4>Source ownership is useful, but updates are your work</h4><p>Registry generation checks imports against site-only modules and verifies declared registry/npm dependencies. The core item ships engine files rather than requiring the Next.js site. Presets use a lifecycle hook that starts after hydration, updates from dependencies and ends on unmount. This supports ordinary React apps, including a documented Vite path, but the code is DOM-oriented—not React Native or non-React UI. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/scripts/build-registry.ts">Registry builder</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/registry/engine.json">engine item</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/components/islandcn/use-activity.ts">lifecycle hook</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Accessibility and Platform Compatibility</h4><p>There is real accessibility work: a named region, native button hit targets, activity labels, polite live announcements, Enter/Space expansion, Escape/outside collapse, focus restoration when content disappears, visible focus outlines, and inert/aria-hidden outgoing layers. Reduced motion follows the system by default, replacing overshoot/blur/scale with gentler transitions. This is not the same as “no animation”: the documented reduced-motion shape transition still eases over 0.2 seconds. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/island-root.tsx">Root interactions</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/layer.tsx">layers</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/README.md">engine guide</a></p><p><strong>A concrete activation gap:</strong> the pill/bubble buttons wire pointer handlers and onKeyDown, but no onClick. Enter/Space is manually handled; an assistive technology that activates a native button by dispatching a click without those input events has no corresponding activation handler. This is a static code finding, not a reproduced VoiceOver/NVDA failure. Add and test semantic activation without double-triggering the pointer path. The detached bubble also lacks the pill's aria-expanded attribute. Test full keyboard traversal, focus after activity replacement, screen-reader activation and live-region verbosity with real application content. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/surface.tsx#L2084-L2088">Surface interaction code</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/surface.tsx#L2205-L2238">buttons</a></p><p>Browser-specific code detects Apple WebKit to adjust filter compositing and shadows. Comments report Safari improvements, not independently verified cross-browser benchmarks. The engine depends on browser DOM/SVG, ResizeObserver, animation frames and modern focus/inert behavior. Test Safari, Chromium and Firefox, touch long-press, narrow layouts, zoom, text resizing and reduced motion; phone-width clamps and clipped compact slots can hide long or localized labels. This review does not certify WCAG conformance, mobile frame rate or older-browser support. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/platform.ts">Platform workaround</a></p><h4>Security, Privacy and Authority Boundaries</h4><p>- <strong>Engine authority:</strong> ordinary same-page React code. No network client, credential store, model provider, account login or privileged OS service was found in the reviewed engine/presets. App-provided React nodes and callbacks are trusted executable code, not sandboxed content. A “Pay” or “Approve” button still needs application-side authorization and server validation; the UI is not an approval security boundary.</p><p>- <strong>Install authority:</strong> the README's npx shadcn@latest command executes a moving CLI and retrieves a mutable hosted registry that writes project files. Review/pin the CLI and source snapshot, inspect the generated files/dependencies, and commit a baseline before installing. The reviewed Git SHA is not proof that the current hosted registry bytes match it. The optional skill also writes instructions into both .agents/skills and .claude/skills; install only intentionally. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/registry/skill.json">Skill item</a></p><p>- <strong>Share-link parsing:</strong> fields are reconstructed through allowlisted kinds, icons, actions and sample-photo names, with text and numeric limits; sample-photo inputs are not arbitrary remote URLs. This is good defense against treating a URL as executable UI configuration. But the claimed 64 KiB inflated-JSON guard is checked only after Response.arrayBuffer has fully materialized the decompressed stream. Plain base64 JSON has no equivalent total-size cap. Bound encoded input and enforce a streaming decompression limit before allocation; otherwise crafted links may consume excessive browser memory/CPU. This is a static resource-exhaustion concern, not a demonstrated exploit. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/components/site/playground/url-state.ts">URL parser</a></p><p>- <strong>Sharing is not secrecy:</strong> the design lives in the query string, compressed/encoded, not encrypted. It can be copied, retained in history and received/logged by the hosting server when opened. Do not include credentials, private transcript text or real customer data. The component does not introduce a cloud sync account, but the URL is deliberately transferable.</p><p>- <strong>Development routes:</strong> frame/fidelity endpoints read reference/capture files and are enabled outside production, or with ISLANDCN_DEV_TOOLS=1. They validate root names, slugs and frame filenames and normally return 404 in production. They do not authenticate callers; do not expose a development/capture server. Filename checks are not a realpath/symlink confinement policy, so keep configured roots trusted. Build tracing excludes references, captures and env files as an additional packaging precaution, not an authentication substitute. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/app/api/dev/dirs.ts">Route policy</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/app/api/dev/frames/%5Broot%5D/%5Bname%5D/%5Bfile%5D/route.ts">frame reader</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/next.config.mjs">Next configuration</a></p><p>No paid inference, provider OAuth or API keys are required by the component. Hosting, development and optional external coding-agent costs are separate and user-selected. No live hosting privacy behavior or dependency vulnerability audit was verified.</p><h4>Persistence, Recovery and Operational Fit</h4><p>The activity store is ephemeral. Reloading/remounting does not resume an upload, timer or recording from a journal. The application must reconstruct UI from authoritative job state and distinguish “hide/end this indicator” from “cancel the actual operation.” Group-hidden activities remain in the store; more activity state does not imply every task stays visible. Declarative presets clean up their own activity on unmount; imperative users own their handle lifecycle.</p><p>Store reset clears alert/press and pending-content timers. Surface observers/subscriptions have cleanup, and the frame clock stops scheduling when it has neither listeners nor timers. These are useful local lifecycle measures, not crash recovery, durable background work or guaranteed timer delivery in throttled tabs. Use wall-clock/server deadlines for consequential timing. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/store.ts">Store</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/clock.ts">clock</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/lib/island/provider.tsx">provider</a></p><p>Source-copy updates can overwrite local edits. A regression test specifically guards a prior shadcn --overwrite import-resolution problem. Track upstream patches and review a three-way diff; rollback with project version control rather than assuming a package uninstall restores modified source. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/tests/engine-files.test.ts">Regression test</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>islandcn</td><td>Specialized persistent status presentation; copied-source maintenance</td></tr><tr><td>Sonner / Radix Toast</td><td>Conventional transient notification model</td></tr><tr><td>Motion for React</td><td>General animation tools; application-owned composition</td></tr><tr><td>Apple ActivityKit</td><td>Native iOS integration rather than web DOM</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Build, Tests, Maturity and Claims</h4><p>The manifest is private version 0.1.0 with a pnpm lockfile and pnpm 11.28.7 selection. Build runs registry generation, a Blume docs build, then Next; it is not needed merely to consume already-reviewed core source. Build scripts execute local tooling and replace generated docs/registry output. Workspace policy permits esbuild/sharp build steps, uses copied package imports, and overrides two transitive dependency versions. These are positive supply-chain measures, not evidence that all dependencies are vulnerability-free. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/pnpm-workspace.yaml">Workspace policy</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/scripts/build-docs.ts">docs builder</a></p><p>Fourteen checked-in test files cover share-link compatibility/validation, generated code, playground behavior, docs snippets, labels, keylines and registry naming. Some checks skip without a production build or generated registry; the reference-measurement check skips because the recordings/data are not public. No .github workflow directory was present at this revision. Tests were inspected, not run: there is no claimed passing count, typecheck or build result in this review. The public suite is not evidence of comprehensive browser interaction, accessibility, store-state-machine or visual regression coverage. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/tests">Tests</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/reference/README.md">reference notice</a></p><p>The engine guide contains highly specific simulator-fitting numbers, but the referenced recordings and fidelity tooling are not included as a reproducible public measurement bundle. Treat “fitted to the real island” as upstream provenance/engineering claims; the mathematics and parameter tables are inspectable, the underlying fidelity result is not independently reproduced here.</p><p>Public GitHub metadata checked 2026-11-14: repository created 2026-11-13, latest push 2026-11-13T15:14:36Z, 390 stars, 38 forks, zero open issues, and no releases returned by the releases API. The reviewed commit updates Next and transitive dependency overrides. These are a snapshot of launch activity, not reliability or security scores. A shallow clone does not establish the complete development history. <a href="https://api.github.com/repos/opencoredev/islandcn">Public metadata</a></p><h4>License and Assets</h4><p>The root MIT license permits reuse/modification/distribution with its copyright and permission notice. The README says no Apple assets are copied and explicitly disclaims affiliation; that statement does not grant Apple's trademarks or settle look-and-feel rights for a product. The bundled Geist font directory includes OFL terms; fonts and Hugeicons dependencies retain their applicable notices. Sample photos/covers exist, but this review did not independently establish their individual provenance. Prefer your own product imagery rather than assuming the root code license clears every depicted subject or brand. No source/assets were extracted into this review. <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/LICENSE">License</a>, <a href="https://github.com/opencoredev/islandcn/blob/0011a41ea4882f3818caf35c98f3ee46b80c4a2c/app/og/fonts/OFL.txt">font license</a></p><h4>Adoption / Self-Hosting Notes</h4><p>For a pilot, take a reviewed source snapshot into a disposable React 19 project, use only required registry items, and keep the optional agent skill separate. Connect one non-sensitive task, then test cancellation versus dismissal, background-tab recovery, multiple activity priorities, pointer/keyboard/assistive activation and reduced motion. Fix bounded share decoding before accepting untrusted playground links in a sensitive environment.</p><p>You do not need to host the upstream demo to embed the component. If hosting that site, use a production build, keep dev/capture tooling disabled, do not mount private capture roots, and establish ordinary dependency updates, logging/privacy controls and security headers. No deployment was performed here.</p><p><strong>Bottom line:</strong> technically interesting, unusually detailed motion work with useful source ownership. Adopt selectively as UI, not as a durable activity system or a substitute for tested accessibility and authorization.</p><p>---</p><p><strong>Attribution:</strong> opencoredev/islandcn; MIT, copyright 2026 Leo. Independent static analysis of the pinned public revision.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Worth a bounded React 19 pilot for its detailed motion engine. Test and repair semantic button activation, bound share-link decoding, and own source updates. Static review only; no build, tests or browser checks run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/opencoredev/islandcn">opencoredev/islandcn</a> · MIT; font and dependency terms separate</span>
+    <span><a href="islandcn.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
