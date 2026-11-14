@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skykeep — Review</title>
+<meta name="description" content="Six iCloud services on Linux, Windows and Android, backed by a local Rust synchronization engine.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / skykeep</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">YashwanthKamireddi/Skykeep · reviewed 2026-11-14</div>
+    <h1>Skykeep</h1>
+    <p class="one-liner">Six iCloud services on Linux, Windows and Android, backed by a local Rust synchronization engine.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">GPL-3.0-only; dependency terms separate</span>
+      <span class="chip">Rust · SQLite · Tauri/React · Kotlin</span>
+      <span class="chip"><a href="https://github.com/YashwanthKamireddi/Skykeep">YashwanthKamireddi/Skykeep ↗</a></span>
+      <a class="chip" href="https://github.com/YashwanthKamireddi/Skykeep/tree/b0570a64e1d2eea963b0fde610bcc074ff746eef">Exact reviewed source</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">391</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">23</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real local-first engine</h3><p>Transactional local edits and a per-service outbox preserve offline work and expose refused changes. Some Drive and Photos operations still require immediate network access.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Strong controls, broad trust</h3><p>Separated HTTP clients, narrow renderer CSP and short-lived file grants are meaningful. The native process retains the Apple password in the keyring, and the local library is not encrypted.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Export is not full backup</h3><p>Export includes local data and cached bytes, not every cloud original. Separate Photos/Drive backup retains deleted content and earlier versions, requiring its own storage and retention policy.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Rust, SQLite WAL/FTS5, reqwest/rustls</td></tr><tr><td>Desktop</td><td>Tauri 2, React 18, ProseMirror</td></tr><tr><td>Android</td><td>Kotlin Compose, UniFFI, WorkManager</td></tr><tr><td>Source revision</td><td>b0570a64e1d2eea963b0fde610bcc074ff746eef</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Durable writes rather than optimistic UI alone</h4>
+<p>Notes, Reminders, Contacts, Calendar and Photos flags combine local changes and queue insertion transactionally. A worker drains per service, preserves ordering on transient failure, and retains refused edits for Retry/Discard. The inspected <code>drain_as</code> path checks account ownership before taking each change, and serializes sending with the service's sync pass. Protocol/conflict errors become refusals after five attempts; network/reauthentication failures remain retryable. This is a good practical design for intermittent connections. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/crates/quince-sync/src/queue.rs">queue.rs</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/crates/quince-core/src/outbox.rs">outbox.rs</a>.</p>
+<p>Do not generalize this to every operation: Drive rename/move/delete and some Photos metadata are direct network writes; mounted-file writes have their own disk journal. Offline browsing is not proof that every edit works offline. Notes' CRDT and merge logic are interesting, but “nothing is lost” and universal idempotence are guarantees requiring much broader fault testing than this review performed. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/ARCHITECTURE.md#writing">architecture writing section</a>.</p>
+<h4>Account separation is meaningful, but not tenant security</h4>
+<p>The library records a SHA-256-derived account tag. Switching accounts sets whole libraries aside, including caches and unsent changes; sync passes and queue drains validate ownership. That reduces accidental cross-account synchronization. It is a single-user native application, not a hosted multi-tenant service with RBAC. All authorized application windows and the native process remain powerful, and a hash of an account identifier is not encryption. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/src/main.rs#L1464">main.rs, claim_library</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/crates/quince-sync/src/queue.rs">queue ownership</a>.</p>
+<h4>Network policy and local authority</h4>
+<p>Four client builders separate Apple services, public calendar subscriptions, explicitly added CalDAV accounts and GitHub release updates. Apple requests require permitted domain suffixes and TLS; loopback is a test/feature exception, not the normal shipping allowance. Regional Apple domains are enabled for regional accounts. Public subscription resolution filters private/reserved addresses; account clients deliberately permit user-selected private servers. Environment proxies are supported, so these controls should not be described as an OS firewall or an independently verified guarantee about every proxy-resolved destination. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/crates/quince-auth/src/lib.rs#L2080">auth client builders</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/crates/quince-auth/src/releases.rs">release client</a>.</p>
+<p>The bundled desktop page's CSP blocks general network connections and grants only narrow Tauri plugin permissions. Custom application commands still carry substantial library/account authority. For filesystem access, <code>grants.rs</code> canonicalizes paths, expires grants after ten minutes and consumes save grants once; directory read grants include descendants. This protects against a renderer inventing arbitrary file paths, but is not a sandbox against compromised native code or another process running as the user. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/tauri.conf.json">CSP</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/capabilities/default.json">capability</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/src/grants.rs">file grants</a>.</p>
+<p>Video playback uses a loopback HTTP server with a fresh UUID secret, exact Host validation and rejection of non-app Origins, without CORS grants. Those are useful browser/DNS-rebinding defenses, not protection from a same-user attacker able to inspect the application's memory or files. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/src/video.rs#L156">video gate</a>.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>
+SRP avoids transmitting the raw Apple password as the login proof; it does <strong>not</strong> mean Skykeep never receives or retains that password. The documented design keeps password plus session in the OS keyring for automatic reauthentication. Cookies are AES-256-GCM sealed with a separate keyring key. The local library, opened files and image caches are not encrypted by Skykeep; full-disk encryption and a trustworthy logged-in session matter. The security document explicitly acknowledges same-user keyring access. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/SECURITY.md">credential/session policy</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/crates/quince-auth/src/sealed.rs">sealed cookies</a>.</p>
+<p>Content normally goes device ↔ Apple. A user-added calendar server receives its own calendar data/credentials; subscription hosts receive fetches; update-capable packages contact GitHub. Browser-opened links and Android system-provider integration create additional user-selected trust boundaries. No model provider or AI inference is needed, and no Skykeep telemetry backend was identified in the inspected architecture. Do not translate that into “no network requests” or a universal anonymity claim.</p>
+<p>Advanced Data Protection still requires enabling Apple's web-data access and approving a temporary session from a trusted device. The local readable copy remains after the approval expires; queued protected-service edits wait for renewed approval. This is a conscious expansion of endpoint access, not a bypass of ADP or access to iCloud Keychain/Health. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/SECURITY.md#advanced-data-protection">ADP policy</a>.</p>
+<p>Costs are ordinary iCloud storage, bandwidth, local disk and optional CalDAV hosting—not token fees. Backing up a large photo library can consume substantial bandwidth and disk; no spend cap or storage quota should be inferred.</p>
+<h4>Persistence, Retention, Export and Recovery</h4>
+<ul><li><strong>Local continuity:</strong> SQLite/WAL and durable queued writes survive restart. Corruption recovery sets the damaged database aside and attempts salvage, including outbox records, rather than overwriting the evidence. Salvage is best effort, not guaranteed recovery of every unsent edit. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/crates/quince-core/src/lib.rs#L187">library recovery</a>.</li><li><strong>Sign-out is a policy choice:</strong> users can keep the library; otherwise the code removes library files, sidecars/corrupt copies and caches. Deferred keyring cleanup handles an unavailable keyring. Other account archives, user-created exports, downloaded files and backups need their own retention decisions. File deletion does not prove forensic erasure from SSDs, snapshots or external backup media. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/src/main.rs#L2024">sign-out</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/SECURITY.md">security retention policy</a>.</li><li><strong>Export is local, not a complete cloud backup:</strong> Markdown, iCalendar, vCard and CSV plus cached media are written through a partial-directory/rename scheme. Unopened photos and undownloaded Drive content are listed instead of fetched. A successful export can therefore omit original bytes. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/src/export.rs#L1">export implementation</a>.</li><li><strong>Backup is a separate feature:</strong> Photos originals and Drive files are copied to a chosen destination; changed Drive files keep earlier versions and cloud deletion is not mirrored as backup deletion. That is valuable protection from accidental cloud removal, but intentionally retains deleted personal data and grows storage. It is not a one-click restore of the entire iCloud account or all six applications. Recently Deleted items are not copied. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/src/backup.rs">backup implementation</a>.</li></ul>
+<p>Before adoption, test interruption/retry, simultaneous-device note edits, account switching with pending writes, deleting/recovering a disposable record, disk-full behavior and restoring a sampled export/backup. Keep at least one independent offline copy; synchronization alone is not backup.</p>
+<h4>Maturity, Build and Update Risks</h4>
+<p>Public GitHub metadata retrieved on the review date showed creation on 2026-10-20, last push 2026-11-14, 391 stars, 23 forks and two open issues/PRs combined. These are activity signals, not reliability evidence. Source manifests say 0.1.24; the latest published release endpoint returned <strong>v0.1.23</strong>, published 2026-11-12. Do not assume a downloaded release contains every reviewed source fix. <a href="https://api.github.com/repos/YashwanthKamireddi/Skykeep">metadata</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/releases">releases</a>.</p>
+<p>CI defines formatting, clippy, Rust tests, cargo-deny advisory/license checks, Android builds/tests and frontend model/browser smoke checks. Lockfiles exist and sampled GitHub Actions references are commit-pinned. Linux checks <a href="https://github.com/YashwanthKamireddi/Skykeep/actions/runs/43626915224">43626915224</a> and Windows checks <a href="https://github.com/YashwanthKamireddi/Skykeep/actions/runs/43626914882">43626914882</a> reported success at the reviewed SHA. This review did not inspect every job/log, rerun the claimed 1,300+ tests, validate every distributed package, or measure the advertised sub-0.1%-CPU idle figure. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/.github/workflows/ci.yml">CI definition</a>.</p>
+<p>The build spans Rust/npm, GTK/WebKit, platform APIs, codecs, and Android Gradle/NDK. Native parsers and OS integrations enlarge the maintenance surface. There is no evidence here that a lockfile or cargo-deny makes the full dependency graph vulnerability-free. Package channels also differ: .deb/.rpm updates are manual, while installer/AppImage builds have a GitHub updater. The config requires signed versions and a pinned update verification key; store distribution has separate trust/update paths. Signing authenticates a release, not its behavior or reproducible correspondence to source. <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/Cargo.toml">manifest</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/Cargo.toml">desktop dependencies</a>, <a href="https://github.com/YashwanthKamireddi/Skykeep/blob/b0570a64e1d2eea963b0fde610bcc074ff746eef/src-tauri/src/updates.rs">updater</a>.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Official access</td><td>iCloud web / iCloud for Windows</td><td>Less six-service offline integration; official client boundary</td></tr><tr><td>Photo archival</td><td>icloudpd</td><td>Narrower purpose; still unofficial Apple interfaces</td></tr><tr><td>Independent calendar</td><td>Nextcloud/CalDAV</td><td>Self-hostable calendar, not Apple Notes/Photos replacement</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+There is no Skykeep server to host. Evaluate an official package on a supported platform only after reviewing its permissions and release provenance. Linux needs functioning secret storage and native media/filesystem libraries; Android exposes synchronized data through platform permissions. Avoid live probe examples for routine verification: they are integration tools, not evidence that static review was exercised safely. Maintain independent backups and plan for Apple protocol changes or session expiry.</p>
+<h4>Verification limits</h4>
+<p>
+The reviewed implementation supports the core architecture and several concrete security controls. It does not establish end-to-end protocol compatibility, complete command-grant coverage, race-free account switching, full restore fidelity, performance, binary provenance or freedom from vulnerabilities. No Apple login, paid call, source build, device interaction or executable test was performed. No GPL source was extracted into reusable components.</p>
+<p><strong>Attribution:</strong> Yashwanth Kamireddi and contributors, <a href="https://github.com/YashwanthKamireddi/Skykeep">YashwanthKamireddi/Skykeep</a>, GPL-3.0-only workspace declaration; third-party terms separate.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Thoughtful outbox, account isolation and native boundaries make this worth a cautious pilot. Broad Apple-account authority, readable local retention and unofficial protocols rule out treating it as a proven primary-library client. Static review only; no account or device tests.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/YashwanthKamireddi/Skykeep">YashwanthKamireddi/Skykeep</a> · GPL-3.0-only; dependency terms separate</span>
+    <span><a href="skykeep.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
