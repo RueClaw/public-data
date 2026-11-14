@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [rawmakase.md](reviews/rawmakase.md) [page](reviews/rawmakase.html) | [pch/rawmakase](https://github.com/pch/rawmakase) | MIT; component/model terms | ⚠️ Interesting | Native RAW developer with Lightroom import and local automation; render stability, filesystem atomicity and trust-boundary caveats. Static review. |
 | [omasheet.md](reviews/omasheet.md) [page](reviews/omasheet.html) | [librasteve/omasheet](https://github.com/librasteve/omasheet) | MIT; dependency terms | ⚠️ Interesting | Text-native spreadsheet and dataframe workbench; bounded exactness, non-atomic saves, interchange and document-trust caveats. Static review. |
 | [islandcn.md](reviews/islandcn.md) [page](reviews/islandcn.html) | [opencoredev/islandcn](https://github.com/opencoredev/islandcn) | MIT; font/dependency terms | ⚠️ Interesting | React activity island with custom springs; accessibility activation, share-link bounds and early evidence caveats. Static review. |
 | [modern-web-guidance.md](reviews/modern-web-guidance.md) [page](reviews/modern-web-guidance.html) | [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) | Apache-2.0 code; CC BY 4.0 guides | ⚠️ Interesting | Agent-ready web recipes with dated fallbacks and evals; extension security, default telemetry and mutable-tooling caveats. Static review. |

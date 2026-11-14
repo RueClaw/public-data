@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAWmakase — Review</title>
+<meta name="description" content="Native RAW development, Lightroom catalog migration and local automation—with fidelity and archival caveats.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / rawmakase</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">pch/rawmakase · reviewed 2026-11-14</div>
+    <h1>RAWmakase</h1>
+    <p class="one-liner">Native RAW development, Lightroom catalog migration and local automation—with fidelity and archival caveats.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT core; component/model terms</span>
+      <span class="chip">Rust · egui/wgpu · SQLite · ONNX</span>
+      <span class="chip"><a href="https://github.com/pch/rawmakase">pch/rawmakase ↗</a></span>
+      <span class="chip"><a href="https://github.com/pch/rawmakase/tree/68862fe8612d27bdcfc2de8dfde67238a2336f75">reviewed revision</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,676</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">63</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Recipes do not freeze appearance</h3><p>Existing edits render through the current engine. Keep finished rendered masters, original catalogs and versioned backups rather than assuming long-term visual reproducibility.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Good recovery, qualified atomicity</h3><p>Catalog migrations have verified backups and transactions. No-clobber fallback on unsupported filesystems can still leave a partial output after a crash; concurrent replacement races are documented.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local core, explicit trust boundaries</h3><p>MCP grants actual editor authority, extensions are full-trust native processes, and optional remote inference sends pixels over an unauthenticated loopback protocol intended for SSH tunneling.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>68862fe8612d27bdcfc2de8dfde67238a2336f75</td></tr><tr><td>Verification</td><td>Static public-source inspection; no build, tests, photo processing or downloads of models.</td></tr><tr><td>Desktop</td><td>Rust 1.98+, egui/eframe and wgpu</td></tr><tr><td>Persistence</td><td>SQLite catalogs, recipes, cached previews and separate assets</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>
+RAWmakase combines a Library backed by SQLite with a Develop workspace, presets/profiles, local masks and retouching, batch exports, and a headless CLI. It imports compatible Lightroom Classic catalog metadata and develop settings into its own catalog rather than editing the source catalog. Original photo content is not the normal editing target: recipes live separately. Library move, rename and Trash operations nevertheless act on the actual files, so “non-destructive” does not mean read-only filesystem access.</p>
+<p>The implementation is already broader than parts of its README: the README says JPEG XL export and HDR editing of rendered inputs are unavailable, whereas current export code and HDR/color documentation implement JPEG XL and selected HDR paths. Treat this review as a pinned-main analysis, not proof that every feature is in a downloaded 0.5.0 artifact. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/README.md">README</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/hdr.md">HDR contract</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-export/src/export/job.rs">export job</a>.</p>
+<p>
+### Lightroom migration is useful, not exact round-tripping</p>
+<p>Catalog import preserves a useful library structure—ratings, flags, labels, keywords, collections and compatible recipes—with a source snapshot, integrity checks, active WAL/journal rejection, and transactional destination creation. Profiles are a separate concern: users must import Adobe DCP/XMP profiles they are licensed to use; Adobe profiles are not bundled. These controls reduce migration damage, but do not make the render engine Adobe's or guarantee every historical process version.</p>
+<p>The parity ledger distinguishes fitted operators, incomplete behavior and research that is explicitly not merged. An open maintainer report, <a href="https://github.com/pch/rawmakase/issues/1079">#1079</a>, identifies pre-2012 Lightroom records selecting the wrong tone curve when both old and PV2012 curves exist. This is an upstream report, not an independently reproduced bug. Check older catalogs particularly carefully. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/catalogs.md">Catalogs</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/records/parity-gaps.md">parity gaps</a>.</p>
+<h4>Real color engineering, with explicit boundaries</h4>
+<p>Rendered RGB/grey inputs are decoded with their embedded ICC profile (sRGB fallback when absent) into linear ProPhoto RGB; unsupported CMYK is refused. Camera RAW development uses camera matrices, white balance, demosaicing and scene-tone processing before look/profile stages. The current engine uses destination-space channel clipping rather than a promise of lossless wide-gamut preservation. SDR exports support sRGB and Adobe RGB, plus ProPhoto in 16-bit TIFF, with embedded profiles and format validation. The SDR preview is not a soft proof of wide-gamut output.</p>
+<p>Current HDR code maintains a master and an SDR rendition, with HDR TIFF/JPEG XL export paths and constrained supported adjustments. Upstream documents actual above-white display observation on macOS XDR, but not on real Windows or Wayland HDR displays; X11 has no HDR display path. Some HEIC HDR/gain-map behavior is platform-dependent. Animation, alpha, auxiliary depth data and unsupported container/color cases are not a universal lossless-edit contract. Do not use this as a format-preserving image transcoder. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/color-pipeline.md">Color contract</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/hdr.md">HDR</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-export/src/export/mod.rs">export implementation</a>.</p>
+<h4>Preview speed and visual parity need separate acceptance tests</h4>
+<p>The renderer has resolution pyramids, draft/refinement, cancellation and cached stages; GPU previews are not the same evidence as full-resolution CPU exports. The public synthetic color corpus and separate hardware tests are valuable regression infrastructure, but chart tolerances do not establish accuracy across all cameras or photographs. Camera/profile/catalog fixtures and some GPU checks are opt-in; private photo-reference claims were not accessed or reproduced. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/rendering-quality.md">Rendering quality</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/tests/corpus/README.md">corpus</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/.github/workflows/gpu-parity.yml">GPU workflow</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>
+The workspace separates low-level file identity/rename primitives, RAW decoding, domain recipes, catalog transactions, rendering, export and optional inference. This is more than a GUI wrapper around an external RAW converter. UI, CLI and automation reuse domain operations; control commands carry explicit photo/generation/revision targets to avoid applying a stale request to the wrong edit. The automation transport bounds requests to 64 KiB and concurrent clients to 16, and cancels timed-out queued work before dispatch. Extensions run as supervised processes with Unix process groups or Windows kill-on-close jobs, plus bounded lifecycle handling; process cleanup is not security isolation.</p>
+<p><a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-fs/src/lib.rs">Filesystem primitives</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/src/app/shell/automation/socket.rs">control transport</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-extensions/src/process.rs">extension process lifecycle</a>.</p>
+<h4>Persistence, Recovery and Data-Loss Risks</h4>
+<ul><li><strong>Recipes are not frozen renderers.</strong> Every saved edit uses the current engine. Obsolete engine selectors are dropped; recipe schema/pipeline 11 and catalog version checks prevent some old-binary misreads, but do not preserve an old finished appearance. Keep rendered masters as well as recipes and source files. This is an explicit upstream policy, not a hypothetical bug.</li><li><strong>Catalog migration has real recovery support.</strong> Before a format-raising write, a verified SQLite backup is made beside the catalog; migration and the triggering write share a transaction. Newer features can raise the catalog to versions old releases reject. Backup space is required; mixed-version concurrent use is unsafe. Back up closed catalogs and separately retain originals and application assets, not just the executable. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-catalog/src/catalog/format_upgrade.rs">Upgrade implementation</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-catalog/src/catalog/db/mod.rs">DB boundary</a>.</li><li><strong>File operations are deliberately journaled.</strong> Moves, renames, Trash and cross-volume copies track file identity and recovery state; conflicts and unsupported filesystem semantics can fail closed. Finished operation records are documented as forgotten after 30 days. Trash and operation history are not a permanent backup or indefinite undo guarantee. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/catalogs.md">Catalog storage/recovery</a>.</li><li><strong>Atomicity has a concrete exception.</strong> Storage normally stages, syncs and persists a sibling temporary file. But when exclusive publish/hard links are unsupported, notably macOS exFAT, no-clobber persistence copies into a newly claimed destination: a crash can leave a partial file. Failed-copy cleanup explicitly acknowledges a concurrent replacement race; ntfs-3g placeholder rename also documents a replacement race between identity check and rename. These are bounded filesystem/concurrent-writer cases, not a claim that ordinary edits destroy originals. They do refute an unconditional “all writes are atomic” reading. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-model/src/storage/files.rs">Storage implementation</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-fs/src/lib.rs">rename fallback contract</a>.</li><li><strong>Export overwrite is deliberate but consequential.</strong> The exporter rejects RAW targets and canonical source-path overwrites, and requires an overwrite policy for existing output. No-clobber publication is the safer default. An explicitly overwritten previous export is still replaced; atomic replacement is not version history. An open user report, <a href="https://github.com/pch/rawmakase/issues/1084">#1084</a>, says some macOS JPEG exports acquire a hidden flag; not reproduced here.</li><li><strong>Retention is broader than the catalog.</strong> Profiles, presets, session state, previews, models and mask assets live in data/cache storage. Thumbnail payloads have a documented 512 MiB default LRU budget; caches are rebuildable, edits are not. Removing a library entry is not equivalent to wiping all historical catalog/backups/cache copies. Export metadata policy can carry location, contact, keywords and develop settings: choose and verify a privacy-appropriate output policy. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-export/src/export/assemble.rs">Metadata assembly</a>.</li></ul>
+<h4>Security, Privacy and Costs</h4>
+<p>Core development is local and does not need a hosted account or LLM API key. Local AI features add model downloads, disk use, CPU/GPU memory, runtime-library and model-license obligations—not per-photo API billing. Model installation code verifies expected digests; this does not establish the model's quality or replace license checks. No models were downloaded. Optional external agent clients can incur their own provider charges and transmit previews/catalog information they receive; the local MCP adapter itself is not a cloud confidentiality guarantee.</p>
+<p>The editor control socket binds loopback and writes an OS-random token in a connection file with Unix mode 0600. Any local process able to read that token can control the app; adapter identity is cooperative, not a separate principal. MCP uses stdio and reads that existing token, opening no independent network listener. Granting an agent access therefore grants actual edit/save/export authority, not just read-only inspection. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/automation.md">Automation</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/mcp.md">MCP</a>.</p>
+<p>Remote inference is optional and off by default, and sends photo pixels to the chosen worker. Its plaintext TCP protocol has <strong>no authentication</strong>; the worker binary refuses non-loopback binds and documentation requires an SSH tunnel for another computer. Everyone able to reach the worker is trusted, including for cached masks addressed by deterministic content keys. The server keeps at most two analyses under a 512 MiB cache ceiling. SSH and host access policy—not the content key—provide the security boundary. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-remote/src/bin/worker.rs">Worker</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/crates/rawmakase-remote/src/server.rs">server</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/remote-inference.md">remote inference</a>.</p>
+<p>Third-party extensions are full-trust native programs running with user permissions and inherited environment, despite process supervision. They can access files/network beyond the application's command interface. Review extension provenance and do not equate IPC validation with sandboxing. Native codecs, ONNX Runtime and GPU drivers also enlarge the attack surface when opening untrusted media; bounds and fuzzing are good signals, not an assurance against malicious files.</p>
+<h4>Installation, Updates and Licensing</h4>
+<p>This is a desktop app, not a web service to self-host. The source requires Rust 1.98+, a C toolchain and a locked Rust dependency graph. Linux packaging has a modern glibc baseline (2.39 for the documented portable builds); HEIC depends on platform codecs. macOS requires 15+; Windows minimums differ by architecture and HEIC extensions may be needed. Package and codec availability/cost are external constraints. Cargo patches pin egui/winit forks, while fastframe components are Git/tag dependencies captured in Cargo.lock: useful reproducibility, additional maintenance coupling.</p>
+<p>Update checks contact GitHub after launch and hourly unless disabled. Apple Silicon DMG and Windows installer paths can self-update; other installation types delegate to release/package-manager flows. The wrapper configures a publisher key and no automatic HTTP redirects, delegating signed download, host restrictions and rollback to fastframe-update. That external implementation and release binaries were not audited or executed here. Upstream states macOS DMGs are signed/notarized and Windows installers are not code-signed; do not confuse download integrity with verified publisher reputation. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/src/updates.rs">Updater</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/packaging/RELEASING.md">packaging</a>.</p>
+<p>The root MIT license permits reuse with its notice. Adobe DNG SDK-derived tables, CC0 compact ICC profiles, font licenses, Lucide ISC icons, Lensfun database CC BY-SA 3.0, Rust dependencies, ONNX Runtime and downloaded model assets keep their respective terms. No Adobe camera profiles are distributed by default. This review extracts no source code, images or models. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/LICENSE">License</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/licenses">notices</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/docs/dependencies.md">dependencies</a>.</p>
+<h4>Maturity and Verification</h4>
+<p>Public GitHub metadata retrieved 2026-11-14 reported creation on 2026-09-26, last push 2026-11-13, 1,676 stars, 63 forks and 39 open issues/PRs combined. Latest listed release was v0.5.0, published 2026-11-12. These indicate activity, not safety. The latest returned CI run was successful at a different SHA, 36109daf02a34d194a89aa3e8ded46f0880476ff; this review does not claim the exact reviewed revision passed every workflow.</p>
+<p>The repository includes cross-platform lint/test/build CI, dependency/advisory checks, CodeQL, nightly RAW fuzzing, synthetic color fixtures and targeted GPU parity runs. That is substantially better evidence than screenshots alone. Nevertheless this was static inspection: no tests run, no dependency advisory database refreshed, no crash-recovery simulation, no image-quality benchmark, no accessibility/latency assessment and no install/update signature verification. Documentation mixes current contracts with labeled historical/research material, and some README descriptions lag implementation. <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/.github/workflows/ci.yml">CI</a>, <a href="https://github.com/pch/rawmakase/blob/68862fe8612d27bdcfc2de8dfde67238a2336f75/.github/workflows/fuzz.yml">fuzzing</a>, <a href="https://api.github.com/repos/pch/rawmakase">public metadata</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>darktable</td><td>Established open-source catalog/develop workflow; different processing model</td></tr><tr><td>RawTherapee</td><td>Detailed RAW conversion; different library/automation emphasis</td></tr><tr><td>Lightroom Classic</td><td>Adobe fidelity and existing catalog behavior; proprietary subscription</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a desktop application, not a web service. Pilot copied libraries on the actual camera, display and filesystem; verify recovery and exported color before primary use. Keep optional extensions and remote inference off unless needed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A serious pilot candidate, not yet an archival Lightroom replacement. Strong catalog recovery and color engineering coexist with render drift across upgrades, approximate Adobe parity and filesystem-specific atomicity exceptions. Static review only; no application tests run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/pch/rawmakase">pch/rawmakase</a> · MIT core; component/model terms</span>
+    <span><a href="rawmakase.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
