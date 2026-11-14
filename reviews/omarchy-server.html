@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omarchy Server — Review</title>
+<meta name="description" content="An independent Omarchy home-server console for apps, files, VMs, storage and remote desktop.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omarchy-server</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">TouchWorkStation/omarchy-server · reviewed 2026-11-14</div>
+    <h1>Omarchy Server</h1>
+    <p class="one-liner">An independent Omarchy home-server console for apps, files, VMs, storage and remote desktop.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; component and guest OS terms separate</span>
+      <span class="chip">Node.js · React · Podman · libvirt</span>
+      <span class="chip"><a href="https://github.com/TouchWorkStation/omarchy-server">TouchWorkStation/omarchy-server ↗</a></span>
+      <a class="chip" href="omarchy-server.md">Full review and citations</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">12</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real control plane, not an official server edition</h3><p>Independent of Omarchy. User services connect a browser desktop to rootless apps, per-user VMs, home files and the actual desktop; the root helper still changes system state.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Authentication is not universal or encrypted by default</h3><p>HTTP remains available for login. Ordinary app web ports use authenticated gateways, but host-network ports, extra app ports and VM forwards need their own protection.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery deserves priority over more features</h3><p>No full uninstall at this SHA; its PR is unmerged. Updates attempt rollback without verifying restoration, and VM disk backups do not constitute complete host or application recovery.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Reviewed revision</td><td>41385a44fceb03e982e93d4ca8048816c489ef12 (0.9.13)</td></tr><tr><td>Verification</td><td>Static only; no installations, source execution or live probes. Upstream CI success independently checked.</td></tr><tr><td>Layer</td><td>Implementation and authority</td></tr><tr><td>Browser</td><td>React/TypeScript, TanStack Query, noVNC and xterm; mobile screens and draggable desktop windows</td></tr><tr><td>Web gateway</td><td>Express on 0.0.0.0:7780 by default; HTTP and HTTPS on one port; same-origin API, opaque HttpOnly session cookie, method allowlist</td></tr><tr><td>Backend</td><td>omarchyd on loopback :2021; accounts, app gateways, files, VM lifecycle, system and storage procedures</td></tr><tr><td>Persistence</td><td>JSON files, several temp-file/rename writers, in-memory queues and tickets; no external database</td></tr><tr><td>Containers</td><td>docker-compose talking to the user's Podman socket; app catalogs become generated Compose projects</td></tr><tr><td>Machines</td><td>qemu:///session, passt user networking, qcow2 disks and private VNC sockets</td></tr><tr><td>Privilege bridge</td><td>Root-owned helper installed under /usr/local/libexec with a NOPASSWD sudoers entry for that executable</td></tr><tr><td>Host integration</td><td>systemd user services, linger, wayvnc desktop service, desktop launcher and Omarchy/Waybar widget</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p>The <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/README.md">README</a> explicitly says the project is independent of Omarchy, which it credits to DHH and its contributors. The normal installer adds a service layer to Arch Linux/Omarchy rather than replacing the desktop. A separate ISO-building tree supplies a guided Arch installer followed by first-boot downloads of this project and Omarchy; that path can erase a selected drive and must not be confused with installing the web app on an existing machine.</p><p>The intended operator is a single home-server owner who wants phone/tablet access and a desktop-like browser workspace. The advertised catalog of about 580 apps is an upstream claim about external stores, not 580 implementations bundled or compatibility-tested here. App stores are fetched separately, including Umbrel-format manifests. The UI's Proxmox-style VM panels do not imply Proxmox clustering, HA or its backup ecosystem.</p><h4>Key Features and Positive Controls</h4><ul><li><strong>One interface for several real subsystems.</strong> App installs, dependent apps, lifecycle/logs, VM disk/network/console management, home-folder browsing/trash, SMB, SMART and pool management are implemented rather than just illustrated.</li><li><strong>Useful credential separation.</strong> <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/accounts.mjs">Accounts</a> use salted scrypt hashes and timing-safe comparisons, serialized per-account password checks with increasing delays, random tokens and TOTP replay tracking. Device sessions can be revoked; a password change clears backend sessions. TOTP replay state is in memory, so the once-only claim does not survive a backend restart within the same time step.</li><li><strong>Console admission.</strong> Backend tickets are single-use and expire after 30 seconds. VM and desktop VNC endpoints use private Unix sockets rather than public VNC ports; the web WebSocket bridge checks Origin. Remote desktop sign-in requires the owner password again.</li><li><strong>Setup-script confinement.</strong> App exports.sh runs through bubblewrap with an isolated network namespace, read-only system files, a clean environment, an app-only writable bind and a 15-second timeout. New installs get app-scoped derived secrets rather than the master derivation key. This sandbox applies to setup exports, not to arbitrary runtime app behavior.</li><li><strong>Explicit resource safety intent.</strong> The helper allowlists verbs and argument shapes, uses argv rather than interpolated command shells, checks candidate drives, and mounts managed Btrfs pools nosuid,nodev. VM monitor commands are allowlisted to exclude host-file/execution features.</li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Security and Privacy Boundaries</h4><h4>1. HTTP remains the default access path</h4><p>The README and launcher lead with http://. HTTPS is available, but the persisted alwaysHttps policy defaults false, and <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/tls.mjs">wantsUpgrade</a> targets page navigation rather than refusing every HTTP API call. The <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/server/app.mjs#L575">login route</a> accepts the password from the browser and forwards it to the backend. Creating the password locally does not mean it never crosses a network: later HTTP login exposes it and session traffic to a network observer.</p><p>Use authenticated, verified TLS before logging in remotely. New local certificate authorities carry critical name constraints for home/private names and addresses; that is better than an unrestricted CA, but trusting a downloaded CA still needs an independent fingerprint check. Older authorities are deliberately retained until replacement. CSRF headers, SameSite cookies and Origin checks are worthwhile controls, not encryption.</p><h4>2. “Every app's port is behind sign-in” has important exceptions</h4><p>For ordinary web apps, Compose rewrites the web port to loopback and a gateway authenticates it. But <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/apps.mjs#L498">openGateways</a> explicitly opens a host-network app's own port directly when there is no internalPort, and separately creates a protected view gateway. Additional declared openPorts are also opened directly. Passt VM forwarding is not browser-authenticated either. Those services need their <strong>own</strong> authentication and exposure policy. Rootless execution does not turn a directly reachable app into an authenticated one.</p><p>Cookies are host-scoped rather than port-scoped. Proxied traffic strips Omarchy cookies, which is good; a directly reached service on the same hostname is a different boundary and should not be assumed to get the same stripping. Treat installed apps as trusted software, not hostile mutually isolated tenants.</p><h4>3. App permission checks are useful, not a complete Compose security model</h4><p><a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/apps.mjs">appPermissions / whereFor / placeApp</a> classify mounts, host networking, devices, capabilities and container-socket access, and gate installation on explicit category grants. Updates compare permission <strong>categories</strong>, not exact paths/capabilities. Granting host-files once does not imply a later path change will prompt again.</p><p>The mount classifier checks expanded strings without canonical path or symlink resolution, and exempts paths that lexically begin with an allowed app/shared/media directory. Relative traversal or symlink semantics therefore deserve adversarial tests before treating the “never gives an app these folders” statement as enforcement. Permission inspection also precedes execution of exports.sh and final Compose generation, without a comprehensive final normalized-configuration recheck. These are static boundary concerns, not a demonstrated live exploit in this review. Broad container-socket grants intentionally expose the user's container engine; rootless is a reduction in privilege, not a safe boundary around that user's files and services.</p><h4>4. The owner session is equivalent to substantial host access</h4><p><a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/files.mjs">Files</a> resolves paths/symlinks inside Home/Trash and hides dotfiles in listings. Hiding is not an authorization boundary: the path resolver does not reject every hidden path, and the <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/terminal.mjs">terminal</a> intentionally gives the real user shell. A stolen owner session threatens home-directory credentials, application data and desktop access.</p><p>The root helper also supports hostname, power and desktop sign-in, not only storage/firewall. Desktop sign-in resets faillock, writes a temporary SDDM autologin drop-in and restarts SDDM when no graphical user session exists, with cleanup in finally. Abrupt process/host failure can bypass normal finally cleanup; startup cleanup helps but is not a transaction. This deliberately substitutes the web owner's authority for an interactive OS login boundary.</p><h4>5. Local-first does not mean no egress or no retained secrets</h4><p>Accounts, backend device/browser tokens, web sessions, TOTP secrets, app credentials and the TLS CA key are stored locally; sensitive JSON/key files use restrictive modes, not application-level encryption at rest. The master app secret and backups must be protected along with accounts. Updates contact GitHub automatically a minute after start and every six hours. Catalogs, icons/theme previews, container pulls, guest-image downloads and installed apps introduce more egress. No mandatory hosted account or analytics service was identified in the inspected core; this is not a traffic audit.</p><p>Linux cloud-init uses password hashes. The <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/machine-media.mjs">Windows answer-file path</a> instead uses reversible base64 encoding, creates a local administrator and bypasses TPM/Secure Boot/RAM checks. Treat generated answer media as secret-bearing and the guest's licensing/support posture separately; “PlainText=false” is not encryption.</p><h4>Maturity, Tests and License</h4><p>Public <a href="https://api.github.com/repos/TouchWorkStation/omarchy-server">repository metadata</a> on the review date showed creation on 2026-11-12, last push on 2026-11-14, 12 stars and 3 forks. The two open items were one issue and one PR, not two independent bug reports. The releases endpoint returned an empty list. This is a very young public project despite its 0.9.13 version and broad feature surface.</p><p>The <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/.github/workflows/test.yml">Tests workflow</a> runs npm ci, frontend typecheck, build and node --test on Ubuntu/Node 22; <a href="https://github.com/TouchWorkStation/omarchy-server/actions/runs/43634891271">run 43634891271</a> reported success for the exact reviewed SHA. Test files cover accounts/throttling, file bounds, app permissions, VM media/lifecycle, storage with fake command/filesystem adapters, updater rollback, sessions and TLS/security. The catalog workflow checks links, not guest boot correctness. CI uses tag-pinned Actions and the ISO job is privileged. No independent local test pass, vulnerability audit, performance measurement or real-storage validation is claimed here.</p><p>The root <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/LICENSE">MIT license</a> permits reuse with its notice. The external app catalog, Dashboard Icons, npm packages/fonts, hypervisor/filesystem tools and guest OS licenses remain separate. No source components were extracted into this review library.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Alternative</td><td>Prefer it when</td><td>Tradeoff against this project</td></tr><tr><td><a href="https://cockpit-project.org/">Cockpit</a> with appropriate modules</td><td>You want conventional Linux host administration and explicit OS/service boundaries</td><td>Less of a single Omarchy-themed app-store desktop; broader established admin ecosystem</td></tr><tr><td><a href="https://www.proxmox.com/en/products/proxmox-virtual-environment/overview">Proxmox VE</a></td><td>The machine is primarily a dedicated virtualization host</td><td>Not an overlay for the daily Omarchy desktop; substantially different deployment and recovery model</td></tr><tr><td><a href="https://www.openmediavault.org/">OpenMediaVault</a></td><td>Storage and NAS administration are the primary purpose</td><td>Dedicated NAS-oriented base rather than desktop-sharing convenience</td></tr><tr><td><a href="https://github.com/IceWhaleTech/CasaOS">CasaOS</a> / <a href="https://github.com/getumbrel/umbrel">Umbrel</a></td><td>Browser app-appliance experience is the main goal</td><td>Compare current platform, license and container privilege requirements; do not assume catalog interchange means equal isolation</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Installation, Update and Removal: Actual Effects</h4><p>The <a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/install.sh">installer</a> must start as a normal user, but “not with sudo” does <strong>not</strong> mean unprivileged installation. It installs missing Arch packages with sudo, potentially adds subordinate UID/GID ranges, enables the user Podman socket, installs the root helper and sudoers rule, enables lingering, rewrites its three user-service files, starts the services and can create temporary 2 GiB swap for low-memory builds. It adds a launcher and initially offers the top-bar widget automatically.</p><p>It allows TCP 7780, TCP/UDP 40000–49999 for future VM forwards, and TCP 7800–7899 for relays through UFW when available. Rules are not restricted to a trusted subnet. Runtime app/SMB operations open more ports. The normal installer does not configure host SSH or install a new SSH authentication system. Cloud-init guests, separately, enable SSH password authentication and accept validated public keys.</p><p>The optional --zfs path is much more invasive: it can remove an archzfs repository stanza, run Omarchy/system upgrades, install kernel headers or a matching kernel, build AUR zfs-utils/zfs-dkms noninteractively, load the module and enable ZFS services. Kernel/OpenZFS compatibility remains operational work, not a solved appliance property.</p><h4>Pinning and preservation</h4><ul><li>The documented curl-to-shell installation fetches main, then clones/fetches main again. No signed-release or exact-commit verification gates the execution. The re-run installer uses git reset --hard in its app checkout, losing local source edits.</li><li>package-lock.json and npm ci constrain npm dependency resolution, but scripts/deps.mjs invokes npm ci with lifecycle scripts enabled. This is not a hermetic build; Arch packages, AUR inputs, catalogs and container images add independent trust roots.</li><li><a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/updater.mjs">The web updater</a> compares remote package versions, fetches/reset-builds in place, then schedules service restart. It does not bind the selected version/check result to an immutable commit. Root-helper/package changes are reported as a need to rerun the installer; web update does not apply them.</li><li>On a caught update failure it attempts the previous Git revision and rebuild. Restoration errors are swallowed, yet the message says “nothing changed.” That is best-effort code rollback, not a verified transactional rollback of packages, data, running services or app migrations. A restart failure after scheduling also lacks a health-gated automatic rollback.</li><li>Existing container registry config is left alone; the widget merges its own entry and creates a backup; managed fstab lines are selectively replaced. In contrast, generated service units and project-owned helper/sudoers files are overwritten. There is no universal before-state journal.</li></ul><p><strong>No host-product uninstall command exists at this SHA.</strong> The CLI offers service controls and widget removal, not complete removal of packages, units, sudoers, firewall, linger or storage changes. <a href="https://github.com/TouchWorkStation/omarchy-server/issues/5">Issue #5</a> and <a href="https://github.com/TouchWorkStation/omarchy-server/pull/10">PR #10</a> discuss an uninstall command; the PR was open/unmerged when checked. Do not count proposed behavior as shipped. Factory reset is not uninstall: it starts app/VM deletion asynchronously, tolerates deletion errors, then resets accounts.</p><h4>Storage, Recovery and Backup</h4><p><a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/helper/helper.mjs">The root helper</a> checks lsblk and wipefs before formatting and avoids forcing mkfs.btrfs/zpool creation. However, wipefs probe errors are caught as an empty result, so the secondary signature check is not fail-closed. Signatures also cannot prove a disk has no valuable unrecognized data. The blank-drive claim should not replace an external backup and explicit physical-device verification.</p><p>Managed fstab edits preserve unrelated lines, but read-modify-write operations have no shared lock or complete rollback ledger. Mount targets below the user-owned Pools directory are not comprehensively realpath/symlink-pinned before root operations. The grow-system helper can change the partition before reaching an unsupported-filesystem error; supported-layer checks should all precede mutation. These deserve offline fault-injection and disposable-machine testing.</p><p>Samba preserves a foreign smb.conf by adding an include, but an empty managed share list disables smb.service even if unrelated shares exist. Its generated globals apply when it owns the main file, not necessarily to an existing foreign configuration. The low-ports helper lowers net.ipv4.ip_unprivileged_port_start persistently and only downward: the effect is system-wide, not confined to the requesting container, and app removal does not restore the prior limit.</p><p><a href="https://github.com/TouchWorkStation/omarchy-server/blob/41385a44fceb03e982e93d4ca8048816c489ef12/omarchyd/machines.mjs#L1150">VM snapshots and backups</a> are real implementations: stopped qcow2 snapshots, live libvirt backup-begin or offline conversion, metadata and restore/clone flows. Snapshots explicitly omit UEFI variables. Backups copy qcow2 disks and settings, exclude seed/answer media, and do not copy NVRAM in the inspected backup loop. Live disk consistency is not proof of guest application/database consistency; no guest quiescing was identified there. The default backup directory is in the same home filesystem, so it is not independent protection against disk loss. Copy it elsewhere and test restore with the actual firmware and guest workloads.</p><p>App uninstall runs Compose down --volumes and removes the app directory; it is data deletion, not just hiding an icon. App updates pull and recreate containers without a coordinated data backup/rollback. Factory reset may leave partially removed workloads while clearing login state. There is no demonstrated end-to-end backup/restore of the whole owner console, container data, secrets, host configuration and pools. Pool forget/export preserves on-disk data, but is not a general undo of all host changes.</p><h4>Download Provenance</h4><p>Machine catalogs require HTTPS image URLs plus either a pinned SHA-256 or a publisher SHA-256/SHA-512 checksum listing. Downloads are hashed and mismatches discarded. That detects corruption and mismatch; remote catalogs/checksum lists remain mutable trust inputs, and detached publisher-signature verification was not found in this path. No images were downloaded or booted for this review.</p><p>App stores follow Git HEAD, and Compose pulls whatever image reference a listing supplies; the engine does not require immutable digests or verified signatures. The built-in optional Tor helper uses an Alpine version tag and installs tor at runtime. The ISO workflow uses archlinux:latest and version-tagged GitHub Actions, not fully pinned build inputs. Its release-trigger configuration is not evidence that a tested ISO release exists.</p><h4>Practical Adoption Gate</h4><p>Before considering a non-disposable deployment: require encrypted verified access, inventory every directly exposed app/VM/SMB port, keep trusted stores only, preserve host configuration and secrets offline, and test both restoration and removal on a spare machine. Prioritize final-Compose permission validation, canonical mount confinement, fail-closed disk checks, honest rollback reporting and complete uninstall before adding more catalog breadth. Do not expose the owner shell/desktop console directly to the public internet on the strength of the README's security bullets.</p><p><strong>Bottom line:</strong> unusually integrated and worth studying or piloting, but the recovery and authority boundaries are not yet strong enough to make it the sole home for irreplaceable data.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A coherent spare-machine pilot, not a primary NAS or internet-facing administration recommendation. Strong integration and defensive controls coexist with HTTP defaults, direct app-port exceptions, mutable updates and incomplete recovery. Static review only; exact-revision upstream CI passed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/TouchWorkStation/omarchy-server">TouchWorkStation/omarchy-server</a> · MIT; component and guest OS terms separate</span>
+    <span><a href="omarchy-server.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
