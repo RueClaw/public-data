@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisker — Review</title>
+<meta name="description" content="Pre-alpha Rust UI framework: shared reactive layout, native Hosts, and a high-trust development loop.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / whisker</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">whiskerrs/whisker · reviewed 2026-11-14</div>
+    <h1>Whisker</h1>
+    <p class="one-liner">Pre-alpha Rust UI framework: shared reactive layout, native Hosts, and a high-trust development loop.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT OR Apache-2.0; component notices</span>
+      <span class="chip">Rust · Taffy · native Hosts</span>
+      <span class="chip"><a href="https://github.com/whiskerrs/whisker">whiskerrs/whisker ↗</a></span>
+      <span class="chip"><a href="https://github.com/whiskerrs/whisker/tree/3295be306e37fef7bb6d523310976ee41e8e5324">Exact source revision</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">681</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">23</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real shared runtime, not a WebView shell</h3><p>Signals update retained scenes; Taffy computes layout while Hosts measure and present. Revisioned frame transactions support snapshot recovery, not durable data backup.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Keep hot reload on trusted transport</h3><p>Native patches arrive over plain WebSocket. Tokens gate clients, not server identity; timestamp/PID fallback weakens token generation on Windows.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Portability stops at some service boundaries</h3><p>Secure store supports iOS and Android, not Web/Desktop. Desktop preferences rewrite JSON directly; important app records need a stronger durability and recovery design.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Build &amp; evidence</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>3295be306e37fef7bb6d523310976ee41e8e5324</td></tr><tr><td>Release</td><td>20261113.1 / core 0.18.1</td></tr><tr><td>Runtime</td><td>Rust 2024, MSRV 1.88; Taffy</td></tr><tr><td>Hosts</td><td>UIKit/AppKit, Android, GTK4, WinUI 3, WASM/DOM</td></tr><tr><td>Verification</td><td>Static only; upstream exact-SHA CI reports success</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4>
+<p>
+Whisker targets Rust developers who want one reactive application and layout model across mobile, desktop and browser. Components produce retained elements; signals invalidate dependent work rather than rebuilding and diffing a virtual DOM. Taffy computes boxes while each Host supplies text measurement, window/input lifecycle and presentation. Web uses DOM objects but still receives Rust-computed layout. Native does not mean every control is an unmodified platform stock widget or that font rendering is identical.</p>
+<p>The CLI generates native projects from executable Rust configuration in whisker.rs, compiles them, installs/launches development apps and drives hot reload. Modules add input, media, routing, storage, browser views and optional Firebase services. Chat and news examples are demonstrations, not a hosted product promise. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/README.md">README</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/docs/architecture.md">Architecture</a></p>
+<h4>Key Features and Claims</h4>
+<ul><li><strong>Fine-grained updates:</strong> actual owner/signal/effect/scheduler modules and retained scenes substantiate the model.</li><li><strong>Fast hot reload:</strong> real patch compilation/dynamic loading, with unchanged components intended to retain state. The “under a second” headline is an upstream demo claim, not a measurement here; first builds, native changes and component remounts differ.</li><li><strong>Generated projects:</strong> one app configuration feeds six targets and module discovery. Generation includes plugin builds; the source explicitly says there is no configuration-only execution mode. Foreign project configuration is executable build code. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-cng/src/runner.rs">Runner</a></li><li><strong>Native services:</strong> routing, input, SVG/images, audio/video and Firebase wrappers exist. Package presence is not proof of target parity. Secure store explicitly declines Web/Desktop rather than silently writing secrets to JSON. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/packages/whisker-secure-store/src/lib.rs">Contract</a></li></ul>
+<h4>Platform Compatibility</h4>
+<p>
+The tree contains iOS, Android, macOS, Linux, Windows and Web pathways. Apple requires its toolchain and matching Rust targets; Android adds SDK/NDK/JDK/Gradle; Web needs WASM tooling. Linux is a <strong>GTK4 Host</strong>, requesting GTK 4.14 APIs and Pango/Cairo—not an Omarchy-specific app or a universally static Linux binary. Windows uses WinUI 3/Windows App SDK and native prerequisites. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/platforms/linux/Cargo.toml">Linux manifest</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/.github/workflows/ci.yml">CI</a></p>
+<p>The November 13 release adds CLI Linux and Windows hot-reload runs, so these paths are particularly recent. Test mobile IME, accessibility, text shaping, gestures, backgrounding, resize/high-DPI and native modules on every required target. No device/UI verification was performed here. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/releases/20261113.1.md">Release</a>
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Stack and Architecture</h4>
+<table><tbody><tr><td>Layer</td><td>Implementation and boundary</td></tr><tr><td>Authoring</td><td>render!, component/main macros, typed styles, signals, effects and computed values</td></tr><tr><td>Runtime</td><td>Single-threaded owner scopes, lifecycle, tasks and event routing; runtime contexts isolate reactive instances on one UI thread</td></tr><tr><td>Engine/layout</td><td>Retained scene, Taffy geometry, batched intrinsic measurement, semantic frame packets</td></tr><tr><td>Host contract</td><td>Surface/epoch/revision-aware snapshots and deltas; Host acceptance commits presentation revision</td></tr><tr><td>Native bridge</td><td>Mobile FFI Driver for Android/iOS/macOS; Rust Hosts for Linux/Web; Windows WinUI Host</td></tr><tr><td>Development</td><td>Cargo/native builds, CNG generation, watching, Axum WebSocket service and forked Subsecond hot patching</td></tr><tr><td>Persistence</td><td>Optional platform key/value stores; separate encrypted developer signing credentials; no universal app database</td></tr></tbody></table>
+<p>Copied signal/element handles do not keep their owner alive. Pause/resume supports navigation entries without conflating suspension and disposal. Host callbacks drive runtime frames: these components cooperate inside an application, not across a security isolation boundary. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-runtime/src/reactive/mod.rs">Reactive implementation</a></p>
+<p>FrameSink exposes capabilities and accepts complete frame transactions. Its recording renderer retains accepted and rejected packets against a reference projection. Snapshot recovery prevents a missed delta from silently desynchronizing the trees. This is render-state recovery, <strong>not durable user-data recovery</strong>. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-engine/src/recording.rs">Frame implementation</a></p>
+<h4>Security, Execution and Privacy</h4>
+<h4>Development transport is code execution</h4>
+<p>The native CLI generates a per-session token; the server checks the client's hello token before forwarding patches. Default server configuration binds loopback and invalid-token tests exist. However, the receiver constructs a plain ws:// URL, sends its token and dynamically loads native patches. The inspected flow provides neither TLS server authentication nor signed-patch verification. Client authentication must not be mistaken for protection against a hostile network/server. Keep the channel loopback or separately secured; it is not a public app backend. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-cli/src/run.rs">CLI</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-dev-server/src/server.rs">Server</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-dev-runtime/src/hot_reload.rs">Receiver</a></p>
+<p><strong>Concrete portability weakness:</strong> token generation reads /dev/urandom, then falls back to timestamp XOR process ID. That is not a cryptographic RNG and is normally the Windows path. Use a cross-platform OS RNG that fails closed before relying on non-loopback token secrecy. This is a static finding, not a demonstrated exploit. Web development intentionally omits the native token; native receiver frame/message size limits are disabled for large patches. Both reinforce the trusted-development boundary.</p>
+<p>Hot-reload log capture forwards stdout/stderr to the developer host; tokens and personal content in logs do not remain only on the device. Hot-reload features are intended for development; verify the final release feature graph instead of relying on that intent.</p>
+<h4>Application and WebView authority</h4>
+<p>Rust apps, modules, build scripts and generated projects run with process/user authority. Whisker is not a sandbox. UI capabilities are not end-user authorization; backend auth and data access rules remain app responsibilities. Optional Firebase Auth does not itself enforce Firestore/Storage rules.</p>
+<p>WebView enables JavaScript by default, exposes a string message bridge and JavaScript-evaluation method, and defaults to broad HTTP/HTTPS navigation patterns. Android now disables file access and rejects mixed content, but generated Android application configuration still sets cleartext traffic true unless overridden. Narrow origins, require TLS, validate bridge messages, and never translate arbitrary page strings into privileged commands. Navigation callbacks can carry OAuth redirect codes: redact logs. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/packages/whisker-webview/src/lib.rs">API</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/packages/whisker-webview/android/src/main/kotlin/rs/whisker/elements/webview/WhiskerWebView.kt">Android view</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-cng/src/android/application.rs">Generation</a></p>
+<p>Optional Firebase Analytics/Crashlytics and remotely loaded media/browser content introduce their own egress and retention. The framework requires no model provider, model download or per-token AI bill. Firebase, app stores, signing accounts and build infrastructure can impose usage/account costs and separate terms. Adding analytics is not a privacy-neutral UI choice.</p>
+<h4>Two distinct secret stores</h4>
+<p>Developer signing/submission credentials are age-encrypted, with public recipients intended for Git and a separately held private identity. Plaintext build inputs are staged in a temporary directory with Unix 0700/0600 permissions and normal drop cleanup. This protects data at rest, not from the current user, child build tools, process compromise or abrupt termination before cleanup. Back up the identity independently; Git-history ciphertext persists after deleting current files, and compromise requires rotation. Windows ACL equivalence and crash cleanup were not verified. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-credentials/src/store.rs">Store</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/crates/whisker-credentials/src/materialize.rs">Materialization</a></p>
+<p>Application secure storage instead uses iOS generic-password Keychain items with AfterFirstUnlockThisDeviceOnly, or Android Tink AES-GCM with a Keystore-wrapped keyset. Android binds ciphertext to its key as associated data and rejects the reserved keyset key. Hardware backing depends on the device; using iOS Keychain does not establish a per-operation biometric gate or a Secure-Enclave private-key API. Web/Desktop support is explicitly absent. Re-authentication is the recovery path for lost/invalidated keys; device-only storage is intentionally nonportable. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/packages/whisker-secure-store/ios/Sources/WhiskerSecureStore/SecureStore.swift">iOS</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/packages/whisker-secure-store/android/src/main/kotlin/rs/whisker/modules/securestore/SecureStore.kt">Android</a></p>
+<h4>Persistence, Retention, Export and Recovery</h4>
+<p>
+Ordinary local store is preferences storage: UserDefaults on Apple, SharedPreferences on Android, localStorage on Web, and a JSON map on desktop. Save/load/remove is not transactions, migrations, sync, retention management or a general export/restore workflow. Apps must supply those policies.</p>
+<p>Desktop storage rewrites the complete JSON file directly, without temp-file-and-rename or fsync; its mutex only coordinates one process. Memory rolls back on write failure, but a partial disk write can still corrupt JSON. Opening malformed data returns an error cached by the process-wide OnceLock. Paths are keyed by executable stem: similarly named apps can collide, while renaming an executable can appear to lose its data. Do not make this the sole store for irreplaceable records. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/packages/whisker-local-store/desktop/src/lib.rs">Desktop implementation</a></p>
+<p>Browser values share origin-local storage and a fixed prefix; same-origin apps are not separate tenants. Clearing/eviction and private mode matter. No automatic secret-safe fallback exists for unsupported secure-store targets. Retained UI state/hot reload does not substitute for persistence. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/packages/whisker-local-store/web/src/lib.rs">Web implementation</a>
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Dioxus</td><td>Rust full-stack ecosystem; compare target renderer</td></tr><tr><td>Slint</td><td>Declarative desktop/embedded UI; distinct license choices</td></tr><tr><td>Flutter</td><td>Mature mobile tooling/plugins, Dart-first</td></tr><tr><td>Tauri</td><td>Web UI with Rust/native integration</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Build, Install, Update and Licensing</h4>
+<p>
+The README's unversioned cargo install follows the current registry release. Pin the CLI and compatible runtime/native SDK versions and preserve lockfiles for reproducibility. Cargo.lock and exact core 0.18.1 interdependencies help, but the toolchain file tracks stable Rust and native/package streams have independent versions. A lockfile does not audit build scripts, procedural macros, Gradle, SwiftPM, NuGet or plugins.</p>
+<p>The latest release includes Gradle distribution SHA-256 pinning, rustc environment credential exclusion, constrained submission token exchanges, mixed-content denial and reserved secure-store key rejection. Those are positive maintenance signals and reasons not to equate older releases with this one. They do not establish independent provenance verification for every downloaded native artifact. No installation, update or submission was attempted.</p>
+<p>MIT and Apache-2.0 texts are present with itome attribution: choose the applicable license and preserve notices. The tree also contains Lucide/Feather icon notices and WPT fixture licensing; native dependencies/Firebase SDKs retain their terms. Cargo-deny runs advisory/bans/source checks but intentionally omits its license gate, with documented advisory exceptions. This is not an audited MIT-only dependency/asset bundle. No source/assets were extracted. <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/Cargo.toml">Manifest</a> <a href="https://github.com/whiskerrs/whisker/blob/3295be306e37fef7bb6d523310976ee41e8e5324/deny.toml">Dependency policy</a></p>
+<h4>Tests, CI and Maturity</h4>
+<p>
+Public metadata retrieved November 14 reports creation May 13, 2026, 681 stars, 23 forks, 41 open issues/PRs combined, and last push November 13. These measure activity, not quality. Latest release is whisker-release-20261113.1 (core 0.18.1), published November 13.</p>
+<p>The <a href="https://github.com/whiskerrs/whisker/actions/runs/43414531755">CI run for the reviewed SHA</a> reports success. The workflow specifies workspace/doc tests, formatting, MSRV/clippy/rustdoc, mobile ABI C/C++ checks, packaged-consumer linking and Host conformance across Linux, Windows, Web, Android, iOS and macOS. Four renderer-foundation crates have configured 100% line/function/region coverage gates. This is meaningful discipline, not proof of runtime safety or independent test reproduction. Actions generally use mutable tags rather than full SHA pins.</p>
+<p>The project calls itself <strong>pre-alpha</strong>. API churn, recent desktop run support and a broad native surface prevent a blanket production recommendation. Open input-related upstream work also illustrates ongoing platform fixes. Performance, memory use, accessibility, store distribution, vulnerability exploitation and restore behavior were not independently verified.</p>
+<h4>Verification Scope and Limits</h4>
+<p>
+Inspected public README/manifests/licenses/releases, runtime/engine contracts, CNG runner, dev CLI/server/receiver, credential materialization, stores, WebView controls and CI. Anonymous repository/release/CI/issue metadata was consulted. No private data/accounts were used. This is selective analysis, not an exhaustive security audit; source/tests were not executed. Publication markup validation is not proof of a running app.</p>
+<p><strong>Attribution:</strong> whiskerrs/whisker and itome/contributors; MIT OR Apache-2.0, with third-party notices as described.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot a bounded app, not a portability-critical migration. Real native Hosts and strong conformance infrastructure meet pre-alpha APIs, development transport risks and incomplete storage portability. Static review; no builds or device tests performed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/whiskerrs/whisker">whiskerrs/whisker</a> · MIT OR Apache-2.0; component notices</span>
+    <span><a href="whisker.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
