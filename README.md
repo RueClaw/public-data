@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [bjarneo-flux.md](reviews/bjarneo-flux.md) [page](reviews/bjarneo-flux.html) | [bjarneo/flux](https://github.com/bjarneo/flux) | MIT; component terms | ⚠️ Interesting | Omarchy device companion with pinned pairing and durable transfers; broad sharing defaults, optional execution/PAM and inactive release-signature verification. Static review. |
 | [rawmakase.md](reviews/rawmakase.md) [page](reviews/rawmakase.html) | [pch/rawmakase](https://github.com/pch/rawmakase) | MIT; component/model terms | ⚠️ Interesting | Native RAW developer with Lightroom import and local automation; render stability, filesystem atomicity and trust-boundary caveats. Static review. |
 | [omasheet.md](reviews/omasheet.md) [page](reviews/omasheet.html) | [librasteve/omasheet](https://github.com/librasteve/omasheet) | MIT; dependency terms | ⚠️ Interesting | Text-native spreadsheet and dataframe workbench; bounded exactness, non-atomic saves, interchange and document-trust caveats. Static review. |
 | [islandcn.md](reviews/islandcn.md) [page](reviews/islandcn.html) | [opencoredev/islandcn](https://github.com/opencoredev/islandcn) | MIT; font/dependency terms | ⚠️ Interesting | React activity island with custom springs; accessibility activation, share-link bounds and early evidence caveats. Static review. |

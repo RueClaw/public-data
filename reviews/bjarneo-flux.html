@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flux — Review</title>
+<meta name="description" content="Omarchy-centered device sharing, streams and optional remote control.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / bjarneo-flux</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">bjarneo/flux · reviewed 2026-11-14</div>
+    <h1>Flux</h1>
+    <p class="one-liner">Omarchy-centered device sharing, streams and optional remote control.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; component terms separate</span>
+      <span class="chip">Go · Qt/QML · Kotlin · Swift · .NET</span>
+      <span class="chip"><a href="https://github.com/bjarneo/flux">bjarneo/flux ↗</a></span>
+      <span class="chip">Static review · f6ed4ac00d84</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">652</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">60</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Treat pairing as desktop trust</h3><p>Pinned certificates and key-bound confirmation are real safeguards. Home browsing, clipboard and agent visibility nevertheless default on.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Persistence is substantive</h3><p>A private offline outbox snapshots files, hashes them and resumes transfers. Disk growth, retained snippets and identity recovery still require planning.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Signature support is not enabled</h3><p>The reviewed source sets the release public key to an empty string. Hash checking remains, but Ed25519 checksum-signature verification is inactive.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Desktop authority</td><td>Go daemon; TOML config; private JSON/file state</td></tr><tr><td>Local clients</td><td>Go CLI, C++ Qt host, shared Qt Quick QML, Omarchy shell plugin</td></tr><tr><td>Network</td><td>mDNS/Avahi discovery, UDP identity, TLS peer links, payload/reverse tunnels, SSH/SFTP browsing</td></tr><tr><td>Android</td><td>Kotlin Compose, coroutines/serialization, SSHJ/Bouncy Castle, CameraX, ML Kit, Android Keystore</td></tr><tr><td>Apple</td><td>SwiftUI, shared FluxKit; SwiftNIO/TLS, Swift Certificates/Crypto, Citadel 0.12.0; Package.resolved present</td></tr><tr><td>Windows</td><td>.NET 10/WPF companion; Windows 10 2004+</td></tr><tr><td>Desktop integrations</td><td>wl-clipboard, D-Bus, PipeWire, optional ffmpeg/v4l2loopback, mpv, wtype and screen recorders</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p><br>Flux centers on a Linux user daemon, <code>fluxd</code>, with a CLI, native Qt application and Omarchy shell host. Android is the primary supported phone client; iOS and macOS share FluxKit, and Windows is a newer companion port. Those companions connect to the Linux daemon rather than replacing it with a general cross-platform desktop server. Its own protocol is version 8; do not assume KDE Connect interoperability.</p>
+<p>The standout is the breadth of a single integration: files, clipboard text/images, SMS via Android, notification forwarding, media control, phone webcam/microphone/speaker, screen mirroring, desktop streaming and input, agent terminal visibility, optional phone-backed SSH signing and biometric approval. Availability is not identical across clients. The architecture supports outbound desktop connections and reverse tunnels, so the documented default Omarchy firewall can remain unchanged; this does not mean the daemon binds only to loopback.</p>
+<h4>Integrated sharing with real persistence</h4>
+<p>The offline outbox snapshots selected files into private data files, hashes them and records jobs before sending. Later edits to the source do not silently change queued content. It caps the queue at 100 files, archives folders, and reconstructs waiting transfers on startup. Resumable transfer messages carry a transfer ID, SHA-256, size and offset; chunks are 1 MiB and acknowledgments are checked. This is much stronger than retrying an ephemeral open file handle, but it costs additional disk space and is not a disk quota or an independently proven exactly-once delivery guarantee. [E5]</p>
+<p>Pinned clipboard snippets persist separately, with a 100-entry limit and optional expiration. Plain files and folders remain useful outside Flux; no proprietary cloud account is required. Saved snippets, queued payloads, received photos and identity material are nevertheless sensitive retained data, not merely ephemeral traffic. [E5, E6]</p>
+<h4>Pairing is a real trust ceremony</h4>
+<p>Users compare all 16 hexadecimal characters derived from both public keys and a pairing timestamp. Outgoing pairing requires local confirmation after peer acceptance. TLS uses self-signed peer certificates and explicit application pin checks, not public CA hostname validation: the presence of InsecureSkipVerify in the TLS helper is therefore not by itself evidence of an authentication bypass. The provider compares pinned certificate bytes, and handlers reject noncurrent or unpaired feature traffic. Limits constrain unpaired links, line sizes, discovery and pairing requests. These are inspected controls, not a penetration-test result. [E1, E2]</p>
+<h4>Fine-grained restrictions exist, despite stale documentation</h4>
+<p>Global switches combine with per-device restrictions; omitted device restrictions allow the feature, and a restriction cannot turn on a globally disabled feature. Policy changes cancel browse sessions and affected streams. The configuration guide still says there is no setting for one device, but its workflow link, security guide and actual policies.go implementation establish otherwise. Use the implementation and workflow guide rather than that stale sentence. [E3]</p>
+<h4>Platform Compatibility and Accessibility</h4>
+<p>Linux packaging targets Arch/Omarchy and Wayland-specific tools, not an arbitrary Linux desktop with identical capabilities. Android requires 10+, iOS 17+, macOS 14+. iOS background execution, clipboard and other-app access are OS-limited; Apple builds and sideloading require their signing/toolchain path. The iOS guide documents seven-day renewal with a free Apple ID versus longer paid-team provisioning—not a required Flux subscription. Windows is explicitly described upstream as new, with CI-rendered views not yet checked on a physical Windows computer. [E9]</p>
+<p>QML controls include accessible roles/names for toggles, buttons and the composer, and Android declares RTL support. Those are positive source signals, not proof of screen-reader navigation, focus order, magnification, touch-target quality or reduced-motion coverage. None was device-tested here. Platform feature parity and accessibility remain acceptance-test items. [E9]<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4>
+<p>CLI / Qt / shell host → private Unix socket → fluxd core → paired TLS links and tunnels → native companions. Core modules own device state, pairing, command dispatch, feature policy and integration lifecycles; desktop modules invoke OS services. The same QML views use separate host adapters. Native clients share protocol semantics, but not one universal implementation: Android, Apple and Windows have different permission/lifecycle constraints and separate maintenance burdens. [E1]</p>
+<p>The local socket is mode 0600 inside a validated private runtime directory; peer credentials are checked. This protects against other Unix users, not a malicious process already running as the desktop user. Such a process is inside the local control boundary. Network listeners bind all interfaces, on TCP 12100–12108 and UDP 12100; payloads use 12070–12099. Firewall policy still matters on non-Omarchy systems and tailnets. Discovery is not authentication. [E2]</p>
+<h4>Security, Privacy and Execution Boundaries</h4>
+<ul><li><strong>Broad visibility by default:</strong> auto clipboard, home browsing and herdr agent visibility default on. Hiding dotfiles and Flux internals is useful but does not make visible documents, exported secrets or terminal output nonsensitive. Clipboard sync can copy credentials. Pair only devices trusted with those materials and disable unnecessary global/device features. [E3]</li><li><strong>Browse PC is constrained, not arbitrary SFTP:</strong> rooted filesystem access, actual opened-file path checks, hidden-component filtering and read-only handlers protect the exported roots. This is meaningful defensive work; it does not make exporting the home directory least-privilege. [E4]</li><li><strong>Execution is explicit but powerful:</strong> remote input, remote desktop, herdr control and ordinary terminal control default off. Enabling agent control can still execute arbitrary user commands even when ordinary-terminal control stays off. Desktop commands are locally configured; automation runs a configured command through sh -c with inherited environment, event values in environment variables, cooldown and timeout. It is not a sandbox. Treat event values as untrusted in any configured shell script. [E3, E7]</li><li><strong>Biometric UI is not daemon-enforced authorization:</strong> the documentation correctly distinguishes a client unlock prompt from a server feature gate. A modified paired client need not honor its own UI. Optional PAM approval is a separate boundary: the root helper verifies a signed nonce-bound request against root-owned enrollment material, with requester/service checks and a bounded wait; daemon approval alone is insufficient. Keep password recovery available and test this separately before enabling it. [E7]</li><li><strong>Phone permissions are substantial:</strong> Android declares camera, microphone, notification access/service paths, SMS, contacts/call-log, media, package visibility and update-install capabilities. Declarations are not proof every permission is granted. Feature permission and sharing controls matter; Android backup is disabled. Phone SSH keys use Android Keystore and require an interactive signature authorization path. [E8]</li><li><strong>Local-first is not zero egress:</strong> the daemon checks GitHub releases daily by default; GitHub receives IP and version User-Agent. Tailscale is optional external infrastructure, not built-in Flux identity. Android bundles text-recognition/barcode components but also depends on the Play-services document scanner; dictation can use the phone speech-recognition service. Do not assume every optional feature is offline. No hosted LLM provider, API-key billing flow or required model subscription was found in the inspected core; herdr integration exposes an external agent's output/control, not an inference service. SMS/carrier, optional network service and Apple distribution costs remain separate. [E6, E8]</li></ul>
+<h4>Persistence, Export and Recovery</h4>
+<p>Configuration and device trust are ordinary TOML/JSON; the desktop identity includes a filesystem private key. Private file modes reduce cross-user exposure but are not encryption at rest. Trust writes use an atomic-write helper; malformed trust JSON is moved aside with a broken-file suffix instead of overwritten, after which devices must be paired again. The outbox snapshots and snippets are separate from configuration, so backing up config alone is insufficient. [E5, E6]</p>
+<p>The shared state writer flushes the temporary file and renames it; it does not fsync the containing directory. That distinction matters for claims of power-loss durability. Invalid outbox records return an error rather than being silently skipped. No single comprehensive backup/export/restore contract was established in this review: preserve config, identity, trust, queued data and wanted received content deliberately, and test recovery. Restoring identity/trust also restores authority. Unpairing is revocation, not deletion of files already delivered to another device. [E5]</p>
+<h4>Maturity and Verification</h4>
+<p>Public GitHub metadata on 2026-11-14 reported 652 stars, 60 forks and 42 open issues/PRs combined, with repository creation on 2026-09-25. Latest stable release metadata reported v0.19.1 on 2026-10-29; this review covers the later exact master SHA, not a binary equivalence claim. Sampled open issues request additional approval UX and Bluetooth/ADB transports; requests are not implemented-feature evidence. Popularity is not security assurance. [E12]</p>
+<p>The tree has substantial Go regression tests for pairing, trust, policies, file browsing, outbox, IPC, approval and release handling, plus protocol fuzz targets and native-client tests. CI defines Go vet/race tests and multi-platform builds, with pinned actions and a digest-pinned Arch build image. Pull requests intentionally run no build to save minutes. We inspected definitions, not current green-run results, measured coverage or released-binary provenance. No upstream test or benchmark result is claimed as independently reproduced. [E10]</p>
+<h4>Evidence and Attribution</h4>
+<p>All code/doc links below are pinned to the reviewed revision. Claims above distinguish inspected implementation from upstream documentation and untested behavior.</p>
+<ul><li><strong>E1:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/README.md">README.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/architecture.md">docs/architecture.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/pairing.go">internal/core/pairing.go</a>.</li><li><strong>E2:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/lan/tls.go">internal/lan/tls.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/lan/provider.go">internal/lan/provider.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/handlers.go">internal/core/handlers.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/ipc/ipc.go">internal/ipc/ipc.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/ipc/peer.go">internal/ipc/peer.go</a>.</li><li><strong>E3:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/policies.go">internal/core/policies.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/config/config.go">internal/config/config.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/security.md">docs/security.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/configuration.md">docs/configuration.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/workflows.md">docs/workflows.md</a>.</li><li><strong>E4:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/sftp.go">internal/core/sftp.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/sftp_test.go">internal/core/sftp_test.go</a>.</li><li><strong>E5:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/outbox.go">internal/core/outbox.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/resume.go">internal/core/resume.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/storage.go">internal/core/storage.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/snippets.go">internal/core/snippets.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/config/trust.go">internal/config/trust.go</a>.</li><li><strong>E6:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/configuration.md">docs/configuration.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/proto/cert.go">internal/proto/cert.go</a>.</li><li><strong>E7:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/automation.go">internal/core/automation.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/core/herdr_control.go">internal/core/herdr_control.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/approve/helper.go">internal/approve/helper.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/approve/message.go">internal/approve/message.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/approve.md">docs/approve.md</a>.</li><li><strong>E8:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/android/app/src/main/AndroidManifest.xml">android/app/src/main/AndroidManifest.xml</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/android/app/build.gradle.kts">android/app/build.gradle.kts</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/android/app/src/main/java/org/omarchy/flux/core/SshKeys.kt">android/app/src/main/java/org/omarchy/flux/core/SshKeys.kt</a>.</li><li><strong>E9:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/ios.md">docs/ios.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/macos.md">docs/macos.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/windows.md">docs/windows.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/gui/qml/components/Toggle.qml">gui/qml/components/Toggle.qml</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/gui/qml/components/Composer.qml">gui/qml/components/Composer.qml</a>.</li><li><strong>E10:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/go.mod">go.mod</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/macos/Package.swift">macos/Package.swift</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/dist/arch/PKGBUILD">dist/arch/PKGBUILD</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/dist/post-install.sh">dist/post-install.sh</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/dist/pre-remove.sh">dist/pre-remove.sh</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/docs/install.md">docs/install.md</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/.github/workflows/build.yml">.github/workflows/build.yml</a>.</li><li><strong>E11:</strong> <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/release/sign.go">internal/release/sign.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/internal/release/download.go">internal/release/download.go</a>, <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/.github/workflows/release.yml">.github/workflows/release.yml</a>.</li><li><strong>E12:</strong> <a href="https://api.github.com/repos/bjarneo/flux">repository metadata</a>, <a href="https://github.com/bjarneo/flux/releases/latest">latest release</a>, <a href="https://github.com/bjarneo/flux/issues">open issues</a>; retrieved 2026-11-14 UTC.</li></ul>
+<p><strong>Attribution:</strong> bjarneo/flux, Bjarne Oeverli; <a href="https://github.com/bjarneo/flux/blob/f6ed4ac00d84aa06dc948df9efc69ca4beda589c/LICENSE">MIT license</a>. Independent public-source analysis; no upstream code extracted.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Alternatives and fit</td><td><p><br>| Option | Prefer it when | Tradeoff against Flux |<br>|---|---|---|<br>| <a href="https://kdeconnect.kde.org/">KDE Connect</a> / <a href="https://github.com/GSConnect/gnome-shell-extension-gsconnect">GSConnect</a> | You want the established general desktop/phone integration ecosystem | Less specific to Omarchy's shell and herdr/PAM workflow; compare actual platform features |<br>| <a href="https://localsend.org/">LocalSend</a> | You mainly need cross-platform local file sharing | Much narrower purpose; avoids adopting a whole remote desktop/agent integration stack |<br>| <a href="https://github.com/Genymobile/scrcpy">scrcpy</a> | You need Android screen mirroring/control through ADB | Different transport and trust model; not notification, home-browse and cross-platform companion parity |<br>| Flux | You value one Omarchy-native workflow across sharing, streams and optional phone-backed control | Broad paired-device authority and young multi-client maintenance surface |</p>
+<p>Related public reviews: <a href="wayshare.md">wayshare</a> covers a different remote-desktop design; <a href="phoneuse.md">phoneuse</a> covers an iPhone control bridge. Neither substitutes for Flux's full companion model.<br></p></td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><br>There is no separate hosted SaaS server to deploy for basic LAN use. Start with one trusted Android device and narrowly selected sharing features, keep remote input/desktop/agent control and PAM approval off, and review home/clipboard visibility before pairing. Keep all clients current for the 16-character ceremony. Preserve firewall restrictions rather than exposing the daemon directly to the Internet. Validate reconnects, sleep/wake, interrupted transfers, revocation, permissions and uninstall recovery on a disposable or noncritical setup before expanding scope.</p>
+<p>Adoption gates: qualify the exact client/desktop pair; verify a trusted release provenance path; test offline queue recovery and disk growth; audit visible documents/clipboard/agent output; exercise permission denial and revocation; and separately validate accessibility and any PAM fallback. For file transfer alone, choose the smaller tool.</p>
+<h4>Build, Install, Update and Uninstall Risks</h4>
+<p>The Go module is small but the full distribution is not: Qt, Android/Gradle, Apple/Xcode/Swift packages, Windows/.NET, OS multimedia utilities and optional kernel modules widen the build and runtime trust surface. Manifest pins, go.sum, Package.resolved and SHA-pinned CI actions help reproducibility; they do not replace a vulnerability audit. The Arch recipe requires Go 1.27.1 and runs Go tests during package checking. [E10]</p>
+<p>System installation can reload udev, configure/load v4l2loopback when not already configured and restart older running user daemons. User setup enables persistent background service. Optional approval setup modifies PAM; this is a login-security change, not a cosmetic integration. Uninstall paths disable approval and remove owned system integration, but preserve user config/identity and root enrollment key files. Removal is not data erasure; user-only and system-prefix removal differ. [E10]</p>
+<p><strong>Important supply-chain limitation:</strong> release download code verifies hashes and supports Ed25519-signed SHA256SUMS, but internal/release/sign.go sets PublicKey to the empty string at this revision. Signature verification is therefore inactive for this source build; HTTPS plus an adjacent checksum file is not an independent publisher-signature guarantee. The release workflow explicitly permits the unsigned case while the key is empty. Do not repeat the docs' signed-checksum capability as an enabled assurance. Android APK signing, ad hoc macOS signing and Windows Authenticode are different boundaries; Windows docs explicitly report no Authenticode signature. [E11]<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong native integration and thoughtful pairing, IPC and transfer safeguards. Broad sharing defaults, optional shell/PAM authority, inactive release-signature verification and uneven client maturity warrant a restricted pilot, not blanket deployment.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/bjarneo/flux">bjarneo/flux</a> · MIT; component terms separate</span>
+    <span><a href="bjarneo-flux.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
