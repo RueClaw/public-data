@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiri — Review</title>
+<meta name="description" content="A custom Rust Docker-compatible container engine, desktop app and optional hosted tunnel client.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / kiri</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">libracoder/kiri · reviewed 2026-11-14</div>
+    <h1>Kiri</h1>
+    <p class="one-liner">A custom Rust Docker-compatible container engine, desktop app and optional hosted tunnel client.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; kernel/component terms</span>
+      <span class="chip">Rust · Linux namespaces · VM / WSL2</span>
+      <span class="chip"><a href="https://github.com/libracoder/kiri">libracoder/kiri ↗</a></span>
+      <span class="chip"><a href="https://github.com/libracoder/kiri/tree/8318b8d7683202bd3d438b1baf788fa8526fa52b">reviewed source</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3,656</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">182</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real engine, distinct platform boundaries</h3><p>macOS uses a Linux VM, Windows uses WSL2, Linux uses the host kernel. The custom clone3 runtime removes dockerd/runc layers but owns their compatibility and isolation responsibilities.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Good access controls are not per-action approvals</h3><p>Linux checks peer credentials and revokes active connections after group removal; Windows restricts its named pipe. Engine access remains highly privileged, and unspecified published-port addresses expose all interfaces.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Qualify updates, durability and cloud sharing</h3><p>Windows MSI updates lack the Mac signing-identity check. Metadata rename is not fsynced transactional recovery, and optional Share routes service traffic through a hosted edge.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Rust 2024, custom guest PID 1 and Docker API</td></tr><tr><td>Isolation</td><td>Namespaces, cgroups, overlayfs, capabilities, denylist seccomp</td></tr><tr><td>Transport</td><td>Unix socket, Windows named pipe, vsock, rustls</td></tr><tr><td>Revision</td><td>8318b8d7683202bd3d438b1baf788fa8526fa52b</td></tr><tr><td>Verification</td><td>Static only; no source execution or runtime tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p> The daemon owns container metadata and the VM connection; the guest agent owns execution and multiplexes process lifecycle, output and networking. Removing intermediate daemons/shims can plausibly reduce short-process overhead, but shifts compatibility and security maintenance onto Kiri's own implementation. Read <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/docs/development.md">docs/development.md</a>, <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/daemon/engine.rs">crates/kiri/src/daemon/engine.rs</a> and <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri-init/src/linux/container.rs">crates/kiri-init/src/linux/container.rs</a>.</p>
+<p>Docker interoperability is real implementation work, not just shell aliases: there are image archive handlers, container execution/inspection/logs, network and volume APIs, plus Testcontainers-oriented checks. However, compatibility is an evolving surface. At this revision buildx uses a BuildKit container; the documented docker-container-driver restriction on build-time host-gateway remains. <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/docs/features.md">docs/features.md</a> and <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/tests/testcontainers-api.py">tests/testcontainers-api.py</a> are more useful acceptance inputs than the broad “your tools just work” headline.</p>
+<h4>Performance claims: narrow, author-reported evidence</h4>
+<p>README reports 2.55 ms for an Alpine true create/run/remove lifecycle through the API and about 80× versus Docker Desktop. <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/bench/results.json">bench/results.json</a> specifies a median of 30 runs after five warm-ups, an Apple Silicon Mac/macOS 27.0.1, and distinguishes measured figures from design targets. Its update date is October 24, preceding the reviewed November revision. This is not a general application-throughput, build-time or production-density result, nor an independently reproduced comparison. The development guide says raw benchmark output lives outside this repository. The PR speed workflow compares base/head on the same runner and takes thresholds from the base script, a useful anti-regression design, but not validation of the desktop competitor headline.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Local access is deliberately restricted, but grants engine authority</h4>
+<p>The Unix API socket begins at mode 0600; Linux group operation changes it to 0660. The Linux access gate uses SO_PEERCRED and current group membership, with roughly two-second rechecks that close existing streams when membership is revoked. POSIX ACLs permit newly added members without re-login; the connection gate prevents stale ACLs from becoming permanent access. This is a notably thoughtful control (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/daemon/mod.rs">crates/kiri/src/daemon/mod.rs</a>, <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/daemon/access.rs">crates/kiri/src/daemon/access.rs</a>).</p>
+<p>Windows rejects remote named-pipe clients, grants the current user/SYSTEM/administrators, refuses to serve if descriptor creation fails, and requests identification rather than impersonation on client connections (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri-win/src/pipe.rs">crates/kiri-win/src/pipe.rs</a>). These controls are not per-container RBAC. On Linux the service is root-run and the kiri group is explicitly root-equivalent because members can mount arbitrary host paths (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/contrib/linux/kiri.service">contrib/linux/kiri.service</a>). There is no human approval step for each Docker API mutation; granting socket access is the major authorization decision.</p>
+<h4>A custom sandbox policy, not Docker's identical policy</h4>
+<p>The guest sets namespaces, mount isolation, capabilities and a seccomp filter. The default filter is a <strong>denylist</strong>, unlike Docker's allowlist: unlisted new syscalls are generally allowed. Capability choices relax it, and no-new-privileges is enabled only when requested. Even privileged/seccomp-unconfined execution retains a smaller boundary filter that rejects vsock and io_uring, an intentional protection for the host transport. The filter also uses SECCOMP_FILTER_FLAG_SPEC_ALLOW for performance; that is an explicit mitigation tradeoff, not proof of an escape. See <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri-init/src/linux/seccomp.rs">crates/kiri-init/src/linux/seccomp.rs</a> and container.rs.</p>
+<p>Do not equate a VM with protection from all authorized host access: writable shared directories, explicit bind mounts, SSH-agent forwarding and USB passthrough cross it by design. On native Linux there is no extra VM kernel boundary. This review did not audit all unsafe/FFI paths or demonstrate an escape; the practical conclusion is to use trusted development workloads and separately validate hostile-code isolation.</p>
+<h4>Network exposure and local CA</h4>
+<p>Publishing a port without a host address maps to all IPv4 and available IPv6 interfaces, not loopback-only (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/daemon/ports.rs">crates/kiri/src/daemon/ports.rs</a>). Explicitly bind development services to loopback unless LAN exposure is intended. This is separate from the restricted engine socket.</p>
+<p>The local CA includes permitted DNS subtrees for kiri.local/kiri.localhost and exclusions for all IP SANs. Its key lives in a private directory; macOS trust installation asks for administrator approval. CA format migration replaces older keys missing the IP restriction. These are good defenses, but client trust-store/name-constraint behavior was not tested here (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/daemon/tls.rs">crates/kiri/src/daemon/tls.rs</a>). Installing a CA or persistent socket helper is a meaningful host change, not a prerequisite this review performed.</p>
+<p></p><h4>Credentials, data flows and costs</h4><p> Registry credentials arrive from Docker clients; token caches are scoped by registry/repository/actions and a credential fingerprint, avoiding anonymous/authenticated cache reuse (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri-image/src/registry.rs">crates/kiri-image/src/registry.rs</a>). Registry traffic, image pulls/pushes, builds and container applications still contact their configured services. Registry quotas, bandwidth, disk and CPU/RAM are real costs; no LLM provider or model download is inherent in Kiri.</p>
+<p>Kiri Share uses GitHub device login through the edge, stores a bearer token in a local JSON config (Unix temporary file mode 0600 plus sync/rename), and sends traffic through the hosted edge. The protocol exposes device/account information and local computer identification; public URLs expose the target service. The binary's embedded build-key attestation distinguishes official builds but is not a substitute for user authorization or a hardware-kept secret. The edge implementation, server retention/deletion guarantees and current pricing were not established from this checkout. Source APIs expose plan limits for tunnels and reserved names: do not infer unlimited free service from marketing. See <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/share.rs">crates/kiri/src/share.rs</a> and <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri-share-proto/src/attest.rs">crates/kiri-share-proto/src/attest.rs</a>.</p>
+<p>Share logout clears local token/login fields; the inspected function does not request remote token revocation or delete the retained device identifier. Stopping a share closes the client tunnel, not necessarily every server-side record. Do not expose an unauthenticated admin service merely because the tunnel itself uses TLS.</p>
+<p>Diagnostics use local rotated logs and pattern redaction. Crash uploads require crashReports=true; report construction reduces sensitive fields. Pattern redaction is not a guarantee that arbitrary application/error text contains no secrets. Container output logs are a distinct data surface, not automatically sanitized application output (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/diag/mod.rs">crates/kiri/src/diag/mod.rs</a>, <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/diag/report.rs">crates/kiri/src/diag/report.rs</a>).</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Docker</td><td>Established compatibility/ecosystem; conventional stack</td></tr><tr><td>Podman</td><td>Rootless-first; qualify Docker/Compose differences</td></tr><tr><td>Colima / Lima</td><td>Open VM stack with conventional engines; more configuration</td></tr><tr><td>OrbStack</td><td>Polished proprietary Mac integration; separate terms</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Persistence and recovery</h4><p> Images/blobs, writable container data, named volumes and host bind mounts have different lifecycles. Container metadata records include the saved specification; treat environment-based secrets and filesystem copies as sensitive. Container logs default to 10 MiB × three files per container, removed with the container; attached auto-remove workloads use a small memory ring. Buffered log writes are not fsynced, so power-loss durability is not assured (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/daemon/logfile.rs">crates/kiri/src/daemon/logfile.rs</a>).</p>
+<p>Metadata saving writes a temporary JSON file then renames it, but the inspected save path does not fsync file/directory and logs write failures rather than returning them to the caller. Startup treats malformed records as an empty set and logs the problem. Restart policies restore eligible containers, but this is not live restore or a transactional backup (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/daemon/engine.rs">crates/kiri/src/daemon/engine.rs</a>, load/save).</p>
+<p>Docker image save/load, container export and the import facility provide useful migration pieces; <strong>an image archive is not a volume/database backup</strong>. No complete integrated backup-and-restore guarantee was established. Quiesce databases, export their data, preserve volumes and metadata together, protect any host bind data separately, and test restoration before moving irreplaceable workloads. Prune/remove operations are destructive; stopping a container alone does not erase persisted data. Diagnostic exports, filesystem backups and hosted Share records have independent retention.</p>
+<p></p><h4>Updates and maturity</h4><p> A Cargo.lock and explicit CLI SHA-256 pins are positives. The build system also assembles a custom kernel, initramfs, disk image, Docker tooling and platform installers; building is not a harmless dependency-only operation. CI speed builds use the mutable rust:1-alpine image and package downloads, so locked Rust dependencies do not make the whole build hermetic (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/cli_pins.rs">crates/kiri/src/cli_pins.rs</a>, <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/xtask/src/main.rs">xtask/src/main.rs</a>, <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/.github/workflows/perf.yml">.github/workflows/perf.yml</a>).</p>
+<p><strong>Update authenticity is platform-dependent.</strong> macOS verifies the archive hash, app signing identity, notarization and expected version, stages on the same volume and retains the old app through replacement. Windows verifies HTTPS-feed SHA-256 plus MSI product/platform/version metadata, but explicitly says the MSI is unsigned and cannot pin a signing identity. A hash from the same compromised feed is not an independent signature. Linux reads version information and relies on package replacement rather than this Mac updater. The README's broad signature language needs this qualification (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri/src/update.rs">crates/kiri/src/update.rs</a>, <a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/crates/kiri-win/src/update.rs">crates/kiri-win/src/update.rs</a>).</p>
+<p>Public GitHub metadata retrieved November 14: repository created November 2, last push November 14, 3,656 stars, 182 forks and 64 open issue/PR items. Latest published GitHub release was v0.2.0 on November 10; the reviewed main SHA is newer and is not asserted to be that release. Popularity and a release do not establish container-runtime hardening.</p>
+<p>The tree includes substantial e2e, Linux, WSL, IPv6, USB, kernel, lifecycle and Testcontainers checks, plus inline Rust tests. Checked-in workflows cover SHA-pinned CodeQL, UI/translation tests and PR performance comparisons. Their existence is evidence of engineering effort, <strong>not a claim that this SHA passed all platform tests</strong>. No tests or CI run outcomes were independently executed/verified. Security policy supports the latest release and private vulnerability reports (<a href="https://github.com/libracoder/kiri/blob/8318b8d7683202bd3d438b1baf788fa8526fa52b/SECURITY.md">SECURITY.md</a>).</p>
+<p>Apache-2.0 permits core reuse subject to its conditions and notices. NOTICE documents mixed dependencies and the separate GPL-2.0-only guest kernel/source offer; distribution obligations survive bundling. The project excludes its name/logo from the source-license grant. No code extraction was needed for this review.</p>
+<p></p><h4>Adoption and limits</h4><p> Use a pinned release in a disposable development environment first. Check the exact Compose/buildx/Testcontainers features you need, host port bindings, filesystem/SSH-agent sharing, privileged-container policy and Windows update provenance. Keep public tunnels and crash upload off unless intentionally needed. Back up and restore real volume data, exercise engine restart/power-loss scenarios, and compare representative builds and services rather than only Alpine true. For untrusted multi-tenant execution or important production data, retain a mature, separately hardened runtime until Kiri's boundary and recovery behavior have been independently qualified.</p>
+<p><strong>Verification limits:</strong> Public source and public GitHub metadata only; shallow checkout, targeted static analysis, no full dependency advisory audit, binary attestation, kernel audit, live service probe or runtime test. HTML/artifact validation is separate from testing Kiri itself. </p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot for trusted development, not yet a default hostile-workload boundary. Strong local access controls and a low-overhead design meet custom sandbox policy, early maturity, weaker Windows update authenticity and recovery caveats.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/libracoder/kiri">libracoder/kiri</a> · Apache-2.0; kernel/component terms</span>
+    <span><a href="kiri.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
