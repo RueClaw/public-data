@@ -152,7 +152,7 @@
 <main>
 
   <section class="hero" id="overview">
-    <div class="kicker">expo/exact · reviewed 2026-11-13</div>
+    <div class="kicker">expo/exact · reviewed 2026-11-14</div>
     <h1>Exact</h1>
     <p class="one-liner">A Contract compiler and cross-platform native runtime built for agent-driven app development.</p>
     <div class="verdict-pill">⚠️ Interesting</div>
@@ -163,9 +163,21 @@
       <span class="chip"><a href="expo-exact.md">Full evidence and citations</a></span>
     </div>
     <div class="stats">
-      <div class="stat"><div class="num">3,352</div><div class="lbl">Stars</div></div>
-      <div class="stat"><div class="num">82</div><div class="lbl">Forks</div></div>
+      <div class="stat"><div class="num">4,141</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">100</div><div class="lbl">Forks</div></div>
     </div>
+  </section>
+
+  <section id="update-notes">
+<h2>Update Notes — 2026-11-14 (UTC)</h2>
+<p>Previous review: 2026-11-13 at <code>6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63</code>. Current canonical main snapshot: <code>3baa28ffa5e2598f2eca2ff5d830fa2b444e741f</code> (2026-11-14T16:58:08Z), verified by public Git transport. The former is an ancestor of the latter: <strong>1,023 commits; 4,108 changed files, 237,625 insertions and 42,567 deletions</strong> in the actual endpoint diff. This is a targeted static delta review, not a fresh audit of every changed line. Older detailed evidence below remains pinned to the previous snapshot unless explicitly updated here; these notes supersede its dated issue-status and delivery statements.</p>
+<p><strong>Delivery is materially more portable.</strong> Existing streams now carry signed cohort receipts describing installed capabilities and binary evidence. Compatible Contract/TypeScript updates can be prepared on Linux for an existing iOS cohort without an Apple bake; incompatible candidates still need a new binary. This does not make initial iOS compilation, signing or device validation available on Linux. The publisher authenticates heads and release history when recovering sequence floors. See <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/scripts/deploy-heads.mjs">deploy-heads.mjs</a>, <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/scripts/deploy.mjs">deploy.mjs</a> and <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/README.md">README</a>.</p>
+<p><strong>Update recovery fixes are concrete.</strong> Garbage collection waits for outstanding checks, failed first-pixel record writes remain retryable, damaged pending plans are refused/cleared for redownload, and URL resolution preserves query/empty/trailing path segments. Regression tests were added, but not run here. First pixel still does not establish application health, and Windows durable storage remains unqualified. See <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/update/src/client.rs">client</a>, <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/update/src/store.rs">store</a> and <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/update/src/envelope.rs">envelope</a>.</p>
+<p><strong>Security improves without becoming a sandbox.</strong> Web admission now refuses a hidden final response URL (except manual opaque redirects), carries request-origin attribution instead of assuming app authority, and prevents stale asynchronous key writes from overwriting newer secret-store decisions. Shared auth refuses background-action sessions and adds Android custom-scheme callback handling; HTTP(S) App Links and loopback callbacks are explicitly unsupported there. The browser still checks ordinary followed redirects after contact: these fixes do not eliminate intermediate-request disclosure or grant native code isolation. The Rust grants core is unchanged. See <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/host/web-js/admission.js">admission.js</a>, <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/host/web/address-space.js">address-space.js</a> and <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/runner/src/auth.rs">auth.rs</a>.</p>
+<p><strong>Platforms and authoring move forward.</strong> Android/Windows select menus now use the top-layer menu path, with accessibility nodes; the former issue is closed. Android system-camera capture needs no Exact camera grant, unlike the live-viewfinder path; iOS still uses its purpose declaration. An opt-in TypeScript 7.1 content mapper adds Contract hover/definitions/references/rename and enum completion by invoking the compiler, not a second semantic engine. It executes external code, has documented mapping limits, and its tests skip without a separate TypeScript 7.1 setup. None of this establishes general host parity. See <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/issues/closed/20261111-select-menu-reaches-no-assistive-technology.md">select resolution</a>, <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/README.md">README</a> and <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/editors/content-mapper/README.md">mapper README</a>.</p>
+<p><strong>Verification is improving, not settled.</strong> The old missing-async-results issue is closed; public Git now advertises <code>refs/notes/async</code> (observed object <code>8bc416676d2eb4c34570cc8155d1700ac5124f61</code>). That establishes note availability, not a passing baseline. The tip commit reports 65 JS-runtime cases passing upstream; this was not independently reproduced. The exact tip's GitHub ci run was queued at inspection. CI workflow files are unchanged, so earlier coverage limitations persist. See <a href="https://github.com/expo/exact/blob/3baa28ffa5e2598f2eca2ff5d830fa2b444e741f/issues/closed/20261110-async-lane-results-are-not-on-origin.md">closed async issue</a> and <a href="https://github.com/expo/exact/actions/runs/43618488882">tip CI</a>.</p>
+<p><strong>Unchanged verdict: ⚠️ Interesting.</strong> The Contract/runner/native-and-DOM architecture remains intact. Root LICENSE, NOTICE, SECURITY.md and Rust toolchain pin are unchanged; MIT core and separate component/media terms still apply. The JS manifest adds an undici 8.12.2 override, not evidence by itself of a completed dependency audit. Public metadata on 2026-11-14 reported 4,141 stars, 100 forks, 116 open issues/PRs combined and no releases; popularity is not validation. No source tests, installation, device/desktop access, service probes, model downloads or paid calls were performed.</p>
+<p><a href="https://github.com/expo/exact/compare/6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63...3baa28ffa5e2598f2eca2ff5d830fa2b444e741f">Full source comparison</a>.</p>
   </section>
 
   <section id="key-points">
@@ -192,7 +204,7 @@
 
     <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
       <table><tbody>
-        <tr><td>Review scope</td><td>6b10991dc21b1eb4c794f73ebcc7fc91f72bcf63 · sampled static review; tests not run</td></tr><tr><td>Core</td><td>Rust runner/kernel, Contract compiler, patched Taffy</td></tr><tr><td>Hosts</td><td>DOM/CSS, AppKit/UIKit, GPU/CPU painted surfaces</td></tr><tr><td>Toolchain</td><td>Bun 1.4.2, Rust 1.97.0, Hermes</td></tr><tr><td>License</td><td>MIT core; separate vendored/font/media terms</td></tr>
+        <tr><td>Review scope</td><td>3baa28ffa5e2598f2eca2ff5d830fa2b444e741f · targeted static delta; baseline citations retained; tests not run</td></tr><tr><td>Core</td><td>Rust runner/kernel, Contract compiler, patched Taffy</td></tr><tr><td>Hosts</td><td>DOM/CSS, AppKit/UIKit, GPU/CPU painted surfaces</td></tr><tr><td>Toolchain</td><td>Bun 1.4.2, Rust 1.97.0, Hermes</td></tr><tr><td>License</td><td>MIT core; separate vendored/font/media terms</td></tr>
       </tbody></table>
     </div>
     <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
