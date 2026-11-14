@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern Web Guidance — Review</title>
+<meta name="description" content="Agent-ready native web recipes: strong retrieval and fallbacks, uneven security advice.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / modern-web-guidance</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">GoogleChrome/modern-web-guidance · reviewed 2026-11-14</div>
+    <h1>Modern Web Guidance</h1>
+    <p class="one-liner">Agent-ready native web recipes: strong retrieval and fallbacks, uneven security advice.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 software · CC BY 4.0 guides</span>
+      <span class="chip">Markdown · Node.js · TypeScript · Playwright</span>
+      <span class="chip"><a href="https://github.com/GoogleChrome/modern-web-guidance">GoogleChrome/modern-web-guidance ↗</a></span>
+      <span class="chip"><a href="modern-web-guidance.md">Full cited review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">11,363</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">397</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Useful platform recipes, not blanket policy</h3><p>Search/retrieve limits context, while dated capability data and real fallback recipes improve on model memory. Newly available and single-engine features still need an explicit target policy.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Extension security claims need correction</h3><p>Unsandboxed srcdoc and blob URLs are not automatic origin isolation or CSP bypasses. Permission guidance is overbroad, and storage read/write sequences are not locks.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local search still sends telemetry</h3><p>Default-on telemetry includes agent-generated search queries. Mutable latest CLI/installer paths and optional cloud AI fallbacks require separate trust decisions.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Distribution v1.0.0 and separately pinned supporting implementation.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Guidance audit</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Workflow &amp; evidence</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Adoption &amp; sources</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Distribution SHA</td><td>4dd968349e54ca45a05dd5c818fb035c9054b022</td></tr><tr><td>Supporting source SHA</td><td>5e5cd33a7738f21281e3027732bcbd58cfa82bf1</td></tr><tr><td>Verification</td><td>Static source and documentation checks only; newer source is not attested npm parity.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Strong progressive enhancement, with dated boundaries</h4>
+<p>The drawer guide distinguishes modal dialog from sidebar-capable popover, supplies naming/focus/inert handling, respects reduced motion and separately treats scroll timelines, initial scroll position and registered-property fallbacks. The scheduler guide includes a timer fallback. Sanitization guidance covers native/fallback configuration parity, mutation XSS and Trusted Types. These are substantive details. [5][6][7]</p>
+<p>Compatibility must stay dated and capability-specific:</p>
+<p>- The drawer guide calls scroll-driven animations <strong>Newly available since 2026-10-27</strong>. The independently fetched Web Features Explorer agrees, with <strong>2029-04-27</strong> expected for Widely Available. Newly available does not mean older customer browsers support it.<br>- Scheduler is <strong>Limited</strong>, supported in Chrome/Edge 129 and Firefox 142, not Safari. The Explorer independently agreed on review day.<br>- Guides separately label scroll-initial-target, Speculation Rules, Sanitizer and LanguageModel. Do not flatten that into “all modern browsers.” LanguageModel’s Chrome 148 claim is source-reported here, not independently device-tested.<br>- The encryption guide leads with hybrid post-quantum KEMs while listing Web Cryptography’s broad Baseline date of 2017-09-19. That does not establish support for encapsulateKey, new key formats or SubtleCrypto.supports. The guide provides detection and a classical fallback, but X25519 is not post-quantum equivalent. Authenticate recipient keys and negotiated suites; this is not a complete audited end-to-end protocol. [8]</p>
+<p>Origin trials, volatile/single-engine APIs and emerging proposals require explicit product decisions even when search finds a guide. Define minimum versions, test precise capabilities and run the real cross-engine matrix. A snapshot is not an evergreen guarantee. [9]</p>
+<h4>Accessibility and performance</h4>
+<p>The error-announcement guide covers delayed validation, preserved descriptions, one polite live region, failed-submit focus and reset handling. AI guidance includes named download progress, output language and session cleanup. Native controls and automated role checks still do not establish WCAG compliance: keyboard, zoom, forced colors, touch and actual screen readers remain acceptance work. [10][16]</p>
+<p>A concrete counterexample is the privacy guide’s video façade: an image with a click listener is used as the play control, without button semantics or keyboard activation. It also fetches a YouTube thumbnail before the click. The façade defers the iframe, <strong>not all third-party contact</strong>. Use a named button and a first-party/approved thumbnail where pre-consent egress matters. [11]</p>
+<p>Yielding long work is sensible, but checking a 50 ms deadline after processItem cannot bound one expensive item or guarantee an INP/frame-time outcome. Measure actual workloads and consider smaller units/workers. Speculation advice discusses stale content, bandwidth/server costs, logout/cart exclusions and prefetch before prerender. Its all-link examples require those exclusions; ignored unsupported rules provide graceful degradation, not universal operational safety. [6][12]</p>
+<h4>Security: correct the extension pack before relying on it</h4>
+<p><strong>Incorrect isolation claim:</strong> the CSP reference says blob URLs and srcdoc create separate origins and bypass extension CSP; the main extension skill repeats the blob claim. The shown alternatives do not establish sandboxing. MDN documents unsandboxed srcdoc as same-origin with its parent, while blob URLs contain their creator’s origin. Neither is an automatic security boundary or generic CSP bypass. Use explicitly sandboxed execution with restricted communication/egress. The supplied sandbox receiver also executes event.data.js without checking source or message shape. This is a static documentation finding, not an exploit demonstrated against a running extension. [13][14]</p>
+<p><strong>Overbroad permission advice:</strong> the skill/reference say tab.url and tab.title require tabs permission. Chrome’s documentation explicitly permits matching host permissions; activeTab supplies temporary host permission after eligible invocation. A side-panel button does not mint that grant, but that differs from saying existing grants cannot be used there. The reference’s proposed fix shows all_urls while saying to scope hosts. Prefer narrow host, temporary or optional permissions. [15]</p>
+<p><strong>Persisted state is not a lock:</strong> the recording example separately awaits a storage read and writes starting. Concurrent handlers can both read idle before either write finishes. The counter example is also non-atomic read-modify-write. Persistence across suspension does not supply serialization, exclusive admission or reconciliation with a real capture resource. These examples do not prove race-free capture. [3]</p>
+<h4>Privacy and vendor framing</h4>
+<p>Data minimization, scoped permissions, session-cookie flags, audits and deletion controls are sound themes. But age buckets are not differential privacy, Clear-Site-Data is not server-side session revocation, and local inference does not “ensure user privacy” for the entire app. The AI guide suggests Vertex AI Gemini as a remote fallback: moving local processing to cloud changes disclosure, consent, retention, credentials and cost. Do not silently cross that boundary. [11][16]</p>
+<p>Multi-vendor stewardship and MDN/web-features inputs temper Chrome bias, but do not erase incentives toward native adoption, Chrome-only capabilities and Google-hosted examples. AI guidance even suggests artificial 1–2 second delays to make output seem more trustworthy: UX advice, not measured reliability, and no substitute for honest uncertainty or responsiveness. [16]</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Modern Web Guidance counters coding models’ preference for old JavaScript workarounds by retrieving task-specific native-platform recipes. The README advertises 203 use cases and 250 features; the checkout contains 209 Markdown files under the main guide tree, so the headline is not a literal file count. Coverage includes CSS/layout, components, forms, accessibility, performance, security/privacy, built-in AI and web components. A separately selectable Chrome Extensions skill covers Manifest V3 and store preparation.</p>
+<p>This repository is explicitly a <strong>publish target</strong>. Contributions, implementation, source guides, tests and evaluations live in the -src repository. The Git distribution omits executable bundles: its manifest names skills/modern-web-guidance/modern-web.mjs, but that file is absent. The supporting publication script intentionally excludes JS/TS/binary artifacts from Git; the skill instead invokes npm. Cloning this repository is not a runnable CLI installation. [1][2]</p>
+<h4>Architecture and agent workflow</h4>
+<table><tbody><tr><td>Layer</td><td>Observed design</td><td>Consequence</td></tr><tr><td>Routing</td><td>Search before client-side tasks; excludes backend/tooling</td><td>Broad mandatory language must remain subordinate to project scope/approvals</td></tr><tr><td>Retrieval</td><td>Short English capability queries; compact IDs/descriptions</td><td>Limits context load; weak results get one rephrase, then list/continue</td></tr><tr><td>Search</td><td>Local static embeddings plus BM25 and reciprocal-rank fusion</td><td>Ordinary search needs no hosted inference in inspected implementation; build-time embeddings are separate</td></tr><tr><td>Large output</td><td>Retrieval over 9.5 KB spills to temporary Markdown</td><td>Useful truncation defense if the consumer finishes reading</td></tr><tr><td>Compatibility</td><td>web-features/MDN-derived prose, dates and Baseline settings</td><td>Better than model memory; not a target-browser acceptance test</td></tr><tr><td>Modernization</td><td>Static local scanner, guide IDs and keep/drop rubrics</td><td>Findings are leads; documented coverage is roughly 20%</td></tr><tr><td>Experimental APIs</td><td>Origin Trial/volatile metadata gated by project opt-in</td><td>Helpful convention, not isolation from a file-capable agent</td></tr></tbody></table>
+<p>The skill distinguishes feature fixes from broad modernization, warns against forcing unrequested features, and says not to remove legitimate fallbacks merely to get zero scanner findings. It asks for guide-backed explanations, SSR guards and per-instance IDs. Casting new attributes to any or raising a bundler target to esnext are escape hatches, however, not compatibility checks. English-oriented retrieval and finite vocabulary are practical limits. [3][4]</p>
+<p>The newer implementation rejects detected agent environments/noninteractive stdin for experimental opt-in commands and requires human confirmation. Retrieval respects explicit opt-out. Conversely, the baseline: limited banner tells agents to skip all compatibility fallbacks in a guide. That is appropriate only for an intentionally restricted runtime, not arbitrary public-web audiences. [4]</p>
+
+<h4>Installation, updates, dependencies and data flow</h4>
+<p>Search is local, but the inspected telemetry logger is <strong>enabled by default</strong>. It records query text, returned guide IDs/similarities, agent, OS, versions, latency bucket and success; retrieval records guide IDs. A detached Node watchdog posts to Google Clearcut. DISABLE_TELEMETRY=1 or true disables this logger; optional file logging has a separate gate. “Raw user prompts are not collected” is narrower than “no sensitive information leaves”: generated queries can reveal task details, and the logger has no query redaction. Keep queries generic and choose opt-out before first use. [17]</p>
+<p>The skill invokes npx -y modern-web-guidance@latest. Its skill-version argument identifies freshness, <strong>not an executable pin</strong>. Install delegates to separately fetched npx skills add; update/remove also use that external installer. Plugin auto-update and the documented Grok trust flag add trust decisions. Wildcard approval for all MWG subcommands also covers configuration/install operations, not only search. Pin reviewed artifacts and scope command permissions. The external installer and npm/Git build equivalence were not audited. [3][18]</p>
+<p>The source tree has a pnpm lockfile and more dependencies than published manifests suggest: Playwright, TypeScript/esbuild, parsers, browser datasets, cloud/storage and model/agent tools. Its postinstall deletes enumerated stale build/cache directories. Embedding generation/evaluation runners can call paid providers/agents; none is necessary to read Markdown. No dependency vulnerability audit or npm integrity verification was performed. [19]</p>
+<h4>Evidence, tests and maturity</h4>
+<p>v1.0.0 was published 2026-11-10. Public metadata showed 11,363 stars and 397 forks on review day; issue reporting goes to the source repository. Popularity is not safety evidence. The supporting snapshot has 156 tracked test.ts files, separate guide graders and SHA-pinned CI actions. CI defines frozen-lockfile install, build/typecheck/lint/unit checks, publication dry-run, retrieval benchmarks and browser-backed checks. These are inspected definitions, <strong>not tests run here or proof of green latest CI</strong>. [1][20]</p>
+<p>The README’s Nov 8 snapshot reports unguided → guided assertion pass rates of 58% → 94% for Antigravity, 54% → 82% for Codex and 57% → 88% for Claude Code: project-reported <strong>+36/+28/+31 percentage points</strong>, not independently reproduced results or fully correct-app percentages. Task/assertion totals differ across agents.</p>
+<p>The public dashboard says pass rate is checks passed/checks run, paired infrastructure errors/timeouts before grading are excluded, and automated accessibility checks are not a full WCAG audit. Methodology was accessible; numeric cards required JavaScript and were not independently loaded in this static review. [21]</p>
+<p>The scheduler grader includes runtime checks and an absent-scheduler test, but also a synthetic clock, patched yield/timer functions and an explicit scheduler.yield expectation. This can reward the chosen recipe rather than all valid performance solutions. The shared fixture launches Chromium; simulated missing APIs are not Firefox/Safari testing. Golden/base calibration is valuable regression protection, not independent held-out validation of the authors’ preferred design. [22]</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Contracts</td><td>MDN + Web Features Explorer</td><td>Dated capability verification</td></tr><tr><td>Accessibility</td><td>WAI ARIA APG + manual testing</td><td>Keyboard and assistive technology acceptance</td></tr><tr><td>Security</td><td>OWASP + Chrome documentation</td><td>Check origin and permission contracts</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Compare the focused recipes with MDN and Web Features Explorer for API support, WAI ARIA APG for widget behavior, web.dev plus field measurements for performance, and OWASP/Chrome documentation for security contracts.</p>
+<p>Adopt a narrow main-skill pilot, record browser policy, pin tooling, decide telemetry, retrieve relevant guides and test native/fallback paths. Keep a functional baseline without optional visual/AI features. Cross-check security examples and explicitly approve local-to-cloud transitions. No server/database needs self-hosting for the guidance; offline Markdown is the lowest-risk path.</p>
+
+<h4>Verification limits</h4>
+<p>Representative, not exhaustive: both skills/manifests; drawer, scheduler, speculation, error-announcement, privacy, sanitizer, encryption and LanguageModel; extension CSP/permissions; newer CLI/retrieval/search/telemetry/gates/build/CI and scheduler grader. No repository instructions were adopted. No source tests, browser matrix, screen readers, installs or model evaluations ran. Only the two noted compatibility records and origin/permission semantics were independently checked; other version claims remain source-reported. Development source is newer than the distribution; npm artifacts were not acquired/attested.</p>
+<h4>Sources</h4>
+<p>Repository links are revision-pinned; external documents fetched 2026-11-14 UTC.</p>
+<p>1. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/README.md">README</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance/releases/tag/v1.0.0">release</a>.<br>2. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/package.json">Manifest</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/build/publish-skills.ts">publication filters</a>.<br>3. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/SKILL.md">Main skill</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/chrome-extensions/SKILL.md">extension skill</a>.<br>4. <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/rag/retrieve.ts">Retrieval</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/cli/set-allow-gate.ts">opt-in</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/rag/search.ts">search</a>.<br>5. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/ui-components/navigation-drawer.md">Drawer</a>.<br>6. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/performance/break-up-long-tasks.md">Scheduler</a>.<br>7. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/security/sanitize-untrusted-html.md">Sanitizer</a>.<br>8. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/security/client-side-encryption.md">Encryption</a>.<br>9. <a href="https://web-platform-dx.github.io/web-features-explorer/features/scroll-driven-animations/">Scroll timelines</a>, <a href="https://web-platform-dx.github.io/web-features-explorer/features/scheduler/">Scheduler</a>.<br>10. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/accessibility/accessible-error-announcement.md">Error announcements</a>.<br>11. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/privacy/privacy.md">Privacy</a>.<br>12. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/performance/improve-next-page-load-performance.md">Speculation</a>.<br>13. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/chrome-extensions/references/extensions/csp-sandbox.md">CSP</a>.<br>14. <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLIFrameElement/srcdoc#security_considerations">MDN srcdoc</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Schemes/blob">blob origins</a>.<br>15. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/chrome-extensions/references/extensions/permissions.md">Permissions</a>, <a href="https://developer.chrome.com/docs/extensions/reference/api/tabs#permissions">Chrome Tabs</a>.<br>16. <a href="https://github.com/GoogleChrome/modern-web-guidance/blob/4dd968349e54ca45a05dd5c818fb035c9054b022/skills/modern-web-guidance/guides/built-in-ai/language-model.md">LanguageModel</a>.<br>17. <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/cli/telemetry/clearcut-logger.ts">Telemetry</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/cli/telemetry/watchdog/clearcut-sender.ts">sender</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/rag/logger.ts">file logging</a>.<br>18. <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/cli/modern-web.ts">CLI</a>.<br>19. <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/package.json">Dependencies</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/core/postinstall.ts">postinstall</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/rag/README.md">search architecture</a>.<br>20. <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/.github/workflows/ci.yml">CI</a>, <a href="https://api.github.com/repos/GoogleChrome/modern-web-guidance">metadata</a>.<br>21. <a href="https://googlechrome.github.io/modern-web-guidance-src/">Dashboard</a>.<br>22. <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/guides/performance/break-up-long-tasks/grader.ts">Grader</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/grading/test-fixture.ts">fixture</a>, <a href="https://github.com/GoogleChrome/modern-web-guidance-src/blob/5e5cd33a7738f21281e3027732bcbd58cfa82bf1/src/harness/README.md">harness</a>.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> GoogleChrome/modern-web-guidance and GoogleChrome/modern-web-guidance-src. Apache-2.0 software; CC BY 4.0 guide documentation as declared, including credited MDN/standards material. Independent analysis, not upstream endorsement.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot the main guidance with pinned tooling, an explicit browser policy and deliberate telemetry settings. Correct extension origin/CSP and permission guidance before security-sensitive use. Static review; no installations, browser tests or benchmark reproduction.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/GoogleChrome/modern-web-guidance">GoogleChrome/modern-web-guidance</a> · Apache-2.0 software · CC BY 4.0 guides</span>
+    <span><a href="modern-web-guidance.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
