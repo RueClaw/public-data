@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [fuck-cancer.md](reviews/fuck-cancer.md) [page](reviews/fuck-cancer.html) | [petergyang/fuck-cancer](https://github.com/petergyang/fuck-cancer) | MIT | ⚠️ Interesting | Family medical brief and trial-screening skill; thoughtful navigation, unvalidated clinical behavior and host-owned health-data privacy. 24 offline tests passed. |
 | [omarchy-server.md](reviews/omarchy-server.md) [page](reviews/omarchy-server.html) | [TouchWorkStation/omarchy-server](https://github.com/TouchWorkStation/omarchy-server) | MIT; component/guest terms | ⚠️ Interesting | Browser home-server console for Omarchy; rootless apps and user VMs, but HTTP, port-auth exceptions, privileged lifecycle and incomplete recovery caveats. Static review. |
 | [whisker.md](reviews/whisker.md) [page](reviews/whisker.html) | [whiskerrs/whisker](https://github.com/whiskerrs/whisker) | MIT OR Apache-2.0; component notices | ⚠️ Interesting | Pre-alpha Rust native UI framework with revisioned Hosts; development transport, storage portability and durability caveats. Static review. |
 | [g-harness-evals.md](reviews/g-harness-evals.md) [page](reviews/g-harness-evals.html) | [garrytan/g-harness-evals](https://github.com/garrytan/g-harness-evals) | MIT code; CC BY 4.0 docs/data; exceptions | ⚠️ Interesting | Auditable harness comparisons; grader corrections, unequal settings and outage-sensitive claims. Static review plus independent record recount. |

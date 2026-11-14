@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuck Cancer — Review</title>
+<meta name="description" content="An agent-guided family medical brief, not a clinically validated cancer advisor.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / fuck-cancer</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">petergyang/fuck-cancer · reviewed 2026-11-14</div>
+    <h1>Fuck Cancer</h1>
+    <p class="one-liner">An agent-guided family medical brief, not a clinically validated cancer advisor.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Markdown · Python stdlib · host agent</span>
+      <span class="chip"><a href="https://github.com/petergyang/fuck-cancer">petergyang/fuck-cancer ↗</a></span>
+      <span class="chip"><a href="fuck-cancer.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">295</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">29</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Care navigation, not treatment discovery</h3><p>One brief combines confirmed facts, three next actions and a care log. No model runtime, patient portal or clinical validation is bundled.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Trial ranking is not eligibility</h3><p>Lexical ranking rewards phase and treatment focus, and penalizes supportive-care terms. Missing site status and truncated criteria require human follow-up.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local output does not mean private inference</h3><p>Google Docs is the default; model/provider handling is host-owned. Trial queries transmit condition and optional coordinates, with no programmatic identifier filter.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Workflow &amp; evidence</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Implementation &amp; privacy</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operation &amp; limits</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>ecaef1a3fa5bbee50798942011db508ccdffd5f0</td></tr><tr><td>Verification</td><td>24/24 synthetic tests passed with network disabled; no live patient/model/Google/API workflow tested.</td></tr><tr><td>License</td><td>MIT; external service terms separate.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Actual workflow</h4><p>The <a href="https://github.com/petergyang/fuck-cancer/blob/ecaef1a3fa5bbee50798942011db508ccdffd5f0/README.md">README</a> and <a href="https://github.com/petergyang/fuck-cancer/blob/ecaef1a3fa5bbee50798942011db508ccdffd5f0/skills/fuck-cancer/SKILL.md">actual skill</a> describe one living family brief: identifying/contact information, up to three next actions, confirmed/uncertain facts, optional medical definitions, and a compact care log. A tabbed document separates the current Overview from historical Log. The host agent reads supplied reports and the existing brief, researches a current question, edits the document, then reads back the saved result.</p>
+<p>Google Docs through an already-connected host integration is the default. Local Markdown is available on request or when Google cannot be connected; otherwise the brief can remain in chat. There is no bundled Google connector, OCR implementation, model runtime, database, or patient portal. “Works with your favorite agent” is an interoperability intention, not demonstrated parity across platforms.</p>
+<p>The README's family experience and caregiver quotations motivate the problem; they are anecdotes, not outcome evidence. This review does not reproduce patient records, identifiers, screenshots, or sensitive family details. The bundled example image and external personal narrative/video were not clinically evaluated.</p><h4>Medical claims and evidence</h4><p>No disease-specific therapeutic efficacy claim, experimental intervention protocol, survival analysis, or clinical evaluation of this skill is supplied in the reviewed text. It would be misleading to manufacture a treatment literature review from the repository title.</p>
+<table><tbody><tr><td>Evidence category</td><td>What this repository actually establishes</td></tr><tr><td>Anecdotes</td><td>Motivation and user needs; not causal evidence of improved outcomes</td></tr><tr><td>Research hypotheses / preclinical findings</td><td>May be encountered during later agent research; none establishes this tool's clinical utility. Cell/animal results must not be promoted to human efficacy</td></tr><tr><td>Clinical research</td><td>A trial registration identifies research, not a positive result, regulatory approval, or patient eligibility</td></tr><tr><td>Validated care</td><td>Current indication-specific evidence, local regulation/guidance and the treating team's judgment remain external to the skill</td></tr><tr><td>Software evidence</td><td>Unit tests support helper mechanics, not triage accuracy, hallucination rate, patient comprehension or clinical benefit</td></tr></tbody></table>
+<p>Selected authoritative first-party references checked on 2026-11-14:</p>
+<p>1. <a href="https://www.cancer.gov/publications/pdq">NCI PDQ overview</a> describes evidence-based summaries intended to inform and educate and support clinician–patient decisions. This supports using PDQ as evidence context, not pretending the skill is a clinical guideline. The source skill explicitly makes that distinction.<br>2. <a href="https://www.cancer.gov/research/participate/clinical-trials/what-are-clinical-trials">NCI: What Are Clinical Trials?</a> defines trials as research testing approaches in people and explicitly includes supportive/palliative-care studies. That supports both the research-versus-established-care distinction and the warning about this helper's supportive-care ranking penalty.<br>3. ClinicalTrials.gov's disclaimer and study-basics pages returned only a client-rendered shell in this retrieval. Their substantive text was <strong>not independently verified</strong>; no live API study query was performed. Implementation/API compatibility is therefore supported by inspected code and mocked tests, not a current end-to-end registry probe.</p>
+<p>These are primary agency references for the narrow claims evaluated, not clinical trials validating the repository. No model-based clinical benchmark, prospective study, independent oncology review, regulator clearance, or clinical safety case was found in the tracked materials.</p><h4>Clinical safety</h4><p>Good instructions prohibit diagnosis from incomplete material, treatment selection, eligibility declarations, unauthorized medical disclosure, and delaying urgent evaluation or standard care. They favor newest records, distinguish pending from unknown, make missing tests respectful questions, and require permission before contacting clinicians/trials or editing shared records. Sources must be linked inline; early or indirect evidence must be labeled.</p>
+<p>These are <strong>prompt-level safeguards</strong>, not runtime authorization or clinical controls. The skill also routes every cancer-related conversation into the workflow and offers emergency/today/next-appointment symptom triage without a validated triage protocol or tested escalation cases. A host must not let this become an autonomous triage service. Report extraction, chronology, units, biomarker interpretation, citations and next steps require human checking against original documents; treatment and eligibility questions belong with qualified clinicians and trial staff.</p>
+<p>The instruction to omit a research date and disclaimer from the brief keeps it concise but weakens freshness/role visibility when it is shared outside chat. Preserve an explicit reviewed/as-of date and clear AI-draft status in a deployment's surrounding workflow. The generated brief should supplement, never replace, original records and the clinical team’s plan. This review supplies no personalized treatment advice.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <table><tbody><tr><td>Layer</td><td>Implementation and boundary</td></tr><tr><td>Workflow</td><td>SKILL.md supplies instructions; enforcement depends on the host/model</td></tr><tr><td>Medical research</td><td>Host browsing of official agencies, regulators, guidance and selected primary research</td></tr><tr><td>Trial retrieval</td><td>Python urllib GET requests to ClinicalTrials.gov API v2</td></tr><tr><td>Ranking</td><td>Deterministic token-overlap weights, phase/status/recency preferences; no clinical eligibility model</td></tr><tr><td>Persistence</td><td>Host Google Docs/Drive tools, ordinary local Markdown, or chat</td></tr><tr><td>Checks</td><td>Manual self-check in eval.md; synthetic Python unit tests; CI compile/test matrix</td></tr></tbody></table>
+<p>The <a href="https://github.com/petergyang/fuck-cancer/blob/ecaef1a3fa5bbee50798942011db508ccdffd5f0/skills/fuck-cancer/scripts/search_trials.py">491-line helper</a> normalizes selected country/state aliases, fetches at most five pages of 1,000 study records, filters matching sites, calculates great-circle distance, ranks candidates and returns JSON. It preserves study update dates, obtains the API data timestamp, flags pagination truncation, and labels eligibility previews truncated after 2,000 characters. Full criteria require an explicit flag. It defaults to ten returned records; the skill separately asks the model to present only three to five candidates.</p>
+<p>Important implementation qualifications:</p>
+<ul><li><strong>“Open” does not mean accepting volunteers now.</strong> The accepted statuses include NOT_YET_RECRUITING and ENROLLING_BY_INVITATION, with explanatory status notes. A missing site status falls back to the overall study status and is honestly labeled “not listed”; that is not confirmation that the site recruits.</li><li><strong>Ranking is lexical, not medical.</strong> It rewards query words even when they occur in exclusion criteria; it does not reason about negation, stage compatibility, prior-treatment requirements, age/sex eligibility, organ function, or competing risks. Age/sex fields are reported, not matched to a patient.</li><li><strong>Treatment bias is explicit.</strong> Phase III and treatment intervention types gain points; supportive-care words lose points. This may be useful for a treatment-focused query but can suppress precisely the quality-of-life studies a caregiver needs. Trial phase is not proof of personal benefit.</li><li><strong>Preview affects ranking.</strong> Ranking reads the extracted, potentially truncated eligibility text. Changing to full criteria can change ordering, not just display detail.</li><li><strong>Geography trades recall for locality.</strong> Missing geoPoints are excluded when proximity filtering is active. Exact city/state/country matching and a page cap can miss candidates. Great-circle distance is not road distance, cross-border feasibility, or travel burden.</li><li><strong>Resilience is modest.</strong> Requests have 30-second timeouts and three attempts for 429/server/network errors, with exponential delays but no Retry-After handling. Failure of the final version request fails the whole search. There is no response-size cap or strict returned-record schema validation.</li></ul><h4>Privacy and health data</h4><p><strong>Local Markdown output is not local inference.</strong> The README's “no account, database, or API key” statement for local mode concerns the brief/helper, not necessarily the chosen assistant. Uploaded reports and the full brief may pass through the host's model provider, OCR tools, chat history, tracing, or other enabled integrations. This repository does not specify their retention, training use, region, subprocessors, deletion guarantees, or contractual health-data protections.</p>
+<table><tbody><tr><td>Data path</td><td>Observed behavior / responsibility</td></tr><tr><td>Input reports and conversations</td><td>Host receives sensitive content; no repository redactor or minimization filter</td></tr><tr><td>Brief contents</td><td>Skill explicitly permits names, care contacts and medical/insurance identifiers in authorized chat/documents</td></tr><tr><td>Google Docs default</td><td>Host integration supplies credentials and sharing permissions; no repository OAuth scope checks or share-link policy</td></tr><tr><td>Web/trial search</td><td>Prompt forbids names/care identifiers, but no helper validation enforces that rule</td></tr><tr><td>Trial GET URL</td><td>Sends condition, terms, location and optional precise coordinates to ClinicalTrials.gov; clinical/location combinations remain sensitive even without names</td></tr><tr><td>Helper output</td><td>JSON includes search terms and coordinates; stdout may enter agent logs; --output persists an ordinary file</td></tr><tr><td>Deletion/export</td><td>Markdown/JSON are directly portable; Google export/deletion belongs to that service. No unified export, retention limit, purge, or deletion receipt exists</td></tr></tbody></table>
+<p>No embedded API key or credential-loading mechanism was found in the helper. It requires no API key and has no telemetry SDK. This does <strong>not</strong> establish zero transmission: public registry requests are intentional, while host/model and Google egress are separate. Shell arguments, errors, logs, provider histories, backups, document versions and shared copies can retain data after deleting a local brief. The .gitignore ignores Python bytecode only—not medical briefs—so using a tracked workspace risks accidental commits.</p>
+<p>Before real use, explicitly choose destination and audience, minimize identifiers, use coarse locality rather than a home point where sufficient, review provider terms and retention settings, scope connector access, require approval for sharing and external edits, and keep medical artifacts out of source control. No HIPAA/GDPR compliance claim can be derived from the MIT license or these prompt rules.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Fit and alternatives</td><td><ul><li><strong>A manually maintained private brief plus original reports:</strong> less automation, fewer model/provider exposures and no generated-medical-summary risk; still requires disciplined access control and factual updates.</li><li><strong>NCI PDQ and the patient's official cancer agency:</strong> stronger direct evidence context, but not a personalized record-maintenance tool. Use their material with the care team rather than treating an LLM synthesis as authoritative.</li><li><strong>ClinicalTrials.gov directly plus a trial navigator/oncology team:</strong> avoids this helper's custom ranking bias; more manual work and still requires current site and eligibility confirmation.</li><li><strong>An existing clinical portal or institution-approved care-navigation system:</strong> preferable for official records, access governance and accountable care; evaluate actual policies rather than assuming all portals solve every privacy concern.</li></ul>
+<p>The reusable idea is a small, uncertainty-aware action brief with one source of truth—not an autonomous cancer advisor. Adoption should begin with synthetic examples and clinician/human review, not identifiable uploads to an unexamined agent stack.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> Peter Yang / petergyang/fuck-cancer, MIT. Independent analysis; no patient records or source screenshot reproduced. <a href="https://github.com/petergyang/fuck-cancer/tree/ecaef1a3fa5bbee50798942011db508ccdffd5f0">Source tree at reviewed revision</a>.</p></td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The helper opens outbound HTTPS to a fixed API root and writes only when --output is requested. It has no server, listening port, shell/subprocess execution, privileged install step, or auth/CORS surface. However, urllib follows redirects with its default behavior; this is not an enforced egress allowlist. Output paths are caller-controlled: parent directories are created and an existing file can be overwritten without a confirmation or restrictive file-mode policy.</p>
+<p>The encompassing agent may have broad filesystem, browser and connected-account authority. The skill supplies no sandbox, tool allowlist, permission broker, document revision lock, transactional edit, or prompt-injection defense for uploaded reports and retrieved pages. Explicit permission in prose must be reinforced by host tools. Readback checks are useful but emphasize list formatting rather than independent medical fact verification.</p>
+<p>There is no service to self-host. README installation delegates to a globally installed skill via an external npx skills installer or a natural-language install request. Neither is revision-pinned in the instructions; global scope increases behavioral reach. This review installed nothing. The helper uses Python standard library only and declares Python 3.8+ in documentation; CI covers 3.9 and 3.13, so the advertised minimum was not verified here. Host model/agent subscriptions, token use, OCR/search connectors and Google storage may have costs; there is no spending meter or budget cap. No paid calls were made.</p><h4>Tests and maturity</h4><p>All <strong>24 bundled unittest cases passed</strong> against synthetic fixtures in a network-isolated sandbox with no home directory or credentials mounted. They cover location aliases, site status fallback, extraction, criteria previews, ranking examples, pagination and geography. This is stronger than a prompt-only repository, but not a clinical safety evaluation. The <a href="https://github.com/petergyang/fuck-cancer/blob/ecaef1a3fa5bbee50798942011db508ccdffd5f0/skills/fuck-cancer/eval.md">eval checklist</a> is a manual yes/no self-check, not a scored dataset or independent evaluator.</p>
+<p><a href="https://github.com/petergyang/fuck-cancer/blob/ecaef1a3fa5bbee50798942011db508ccdffd5f0/.github/workflows/ci.yml">CI configuration</a> compiles skills and runs unit tests on Python 3.9/3.13. GitHub reported <a href="https://github.com/petergyang/fuck-cancer/actions/runs/41534095351">run 41534095351</a> successful for this exact SHA. Action references use major-version tags rather than immutable SHAs. No lockfile/package manifest is needed for the stdlib helper; the external installation and host-agent supply chain remain out of scope.</p>
+<p>Public GitHub metadata at retrieval: created 2026-08-22; last push 2026-11-02; 295 stars, 29 forks, zero open issues reported; releases endpoint returned none. These are activity snapshots, not endorsements or evidence of safety. Shallow acquisition did not audit full Git history. No live API availability, Google document round trip, supported-host compatibility, Python 3.8 behavior, provider privacy policy, or diagnostic/triage performance was validated.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful uncertainty-aware appointment preparation and trial screening. Clinical behavior is unvalidated; privacy, permissions and final medical judgment remain outside this skill. 24 offline helper tests passed, not a clinical safety evaluation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/petergyang/fuck-cancer">petergyang/fuck-cancer</a> · MIT</span>
+    <span><a href="fuck-cancer.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
