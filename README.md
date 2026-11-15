@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [moshi-finetune.md](reviews/moshi-finetune.md) [page](reviews/moshi-finetune.html) | [kyutai-labs/moshi-finetune](https://github.com/kyutai-labs/moshi-finetune) | Apache-2.0 code; model/data separate | 📚 Study | Official multistream speech adaptation; evaluation, credential logging, recovery and dependency-drift caveats. Static review. |
 | [bevel-os.md](reviews/bevel-os.md) [page](reviews/bevel-os.html) | [andrisgauracs/bevel-os](https://github.com/andrisgauracs/bevel-os) | MIT; GPL v2 Doom exceptions | 📚 Study | ESP32-S3 VGA desktop with efficient rendering; shared app authority, plaintext Wi-Fi and destructive-recovery caveats. Static review. |
 | [hill-climb.md](reviews/hill-climb.md) [page](reviews/hill-climb.html) | [Bil0000/Hill-Climb](https://github.com/Bil0000/Hill-Climb) | MIT | ⚠️ Interesting | Coding-agent Git experiment controller; exact-tree commits and guards, but readable post-commit holdouts, paired-score bias and shared-authority caveats. 44 offline tests and demo passed. |
 | [selfgraph.md](reviews/selfgraph.md) [page](reviews/selfgraph.html) | [hydra-db/selfgraph](https://github.com/hydra-db/selfgraph) | Apache-2.0 | ⚠️ Interesting | Deterministic-first temporal graph SDK; evidence and backend choice, with full-scan retrieval, partial history and caller-owned isolation. Static review. |

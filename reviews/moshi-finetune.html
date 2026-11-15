@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moshi-Finetune — Review</title>
+<meta name="description" content="Official multistream speech-dialogue adaptation code: valuable research reference, not turnkey training.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / moshi-finetune</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">kyutai-labs/moshi-finetune · reviewed 2026-11-15</div>
+    <h1>Moshi-Finetune</h1>
+    <p class="one-liner">Official multistream speech-dialogue adaptation code: valuable research reference, not turnkey training.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 code · separate model/data terms</span>
+      <span class="chip">Python · PyTorch · CUDA/NCCL · Moshi/Mimi</span>
+      <span class="chip"><a href="https://github.com/kyutai-labs/moshi-finetune">kyutai-labs/moshi-finetune ↗</a></span>
+      <a class="chip" href="https://github.com/RueClaw/public-data/blob/main/reviews/moshi-finetune.md">Full review and source citations</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">532</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">88</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real full-duplex adaptation</h3><p>Frozen Mimi encodes both speakers; Moshi learns aligned assistant text and audio targets. LoRA and full language-model tuning are implemented, but not quantized-base training.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Evaluation and recovery need repairs</h3><p>Validation reuses a finite iterator and reports nonstandard perplexity. Safetensors exports omit optimizer, scheduler, RNG and data position: they are not exact-resume checkpoints.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Privacy and reproducibility are operator work</h3><p>A W&B key supplied in YAML enters saved/logged configuration. The pip dependency follows mutable Moshi HEAD while uv.lock selects an older SHA; audio consent and model/data rights remain separate.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Training</td><td>PyTorch 2.6, AdamW, BF16/FP32, gradient checkpointing, FSDP</td></tr><tr><td>Input</td><td>Stereo audio + JSONL manifest + timestamped main-speaker sidecars</td></tr><tr><td>Artifacts</td><td>safetensors, JSON/YAML, TensorBoard; optional W&amp;B</td></tr><tr><td>Reviewed SHA</td><td>2acc879fe7c48f885a18f6cc9548bccb2674d87b</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Data, Preprocessing and Quality</p>
+<p>The JSONL manifest contains path and duration fields. Each stereo audio file needs a same-stem JSON sidecar with alignments shaped like {&quot;alignments&quot;: [[&quot;hello&quot;, [0.1, 0.5], &quot;SPEAKER_MAIN&quot;]]}. Left/channel 0 is the assistant, right/channel 1 the user. sphn supplies fixed-duration, sample-rate-converted segments; the loader supports weighted source mixtures and rank-strided shuffling. Mimi codes are computed during iteration, rather than loaded from an offline codec cache. [1][4]</p>
+<p>annotate.py runs local whisper_timestamped (default medium, forced English) on channel 0, resamples to 16 kHz, uses auditok VAD for longer audio and writes word-level main-speaker labels. It does not diarize a mixed mono recording despite the parser description. <strong>The README's bare annotation command defaults to SLURM submission; --local is needed for its local path</strong>, which still requires CUDA. Existing sidecars are skipped, error markers suppress retries unless requested, and writes use temporary files plus rename. It reads manifest paths directly, so path resolution should be validated separately from the training loader. [5]</p>
+<p>Important contracts are weakly enforced: no dedicated preflight validates two-channel identity, finite ordered timestamps, consent, manifest/sidecar completeness or split leakage. Binary search selects alignments before a later sorting step, so inputs must already be sorted. Overlapping/dense words can replace pending text tokens under default keep_and_shift=false. There is also a visible units mismatch: InterleavedTokenizer passes this_num_audio_frames to prepare_item's segment_duration, which multiplies by frame rate again; downstream padding/cropping hides final shape differences but not the redundant construction. None of these paths was run here. [4]</p>
+<p>Use speaker/session-disjoint train, validation and test sets; manually audit timestamp alignment, channel order, overlap, silence, clipping, ASR errors and duplicated conversations. Preserve natural pauses instead of optimizing solely for transcript accuracy. The README warns that shortening chunks to fit memory may make the model become silent earlier during inference. There is no automatic consent or de-identification system. Voice likeness, conversation privacy and participant withdrawal must be handled before training; adapters can retain sensitive material.</p>
+<h4>Dataset and model rights are not the code license</h4>
+<p>The root LICENSE is Apache-2.0 and README credits Apache-2.0 mistral-finetune code; preserve applicable notices when reusing code. The default Moshiko model card declares CC BY 4.0 and separately describes research-only intended use and discourages impersonation. Those statements should not be silently collapsed into the repository's Apache grant or an invented noncommercial license. [1][9]</p>
+<p>The linked DailyTalkContiguous card declares <strong>CC BY-SA 4.0</strong>, describes concatenated stereo DailyTalk conversations with word timestamps, and says freely available for academic use. That wording does not establish unrestricted rights to voices or settle how share-alike applies to a proposed trained artifact. Review the original dataset, attribution and applicable rights before distribution or commercial use. The brief card is not participant-consent evidence; this review downloaded no dataset and verified no consent records. [10]</p>
+
+<p>Evaluation and Reproducibility</p>
+<p><strong>Do not trust the emitted perplexity as a standard comparable benchmark.</strong> The example disables evaluation. When enabled, train.py creates one finite generator outside the loop and reuses it: later evaluations continue through or exhaust that generator instead of restarting the same validation set. evaluate increments its batch counter before checking the 40/world_size cap, potentially counting an unprocessed batch; the data loader discards incomplete batches. Empty/exhausted evaluation has no positive-denominator guard. Unequal rank-local batch counts also need coordinated FSDP handling. [2][4][6]</p>
+<p>Losses are averaged per batch rather than globally by effective token weight. The code computes 2<strong>eval_loss even though PyTorch cross_entropy uses natural-log units; moreover eval_loss is the sum of differently weighted modality means. That is not ordinary token perplexity. Separate text/audio values are stored in state but are not supplied by the training call to get_eval_logs. There are no supplied WER, intelligibility, listening-preference, turn-taking, interruption, latency, safety or forgetting evaluations. A README training-curve image does not establish improvement against an untouched base model. [2][6]</p>
+<p>Seeds, saved YAML, explicit example hyperparameters and a uv lockfile are helpful, not proof of deterministic replay. Dataset/Hugging Face revisions are not exposed as pinned training arguments, GPU determinism is not enforced, and optimizer/scheduler/RNG/data-cursor restoration is absent. Before a pilot, freeze the full environment and artifact hashes, repair validation, compare base versus adapted outputs on consented held-out conversations, and measure both dialogue quality and regressions. No training-quality result was independently verified here.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Architecture and Key Features</p>
+<h4>Real multistream adaptation, not text-only PEFT</h4>
+<p>train.py loads CheckpointInfo, freezes Mimi and constructs the token interleaver and model. Upstream Moshi's temporal transformer consumes summed text/audio embeddings across time. Its depth transformer predicts the assistant audio codebooks within each time step; delays are applied and outputs realigned before masked loss. The default upstream configuration has 16 audio input streams and predicts eight assistant codebooks plus text. The user channel conditions the prediction rather than becoming a second assistant-target loss. Text and audio cross-entropies are added; the example weights the first semantic codebook by 100 and text padding by 0.5. [2][3][4][8]</p>
+<h4>LoRA versus full fine-tuning</h4>
+<p>LoRA is genuinely implemented: the locked upstream loader recursively replaces Linear modules with frozen base weights plus low-rank A/B paths, scaling the update directly by the configured factor. The wrapper enables gradients by parameter name containing lora; ft_embed additionally enables names containing emb. This is broader than attention-only adaptation. A is Kaiming-initialized and B starts at zero. Full fine-tuning requires full_finetuning=true and lora.enable=false and trains all language-model parameters; Mimi remains frozen. This is not QLoRA and the reviewed pipeline provides no quantized-base training recipe. [2][3][8]</p>
+<p>The default example uses rank 128, scaling 2, 100-second chunks, batch 16 per GPU and 2,000 steps. Gradient checkpointing trades computation for activation memory. FSDP separates trainable/frozen groups and shards transformer layers. The loop accumulates microbatch gradients, then upcasts trainable state for AdamW. Multi-GPU qualification is still necessary: clipping uses generic clip_grad_norm_ on local parameters rather than FSDP's global-norm operation, and the accumulation branch assumes every trainable parameter has a local gradient. These are static concerns, not a reproduced distributed failure. [2][3]</p>
+
+<p>Privacy, Provider Egress and Checkpoint Trust</p>
+<p>Training is principally local, and the reviewed logger explicitly sends scalar metrics rather than raw audio/transcript tables. That is not an air-gap guarantee: model/tokenizer/Whisper acquisition contacts upstream hosting; optional W&amp;B sends run configuration and metrics; hosted notebooks put recordings on a provider, and the tutorial's Gradio tunnel moves interactive audio across another service boundary. The inference server is supplied by upstream Moshi, not secured by this repository. Review its authentication, TLS, bind address and recording behavior separately before exposing it. [1][2][5][7]</p>
+<p></strong>Credential disclosure path:<strong> TrainArgs includes wandb.key, args.save writes the arguments to args.yaml, pprint logs the complete dataclass, and MetricsLogger passes the same configuration to wandb.init. Thus a key placed in the suggested YAML reaches local artifacts/logging and is handed to the SDK as configuration; SDK-side redaction was not verified. Avoid putting credentials in this field; use an approved external authentication mechanism and redact configuration before logging. Annotation error logs can include transcript word/segment contents and paths. Audio, sidecars, errors, run files, caches and adapters have no repository-level encryption, retention or deletion policy. [2][5][7]</p>
+<p>The training wrapper requires safetensors for the main weights; exports use safetensors plus config.json, a stronger default than arbitrary Python pickle. It still uses non-strict loading, trusts the selected model/config, and has no authenticity/signature policy. The pinned upstream loader has torch.load fallbacks for non-safetensors artifacts (including codec paths), whose behavior depends on the installed PyTorch version. Treat all checkpoints/configs and package sources as trusted inputs, not sandboxed data. [3][8]</p>
+<h4>Export is not resume</h4>
+<p>Checkpoint saving gathers adapter weights or merges LoRA into full weights, writes into a temporary consolidated directory and renames it. This reduces partial-visible output, but no fsync durability or verified restore is provided. Although Checkpointer accepts an optimizer and has a broad docstring, it saves neither optimizer nor scheduler, RNG, step state or data position. There is no resume argument/loader in the training entrypoint. Initializing a new run from exported weights is a warm start, not exact continuation. [2][11]</p>
+<p>Retention defaults to three checkpoint directories and deletes older directories by filesystem ctime. overwrite_run_dir recursively deletes an existing run directory, and the setup branch can be entered on every torchrun rank, creating a distributed race risk. Use unique run directories and independent backups; do not treat overwrite as recovery. Adapter merging additionally needs CPU/GPU headroom. The README's full-model inference command has a duplicated consolidated/config path segment; inspect actual export paths instead of copying it blindly. [1][2][11]</p>
+
+<p>Dependencies, CI and Maturity</p>
+<p>pyproject.toml pins torch==2.6 and sphn==0.1.12 but installs Moshi from mutable Git HEAD; several other dependencies are unconstrained. uv.lock records Moshi </strong>061cc4c630d9e11722e08b7d02b1836ba58f30e8<strong>, so pip and a locked uv environment need not select the same APIs. Explicitly pin compatible source/artifact revisions and review native audio/CUDA dependencies before an isolated install. No install or vulnerability audit was performed here; absence of an audit is not evidence of safety. [12]</p>
+<p>The tracked CI is a CPU environment plus pre-commit lint/format/notebook-output checks; it does not prove CUDA, FSDP, model loading, training, checkpoint restore or speech quality. No tracked runtime test suite was found (pytest is merely a dev dependency). CI uses version-tagged checkout/setup-python/cache actions rather than full-SHA pins and installs the editable project from mutable dependency metadata. CONTRIBUTING calls this research-paper implementation, prioritizes bug fixes over features/refactoring and requires a substantive CLA. [13]</p>
+<p>Public metadata observed 2026-11-15: 532 stars, 88 forks, 22 open issues/PRs, no releases returned; repository last-push field 2026-09-09, while reviewed main's tip remains dated 2025-07-07. These are distinct metadata fields, not proof of ongoing main-branch maintenance. Public open PRs <a href="https://github.com/kyutai-labs/moshi-finetune/pull/28">#28</a> and <a href="https://github.com/kyutai-labs/moshi-finetune/pull/29">#29</a> propose evaluation and dependency fixes; they were </strong>not merged into the reviewed SHA<strong>, and their test claims were not reproduced. [14]</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Use base model</td><td>Upstream Moshi inference avoids training overhead</td></tr><tr><td>Text adaptation</td><td>PEFT/TRL are not drop-in multistream replacements</td></tr><tr><td>Modular voice agent</td><td>ASR → LLM → TTS trades native full duplex for separable components</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Hardware, Time and Cost Evidence</p>
+<p>| Evidence | What it actually establishes |<br>|---|---|<br>| README: 1×H100 ≈12k tokens/s, 39.6 GB peak allocated | Author-reported example configuration; not independently reproduced or a minimum-VRAM promise |<br>| README: 8×H100 ≈10.7k tokens/s, 23.7 GB peak allocated | Author-reported distributed case; do not read the lower number as total cluster throughput |<br>| Colab notebook: A100, batch 1, 100 seconds, 300 steps | Suggested smaller tutorial, not a recorded successful run or guaranteed free-tier fit |<br>| Full fine-tuning / adapter merging | Implemented, but no comparable memory/time table supplied |</p>
+<p>The source metric counts text/audio mask elements per rank, including invalid/padded positions; it is not ordinary LLM text tokens/s. Memory logging divides bytes by 1024³ despite labeling GB, and allocated memory excludes other reservation/driver overhead. No reliable end-to-end wall time, annotation budget or dollar cost is supplied. On the single-H100 headline alone, the documented nominal 360 million token positions (2,000×16×100×9×12.5) divided by 12k/s implies roughly </strong>8.3 hours of counted work<strong>, not a measured job duration; preprocessing, startup, checkpointing and throughput variability can add cost. Multi-GPU batch scaling changes total examples processed, so equal steps are not equal-data comparisons. No rental price or 24-GB-card fit is asserted. [1][2][7]</p>
+
+<p>Comparison and Practical Fit</p>
+<p>- </strong>Upstream Moshi inference:<strong> start here if the goal is simply to converse with the base model; fine-tuning adds data rights, GPU spend and regression obligations. This repository exports into that runtime rather than replacing it.<br>- </strong>Hugging Face PEFT/TRL-style text adaptation:<strong> more general text training tooling, but not a drop-in substitute for synchronized Mimi audio streams, delayed codebooks and depth-transformer losses.<br>- </strong>ASR → text LLM → TTS composition:<strong> easier to swap and evaluate components independently; does not preserve Moshi's native full-duplex acoustic/overlap modeling. Choose it when modularity and application controls matter more than joint speech generation.<br>- </strong>Purpose-built TTS adaptation:<strong> more appropriate if the requirement is only a licensed voice/style or read-aloud output, rather than two-stream dialogue behavior. Do not adopt a 7B dialogue training stack merely for voice customization.</p>
+<p></strong>Go/no-go:<strong> study the multistream adaptation design now. A funded research pilot should first fix logging and validation, freeze compatible dependencies and model/data revisions, add input-contract and distributed tests, establish a recovery strategy, obtain dataset/voice permissions, and define base-versus-finetuned listening/behavior acceptance gates. Broad deployment is not justified by the evidence in this repository alone.</p>
+
+<p>Evidence and Verification Limits</p>
+<p>All code conclusions above are source inspection, not executed reproductions. Only public code, documentation, metadata and text cards were acquired. No private data, user audio, accounts, paid endpoints, training jobs or live inference were used. External model/dataset cards are moving main-branch documents retrieved 2026-11-15, not frozen weights reviewed here. The lockfile-selected upstream source is inspected for architecture/loader context, not certified as safe or currently supported.</p>
+<p>1. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/README.md">README and documented examples</a><br>2. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/train.py">Training loop</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/args.py">argument schema</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/example/moshi_7B.yaml">example configuration</a><br>3. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/wrapped_model.py">Model wrapper</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/mixed_precision.py">mixed precision</a><br>4. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/data/dataset.py">Dataset</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/data/data_loader.py">batch loader</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/data/interleaver.py">interleaver</a><br>5. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/annotate.py">Annotation</a><br>6. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/eval.py">Evaluation</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/loss.py">loss</a><br>7. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/monitoring/metrics_logger.py">Metrics/logger</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/utils.py">state/seed</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/tutorials/moshi_finetune.ipynb">notebook</a><br>8. Locked upstream Moshi: <a href="https://github.com/kyutai-labs/moshi/blob/061cc4c630d9e11722e08b7d02b1836ba58f30e8/moshi/moshi/models/lm.py">LM</a>, <a href="https://github.com/kyutai-labs/moshi/blob/061cc4c630d9e11722e08b7d02b1836ba58f30e8/moshi/moshi/modules/lora.py">LoRA</a>, <a href="https://github.com/kyutai-labs/moshi/blob/061cc4c630d9e11722e08b7d02b1836ba58f30e8/moshi/moshi/models/loaders.py">loaders</a><br>9. <a href="https://huggingface.co/kyutai/moshiko-pytorch-bf16/blob/main/README.md">Moshiko model card</a><br>10. <a href="https://huggingface.co/datasets/kyutai/DailyTalkContiguous/blob/main/README.md">DailyTalkContiguous card</a><br>11. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/finetune/checkpointing.py">Checkpointing</a><br>12. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/pyproject.toml">Manifest</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/uv.lock">lock</a><br>13. <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/.github/workflows/precommit.yml">CI</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/.github/actions/moshi_build/action.yml">build action</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/CONTRIBUTING.md">contribution policy</a>, <a href="https://github.com/kyutai-labs/moshi-finetune/blob/2acc879fe7c48f885a18f6cc9548bccb2674d87b/LICENSE">license</a><br>14. <a href="https://api.github.com/repos/kyutai-labs/moshi-finetune">Public metadata</a>, <a href="https://api.github.com/repos/kyutai-labs/moshi-finetune/releases">releases</a></p>
+<p>---<br></strong>Attribution:** Kyutai / kyutai-labs/moshi-finetune, Apache-2.0 code; upstream Moshi and linked model/dataset authors retain their respective rights. This is independent analysis, not an upstream certification.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the stereo audio, aligned text and LoRA/FSDP architecture. Repair validation and credential logging, pin the environment and establish recovery before a funded pilot. Static inspection only: no training, model runs or speech-quality results were verified.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/kyutai-labs/moshi-finetune">kyutai-labs/moshi-finetune</a> · Apache-2.0 code · separate model/data terms</span>
+    <span><a href="moshi-finetune.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
