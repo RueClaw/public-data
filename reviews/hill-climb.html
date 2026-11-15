@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hill Climb — Review</title>
+<meta name="description" content="A local Git experiment controller for coding agents—not an incorruptible evaluator.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / hill-climb</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Bil0000/Hill-Climb · reviewed 2026-11-15</div>
+    <h1>Hill Climb</h1>
+    <p class="one-liner">A local Git experiment controller for coding agents—not an incorruptible evaluator.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Python stdlib · Git · POSIX</span>
+      <span class="chip"><a href="https://github.com/Bil0000/Hill-Climb">Bil0000/Hill-Climb ↗</a></span>
+      <span class="chip"><a href="hill-climb.md">Full evidence and citations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">136</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">6</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>The scored Git tree is the commit</h3><p>Private indexes snapshot candidate content; checks and guards cannot silently rewrite a kept step. All 44 upstream tests and the synthetic demo passed in an offline, secret-free Linux sandbox.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>A score is not hidden evaluation</h3><p>Holdouts are readable and run after a winning commit, without automatic rejection. Paired timing does not synchronize random inputs at this revision; upstream PR #11 documents optimistic speedup estimates.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Worktree discipline is essential</h3><p>Commands run with inherited user authority, and losing steps reset tracked files and delete nonignored untracked files. Optional judges add provider egress and cost; state is useful but not a crash-atomic transaction log.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Evidence &amp; security</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operations</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Controller</td><td>Python 3.9+ stdlib and Git; POSIX process control and fcntl</td></tr><tr><td>Packaging</td><td>Claude Code plugin / portable SKILL.md</td></tr><tr><td>State</td><td>JSON, JSONL, text output, Git commits and tar.gz kits</td></tr><tr><td>Optional judges</td><td>Claude Code and Codex CLI; provider credentials/terms external</td></tr><tr><td>Revision</td><td>84b95909383379d4a84ad02ecadf928aba6b3b9b</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4>
+<p>An outer coding agent reads SKILL.md, builds the evaluator, edits the target project, and invokes climb.py. The controller has no model client or autonomous scheduling loop: it measures commands, compares scores, manipulates Git, and records results. It fits bug-fixing campaigns, performance experiments, ports and narrowly specified feature work where a meaningful scalar and independent correctness guards already exist.</p>
+<p>The skill recommends a human-approved “card” for larger goals, fresh-input checks, separate passing-test guards, blocker reviews, final whole-branch review and reusable evaluation kits. Small goals skip the card and holdout. These are agent instructions, not independently enforced authorization controls. The broader instruction to acquire tools/compute and keep working must remain subordinate to the host's approval and spending policy. [S1, S2]</p>
+
+<h4>Key Features and Architecture</h4>
+<h4>1. Commit the scored tree, not whatever happens to be staged later</h4>
+<p>init rejects unrelated dirty files, permits new locked check files, runs a baseline and guards, then creates climb/&lt;name&gt; branches (unless --here). try fingerprints selected locked paths, snapshots each checkout through a private Git index, and scores the candidate. Multiple check commands run concurrently; repeated measurements use a median, with a discarded warm-up when runs &gt; 1. Winning candidates must pass sequential guards. The controller detects check/guard writes and moved HEADs, removes generated untracked outputs, then commits the recorded tree. [S3]</p>
+<p>This is real executable enforcement against common accidental evaluator edits, not just a prompt asking the agent to behave. Tests exercise staging/committing during checks, modifications to the old side of paired runs, generated reports, ignored-file preservation, guard failures and multi-repository rollback. Version 1.1.0 specifically strengthens these boundaries. [S5, S8]</p>
+<h4>2. Numeric checks are flexible, but their contract is permissive</h4>
+<p>Without --score, a successful check must print a bare number on its final stdout line. With --score, the parser sums captures on the last matching line of combined stdout/stderr; a successful command with no match scores zero. A nonzero exit can still produce a valid score if a matching line exists, allowing failing-test counts to improve gradually. Several checks' scores are simply added. [S3]</p>
+<p>Consequences: output-format drift can become a false zero, a partial test crash can look like fewer failures, and a summed score can hide deterioration in one component. The documentation warns about crashes and recommends guards; use machine-readable completeness checks, explicit per-component floors and a fixed test inventory where correctness matters. A passing unrelated guard does not prove the scoring suite actually ran in full. --fix intentionally allows equal-score repairs, so not every kept change strictly improves the score. [S2, S4]</p>
+<h4>3. Durable context helps resumption, but does not make a transaction journal</h4>
+<p>The card records commands, limits, locks, baseline/best score and Git metadata; log.jsonl records steps and reasons. last.txt and best.txt preserve check output, while notes carry human/agent context. State is excluded through Git's info/exclude, so ordinary repository clones/backups of tracked files do not capture it. [S3]</p>
+<p>Paired mode writes a pending-tree marker before switching old/new trees. An interrupted step is refused with explicit restore instructions. A per-primary-checkout flock prevents simultaneous mutating controller commands; secondary repos do not receive a jointly held multi-repo lock. Multi-repo commit failures roll earlier commits back with soft resets, but branch creation, commits, card writes and log appends are separate operations. There is no atomic replace/fsync protocol or crash reconciliation across them: abrupt termination can leave partial state and requires comparing cards/logs with actual Git heads. Independent writers can still race or lose work. [S3]</p>
+<p>Kits are bounded on creation (512,000 bytes per file, 2 MB compressed archive); new commits reject files over 10 MB and state over 200 MB triggers a warning, not a quota. Reuse rejects unsafe archive paths, nonregular entries, destination symlinks and differing existing files. Import does not impose an analogous decompressed-size budget. Kit names group by repository basename, not globally unique owner/repository identity. Treat kits as trusted local executable evaluation material, not safe arbitrary downloads. [S3, S5]</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Claims, Evidence and Evaluation Methodology</h4>
+<ul><li><strong>“The check is locked”:</strong> Selected path hashes are checked before/after acceptance. No protection from an agent able to edit the controller/card, invoke relock, read holdouts or bypass the tool.</li><li><strong>“Every change scores better”:</strong> Ordinary try requires strict gain above min-gain; --fix can keep equal scores. Score validity depends on evaluator completeness.</li><li><strong>“A holdout check the agent never sees”:</strong> A behavioral instruction only. Files live in the accessible checkout; no read-denial boundary.</li><li><strong>“Undo is automatic and complete”:</strong> Git-tracked changes and nonignored untracked files are reset/removed. Ignored data, external filesystem writes, network calls and other side effects are not rolled back.</li><li><strong>“Same code that was scored”:</strong> Strong snapshot/tree enforcement for observed Git content; not proof of identical environment, ignored caches, external state or absence of hostile concurrent mutation.</li><li><strong>About 290× faster user lookup:</strong> README labels its runs small examples, not a benchmark. No independently reproduced performance result here.</li></ul>
+<h4>Paired timing needs an independent final measurement</h4>
+<p>paired alternates candidate/baseline order, takes separate medians and computes new stored score = previous best score × candidate median / baseline median. It does not supply a shared input seed at this SHA. Random input size/content can therefore differ between sides, and repeated selection of only apparent wins can compound optimistic noise. Medians, balanced order and a minimum gain help, but are not significance tests or a correction for repeated selection. The stored trajectory is a chained estimate, not a direct final runtime. [S3, S4]</p>
+<p>Open PR #11 proposes a shared HILL_CLIMB_SEED and fixed workload sizes. Its author reports a 190× estimated gain versus a directly timed 46× gain in one experiment, plus residual error after proposed fixes. Those are upstream self-reports, not our replicated findings, and the proposed seed code is <strong>not</strong> in the reviewed commit. Compare final and original commits directly on identical workloads, with repeated timings and correctness checks, before reporting a speedup. [S9]</p>
+<h4>Holdout feedback is not a keep/reject gate</h4>
+<p>run_holdout only measures and appends a score. At the bar it runs <strong>after</strong> commit, best-card update and kept-log append; no comparison automatically rejects a worsening holdout. The skill tells the agent to stop when holdout and visible scores disagree, but try does not enforce that stop or automatically reverse the commit. Manual holdout invocation also lacks the ordinary try snapshot/mutation checks. A holdout failure may therefore occur after a kept step. Issue #12 explicitly recognizes readable holdouts; moving files elsewhere under the same user's access would still not create genuine evaluator isolation. [S2, S3, S10]</p>
+<p>For a true hidden evaluation, use a separately controlled runner/data boundary. Predefine final acceptance and preserve a never-used final test set; repeated holdout feedback can itself become optimization feedback. Human review remains necessary for unmeasured APIs, accessibility, regressions and semantic requirements.</p>
+
+<h4>Security, Permissions and Privacy</h4>
+<ul><li><strong>Local command authority:</strong> check, guard and holdout strings run with shell=True, inherited environment and current-user authority. No built-in filesystem/network sandbox, credential stripping, application authentication, or egress allowlist exists. Even init runs supplied code. There is no listening service, so CORS/server authentication are not applicable. [S3]</li><li><strong>Destructive Git scope:</strong> undo uses reset --hard and clean -fdq across registered checkouts. Snapshot uses add -A; unrelated nonignored files present at the candidate snapshot may be committed or deleted. Use dedicated worktrees for every participating repo, not a shared working directory. --here removes the default separate-branch safeguard. Commits use --no-verify, bypassing pre-commit/commit-msg hooks; do not depend on those for secret or policy checks. [S3]</li><li><strong>Process control is not isolation:</strong> check commands get a new session and process-group kill after completion/timeout, reducing late background writes. Escaped process groups and external effects are not a transactional sandbox. Timeout is per command/run, not a whole-step deadline; outputs are buffered without a byte cap. [S3]</li><li><strong>Tamper boundary:</strong> card, score history, lock fingerprint, controller and agent share filesystem authority. relock intentionally changes the evaluator and resets best. Lock coverage is opt-in; test runner config and transitive inputs must be selected by the operator. Existing ignored-file contents are represented as an ignored marker rather than hashed bytes. This is an accident-resistant workflow, not a security boundary against a malicious agent. [S3]</li><li><strong>Optional judges introduce provider egress:</strong> judge.py sends the rubric and candidate/reference paths to configured CLI processes, which read content for model evaluation. Claude is restricted to Read with strict MCP config and no session persistence; Codex uses read-only sandbox and ephemeral mode. Those reduce writes/history but do not make the target files the exclusive readable surface or neutralize all host configuration. Provider routing, authentication and retention follow the installed CLIs. No API keys are managed by this repository. [S6]</li><li><strong>Untrusted judging inputs:</strong> the prompt explicitly labels candidate content as data, but that is not a robust injection boundary. Recursive candidate enumeration has no hidden-file exclusion, content-volume cap or secret filtering. Scope input directories tightly. Majority-answer requirement and 0–10 validation catch malformed/missing scores, not bias or correlated judges. [S6]</li><li><strong>Retention:</strong> local cards, logs, check output, notes and kits may contain sensitive command arguments, results, rubric/reference files or paths. They are not encrypted/redacted; ignored is not private or backed up. “No session persistence” is not a claim about remote provider retention. [S3, S6]</li></ul>
+
+<h4>Verification and Limits</h4>
+<ul><li>Read all core implementation, skill/check recipes, test file, demo, manifests and CI; checked actual license and asset structure.</li><li>Ran the 44-test upstream suite and Bash demo using a read-only source mount, disposable writable home/temp, cleared environment and an isolated network namespace. No host credentials, target projects, models, datasets, packages or device access were involved.</li><li>Tests passed; demo reached 4 → 0, kept three steps, undid an equal-score step and a guard regression, and refused a changed locked test. This proves those synthetic paths, not general safety or performance.</li><li>Judges were mocked by the test suite. No real Claude/Codex call, install/update, GUI exercise, real-project climb, crash injection, adversarial penetration test or performance claim reproduction was performed. GitHub CI status was observed, not independently rerun on its full platform matrix.</li></ul>
+
+<h4>Sources</h4>
+<p>All code links below are pinned to the reviewed commit; issue/release/metadata links are time-sensitive public observations.</p>
+<ul><li><a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/README.md">S1 — README and claims</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/skills/hill-climb/SKILL.md">S2 — Agent workflow</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/skills/hill-climb/scripts/climb.py">S3 — Controller: run/read_score/paired/fingerprint, snapshot/commit, init/try, holdout/relock and persistence</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/skills/hill-climb/references/checks.md">S4 — Check methodology and recipes</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/tests/test_hill_climb.py">S5 — Synthetic tests</a> and <a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/examples/demo.sh">demo</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/skills/hill-climb/scripts/judge.py">S6 — Optional judges</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/tree/84b95909383379d4a84ad02ecadf928aba6b3b9b">S7 — Source tree / manifests / license</a> and <a href="https://github.com/Bil0000/Hill-Climb/blob/84b95909383379d4a84ad02ecadf928aba6b3b9b/.github/workflows/test.yml">CI matrix</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/releases/tag/v1.1.0">S8 — v1.1.0 release</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/pull/11">S9 — Open paired-input proposal #11</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/issues/12">S10 — Readable holdout issue #12</a></li><li><a href="https://github.com/Bil0000/Hill-Climb/actions/runs/43307012152">S11 — Exact-revision CI run</a> and <a href="https://api.github.com/repos/Bil0000/Hill-Climb">public repository metadata</a></li></ul>
+<p>---</p>
+<p><strong>Attribution:</strong> Bil0000/Hill-Climb, MIT. Independent technical review; upstream performance reports are identified as such.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Tests + Git + CI</td><td>Prefer independent merge gates for requirements not captured by a scalar.</td></tr><tr><td>pyperf / pytest-benchmark</td><td>Stronger measurement focus; supply checks rather than agent orchestration.</td></tr><tr><td>Eval-design guidance</td><td>Calibration, train/test separation and noise/headroom complement this controller.</td></tr><tr><td>Inspect AI</td><td>Richer agent/model evaluation framework and sandbox integrations.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Costs and Operational Fit</h4>
+<p>The scorekeeper itself has no packages, service subscription, account or direct HTTP client. Its target commands can still install packages or use paid APIs; the outer coding agent and optional judge CLIs carry their own credentials and charges. No token or currency accounting is implemented.</p>
+<p>Default judge panel is Claude plus Codex, one round each. Nonpaired scoring with runs=3 calls the check four times including warm-up; a two-judge/two-round check therefore launches 16 judge jobs for one measurement. Paired runs=3 rounds up to four turns, two sides each: eight checks, or 32 judge jobs at that panel setting, before guards/holdouts. Init and final/milestone evaluations add more. Use deterministic checks where possible and explicitly authorize paid judging. [S3, S6]</p>
+<p>The skill defaults to no budget; optional step/hour limits are soft while recent gains continue unless --hard is set. Hard limits are checked before try, not as a kill deadline for the whole step. BAR REACHED and STUCK are reporting/instruction states rather than unconditional CLI refusal to attempt more changes. Set host-level spend/runtime boundaries rather than assuming the card enforces a financial cap. [S2, S3]</p>
+
+<h4>Installation, Compatibility and Update Risks</h4>
+<p>This is a local development tool, not a self-hosted server. The documented paths are Claude marketplace installation or cloning/copying the skill directory for Claude Code/Codex. No installation was performed in this review. The Python scripts use only stdlib, but Git and the selected project's tools are required; optional judging needs separately installed, authenticated CLIs. [S1, S7]</p>
+<p>Python 3.9+ is plausible from the APIs used, and CI targets Python 3.9/3.13 on Ubuntu 24.04 and macOS. Native Windows is not supported as written: unconditional fcntl import and POSIX killpg/session/shell behavior require a Unix-like environment. WSL may be suitable but was not tested; neither live macOS execution nor actual harness plugin compatibility was verified here. [S3, S7]</p>
+<p>Manual copy updates can drift; documented marketplace updates require an explicit update/restart unless auto-update is enabled. Pin and inspect a reviewed revision, and finish/checkpoint active climbs before changing controller semantics. Release 1.1.0 claims existing 1.0.0 climbs carry on; there is lightweight compatibility normalization for older check/score fields but no explicit versioned migration framework or authenticated evaluator manifest. CI actions use version tags rather than immutable commit pins, though workflow permissions are read-only and checkout disables persisted credentials. [S3, S7, S8]</p>
+
+<h4>Licensing, Assets and Maturity</h4>
+<p>Root LICENSE is MIT, copyright 2026 Bil0000. Plugin metadata agrees. The two bundled SVGs are explanatory diagram/demo assets; no separate asset-license file or third-party exception was found in this small tree. This review does not redistribute them or extract source code. Target repositories, host CLIs and providers retain their separate terms. [S7]</p>
+<p>Public GitHub metadata retrieved 2026-11-15: created 2026-11-02; last push 2026-11-12; 136 stars, six forks, three open issue/PR entries (one issue and two PRs in the retrieved list). Latest release v1.1.0 was published 2026-11-12. These indicate a very young, actively corrected project, not long-term operational validation. The exact reviewed SHA has a successful push CI run; a newer successful PR run is not evidence that its proposed changes are merged. [S8–S11]</p>
+
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Worth piloting for bounded experiments in dedicated worktrees. Exact-tree commits and regression guards are real strengths; readable post-commit holdouts, noisy paired estimates and shared execution authority prevent treating a score as proof of completion.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Bil0000/Hill-Climb">Bil0000/Hill-Climb</a> · MIT</span>
+    <span><a href="hill-climb.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

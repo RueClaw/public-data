@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [hill-climb.md](reviews/hill-climb.md) [page](reviews/hill-climb.html) | [Bil0000/Hill-Climb](https://github.com/Bil0000/Hill-Climb) | MIT | ⚠️ Interesting | Coding-agent Git experiment controller; exact-tree commits and guards, but readable post-commit holdouts, paired-score bias and shared-authority caveats. 44 offline tests and demo passed. |
 | [kiri.md](reviews/kiri.md) [page](reviews/kiri.html) | [libracoder/kiri](https://github.com/libracoder/kiri) | Apache-2.0; kernel/component terms | ⚠️ Interesting | Custom Rust Docker-compatible engine; strong local access controls, but platform isolation, Windows update authenticity, recovery and hosted-sharing caveats. Static review. |
 | [fuck-cancer.md](reviews/fuck-cancer.md) [page](reviews/fuck-cancer.html) | [petergyang/fuck-cancer](https://github.com/petergyang/fuck-cancer) | MIT | ⚠️ Interesting | Family medical brief and trial-screening skill; thoughtful navigation, unvalidated clinical behavior and host-owned health-data privacy. 24 offline tests passed. |
 | [omarchy-server.md](reviews/omarchy-server.md) [page](reviews/omarchy-server.html) | [TouchWorkStation/omarchy-server](https://github.com/TouchWorkStation/omarchy-server) | MIT; component/guest terms | ⚠️ Interesting | Browser home-server console for Omarchy; rootless apps and user VMs, but HTTP, port-auth exceptions, privileged lifecycle and incomplete recovery caveats. Static review. |
