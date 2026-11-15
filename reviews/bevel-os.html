@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bevel OS — Review</title>
+<meta name="description" content="A tiny ESP32-S3 graphical desktop: excellent rendering lessons, shared trust and fragile data recovery.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / bevel-os</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">andrisgauracs/bevel-os · reviewed 2026-11-15</div>
+    <h1>Bevel OS</h1>
+    <p class="one-liner">A tiny ESP32-S3 graphical desktop: excellent rendering lessons, shared trust and fragile data recovery.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT; GPL v2 Doom exceptions</span>
+      <span class="chip">C · ESP-IDF 5.5.3 · FreeRTOS</span>
+      <span class="chip"><a href="https://github.com/andrisgauracs/bevel-os">andrisgauracs/bevel-os ↗</a></span>
+      <span class="chip">Static review · f620228140f1cb07a0647fbc23925ab8b220e09f</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">53</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">12</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A genuine embedded desktop, not a PC OS</h3><p>Custom VGA compositor, toolkit and ELF apps on ESP32-S3 N16R8. ESP-IDF and FreeRTOS supply the underlying system; board wiring and memory configuration are narrow.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Recovery is not data preservation</h3><p>Mount failure triggers formatting and bundled-file restoration. The power-cut test checks paths recreated by boot, so it can pass after losing user files.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Trusted code and trusted physical access only</h3><p>Native apps share memory and storage; serial control is unauthenticated. Plaintext Wi-Fi passwords, HTTP defaults and disabled TLS date validation rule out sensitive use.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Hardware</td><td>ESP32-S3, 240 MHz, octal PSRAM at 80 MHz; fixed VGA and USB GPIO wiring</td></tr><tr><td>System</td><td>ESP-IDF 5.5.3 / FreeRTOS; factory app partition, no OTA slots in the supplied layout</td></tr><tr><td>Graphics</td><td>esp_lcd RGB output, internal bounce buffers, PSRAM framebuffer, Xtensa PIE copy/fill routines</td></tr><tr><td>Desktop</td><td>Custom C window manager, toolkit, menus, dialogs, shell; not LVGL</td></tr><tr><td>Apps</td><td>Position-independent native ELF, elf_loader 2.1.0, function-table API, up to four app tasks</td></tr><tr><td>Storage</td><td>12 MB flash FAT partition with wear levelling, mounted at /disk; no SD card</td></tr><tr><td>Network</td><td>ESP-IDF Wi-Fi station and HTTP client, mbedTLS certificate bundle; text-only HTML renderer</td></tr><tr><td>Development</td><td>CMake/IDF, zsh helper scripts, Python/pyserial command bridge and hardware tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p><br>Andris Gauracs publishes a Windows-95-style desktop for an ESP32-S3 N16R8 board (16 MB flash, 8 MB octal PSRAM), driving 640×480 VGA in 64 colours through a resistor DAC. The repository contains implementation, source-generated assets, prebuilt ELF apps, enclosure models, screenshots and development reports. ESP-IDF/FreeRTOS supply the scheduler, boot chain, networking and filesystem: Bevel supplies the desktop/toolkit, rendering strategy and application interface. Calling it an embedded desktop OS is fair; calling it an independently implemented kernel would not be. [1–3]</p>
+<p>Built-ins include a file manager, text editor, BMP viewer, terminal, settings, network panel and text browser. Hello, Snake, CrashTest and Doom are separately loadable programs. The intended audience is embedded graphics enthusiasts, retro-computing hobbyists and developers studying a compact end-to-end desktop—not users seeking modern web compatibility or protected multiuser computing.</p>
+<p>The README credits an AI coding model and documents human interventions. Those are author-provided provenance claims, not an independently audited development history or a controlled model benchmark. The code is more useful evidence than the attribution headline. [1]</p>
+<p></p>
+<h4>Implementation</h4>
+<h4>Render where memory is fast</h4>
+<p>The GUI and scan-out ISR share core 1; USB, serial and loaded apps use core 0. The display driver refills two ten-line internal-RAM bounce buffers from a roughly 300 KiB PSRAM framebuffer. The cursor is overlaid during scan-out instead of erasing/repainting framebuffer pixels. That decouples pointer movement from expensive GUI redraws. [2]</p>
+<p>The compositor merges a bounded set of dirty rectangles, sorts damage top-to-bottom, paints strips in a 20 KiB aligned internal buffer, and writes each finished strip to PSRAM. Beam-position estimates keep writes behind scan-out. Aligned 128-bit copies help internal memory; the performance report correctly distinguishes that from PSRAM bus limits and records rejected GDMA/cross-core alternatives. These are concrete, inspectable design decisions rather than a vague “optimized renderer” claim. [2, 10]</p>
+<h4>Small but coherent application model</h4>
+<p>Each ELF gets its own FreeRTOS task, event queue and private drawing canvas, with GUI calls marshalled back to the desktop task. Memory allocations and open files are tracked for cleanup. Import resolution provides a function table and C-library wrappers; system() is stubbed out. This is a practical extension mechanism for trusted programs, not a security sandbox. [3]</p>
+<p>Selected Xtensa faults outside an OS API call are redirected to a landing routine, then cleaned up with an error dialog. Faults while in_api is set fall through to the unhandled exception path. Hang detection checks unread events and time since polling. More importantly, os_task_kill retries waiting for an app to leave an OS call for 200 iterations, then deletes it regardless: the “never ended holding the drive lock” comment is stronger than the implementation. Some wrappers, including formatted file output, also do not use the same in_api guard. These are static reliability concerns, not reproduced deadlocks. [3]</p>
+<h4>Testable without manual clicking</h4>
+<p>The UART command channel supports framebuffer dumps, injected keyboard/mouse events, window/focus inspection, file reads/writes, launch, reboot and diagnostics. kbtest.py drives real UI workflows and compares focus, windows and text contents. This is a valuable agent-development/testing pattern: observe actual state and round-trip files instead of judging screenshots alone. However, the test is a device-mutating acceptance script, not an offline unit suite. [6, 10]</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Security, Permissions and Privacy</h4>
+<h4>One trusted operator, no protected app boundary</h4>
+<p>There is no login, per-app user identity, permissions dialog, application signing gate or protected process address space in the inspected loader. ELF magic/length checks and relocation reject some invalid binaries; they do not establish trust. An app can use native pointers in the same firmware address space. A private canvas limits normal drawing interactions, not arbitrary memory access. [3]</p>
+<p>Even normal file APIs expose shared state: api_file_read/write root paths at /disk and reject “..”, but do not isolate each app's directory. The libc fix_path accepts absolute paths unchanged and maps relative names into shared /disk/System. Consequently a trusted-interface app can reach wifi.ini and other applications' files without escaping anything. Do not infer least privilege from the small API surface or the system() stub. [3, 5]</p>
+<h4>Serial access is administrative access</h4>
+<p>The firmware's COM command channel has no authentication or confirmation step for destructive operations. A connected host can read text files, upload/overwrite files, inject input, launch apps, delete files and reset the board. The Python daemon binds only to 127.0.0.1, which is a useful exposure limit, but uses unauthenticated raw TCP; other local processes able to connect inherit its board authority. Its request accumulation has no explicit size cap or initial read deadline, making local denial of service another concern. This is not an Internet-facing web service, so CORS is not the governing boundary. Do not tunnel or publicly bind it. [6]</p>
+<p>The daemon appends all serial replies to build/serial.log. Reading a credential file or exposing focused text through diagnostics can therefore leave a host-side copy. There is no built-in log-retention policy; the flash helper truncates this log. Physical USB access and the development host must both be trusted. [6]</p>
+<h4>Networking is optional, not confidential by default</h4>
+<p>The radio starts on network/browser use or automatically at boot when saved credentials exist. Wi-Fi is persisted as plaintext in /disk/System/wifi.ini; the driver itself uses RAM credential storage. “Forget” unlinks the saved file, but that is not secure erasure from wear-levelled flash, and does not constitute wiping all in-memory driver state. Secure boot and flash encryption are disabled in the supplied sdkconfig. [5, 8]</p>
+<p>HTTP GET supports bounded page bodies, cancellation, timeouts and redirects. HTTPS uses the ESP certificate bundle, a positive sign, but CONFIG_MBEDTLS_HAVE_TIME_DATE is disabled: certificate validity dates are not checked as they would be with working time validation. Bare domains start with HTTP, searches go to FrogFind over HTTP, and redirect handling has no explicit HTTPS-downgrade prohibition. Avoid secrets in queries or pages. No cloud account, AI key or model service is required to operate the desktop. [5]</p>
+<p>The browser does not execute JavaScript or load CSS/images, substantially shrinking active-content functionality. It still parses untrusted HTML in C, follows navigation to network destinations without a private-address policy, and accepts file:// links for local files without a separate confirmation boundary. This is not proof of automatic file exfiltration—there is no script engine—but it is also not a modern browser-origin sandbox. History is held in the browser structure; no durable history database was found in the reviewed implementation. [5]</p>
+<h4>Persistence, Export and Recovery</h4>
+<p>The filesystem auto-formats when mounting fails. Bundled apps are restored when missing, differently sized, or after a firmware-ID change; sample files have their own installation marker. This makes a broken drive look usable again but can destroy user data. An update can replace modified bundled apps, and deleting a bundled ELF is not a durable uninstall because boot restores it. The restoration code does not comprehensively check write/close success before recording the firmware stamp. [4]</p>
+<p>Editor, settings and Wi-Fi saves use temporary files, but explicitly unlink the original before renaming. That leaves a failure window with no original at its expected path; there is no reviewed journal/recovery scan promoting surviving .tmp files. Direct app writes and serial uploads truncate destinations. FAT wear levelling is not a transactional backup system. [4, 5]</p>
+<p><strong>The headline power-cut result does not establish user-data integrity.</strong> powercut.py resets via EN during a synthetic write, then checks that the desktop responds and Documents, Welcome.txt and Snake.elf exist. The boot routine recreates all three after reformatting. The test checks neither a non-bundled sentinel nor content hashes, and can therefore pass after destructive recovery. The README appropriately distinguishes its twelve resets from a single real unplug; the test's stronger “files intact” description is not supported by those assertions. [4, 10]</p>
+<p>Files remain ordinary FAT contents, but the supplied host CLI provides upload, screenshot and serial-command operations rather than a complete binary download/archive/restore workflow. Its cat command is text-oriented, so it is not a general binary backup mechanism. Before relying on data, add and independently test an explicit partition/file backup and restore procedure. Doom WAD data is not embedded and will not be restored by firmware; saved-game behavior was not tested upstream. [1, 6]</p>
+<p></p>
+<h4>Evidence, Tests and Maturity</h4>
+<p>At retrieval on 2026-11-15, GitHub reported public visibility, creation on 2026-11-14, last push on 2026-11-14, 53 stars, 12 forks and two open issues. The releases API returned an empty list. The two issues propose other target platforms and VNC/network features; they are requests, not delivered capabilities. These are transient metadata, not reliability evidence. No .github CI workflows or portable offline regression suite were found in the inspected tree. Shallow history was not used to infer a complete commit count. [11]</p>
+<table><tbody><tr><td>Claim</td><td>Evidence and assessment</td></tr><tr><td>0.7 s boot, roughly 32 FPS Doom</td><td>Author measurements and implementation exist; not independently reproduced</td></tr><tr><td>68 FPS drag / 76 FPS redraw</td><td>Workload-specific processing rates in PERF.md, not proof of that many unique visible frames on a roughly 60 Hz output</td></tr><tr><td>Tear-free display</td><td>Beam-racing code and scan-out counters support the approach; upstream says tearing was not checked visually, and late-fill counters do not establish all visual correctness</td></tr><tr><td>34/34 keyboard steps</td><td>Substantive device-driven assertion script exists; upstream result only</td></tr><tr><td>12/12 power cuts survived</td><td>Checks reboot/recreated bundled paths, not preservation of arbitrary user content</td></tr><tr><td>App fault containment</td><td>Selected exceptions recovered outside OS calls; shared memory and API faults remain system-wide risks</td></tr></tbody></table>
+<p>Independent verification here comprised source/ref inspection, dependency/license review, static control/data-flow tracing and checking public metadata. <strong>No upstream tests were run.</strong> No claim is made about successful compilation, hardware electrical safety, full parser memory safety, cryptographic implementation correctness, reproducible binaries, real power-loss durability or long-term operation. The absence of a found problem in other modules is not a security audit pass.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Prefer it when</td><td>Tradeoff relative to Bevel</td></tr><tr><td>Bevel OS</td><td>Studying a complete tiny retro desktop on the documented S3 board</td><td>Cohesive demo; narrow hardware and shared-trust runtime</td></tr><tr><td><a href="https://github.com/fdivitto/FabGL">FabGL</a></td><td>Exploring ESP32 VGA, retro UI, terminal/emulation and PS/2 integrations</td><td>Broader graphics/retro toolkit, not this S3 firmware; its README warns of an older Espressif-library ceiling, so verify board/SDK compatibility first</td></tr><tr><td><a href="https://github.com/lvgl/lvgl">LVGL</a> on ESP-IDF</td><td>Building a maintainable embedded product UI with reusable widgets and platform integrations</td><td>UI library, not a ready desktop/file manager/ELF OS; integration work remains</td></tr><tr><td>Linux on a suitable single-board computer</td><td>Wanting modern browsing, users/process isolation, packages and established backup tools</td><td>More memory/power/hardware, but a fundamentally better fit for general computing</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Platform, Build and Lifecycle</h4>
+<p>- <strong>Target hardware is narrow.</strong> The supplied build targets ESP32-S3 N16R8 with octal PSRAM, fixed pins and nonstandard integer-divided VGA timing. Other ESP32 variants, smaller-memory boards and different monitors are not qualified by this review. This is not something to install as a Linux desktop package. [1, 2, 8]<br>- <strong>USB needs careful wiring.</strong> Native USB pins are used as host input; the README warns to leave the board's AUX connector unplugged. Board-specific power behavior, an externally powered input breakout and unsuitable USB-C cables are documented. Review the actual board schematic rather than generalizing the wiring. Two separate USB devices through hubs were not demonstrated working; a combined keyboard/mouse receiver is the documented working option. [1]<br>- <strong>Build from pinned inputs.</strong> dependencies.lock records IDF 5.5.3, elf_loader 2.1.0, usb_host_hid 1.2.1 and cmake_utilities 0.5.3 with registry hashes. The manifest is looser (including elf_loader “*” and an overbroad IDF minimum); keep the lock and known SDK rather than assuming a fresh resolution is equivalent. The external loader implementation was not downloaded/audited here. [8]<br>- <strong>Prebuilt code is part of the default firmware.</strong> main/CMakeLists.txt embeds existing disk/Apps/*.elf; a successful firmware build would not prove those binaries reproduce from source. Rebuild the app artifacts in a controlled toolchain before higher-trust distribution. Mac-oriented zsh helpers assume a particular SDK/Python location and BSD stat; Linux needs adaptation. Doom's helper suppresses compiler warnings, and the main component suppresses format-truncation warnings. [8, 9]<br>- <strong>Flashing is destructive to the previous firmware.</strong> The documented flow writes bootloader, partition table and factory app, not the storage partition. There are no supplied OTA slots or automatic rollback path. A changed partition layout still risks existing data, and first boot can format on mount failure. Recovery is manual reflashing with a known-good image and separately preserved data. [1, 4, 8]<br>- <strong>Helper success is not enough.</strong> flash.sh checks the build pipeline but does not similarly gate its later flash pipeline before clearing the log and restarting the daemon. Use actual flash/readback/boot evidence, not the helper's final exit alone. Explicitly select the device: auto-discovery chooses the first matching serial port. [9]<br>- <strong>Removing it:</strong> stop the serial daemon and flash replacement firmware if desired; separately clear retained storage/credentials when repurposing the board. No packaged uninstall or secure-wipe procedure was found. Erasing data must be a deliberate, backed-up action—not an implicit review step.</p>
+<h4>License and Assets</h4>
+<p>The actual LICENSE grants MIT rights to Bevel with explicit exceptions for vendored doomgeneric, apps/doom and Doom.elf under GPL v2. Preserve MIT notices. Shipping the default firmware carries the embedded GPL program too; do not label the whole distribution MIT-only, and satisfy the applicable source/notices obligations for Doom. The third-party note identifies doomgeneric commit e257a09527062bfb986b6e5e0780839b6cbd5b71 and notes source headers permit v2 or later. Build-to-binary correspondence was not verified. [7]</p>
+<p>The README describes fonts/icons/cursors as original and includes editable asset-generation sources; that is inspectable provenance, not a legal originality audit. Enclosure files and other first-party assets fall under the root license absent the stated exceptions. The WAD is separately licensed game data, not GPL engine code, and is not committed. Its downloader uses a third-party mirror and an MD5 identity check; mismatch merely prints a warning and does not force a failing exit. If the vendored engine is absent, the helper clones current upstream rather than the documented pinned revision. Neither path was executed. [7, 9]</p>
+<p></p>
+<h4>Practical Next Steps</h4>
+<p>For study, start with comp.c/vga.c, then trace app_loader.c and the UART test protocol. For a future spare-board pilot, first reproduce a clean build and binaries, verify exact hardware/power wiring and input-device compatibility, use a disposable network credential, keep third-party ELFs out, and demonstrate backup restoration. Replace the power-loss acceptance condition with non-bundled content hashes and explicit detection of formatting; remove silent format-on-mount-failure before entrusting data. Treat app isolation and secure credentials as architectural work, not a cosmetic permission dialog.</p>
+<p></p>
+<h4>Source Evidence</h4>
+<p>All repository links below pin the reviewed revision.</p>
+<p>1. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/README.md">README: purpose, hardware, limits and provenance</a>.<br>2. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/main.c">main/main.c</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/comp.c">comp.c</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/vga.c">vga.c</a>.<br>3. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/app_loader.c">app_loader.c: app_path, fix_path, app_exception, os_run_elf, os_task_kill</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/apps/bevel.h">apps/bevel.h</a>.<br>4. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/storage.c">storage.c</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/app_editor.c">app_editor.c: ed_write</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/app_misc.c">app_misc.c: settings_save</a>.<br>5. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/net.c">net.c</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/app_browser.c">app_browser.c</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/sdkconfig">sdkconfig</a>.<br>6. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/serial.c">serial.c</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/tools/bv.py">tools/bv.py</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/main.c">main.c: os_serial_command</a>.<br>7. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/LICENSE">LICENSE</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/third_party/README.md">third_party/README.md</a>, <a href="https://github.com/andrisgauracs/bevel-os/tree/f620228140f1cb07a0647fbc23925ab8b220e09f/tools/assets">asset sources</a>.<br>8. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/dependencies.lock">dependencies.lock</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/idf_component.yml">component manifest</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/main/CMakeLists.txt">main/CMakeLists.txt</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/partitions.csv">partitions.csv</a>.<br>9. <a href="https://github.com/andrisgauracs/bevel-os/tree/f620228140f1cb07a0647fbc23925ab8b220e09f/tools">build/flash/download helpers</a>: build_apps.sh, build_doom.sh, flash.sh, fetch_doom.sh.<br>10. <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/docs/PERF.md">PERF.md</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/tools/powercut.py">powercut.py</a>, <a href="https://github.com/andrisgauracs/bevel-os/blob/f620228140f1cb07a0647fbc23925ab8b220e09f/tools/kbtest.py">kbtest.py</a>.<br>11. <a href="https://api.github.com/repos/andrisgauracs/bevel-os">Public repository metadata</a>, <a href="https://github.com/andrisgauracs/bevel-os/releases">releases</a>, <a href="https://github.com/andrisgauracs/bevel-os/issues">issues</a>, retrieved 2026-11-15 UTC.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> Andris Gauracs / andrisgauracs/bevel-os. MIT Bevel implementation; GPL v2 Doom exceptions and separate dependency/game-data terms. This review contains independent analysis, not redistributed application binaries or game assets.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the PSRAM-conscious compositor and serial-driven UI tests. Treat this as spare-board hobby firmware, not a secure workstation: native apps share authority, credentials are plaintext, and recovery can silently format user storage. Static review only; no builds or hardware tests run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/andrisgauracs/bevel-os">andrisgauracs/bevel-os</a> · MIT; GPL v2 Doom exceptions</span>
+    <span><a href="bevel-os.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
