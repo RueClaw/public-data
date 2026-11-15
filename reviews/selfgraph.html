@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SelfGraph — Review</title>
+<meta name="description" content="Deterministic-first, versioned knowledge graphs through Python and TypeScript SDKs—not a managed memory service.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / selfgraph</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">hydra-db/selfgraph · reviewed 2026-11-15</div>
+    <h1>SelfGraph</h1>
+    <p class="one-liner">Deterministic-first, versioned knowledge graphs through Python and TypeScript SDKs—not a managed memory service.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0</span>
+      <span class="chip">Python · TypeScript · graph adapters</span>
+      <span class="chip"><a href="https://github.com/hydra-db/selfgraph">hydra-db/selfgraph ↗</a></span>
+      <span class="chip"><a href="https://github.com/hydra-db/selfgraph/tree/8124bee74334e9a5555afa52ce2d05ffc93b89d4">v0.2.1 · 8124bee74334</a></span><span class="chip">Static review · tests not run</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">47</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">4</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real SDK, with model-free operation</h3><p>Structured facts and deterministic tiers work without an LLM. Optional model extraction, resolution and contradictions add provider data flows and costs.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>History is useful but incomplete</h3><p>as_of and known_at distinguish effective time from recorded knowledge. Deletes, entity edits and some other changes are not reconstructed; this is not a full recovery ledger.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Backend and trust boundaries matter</h3><p>Only the transactional adapters provide batch rollback. Namespaces do not restrict raw Cypher, and MCP exposes mutation tools as well as guarded reads.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology / responsibility</td></tr><tr><td>Python SDK</td><td>Pydantic models, async SelfGraph, synchronous facade, resource classes</td></tr><tr><td>TypeScript SDK</td><td>Separate implementation; Zod validation, ESM/CJS packaging, CLI</td></tr><tr><td>Storage</td><td>Neo4j/Memgraph via Bolt; FalkorDB; Kuzu; HydraDB adapter</td></tr><tr><td>Extraction</td><td>Regex/spaCy or Python Instructor + LiteLLM; TypeScript AI SDK provider adapters</td></tr><tr><td>Retrieval</td><td>BM25-style lexical scans, schema synonyms, BFS/DFS or bounded personalized PageRank; optional caller embedder</td></tr><tr><td>Agent interface</td><td>CLI and stdio MCP; host/database supply the security boundary</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>SelfGraph puts application semantics above a small store interface: entities, versioned relations and preferences, decision traces, sources, chunks, evidence and merge records. Applications supply a graph backend and optionally an extractor, LLM, schema or embedder. Structured facts avoid model calls entirely; free text can use regex/spaCy or structured model extraction. The repository contains genuine implementations, not just an architecture proposal. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/README.md">README</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/client.py">client</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/_ops.py">operations</a>.</p>
+<p>The strongest use case is a bounded graph whose facts change over time and whose answers need traceable source passages. There is no requirement to buy HydraDB: Neo4j/Memgraph, FalkorDB and embedded Kuzu adapters are present. “Any graph database” means supported adapters or a custom implementation, not interchangeable arbitrary Cypher or identical consistency guarantees.</p><h4>Deterministic-first capability tiers</h4>
+<p>The default balanced level uses the strongest free deterministic tiers: name/alias resolution, schema-based contradiction checks, lexical/synonym seeds and BFS. Passing an LLM enables extraction; other LLM tiers require opt-in. A max-tier cap can prevent LLM tiers, but is not a universal monetary or network budget: custom embedders and application code have their own effects. Inspect effective result tiers rather than assuming the requested tier ran. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/tiers.py">Tiers</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/extraction/extractor.py">extraction</a>.</p>
+<p>Derived IDs improve idempotence but can merge distinct names: documentation explicitly gives Acme Group and Acme Holdings becoming company:acme. Use stable explicit IDs where identity matters. LLM-assisted resolution/contradictions introduce judgment errors, not proof of identity or truth. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/docs/resources.md">ID semantics</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/resolution.py">resolution</a>.</p>
+<h4>Useful temporal reads, not a complete event log</h4>
+<p>Relations and preferences retain revisions. as_of uses effective/event time; known_at additionally restricts what had been recorded by a knowledge time, including retirement and certification history. Backdated corrections can change an as_of answer, while known_at can recover the earlier recorded fact. The exact reviewed release adds known_at, with targeted tests. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/docs/retrieval.md">Temporal rules</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/tests/test_as_of.py">temporal tests</a>.</p>
+<p>Crucially, entity property edits, decision updates, deletes, merges/unmerges and decay changes are not all reversible through these reads. An update without a new event_time keeps the old effective time. Do not describe this as universal point-in-time recovery or an immutable audit ledger.</p>
+<h4>Evidence and answerability are useful guardrails, not guarantees</h4>
+<p>Text inserted with a source_id can yield stored source versions/chunks and quoted passages. Structured facts alone do not produce source passages. Certification marks a relation version, affects retrieval and protects against some automatic retirement/pruning; the supplied certifier name is not authenticated identity. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/provenance.py">Provenance</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/docs/trust.md">trust documentation</a>.</p>
+<p>check_answerable matches lexical terms/schema synonyms and tests connectivity, with a hub warning. It does not prove that the graph logically answers a question, that evidence is correct, or that a downstream model will abstain. Source passages remain untrusted text when passed to an agent. A connected false fact is still false.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>SelfGraph orchestrates validation, extraction, identity resolution, writes and retrieval; resource classes expose typed operations. _ops implements semantic behavior; stores translate graph primitives and physical layouts. Python and TypeScript are separate implementations backed by cross-language conformance CI, rather than generated bindings. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/client.py">Python layout</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/typescript/src/client.ts">TypeScript client</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/.github/workflows/ci.yml">CI</a>.</p>
+<p><strong>Reviewed revision:</strong> 8124bee74334e9a5555afa52ce2d05ffc93b89d4</p><h4>Storage, consistency and query costs</h4>
+<ul><li>Neo4j/Memgraph use real transaction begin/commit/rollback and subject locking; failed batches can roll back. AutoCommitStore serializes writes per store object but does not provide equivalent rollback. HydraDB, Kuzu and FalkorDB can retain partial batches; cross-process writes on auto-commit backends are not serialized by this SDK. Replaying idempotent inserts helps reconciliation but is not exactly-once processing. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/stores/cypher.py">Transactional store</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/stores/_cypher.py">auto-commit implementation</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/docs/backends.md">concurrency contract</a>.</li><li>Raw Cypher is backend-native. Kuzu uses N/R tables with JSON records; HydraDB uses sid and RELATES/etype with a narrower dialect; Bolt/FalkorDB use more conventional labels. Raw writes can bypass SDK invariants and HydraDB resolution indexes.</li><li>_scan_seeds performs up to two paginated passes over every entity per query for corpus statistics and ranking. It bounds memory, not total work. max_nodes, depth and context token caps constrain later output/traversal, not initial corpus scanning. check_answerable loads the namespace's entities and relations. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/retrieval.py">Retrieval implementation</a>.</li><li>Optional embeddings are an in-process cache, not a durable ANN index. Cold use embeds the namespace and scores every entity; restarts/cache churn can repeat provider work. No throughput/latency/answer-quality benchmark suite or raw comparative measurements were found in the reviewed tree. Claims about usefulness are supported by implementation/tests, not independent scale evidence.</li></ul>
+<h4>Auth, tenancy, network and credentials</h4>
+<p>Typed operations carry namespace filters, but namespaces are not authorization boundaries. SDK/CLI raw Cypher is not namespace-scoped and can write. MCP raw Cypher has a lexical read-only guard, but still reads any namespace accessible to the backend credential. The MCP server also registers explicit mutation and deletion tools; read-only raw queries do not make the whole server read-only. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/mcp/server.py">MCP guard/tools</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/runtime.py">runtime validation</a>.</p>
+<p>The documented MCP entry point is stdio. There is no reviewed end-user login/RBAC/tenant service to place on the public internet, and browser CORS is not the relevant default boundary. A trusted host process possesses the database and provider authority. Restrict tools in the host, separate databases/credentials for hostile tenants, and use database-enforced permissions rather than relying on a query keyword filter. Initialization may need schema-creation authority; plan provisioning separately from least-privilege runtime access.</p>
+<p>Database auth and provider keys can come from settings/environment; CLI secret flags risk shell history/process exposure. Secure transport is operator-owned: plain Bolt/Redis examples do not establish TLS. Configure encrypted connections and validate endpoint policy before handling sensitive data. Custom model base URLs and embedders are egress choices, not safe destinations merely because they were configured.</p>
+<p>Python sends model prompts through LiteLLM/Instructor; TypeScript uses AI SDK provider packages. Extraction sends document chunks, instructions and potentially schema material; higher resolution/contradiction tiers send candidate facts. Embedding calls expose query/entity text to the chosen implementation. Logs/error strings may contain provider/backend details; disabling verbose logging is not comprehensive redaction. No application-level encryption, provider retention guarantee or hard spend ceiling was established. Costs include storage, multiple extraction passes per chunk, retries, optional judgment calls and cold embeddings. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/llm/base.py">Python provider adapter</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/typescript/src/llm/index.ts">TypeScript adapter</a>.</p>
+<h4>Retention, export, deletion and recovery</h4>
+<p>History and source evidence intentionally persist. Maintenance decay/prune/dedupe is explicit and dry-run by default, not an automatic TTL. Pruning retired facts is not equivalent to expiring every historical/source record, and certified relations are protected unless explicitly included. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/docs/maintenance.md">Maintenance</a>.</p>
+<p>Entity deletion cascades through relations/preferences/evidence/merge records and affected decisions, with documented exceptions for alternatives and about references. Source/chunk records are distinct: do not infer complete subject-data erasure from deleting an entity. A privacy deletion plan must inspect source text, prior versions, other graph references, exports, provider retention and backups as well. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/_ops.py">Deletion code</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/tests/test_delete.py">deletion tests</a>.</p>
+<p>Obsidian export produces readable current-state notes, not a round-trip full-history backup. Ossie export is an ontology conversion with explicit omissions, not a database recovery format. No complete cross-backend backup/restore protocol was established. Use backend-supported consistent backups, retain external schema/settings securely, and test restores including histories/provenance. Partial writes on auto-commit adapters and deletes cannot be repaired by known_at alone. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/_export.py">Export implementation</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/src/selfgraph/client.py">export API</a>.</p><p>Public GitHub metadata retrieved 2026-11-15 reports creation on 2026-11-04, 47 stars, 4 forks and zero open issues (the API aggregate is not a security assessment). v0.2.1 is published and matches the reviewed SHA. This is a very young public project despite substantial code and documentation. <a href="https://api.github.com/repos/hydra-db/selfgraph">Metadata</a>, <a href="https://github.com/hydra-db/selfgraph/releases/tag/v0.2.1">release</a>.</p>
+<p>CI defines Python 3.10–3.13 builds/tests, Node 20/22/24 tests, Kuzu runs, Neo4j/Memgraph/FalkorDB integration jobs and cross-language conformance. Tests cover temporal reads, namespaces, deletion, extraction, schema, MCP and backend behavior. This is stronger evidence than screenshots; it does not mean those jobs passed at this SHA or that production recovery/performance has been validated here. HydraDB is not included in the displayed CI backend matrix. Tests and CI were inspected, not executed or independently reproduced.</p>
+<p>Python core depends on pydantic and neo4j, with broad minimum versions and optional extras adding Instructor/LiteLLM, spaCy, Kuzu, FalkorDB, tokenizer and MCP. TypeScript has a lockfile but broad optional provider peers. CI actions use version tags and some database images use latest; release publishing is a separate workflow, not visibly dependent on successful full CI. npm declares provenance; that is not a verification of an installed artifact. Pin versions, minimize extras and validate upgrades on representative data. No dependency vulnerability audit or registry artifact verification was performed. <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/pyproject.toml">Python manifest</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/typescript/package.json">TypeScript manifest</a>, <a href="https://github.com/hydra-db/selfgraph/blob/8124bee74334e9a5555afa52ce2d05ffc93b89d4/.github/workflows/publish.yml">publish workflow</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Prefer it when</td><td>Tradeoff relative to SelfGraph</td></tr><tr><td><a href="https://github.com/getzep/graphiti">Graphiti</a></td><td>Evaluating a dedicated temporal agent-knowledge graph stack</td><td>Closest conceptual comparison; assess current provider/storage requirements independently rather than assume equivalence</td></tr><tr><td>Direct Neo4j/Memgraph driver</td><td>Database-native indexing, permissions and transactional queries dominate</td><td>More application work for extraction/provenance/version semantics, fewer abstraction surprises</td></tr><tr><td>SQLite FTS + explicit relational history</td><td>Small local corpus needs indexed text and straightforward recovery</td><td>Less native graph traversal; often simpler operationally than several graph adapters</td></tr><tr><td><a href="utopia.md">Utopia review</a></td><td>Seeking a larger knowledge application rather than an embeddable SDK</td><td>Broader ingestion/service scope; not a drop-in library comparison</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Treat it as a library integration, not a turnkey hosted product. For a pilot, choose one backend, pin SDK and dependencies, start with structured synthetic facts and no LLM, use explicit IDs, and test namespace/raw-query boundaries. Use a single writer for auto-commit adapters; prefer a transactional backend for contention and rollback requirements. Kuzu allows one owning process per database file and has documented virtual-address-space sizing constraints.</p>
+<p>Before production, demonstrate failure/retry reconciliation, historical query expectations, deletion of source-bearing data, consistent backup/restore, provider egress/cost limits and representative retrieval latency. Only promote after those tests match the intended workload. No deployment was performed for this review.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful for a controlled pilot: source evidence, schema-aware retrieval and explicit backend semantics. Full-scan retrieval, partial temporal history, backend-dependent atomicity and caller-owned authorization need qualification before production.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/hydra-db/selfgraph">hydra-db/selfgraph</a> · Apache-2.0</span>
+    <span><a href="selfgraph.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
