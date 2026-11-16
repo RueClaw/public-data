@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TTS Bench — Review</title>
+<meta name="description" content="A broad TTS audition workbench with narrow evaluation coverage and important measurement boundaries.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / tts-bench</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">5uck1ess/tts-bench · reviewed 2026-11-16</div>
+    <h1>TTS Bench</h1>
+    <p class="one-liner">A broad TTS audition workbench with narrow evaluation coverage and important measurement boundaries.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code; model and voice terms separate</span>
+      <span class="chip">Python · model adapters · FastAPI · SQLite/Turso</span>
+      <span class="chip"><a href="https://github.com/5uck1ess/tts-bench">5uck1ess/tts-bench ↗</a></span>
+      <span class="chip"><a href="tts-bench.md">Full cited review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">467</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">13</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Audition, do not crown a winner</h3><p>Four English prompts plus one French and one Spanish sentence are a useful smoke test, not broad language or speaker coverage. NAQ predictions are not direct listener vote percentages.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Cold and peak need qualification</h3><p>Representative runners time after model load; Aurora even warms up before run zero. The shared peak RAM field is actually post-generation RSS.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Publication crosses real boundaries</h3><p>Hosted calls transmit text and reference audio. Public errors, voice rights, provider benchmarking restrictions and stale score caches need explicit review.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Methodology</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Evidence &amp; risks</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Practical verdict</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td style="overflow-wrap:anywhere">06df9001f0ed4f3d82b0239c989777eef7b9499c</td></tr><tr><td>Verification</td><td>Static review and independent record counts; no tests, audio or model runs.</td></tr><tr><td>Architecture</td><td>Per-model subprocesses; CSV/WAV reports; separate hosted collector and voting arena.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p><br>This is an independent benchmark and sample-publishing system, not a speech model or one uniform inference engine. The README tracks 102 local model/engine variants and a separate 28-product hosted API board. Per-model environments handle incompatible dependencies; adapters emit JSON timing records and WAVs. Reports offer speed, listening and scoring views. A separate public arena collects default-voice and cloning preferences.</p>
+<p>The distinction between model and implementation matters: Audio8 stock and compiled paths compare engines; Drama 3 measures a third-party ComfyUI port; Higgs v3 uses an already-running server; Mac paths can use different quantization and runtimes. These are useful product configurations, not controlled architecture-only comparisons. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/README.md">README.md</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/harness.py">harness.py</a>.</p>
+
+<h4>Evaluation Methodology</h4><h4>Six authored prompts are not a multilingual benchmark corpus</h4>
+<p>The actual corpus is four English assistant/coding sentences, one French introduction and one Spanish sentence. It includes short commands, a longer ASR-themed paragraph and code spoken as words. There is no Chinese test despite many Chinese/English models, no broad accents, dialogue, long-form narration, noisy-reference matrix or representative speaker demographic coverage. Expressive-control features are catalogued but explicitly not exercised by the plain prompts. Languages supported by a model card are distinguished from languages enabled in its runner, which is a good practice. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/bench.py">bench.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/README.md">README.md</a>.</p>
+<p>Default presets differ by model and sometimes language. Reference-only models use a house reference, so “default” does not necessarily mean a native preset. Local cloning chiefly uses one celebrity reference; hosted cloning uses a different recording described by the author as consented, with different accepted cut lengths per provider. That is a defensible product-as-sold comparison, not an equal-reference-duration experiment, nor evidence about unseen speakers. Local and hosted cloning SIM should not be compared directly. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/docs/cloning.md">docs/cloning.md</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/docs/hosted.md">docs/hosted.md</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scripts/hosted/core.py">scripts/hosted/core.py</a>.</p>
+<h4>Automatic scores measure different things</h4>
+<p>- <strong>WER:</strong> jiwer edit-distance WER after English Whisper normalization or lighter French/Spanish punctuation normalization. The direction is correct: lower is better; insertions can produce values above 1. Whisper errors are not necessarily TTS errors, and lexical accuracy is not naturalness. The direct feature-extractor/generate path does not implement explicit long-audio chunking; normal short prompts are the intended use, but long/runaway output needs special validation rather than assuming all speech was evaluated.<br>- <strong>SIM:</strong> cosine similarity between normalized reference/output speaker embeddings. This is a speaker-verification proxy, not proof of voice consent, intelligibility, expression or human likeness. Using seed-tts-eval-style encoders does not make six custom prompts comparable to the paper's dataset scores.<br>- <strong>UTMOS:</strong> a learned reference-free MOS predictor, not a collected human MOS. Resampling to mono 16 kHz means high-frequency fidelity is not evaluated at original bandwidth. Domain/language calibration and fine-grained preference accuracy are not established here.<br>- <strong>Health:</strong> clipping fraction, whole-clip RMS and interior silence thresholds catch obvious defects; an empty flag is not a quality certificate. The implementation intentionally avoids flagging ordinary speech transients as clicks.<br>- <strong>NAQ:</strong> published predictions of preference against a typical bench clip, trained on arena votes. Training code, weights and full validation methodology are private. The claim that it agrees with held-out listeners much more often than UTMOS is an author claim, not independently reproducible evidence. Do not read 80 as “80% of people voted for this model.”</p>
+<p>Evidence: <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/wer.py">scoring/wer.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/sim.py">scoring/sim.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/utmos.py">scoring/utmos.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/health.py">scoring/health.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/docs/methodology.md">docs/methodology.md</a>.</p>
+<p>The publisher takes means over available selected clips and skips missing metric cells. These are macro means, not pooled word-count WER; English-only and multilingual rows can cover different prompt sets. One displayed count is not necessarily each metric's denominator. Local selected clips and hosted three-take sets also have different replication. Report language-stratified scores, per-metric counts and failure rates before interpreting small rank differences. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/publish.py">publish.py</a>.</p>
+<h4>Human votes are valuable, but the evidence is narrow</h4>
+<p>The arena randomizes sides and biases pairing toward undersampled and similarly ranked models. Ties count as half a win; “both bad” is excluded from Elo, so ranking does not itself reflect absolute unusability. Live Elo is sequential with K=24, not the Bradley–Terry fit described for the frozen historical table. No confidence intervals or rater-cluster uncertainty accompany that table. Its stated 397 votes are not 397 independent listeners, and individual rows have only 10–28 games.</p>
+<p>The UI is blind for ordinary listeners, but a 302 redirect leads to model-named public media; a motivated voter can inspect identity. Playback and dwell are client assertions. Nonces, replay rejection, rate limits and token flagging help, but persistent self-issued tokens do not establish unique humans. Turnstile outages explicitly pass the clean gate, and the source acknowledges spoofable forwarded-IP inputs. Those tradeoffs weaken claims of research-grade ground truth; they do not make the votes worthless. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/arena/app.py">arena/app.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/arena/pairing.py">arena/pairing.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/arena/elo.py">arena/elo.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/docs/cloning.md">docs/cloning.md</a>.</p>
+<p>The prosody report is commendably explicit that silence-segmented human reference material is not matched human readings of the test prompts and cannot establish a human-versus-synthetic direction. Its F0 contours are descriptive, not a validated replacement for listening. Draft PR #53 discusses a vote-based follow-up, but is not part of this reviewed commit. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/docs/prosody-report.md">docs/prosody-report.md</a>, <a href="https://github.com/5uck1ess/tts-bench/pull/53">PR #53</a>.</p>
+
+<h4>Speed: Useful Numbers with Important Boundary Errors</h4><p><br><strong>RTFx is implemented correctly as audio seconds / generation seconds</strong>, the reciprocal of conventional RTF. The CSV field is named rtf, which can confuse downstream consumers. Extra silence or repetition can inflate duration and apparent speed; cross-check WER, audio health and listening.</p>
+<p><strong>“Cold” is not deployment cold start.</strong> The default is three generations in one subprocess per model/device/prompt: index 0 is labeled cold and indices 1–2 warm. Representative runners load the model before starting the generation timer. AuroraTTS even runs an untimed warm-up before run 0. The harness stores total subprocess wall time, but that includes loading plus all generations, not a clean startup-to-first-playable-audio measurement. The methodology's restart-experience description is therefore too strong. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/bench.py">bench.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/harness.py">harness.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/runners/auroratts_runner.py">runners/auroratts_runner.py</a>.</p>
+<p><strong>TTFA is adapter-specific.</strong> Nonstreaming Aurora reports full generation latency; Kokoro records its first yielded audio before conversion to CPU NumPy. There is no universal synchronization/playable-buffer contract across backends, no standard chunk size or underrun measurement, and no playback-device latency. Streaming first chunk, first non-silent speech and full waveform completion are different quantities. Sampled runners should be audited individually before treating millisecond differences as hardware truth. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/runners/kokoro_runner.py">runners/kokoro_runner.py</a>.</p>
+<p><strong>Memory names overclaim.</strong> The shared peak_mem_mb helper actually samples current process RSS after generation, not peak RSS. CUDA memory is PyTorch maximum allocated tensor memory, not full device residency or external-server usage; CPU/MPS and other runtimes can return blanks. These are useful hints, not capacity guarantees. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/runners/_meminfo.py">runners/_meminfo.py</a>.</p>
+<p>Per-rig tables prevent a 5090 being silently ranked against an M4. However, two warm repetitions, fixed execution order, unequal kernels/precision/threads, model-specific warm-up and missing software/weight fingerprints in meta.json leave variance and reproduction gaps. No concurrency/load test, p99 local latency or run-to-run confidence intervals are established. The broad assertion that samples are hardware-independent is also too strong: precision, runtime, kernels and stochastic sampling can change audio, not merely speed.</p>
+<h4>Hosted timing is more carefully sampled, but documentation has drifted</h4>
+<p>The actual speed sampler warms a connection and measures three calls of the <strong>same English prompt 2</strong>, alternating transports where supported. It does not implement the draft's promised per-prompt p1/p3 sweep. The page filters successful warm speech-onset samples, reports median/p90 and errors, and can fall back to marked warm sweep samples. Cold reconnects and successful responses without detectable onset do not enter the warm median. That is not end-to-end user latency or a reliability-adjusted service score. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scripts/hosted/speed_sample.py">scripts/hosted/speed_sample.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scripts/hosted/page.py">scripts/hosted/page.py</a>.</p>
+<p>The PCM speech metric finds the arrival chunk containing the first sample above −40 dBFS: better than awarding credit for headers or leading silence, but a loud transient is not necessarily speech, and chunk arrival is not speaker playback. The helper does not provide byte-offset onset timing for MP3. Vendor pacing makes total delivery time/RTFx different from backend compute throughput. Regional network and vendor queue conditions remain part of these numbers; there is no basis to subtract a simple RTT and declare pure model latency. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scripts/hosted/core.py">scripts/hosted/core.py</a>.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Independently Checked Evidence and Reproducibility</h4><p><br>A reviewer-written, standard-library-only parser counted the committed text records without importing repository code:</p>
+<table><tbody><tr><td>Artifact</td><td>Count at reviewed SHA</td><td>Meaning</td></tr><tr><td>hosted/speed/samples.jsonl</td><td>1,316 rows, 28 slugs, 18 error rows</td><td>Recorded calls dated November 1–4, 2026; not an independent rerun</td></tr><tr><td>scoring/scores.csv</td><td>2,034 rows</td><td>Includes multiple rigs/modes, not 2,034 independent prompts</td></tr><tr><td>scoring/hosted_scores.csv</td><td>834 rows</td><td>Multiple takes and lenses</td></tr><tr><td>scoring/naq_scores.csv</td><td>567 rows</td><td>Only prompt IDs 1–4</td></tr><tr><td>test_*.py files</td><td>27</td><td>Inventory, not executed/passing-test count</td></tr></tbody></table>
+<p>Local score rows by prompt were 441/439/436/436/210/72 for IDs 1–6; hosted rows were 147/147/147/147/120/126. The imbalance is concrete evidence against assuming equally populated language coverage. None of these counts authenticates the audio, scorer outputs or provider identities.</p>
+<p>The source commit pins this review, not every upstream dependency or historical benchmark. Scores are keyed by directory and WAV filename, with no audio/scorer hash in the local score schema. Incremental scoring skips existing keys; even rescore merges preserve old nonblank values when a new metric fails. Replacing a WAV at the same path can therefore retain stale or mixed-generation scores unless the operator deliberately invalidates them. Hosted sidecars improve provenance with truncated content hashes, model ID, voice/settings, time and connection state, but ID-sent is not proof of the provider's actual served checkpoint. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/scores_io.py">scoring/scores_io.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/score_all.py">scoring/score_all.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scripts/hosted/core.py">scripts/hosted/core.py</a>.</p>
+<p>Documentation is not synchronized: results.md is explicitly May-era with five prompts and older license/configuration entries; cloning.md retains older model/vote counts; hosted.md is a draft with separation and timing statements superseded by code and the README. Prefer exact source and dated artifacts over mixing their headlines.</p>
+
+<h4>Security, Privacy, Retention and Costs</h4><p><br>- <strong>Local does not mean offline by default.</strong> Installers and first loads fetch packages, upstream code, model weights and tokenizer/scoring assets. Some runners talk to local HTTP inference servers. Inference and dependency code have the invoking user's environment, files and potentially cached Hub credentials. Per-model venvs are compatibility boundaries, not secret isolation.<br>- <strong>Hosted calls transmit text and, for cloning, reference audio/transcripts or persisted vendor voice IDs.</strong> Requests may route through an intermediary, such as OpenRouter. Provider retention/training/deletion terms remain separate; no global deletion or data-residency guarantee is implemented.<br>- <strong>Key storage is better than plaintext but strongly environment-specific.</strong> The collector reads a configured password-manager item and caches its fields under Windows DPAPI. The normal disk freshness window is 12 hours, but unattended speed sampling explicitly permits stale cache; this is not credential expiry or revocation. Public sidecars include short key fingerprints, not keys. No credential was read during this review.<br>- <strong>Public/private logging is useful, not a general redaction guarantee.</strong> Successful public sidecars omit full request bodies/headers; private logs retain text, headers and request details after heuristic scrubbing. Error paths can place truncated vendor response text in public error fields. Audit failures as well as success metadata before publishing sensitive material. The scrubber omits bytes and strings over 4,000 characters, not every possible secret field.<br>- <strong>Audio publication is an intentional boundary crossing.</strong> Local cloning copies the reference into run artifacts for an A/B player. Generated WAVs, references and reports can become permanent public Git history; removing a working file does not revoke downstream copies. Use only explicitly publishable material.<br>- <strong>Arena visitors generate persistent pseudonymous data.</strong> Vote records include voter/session tokens, user agent, time, salted IP hash and choices; hosted deployments use Turso, Turnstile and GitHub-hosted audio. CSV export can include rater tokens/full schema. No automatic retention window or user erasure workflow was found in the reviewed paths. Token flagging excludes votes and rebuilds rankings; it does not erase them.<br>- <strong>Recovery is partial.</strong> Append-only vote logging and Elo replay support recalculation; exported CSV aids audit. They do not prove backup/restore readiness. Collector clone IDs are cached by slug/cut rather than reference-content hash; changed audio requires intentional recreation. Multi-file WAV/JSON writes and score CSV replacement are not transactional, and reruns can remove prior output before a replacement succeeds.<br>- <strong>Costs extend beyond API synthesis.</strong> README estimates roughly 165 GB for a complete local setup; GPU/RAM/electricity and scorer downloads add operational cost. Hosted sweep prices are author estimates, not a spending ceiling. Warmups, retries, cloning charges, minimum top-ups and region/plan-specific tariffs matter. Byte/time guards bound individual responses, not total currency spend.</p>
+<p>Evidence: <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/bench.py">bench.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scripts/hosted/keys.py">scripts/hosted/keys.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scripts/hosted/core.py">scripts/hosted/core.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/arena/db.py">arena/db.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/arena/export_votes.py">arena/export_votes.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/arena/config.py">arena/config.py</a>.</p>
+
+<h4>Installation Trust and Rights</h4><p><br>Installers contain a mix of pinned packages/Hub commits and floating package names/Git clones; there is no single resolved lock covering every backend. Aurora is a good example of pinned remote-code revision, but scoring UTMOS loads a mutable torch.hub repository with trust_repo=True. SIM temporarily bypasses the Hub trust prompt, and representative runners permit remote Python code or pickle-capable torch.load. Pinning reduces drift; it does not remove the need to trust the code/checkpoint publisher. Do not run the all-model installer in a credential-rich workstation merely to inspect this project. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/install.sh">install.sh</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/install.ps1">install.ps1</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/utmos.py">scoring/utmos.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/scoring/sim.py">scoring/sim.py</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/runners/vibevoice_runner.py">runners/vibevoice_runner.py</a>.</p>
+<p>The actual LICENSE grants MIT for bench code only despite GitHub's generic “Other” classification. Model terms include permissive, GPL, noncommercial and custom licenses; datasets, reference recordings and outputs are not automatically covered by that MIT grant. The Coqui runner sets COQUI_TOS_AGREED by default, so an operator must review its terms before execution rather than treating the script as consent. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/LICENSE">LICENSE</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/runners/coqui_runner.py">runners/coqui_runner.py</a>.</p>
+<p>The local celebrity voice reference lacks an established consent grant in the reviewed evidence. Hosted documentation explicitly recognizes that it cannot attest to celebrity consent and instead describes a consented recording. That is not a transferable voice license for everyone who clones the repository. More seriously, hosted.md records several vendors' benchmarking restrictions and an author decision to publish and remove on objection. Removal-on-objection is not prior permission. Independently verify provider terms and rights before reproducing or redistributing the samples; no legal conclusion or copied audio is provided here.</p>
+
+<h4>Maturity and Verification Limits</h4><p><br>Public GitHub metadata on the review date showed 467 stars, 13 forks, last push November 14, 2026, no published releases, and two open issue/PR records. Popularity is not correctness evidence. CI installs developer dependencies, runs pytest, compiles sources and runs a narrow correctness-oriented Ruff ruleset. Actions use version tags rather than immutable SHAs. pytest's configured discovery includes arena/tests and scoring/tests, but not tests/test_prosody.py or scripts/hosted/tests by default; important files can exist without being exercised by that command. <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/.github/workflows/ci.yml">.github/workflows/ci.yml</a>, <a href="https://github.com/5uck1ess/tts-bench/blob/06df9001f0ed4f3d82b0239c989777eef7b9499c/pyproject.toml">pyproject.toml</a>.</p>
+<p>No source code was executed, no test pass is claimed, and no advisory audit was performed. Audio files, datasets and model weights were not downloaded. The static review sampled representative runners rather than proving all 102 paths. The live arena was not probed, its votes were not exported, and the private NAQ system was not accessible. Author measurements and listening opinions remain author evidence.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>TTS Bench</td><td>Broad configuration audition; six authored prompts.</td></tr><tr><td>seed-tts-eval</td><td>Dataset-based WER/SIM; still needs human listening and runtime tests.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Comparison and Practical Use</h4><p>Use <a href="https://github.com/BytedanceSpeech/seed-tts-eval">seed-tts-eval</a> for dataset-based WER/SIM, and controlled human A/B or MOS studies for application-matched voice selection. Its README describes 1,000 English and 2,000 Mandarin samples; no dataset was downloaded for this review.</p>
+<p>Use the gallery to choose a small set, then pin exact engines/weights, confirm rights, and test your own consented speaker/language/task matrix. Measure model-load-to-first-playable-audio separately from warm streaming, record underruns and concurrency, stratify failures, and report variance. Require content-addressed score invalidation and explicit artifact-publication review. The project is worth studying and selectively running; its headline winner is not a substitute for that acceptance process.</p>
+
+<p><strong>Attribution:</strong> 5uck1ess/tts-bench; benchmark code copyright Tym Rabchuk, MIT. This review is independent analysis, not an endorsement or redistribution of voices/models.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful for shortlisting, not a definitive ranking. Six prompts, private NAQ evaluation, inconsistent cold-start semantics and unresolved voice/provider rights require independent acceptance testing.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/5uck1ess/tts-bench">5uck1ess/tts-bench</a> · MIT code; model and voice terms separate</span>
+    <span><a href="tts-bench.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
