@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Braitenberg-Vehicles — Review</title>
+<meta name="description" content="Fourteen inspectable sensor–motor teaching simulations, not a validated cognition platform.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / braitenberg-vehicles</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">njodal/Braitenberg-Vehicles · reviewed 2026-11-17</div>
+    <h1>Braitenberg-Vehicles</h1>
+    <p class="one-liner">Fourteen inspectable sensor–motor teaching simulations, not a validated cognition platform.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">No license specified</span>
+      <span class="chip">Python · NumPy · PyYAML · pygame-ce</span>
+      <span class="chip"><a href="https://github.com/njodal/Braitenberg-Vehicles">njodal/Braitenberg-Vehicles ↗</a></span>
+      <span class="chip">Source c6abf11b3b21d8f71c69b5adb021b02120307e04</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Beyond the first four vehicles</h3><p>Threshold circuits, association, temporal prediction and synthetic cameras extend the classic direct sensor–motor examples. YAML scenarios and specs explain the authored behaviors.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Good pedagogy is not physical validation</h3><p>Seeded demonstrations and acceptance tests are useful evidence design. First-order motion, endpoint contact and single-reflection boundaries still need numerical scrutiny.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Study before reuse</h3><p>No license grant or dependency lockfile was found. The simulator is local, but file references and resource-heavy configurations are not sandboxed.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Python ≥3.11, NumPy, PyYAML</td></tr><tr><td>UI</td><td>pygame-ce; optional Pillow and matplotlib</td></tr><tr><td>Scope</td><td>Static source review; no installation or execution</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4>
+<p>The README claims implementations of Vehicles 1–14. The tree supports that scope: corresponding specs, named vehicle definitions, scenarios and acceptance-test modules are present. Early vehicles directly connect sensors to motors; later ones add threshold circuits, feedback memory, selection, learned associations, camera processing, temporal prediction and threshold regulation. These are operational interpretations of the book, not evidence that a robot experiences fear, ideas or optimism. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/README.md">README</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/definition.py">definitions</a>.</p>
+<p>The strongest educational feature is causal visibility: a live circuit diagram shows signals and learned connection strengths while the arena shows trajectories. Specs explain the gap between a literary description and a realizable circuit. Vehicle 14 explicitly reduces its evaluator to pleasing/not pleasing, uses two prepared lanes, notes tuning on seeds 0–4, and distinguishes imagined events from fixed-input events so prediction does not erase learning. That candor is more valuable than a generalized intelligence claim. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/specs/vehicle-14.md">Vehicle 14</a>.</p>
+<h4>Stack</h4>
+<table><tbody><tr><td>Layer</td><td>Implementation</td></tr><tr><td>Configuration</td><td>Strict-key YAML parsing into dataclasses; worlds, vehicles, modules and scenarios</td></tr><tr><td>Dynamics</td><td>NumPy-backed threshold-network state, fixed-step movement, analytic fields and ray geometry</td></tr><tr><td>Interface</td><td>pygame-ce arena, heat map, trails, camera panels and circuit diagram</td></tr><tr><td>Outputs</td><td>SVG diagrams, Pillow GIF recording, CSV/YAML evolution results and matplotlib plots</td></tr><tr><td>Optional bridge</td><td>Webots e-puck light-sensor/two-wheel adapter</td></tr><tr><td>Separate experiment</td><td>NumPy clone-structured HMM sequence learning; not integrated into vehicle brains</td></tr><tr><td>Server/database/auth</td><td>None required by the reviewed simulator</td></tr></tbody></table>
+<h4>Key Features and Architecture</h4>
+<p>1. <strong>One generic vehicle engine, many configurations.</strong> Loaders expand modules and array wiring into a common definition. A vehicle consumes readings without querying its world; the simulation owns sensing and boundary/collision correction. Rendering is lazily imported for a window, so the headless engine does not import pygame. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/definition.py">definition.py</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/sim.py">sim.py</a>.<br>2. <strong>Transparent signal timing.</strong> Units sum signed active connections over per-input recent maxima, threshold them, then expose activations after a quantized delay. Connection strength is an on/off gate above 0.7, not a continuously multiplied synaptic weight. Mnemotrix changes strength while its source is active according to fixed-input teaching; Ergotrix learns temporally paired onsets, with separate fixed-output history. Threshold controls integrate activity error. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/vehicle.py">vehicle.py</a>.<br>3. <strong>Synthetic vision rather than a real camera feed.</strong> Subpixel rays intersect upright cylinders and boxes; the nearest visible object supplies face brightness, with black ground/sky and shortest wrapped displacement. This supports moving-object and symmetry circuits without models, image datasets or physical camera access. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/camera.py">camera.py</a>.<br>4. <strong>Selection with an actual holdout mechanism.</strong> Evolution mutates declared parameters, ranks mean survival over seeded starts, caches repeated genomes, and evaluates ancestor/best on separately drawn validation starts. This is a useful experimental pattern, but validation in the same synthetic world is not real-world transfer or broad generalization. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/evolve.py">evolve.py</a>.</p>
+<h4>Sensor–motor equations</h4>
+<p>For a point source, field intensity is I / (1 + d²/f²); fields add, f is the half-intensity distance, and wrapping uses shortest toroidal distances. This stays finite at d=0 and is not a physical inverse-square radiation solver. Scalar sensors optionally apply directional cones, linear/Gaussian-peak/step responses and habituation; scalar source fields do not implement obstacle shadowing. Camera occlusion is a separate mechanism. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/world.py">world.py</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/definition.py">responses</a>.</p>
+<p>Each motor speed is clamp(base + gain × sum(signed active signals), 0, max_speed). For motor lateral coordinates xᵢ (body-right positive), the engine uses v = mean(vᵢ) and ω = sum(vᵢxᵢ)/sum(xᵢ²), with zero turn for zero denominator. Symmetric wheels at ±b give ω = (v_right − v_left)/(2b), consistent with the counterclockwise-positive world coordinates. Equal symmetric wheel speeds go straight; faster right turns left. Same-side excitation in vehicle 2a therefore turns away from a stronger left stimulus; crossed excitation in 2b turns toward it. The acceptance test checks avoidance/approach over five seeds, not merely wiring labels. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/vehicles/vehicle2a-fear.yaml">vehicle2a</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/vehicles/vehicle2b-aggression.yaml">vehicle2b</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/tests/test_vehicle2.py">test_vehicle2.py</a>.</p>
+<p>Heading is advanced first by ωdt plus Gaussian angular noise σ√dt; position then advances vdt along that new heading. This is a first-order endpoint-heading approximation, not exact circular-arc integration. Motors cannot reverse. General asymmetric motor layouts are an abstract steering rule: equal motor speeds can turn if lateral positions do not sum to zero. No mass, wheel slip, acceleration, torque or contact dynamics are modeled.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Correctness and simulation limits</h4>
+<p>- <strong>Finite-number validation gap.</strong> Parser.number rejects booleans/non-numbers and checks positivity with value ≤ 0, but never checks finiteness. YAML NaN passes that positivity comparison; positive infinity also passes. For example a NaN simulation.dt reaches delay/dt rounding in vehicle construction and can fail outside the intended ConfigError path. Negative integer seeds also pass scenario parsing although NumPy generators require nonnegative seed integers. These are static input-validation findings, not remotely exploitable service claims. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/yamlfile.py">yamlfile.py</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/scenario.py">scenario.py</a>.<br>- <strong>Single-reflection bounce breaks for sufficiently large steps.</strong> Arena.apply_edges reflects each coordinate only once. In a width-100 arena, a proposed x=250 becomes −50, still outside. There is no dt/displacement constraint to prevent this for user configurations. Modulo wrapping does not have that particular limitation. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/world.py">world.py</a>.<br>- <strong>Contact is approximate and endpoint-only.</strong> Obstacles push the vehicle center away using radius=max(half_width, half_length), not the rectangular footprint or its circumscribed radius; only three correction passes are attempted. A large step can cross a thin obstacle and finish outside its correction region. Vehicles are sensed as bodies but world.block only resolves static obstacles, not vehicle–vehicle impacts. Edges are applied before obstacle correction, with no second boundary pass. Treat “cannot drive through” as a normal-step demo intention, not a general collision guarantee. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/sim.py">sim.py</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/tests/test_obstacles.py">obstacle tests</a>.<br>- <strong>Time-step changes alter circuit semantics.</strong> Delays are max(1, round(delay/dt)) steps, as are temporal pairing windows. Changing dt changes both movement error and effective neural timing; refining dt is not automatically behavior-preserving. Tests explicitly cover delay rounding. Long runs also accumulate floating-point time at periodic source boundaries. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/vehicle.py">vehicle.py</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/tests/test_definitions.py">definition tests</a>.<br>- <strong>Seeded does not mean configuration-independent.</strong> Noise draws share a simulation generator across vehicles; threshold jitter uses [seed, vehicle index]. Adding or reordering vehicles can change trajectories despite the same top-level seed. Start-of-step body snapshots do avoid sequential sensing of already-moved neighbors. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/sim.py">sim.py</a>.</p>
+<p>For research use, add finite/range checks, multi-crossing boundary tests, swept collision tests, symmetric-wheel analytic trajectories and dt-convergence studies; report held-out seeds/worlds separately from tuned demonstrations.</p>
+<h4>Reproducibility, maturity and scientific claims</h4>
+<p>The project includes a substantial suite covering loaders, responses, timing, cameras, obstacle sensing, energy, modules, chapter behaviors, a mocked Webots adapter and the separate CSCG experiment. Presence is not a passing result: <strong>none was run for this review</strong>. Default pytest configuration excludes slow tests, so an ordinary pytest invocation does not exercise the full evolution coverage. No tracked GitHub Actions workflow, dependency lockfile or license file was found. The manifest is version 0.1.0 and dependencies are unpinned. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/pyproject.toml">pyproject.toml</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/tests">tests</a>.</p>
+<p>Public GitHub metadata on 2026-11-17: created 2026-10-19; pushed 2026-11-16T15:03:35Z; 1 star, 0 forks, 0 open issues, no releases returned, not archived. The reviewed commit’s author timestamp is 2026-11-16T11:59:48−03:00. These indicate a young project, not reliability evidence. <a href="https://api.github.com/repos/njodal/Braitenberg-Vehicles">metadata</a>, <a href="https://api.github.com/repos/njodal/Braitenberg-Vehicles/releases">releases</a>.</p>
+<p>The separate CSCG experiment models repeated traffic-light colors with six hidden clones per color, soft EM then Viterbi EM. Its README reports learned durations and compares them to Ergotrix sequence associations; it explicitly says integration requires a new probabilistic unit. Those results were not reproduced, and should not be attributed to the simulator’s vehicle brain. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/experiments/cscg/README.md">experiment</a>.</p>
+<h4>UI, platform and accessibility</h4>
+<p>This is a desktop Python/Pygame application, not a web app or mobile product. Pause, single-step, restart, speed changes and stimulus cycling have keyboard bindings; moving sources and choosing a vehicle use mouse interactions. The diagram and heat maps are primarily visual, with no inspected screen-reader semantic surface or full keyboard alternative for those pointer actions. Headless output reports final positions/headings/speed, not an accessible equivalent to every live signal panel. OS/SDL compatibility, high-DPI behavior and assistive technology were not tested. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/render.py">render.py</a>.</p>
+<p>Webots is optional and narrower than the main engine: its adapter accepts light sensors and exactly two motors on opposite sides, maps sensors to the nearest e-puck light device and scales wheel velocity. It calls think(), not the simulator’s movement/energy loop. It is not a drop-in route for all fourteen vehicles or proof of physical-robot equivalence. The sample world includes remote Webots PROTO references, so that optional route may require network asset retrieval. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/webots.py">webots.py</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/webots/worlds/vehicle2-fear-and-aggression.wbt">sample world</a>.</p>
+<h4>Installation, privacy, security and rights</h4>
+<p>The documented workflow is a Python virtual environment and editable install from the repository, then a scenario path. Keep the repository’s YAML directories: setuptools explicitly packages only braitenberg, not a complete scenario asset bundle. No install was attempted. NumPy/PyYAML/pygame-ce and optional packages come from the package supply chain; without lockfiles, future resolutions can differ. No vulnerability audit or platform installation guarantee is asserted.</p>
+<p>The inspected simulator has no account, server listener, cloud model, telemetry or remote sensor dependency. It reads local YAML, generates local artifacts when requested, and the GUI creates a window. This is a small privacy surface, not a sandbox. yaml.safe_load avoids Python object construction and keys are validated; array-index expressions are parsed rather than evaluated as Python. However relative paths resolve without a confined root, referenced module files are local read authority, and large cameras/networks/delay buffers or long runs can consume substantial memory/CPU. Load only trusted scenarios in a resource-bounded environment. GIF recording/evolution/diagram generation write to chosen paths; do not target valuable files. <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/yamlfile.py">loaders</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/definition.py">definition parser</a>, <a href="https://github.com/njodal/Braitenberg-Vehicles/blob/c6abf11b3b21d8f71c69b5adb021b02120307e04/braitenberg/record.py">recording</a>.</p>
+<p>No license grant was found in the manifest or tracked license files, and GitHub reports license=null. Do not infer MIT or unrestricted educational reuse. Specs include generated illustrations and book-related explanatory material; no blanket asset reuse grant was identified. This review links to evidence and does not redistribute source code or images.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>This project</td><td>Explicit later-chapter circuits; abstract physics and no license grant</td></tr><tr><td>Webots</td><td>Richer robot/sensor context; heavier setup</td></tr><tr><td>NetLogo</td><td>Agent-based classroom experimentation; different model ecosystem</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p><strong>Practical recommendation:</strong> read the specs and trace vehicle 2 → 5 → 7 → 11 → 14, comparing predicted circuit changes to the authored acceptance criteria. For a local teaching trial, pin the revision and dependency versions and validate it in isolation first. For redistribution or a derivative application, obtain licensing clarity; for scientific conclusions or robot control, use stronger numerical validation and independent tasks before investing further.</p>
+<p><strong>Attribution:</strong> njodal/Braitenberg-Vehicles; conceptual source: Valentino Braitenberg, Vehicles. No source license specified. Public-source review only; alternatives were not benchmarked.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Read for transparent circuits, learning rules and causal demonstrations. Simplified physics, numeric validation gaps, young packaging and no license grant limit scientific and redistribution use. Static review only; no tests or GUI were run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/njodal/Braitenberg-Vehicles">njodal/Braitenberg-Vehicles</a> · No license specified</span>
+    <span><a href="braitenberg-vehicles.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
