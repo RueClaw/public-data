@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qwegn — Review</title>
+<meta name="description" content="Native Swift/Metal inference with reusable repository prefill and local source recall.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / qwegn</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">qwegnai/qwegn · reviewed 2026-11-17</div>
+    <h1>Qwegn</h1>
+    <p class="one-liner">Native Swift/Metal inference with reusable repository prefill and local source recall.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; model/component terms separate</span>
+      <span class="chip">Swift 6.2 · Metal 4 · macOS 26+</span>
+      <span class="chip"><a href="https://github.com/qwegnai/qwegn">qwegnai/qwegn ↗</a></span>
+      <a class="chip" href="qwegn.md">Full evidence and source citations</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real engine, distinctive memory</h3><p>Custom Metal execution and reusable repository prefill. Vault recall uses hashed lexical/concept features, not a hosted embedding model.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Shared authority needs containment</h3><p>Loopback and API-key guards are useful, but workspace mounting and administrative actions share one daemon. This is not tenant isolation.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Measure quality alongside speed</h3><p>Headline throughput is author-reported; relaxed speculation can change exactness. No builds, tests, models or performance probes were run for this review.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Compute</td><td>Swift/Metal custom kernels and unified-memory arenas</td></tr><tr><td>Service</td><td>Network.framework HTTP, SSE/NDJSON and lifecycle actor</td></tr><tr><td>Storage</td><td>JSON, RAM/SSD caches and browser localStorage</td></tr><tr><td>Source SHA</td><td>bc0f826027f5560cb6412329efa4328799963210</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Native execution with explicit state ownership</h4>
+<p>The package separates Foundation, Operators, Subsystems, Runtime and Apps. QWEngineDriver holds the HAL, arena, weights, attention/GDN operators and pipeline states. QWEngineSession owns position, token history, KV handles, recurrent/ring state and speculation, with snapshot/rollback and an idempotent-finish witness. This is meaningful structure. Numerous unchecked Sendable classes and manual synchronization mean compiler concurrency checks alone cannot prove correctness. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Driver/QWEngineDriver.swift">Driver</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Session/EngineSession.swift">session</a>.</p>
+<h4>Repository memory is cached computation plus retrieval</h4>
+<p>Indexing discovers bounded UTF-8 files, orders them by structural depth and temporal stability, prefills a resident envelope and writes a .qwcache plus manifest. Default Cortex budget: 32,768 tokens. Default additional Vault recall budget: 8,192 tokens per turn. Recall and live deltas still depend on source files. This is not weight training or portable learned memory independent of model and repository.</p>
+<p>The “semantic” index is narrower than the name suggests: 128-dimensional signed FNV-hashed term projections, splitting/stemming, hand-authored concept expansions, weighting and clustered retrieval—not an embedding-provider call. Git and .qwgignore rules, regular-file checks, binary checks and a 256 KiB per-file cap reduce unwanted ingestion, but are not secret detection. Tests are excluded by default. “Whole-codebase visibility” does not mean every byte is resident or every relevant file recalled. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Memory/QWMemoryPack.swift">Builder</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Memory/QWMemoryVault.swift">Vault</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Memory/QWMemorySemanticIndex.swift">index</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Memory/QWMemoryIgnoreMatcher.swift">ignore matcher</a>.</p>
+<h4>One control plane is not tenant isolation</h4>
+<p>Inference, model loading, settings, logs, telemetry and memory inspection/indexing/mounting share one service. Structured tool output is a protocol capability; callers still own execution policy, approvals and sandboxing. A coding agent does not become safe merely because inference is local.</p>
+<p>
+The README advertises large MoE packs on a 128 GB M5 Max, million-token contexts, zero steady-state heap/Metal-buffer allocations and major cache TTFT gains. Relevant code and harnesses exist, but none of those measurements was reproduced here.</p>
+<table><tbody><tr><th>Claim or evidence</th><th>Interpretation</th></tr><tr><td>Repository-cache TTFT 0.12–0.24 seconds, 54.4–74.3× gains</td><td>Author-reported precomputed/warm results, not first indexing or cold loading</td></tr><tr><td>Flash-Next novel speculative 94.1 tok/s versus 82.6 on mlx-serve; predictable 137.3 versus 159.2</td><td>Documentation itself shows workload-dependent wins and losses</td></tr><tr><td>Variational MTP probability/margin relaxation</td><td>Changes exact verification; docs acknowledge timing-adaptive non-bit-reproducible greedy output and score variation</td></tr><tr><td>Three needles and small Code-10/core suites</td><td>Smoke checks, not general long-context reasoning or agent validation</td></tr><tr><td>81/100 code and 99.74% fidelity</td><td>Author results for particular packs/protocols, not independent certification</td></tr><tr><td>Million-token planning/residency rows</td><td>Memory fit is not automatically a completed million-token generation run</td></tr></tbody></table>
+<p>The guide supplies hardware/settings, exact-versus-relaxed distinctions and alternating cooled A/B methodology. That candor is valuable. Tables span earlier versions and mix peak/median, CLI/server, predictable/novel and resident/streamed modes. The baseline dates to October 5 and cannot substantiate all current headlines. A complete raw run bundle binding each headline to the reviewed SHA was not established. Compare identical weights, prompts, context, cache warmth, quality, speculation and thermals; measure indexing amortization and recall failures too. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/docs/benchmarks.md">Benchmarks</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Scripts/bench/baselines.json">baseline</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/docs/lsa-codebase-memory-whitepaper.md">whitepaper</a>.</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>
+<strong>Useful defaults:</strong> loopback binding; refusal of unauthenticated non-loopback binding unless explicitly overridden; bearer/x-api-key authentication with constant-time-style byte comparison; bounded HTTP framing and malformed-request rejection. Server images default to bounded data URLs, with local paths and remote URLs disabled. Optional remote fetching blocks private address classes, redirects and excess source bytes. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWHttpServer.swift">Server</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWHttpSecuritySupport.swift">helpers</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWHttpIncrementalParser.swift">parser</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Handlers/QWImageDecodePolicy.swift">image policy</a>.</p>
+<p><strong>Limits:</strong> loopback may be keyless and is not user authentication. CORS controls emitted response headers; inspected dispatch does not reject all unapproved Origins as an authorization gate. The listener uses plain TCP, not built-in TLS. One key grants broad authority rather than separate inference/admin/workspace roles. Use authenticated encrypted transport and route restrictions beyond one trusted local client; avoid the unsafe public-bind override.</p>
+<p>Memory APIs accept filesystem paths. Root resolution normalizes a path and checks directory existence, but does not enforce an authorized-repository allowlist. Indexing writes within that repository and updates Git exclude state. Workspace metadata, a model-name @repo suffix or system/developer-message paths can trigger auto-mounting. If no new root is found, an existing active pack can remain available. This is daemon-wide state, not per-user isolation. Use separate processes/accounts for separate trust domains. These are static authority findings, not demonstrated exploits. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWEngineLifecycleActor+MemoryIndex.swift">Index/root resolution</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWEngineLifecycleActor+MemoryPack.swift">mounting</a>.</p>
+<p>The optional image policy checks DNS before URLSession connects; address pinning was not established. DNS-rebinding resistance is unproven, not a confirmed exploit. Keeping remote images disabled avoids this extra egress surface.</p>
+<p>Settings use private directories and 0600 files, but serialize the configured API key in JSON rather than a dedicated credential vault; settings responses mask it. Hugging Face uses HF_TOKEN, and HF_ENDPOINT changes its destination. Only configure trusted endpoints. No paid model API is necessary for native inference, but model acquisition, package setup and optional images still use the network. Local inference is not a zero-network guarantee. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWSettingsManager.swift">Settings</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWCli/QWCli+PullAndQuantize.swift">pull/bootstrap</a>.</p>
+<p>Repository text becomes model context, including memory envelopes rendered as system content. Filtering and delimiters are not a prompt-injection boundary. Review sensitive inclusion and enforce effect policy in the consuming agent. Optional fan-control UI documents root or an SMC helper socket for direct writes—a separate privilege boundary unnecessary for basic inference. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWEngineLifecycleActor+MemoryIndex.swift">Envelope</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWMenuBar/SettingsView+Performance.swift">fan settings</a>.</p>
+<ul><li><strong>Settings/profiles:</strong> local JSON with atomic settings writes and restrictive permissions. One atomic file is not a transaction across application state.</li><li><strong>Prefix caches:</strong> default 4 GiB warm RAM, 10 GiB SSD, 32 entries and eight session slots. Stored token IDs and model state/logits are sensitive recoverable context, not anonymous telemetry. LRU and startup stale-cache cleanup are not secure erasure or a complete retention policy. The inspected store writes through direct I/O to its destination, not a universal atomic multi-file transaction. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Cache/QWCacheConfig.swift">Config</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Cache/QWCacheDiskManager+Store.swift">store</a>.</li><li><strong>Repository packs:</strong> manifests record source digests and model/cache identities and save atomically. Cache and manifest are separate writes. Unmounting is not deletion. Preserve source and matching model/config assets; rebuild derived caches after incompatible or interrupted writes. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Runtime/QWEngine/Memory/QWMemoryManifest.swift">Manifest</a>.</li><li><strong>Browser chats:</strong> conversations, presets and UI state use localStorage. JSON/Markdown export, turn/session deletion and double-action Clear All exist. Browser deletion does not purge caches, packs, exports or backups. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Resources/js/chat.js">Chat</a>.</li><li><strong>Logs/uninstall:</strong> disk logs can append persistently; the memory ring holds 2,000 lines. Uninstall deliberately preserves models/settings/profiles/caches. No end-to-end encrypted backup/restore or verified total-erasure workflow was established. Plan retention and restore testing yourself. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWServer/Core/QWServerLogger.swift">Logger</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Scripts/uninstall.sh">uninstaller</a>.</li></ul>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>llama.cpp / Ollama</td><td>Broader platform/model packaging; compare actual workloads.</td></tr><tr><td>MLX / mlx-lm</td><td>Established Apple Silicon ecosystem; relative speed is workload dependent.</td></tr><tr><td>Splash / TensorFold</td><td>Compare specialized engines on exactness, parity, retention and provenance.</td></tr><tr><td>Memorilla</td><td>Different learned compression mechanism, not the same as hashed Vault retrieval.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+Documented platform: macOS 26+, Apple Silicon, Xcode 26+, Swift 6.2/Metal; M5 recommended for cooperative tensors. This is not a Linux/Windows runtime, and M5 Max results should not be generalized to every M-series Mac.</p>
+<p>SwiftPM commits exact resolutions for ArgumentParser, swift-jinja and swift-collections, while manifest ranges permit updates. Python direct versions are pinned, not a hash-locked full graph. Lazy bootstrap upgrades pip and falls back to unpinned numpy/safetensors/torch if requirements installation fails, then stamps success. Initialization success is not proof of a reproduced environment. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Package.resolved">Resolution</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/requirements.txt">requirements</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWCli/QWCli+PullAndQuantize.swift">bootstrap</a>.</p>
+<p>The downloader uses mutable Hugging Face main, skips existing files by size and does not establish revision-consistent content addressing in the inspected flow. Ranged downloads accept any 2xx response and validate lengths rather than an explicit 206/Content-Range contract. Downloadable hash sidecars are not enforcement. Independently pin and verify artifacts; resumed acquisition should not mix revisions. These are static provenance/correctness concerns, not tested corruption incidents. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Sources/Apps/QWCli/QWCli+PullAndQuantize.swift">Downloader</a>.</p>
+<p>The installer places CLI/app/support files in system locations and can terminate an existing menu app. Packaging supports Developer ID/notarization but defaults to ad-hoc app signing and permits unsigned installers without identities. Release metadata lists package/archive/checksum assets; their contents/signatures were not downloaded or verified. Preserve a known-good version/config; no transactional app rollback was demonstrated. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Scripts/build_pkg.sh">Packaging</a>.</p>
+<p>Root Apache-2.0 permits modification/commercial redistribution subject to conditions, notices and patent terms. It does not grant rights to third-party models, evaluation data or brands. No code or visual assets were extracted. Retain component/model notices when redistributing packs. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/LICENSE">License</a>.</p>
+<p>
+Public metadata checked November 17 reports creation November 9, last push November 16, one star, zero forks and zero open issues. Latest listed release: v0.23.0, November 16. These are activity signals, not quality scores. Public CI at the exact reviewed SHA reported success.</p>
+<p>The macOS workflow builds and runs host/CLI/server/quant/token/UI suites. GitHub Actions deliberately skips bare-metal GPU/golden suites, paired-performance tests and kernel-benchmark execution. Tests cover framing, auth/CORS, settings permissions, cancellation and memory mounting/indexing. GPU parity suites and golden generators exist, but existence is not a local pass result. Checkout uses a version tag rather than a full action SHA. <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/.github/workflows/ci.yml">Workflow</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Scripts/ci.sh">CI script</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/Tests/QWServerTests">tests</a>, <a href="https://github.com/qwegnai/qwegn/blob/bc0f826027f5560cb6412329efa4328799963210/SECURITY.md">security policy</a>.</p>
+<p><strong>Limits:</strong> selective static review, not a complete audit or numerical-correctness proof. No tests were run; model catalogs/weights, pack recovery, installer signatures, isolation and throughput were not experimentally verified. Only public sources/metadata were used. Review-page markup validation is separate from executing Qwegn or visually testing its UI.</p>
+<p>
+Start pinned, local-only and single-owner on supported hardware with non-sensitive source. Select workspaces explicitly; disable automatic memory use where inappropriate. Authenticate even loopback if local clients are not trusted. Do not share a daemon across mutually untrusted users or run it as root merely for fan control.</p>
+<p>Budget for unified memory, model storage, conversion/indexing, SSD traffic, electricity and maintenance, not cloud per-token fees. Repeated stable repositories best amortize prefill. Prefer an existing engine for portability or ordinary small-context chat.</p>
+<p><strong>Adoption gate:</strong> verify hashes/install signatures; reproduce exact and relaxed quality/performance separately; test stale-file recall, workspace switching, API compatibility, interrupted indexing, disk-full recovery and complete deletion. Until then: interesting single-owner pilot, not a production multi-tenant service.</p>
+<hr>
+<p><strong>Attribution:</strong> QwegnAI / qwegnai/qwegn, Apache License 2.0. Implementation findings are separate from upstream performance claims.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantial native engineering for a pinned single-owner pilot. Benchmark exactness, shared workspace authority, artifact acquisition and retained context need qualification before deployment.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/qwegnai/qwegn">qwegnai/qwegn</a> · Apache-2.0; model/component terms separate</span>
+    <span><a href="qwegn.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

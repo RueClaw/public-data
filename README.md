@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [qwegn.md](reviews/qwegn.md) [page](reviews/qwegn.html) | [qwegnai/qwegn](https://github.com/qwegnai/qwegn) | Apache-2.0; model/component terms | ⚠️ Interesting | Native Swift/Metal inference and repository prefill; shared workspace authority, benchmark exactness, retention and artifact-provenance caveats. Static review. |
 | [tts-bench.md](reviews/tts-bench.md) [page](reviews/tts-bench.html) | [5uck1ess/tts-bench](https://github.com/5uck1ess/tts-bench) | MIT code; model/voice/provider terms separate | ⚠️ Interesting | Broad TTS audition workbench; narrow corpus, cold-start/memory semantics, private NAQ and publication-rights caveats. Static review. |
 | [moshi-finetune.md](reviews/moshi-finetune.md) [page](reviews/moshi-finetune.html) | [kyutai-labs/moshi-finetune](https://github.com/kyutai-labs/moshi-finetune) | Apache-2.0 code; model/data separate | 📚 Study | Official multistream speech adaptation; evaluation, credential logging, recovery and dependency-drift caveats. Static review. |
 | [bevel-os.md](reviews/bevel-os.md) [page](reviews/bevel-os.html) | [andrisgauracs/bevel-os](https://github.com/andrisgauracs/bevel-os) | MIT; GPL v2 Doom exceptions | 📚 Study | ESP32-S3 VGA desktop with efficient rendering; shared app authority, plaintext Wi-Fi and destructive-recovery caveats. Static review. |
