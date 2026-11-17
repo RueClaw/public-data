@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [lastbook.md](reviews/lastbook.md) [page](reviews/lastbook.html) | [Immortal-Protocols/lastbook](https://github.com/Immortal-Protocols/lastbook) | MIT; component/content terms | ⚠️ Interesting | Offline survival library with maps and local AI; strong bridge/download defenses, but recovery, citation and privacy limits. Static review. |
 | [keepsync.md](reviews/keepsync.md) [page](reviews/keepsync.html) | [progrium/keepsync](https://github.com/progrium/keepsync) | MIT core; MPL-2.0 / AGPL components | ⚠️ Interesting | Syncthing + Perkeep tiered archive; careful expiry gate, capture gaps, shared trust and recovery limits. Static review. |
 | [s-means.md](reviews/s-means.md) [page](reviews/s-means.html) | [suayptalha/s-means](https://github.com/suayptalha/s-means) | MIT | ⚠️ Interesting | Few-epoch CPU/GPU clustering: promising accuracy, correctness/API gaps and unreproduced benchmark claims. |
 | [qwegn.md](reviews/qwegn.md) [page](reviews/qwegn.html) | [qwegnai/qwegn](https://github.com/qwegnai/qwegn) | Apache-2.0; model/component terms | ⚠️ Interesting | Native Swift/Metal inference and repository prefill; shared workspace authority, benchmark exactness, retention and artifact-provenance caveats. Static review. |
