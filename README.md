@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [landmines.md](reviews/landmines.md) [page](reviews/landmines.html) | [interfere-inc/landmines](https://github.com/interfere-inc/landmines) | MIT | ⚠️ Interesting | Opinionated Oxlint testing rules; useful count baselines, but MSW, timer and directory-policy gaps. Static review. |
 | [braitenberg-vehicles.md](reviews/braitenberg-vehicles.md) [page](reviews/braitenberg-vehicles.html) | [njodal/Braitenberg-Vehicles](https://github.com/njodal/Braitenberg-Vehicles) | No license specified | 📚 Study | Fourteen inspectable sensor–motor simulations; strong teaching circuits, approximate physics and reproducibility/licensing limits. Static review. |
 | [lastbook.md](reviews/lastbook.md) [page](reviews/lastbook.html) | [Immortal-Protocols/lastbook](https://github.com/Immortal-Protocols/lastbook) | MIT; component/content terms | ⚠️ Interesting | Offline survival library with maps and local AI; strong bridge/download defenses, but recovery, citation and privacy limits. Static review. |
 | [keepsync.md](reviews/keepsync.md) [page](reviews/keepsync.html) | [progrium/keepsync](https://github.com/progrium/keepsync) | MIT core; MPL-2.0 / AGPL components | ⚠️ Interesting | Syncthing + Perkeep tiered archive; careful expiry gate, capture gaps, shared trust and recovery limits. Static review. |
