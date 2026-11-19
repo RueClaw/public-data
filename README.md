@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [bombadil.md](reviews/bombadil.md) [page](reviews/bombadil.html) | [antithesishq/bombadil](https://github.com/antithesishq/bombadil) | MIT; component terms | ⚠️ Interesting | Browser/terminal property-based exploration with temporal oracles and shrinking; inspector exposure, credential echoes and replay/isolation caveats. Static review. |
 | [skywake.md](reviews/skywake.md) [page](reviews/skywake.html) | [skywakehq/skywake](https://github.com/skywakehq/skywake) | Apache-2.0; component terms | ⚠️ Interesting | Branchable object-backed filesystem and search; strong recovery, but cache-tier durability, credential boundaries and retention caveats. Static review. |
 | [landmines.md](reviews/landmines.md) [page](reviews/landmines.html) | [interfere-inc/landmines](https://github.com/interfere-inc/landmines) | MIT | ⚠️ Interesting | Opinionated Oxlint testing rules; useful count baselines, but MSW, timer and directory-policy gaps. Static review. |
 | [braitenberg-vehicles.md](reviews/braitenberg-vehicles.md) [page](reviews/braitenberg-vehicles.html) | [njodal/Braitenberg-Vehicles](https://github.com/njodal/Braitenberg-Vehicles) | No license specified | 📚 Study | Fourteen inspectable sensor–motor simulations; strong teaching circuits, approximate physics and reproducibility/licensing limits. Static review. |
