@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linger — Review</title>
+<meta name="description" content="Personal-agent workspace with local runtime execution, collaborative documents, memory and proactive follow-ups.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / linger</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">simplexai-labs/linger · reviewed 2026-11-19</div>
+    <h1>Linger</h1>
+    <p class="one-liner">Personal-agent workspace with local runtime execution, collaborative documents, memory and proactive follow-ups.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Custom Linger license; component terms</span>
+      <span class="chip">Go · TypeScript · PostgreSQL · Electron</span>
+      <span class="chip"><a href="https://github.com/simplexai-labs/linger">simplexai-labs/linger ↗</a></span>
+      <span class="chip"><a href="linger.md">Evidence-linked Markdown</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,382</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">98</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Consent is path-specific</h3><p>Connector writes bind stored content to approval and recheck grants. Host actions use a separate policy; Codex is unsandboxed and Pi runs without review.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local does not mean offline</h3><p>Local inference is supported, but remote runtimes, Composio, Soniox and xAI have separate data and billing boundaries. Voice keys are deployment-wide.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Good provenance, incomplete deployment proof</h3><p>Wiki validation and operation ledgers are useful. Benchmarks differ from production, business data has no age expiry, and complete restore remains unverified.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Reviewed revision</td><td>cd0e23af6cacbca311bfe1964e11ea6c73cc7562</td></tr><tr><td>Verification</td><td>Static source inspection; no installation, execution or provider calls.</td></tr><tr><td>Server</td><td>Go/Gin, PostgreSQL, River; Node/Hono and Yjs</td></tr><tr><td>Client / execution</td><td>React/Electron; Go/SQLite daemon; Codex, Claude Code, Pi</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>
+“Another Me” coordinates agents, reads connected sources, maintains a personal wiki and follows up proactively. Rooms, Tasks and Documents provide contexts. The server owns business records and permissions; a Go Computer Daemon connects outward and launches the chosen runtime. This is neither a memory-only library nor an isolated agent sandbox.</p>
+<p>The desktop app can install a local server; Compose serves the workspace across computers. Agents and model endpoints operate from connected computers even when the server is elsewhere. There are several trust/storage locations, not one local database. See <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/docs/architecture.md">docs/architecture.md</a> and <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/docs/self-hosting.md">docs/self-hosting.md</a>.</p>
+
+<h4>Checked knowledge structure, not guaranteed truth</h4>
+<p>The owner-scoped wiki and per-agent memory are separate. Documentation describes typed entity/session pages, citations and app-written change logs. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/node-services/src/llm-wiki/wiki-candidate-validation.ts">apps/node-services/src/llm-wiki/wiki-candidate-validation.ts</a> checks routed targets, incoming citations and source coverage. These are useful provenance/anti-loss checks, not factual entailment proofs or prompt-injection immunity.</p>
+<p>Search combines PostgreSQL keyword and temporal ranks with reciprocal-rank fusion; it needs no embedding/reranker model. Alternate phrasings help lexical and cross-language recall. Summarized sections and short change logs are not complete audit archives. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/docs/wiki-and-memory.md">docs/wiki-and-memory.md</a> describes extraction after five successful Room runs and idle consolidation; delegated Tasks and document work do not feed that agent-memory path.</p>
+<h4>Content-bound connector consent</h4>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/agentconnectedapps/confirmation.go">apps/teamhub/internal/agentconnectedapps/confirmation.go</a> binds confirmation to a connection and stored action, pins draft content, rechecks current grants/connection state and refuses changed drafts/canvases. Unknown provider outcomes are distinguished from definitive failure. This is good duplicate-send defense, not distributed transactional exactly-once execution.</p>
+<p>This guarantee belongs to the connector path. Desktop clicks and shell commands have different policy surfaces. “External apps write only after confirmation” must not be read as universal human confirmation across every runtime/tool.</p>
+<h4>Host execution, not a sandbox</h4>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/computer/local-daemon/internal/workspace/codex_projection.go">apps/computer/local-daemon/internal/workspace/codex_projection.go</a> supplies Codex with sandbox_mode=&quot;danger-full-access&quot;. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/computer/local-daemon/internal/permission/reviewer.go">apps/computer/local-daemon/internal/permission/reviewer.go</a> fast-allows selected reads, recognized shell operations and navigation shapes; other intercepted calls go to review. Failures return unavailable; navigation reuse is run-scoped. That is defense in depth, not OS isolation. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/docs/architecture.md">docs/architecture.md</a> explicitly says <strong>Pi runs without review</strong>.</p>
+<p>Per-context folders, read-only memory projections and separate browser profiles organize work; they do not separate same-account processes from files, credentials or signed-in apps. Hostile pages, email and documents reach an agent with real authority. Use a dedicated OS account or disposable machine, narrow integration accounts and no unrelated secrets. No exploit or bypass resistance was tested here.</p>
+<h4>Claims Versus Evidence</h4>
+<table><tr><td>Claim</td><td>Evidence and limitation</td></tr><tr><td>“Claude-class” / 125B on 12 GB</td><td>README gives model/quantization-dependent measurements and admits simulated tiers and short/long-prompt differences. PolyStrata is a separate inference project. No speed/quality was reproduced; fitting offloaded weights does not establish equivalent agent performance.</td></tr><tr><td>95% LoCoMo</td><td>A real benchmark harness exists, but the headline was not independently reproduced or tied here to a verified full result bundle.</td></tr><tr><td>Local/private</td><td>Local models are supported; remote runtimes, Composio, Soniox, xAI and optional diagnostics are explicit egress paths.</td></tr><tr><td>Safe actions</td><td>Connector approval and intercepted-tool review exist; Pi's missing review and full host execution preclude treating this as an isolation boundary.</td></tr></table>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/node-services/scripts/memory-benchmark/README.md">apps/node-services/scripts/memory-benchmark/README.md</a> candidly states that benchmark tools bypass production TeamHub auth/CLI projection, model calls use a gateway, wiki timing differs and LoCoMo excludes adversarial category 5 under AMB. Extraction, answering and judging need configured models. Such results do not validate local-model quality, security or full desktop workflows. Run-to-run variance is explicitly acknowledged; comparison charts are not controlled end-to-end product evaluations.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <table><tr><td>Layer</td><td>Implementation</td></tr><tr><td>Interface</td><td>React/Vite, BlockNote; Electron desktop shell</td></tr><tr><td>Business authority</td><td>Go/Gin TeamHub, PostgreSQL, River jobs, goose migrations, OpenAPI contracts</td></tr><tr><td>Agent/document services</td><td>Node 26, Hono, Yjs/Hocuspocus; memory/wiki pipelines</td></tr><tr><td>Local execution</td><td>Go daemon, SQLite operation ledger, per-context workspaces, native runtime adapters</td></tr><tr><td>Tools</td><td>teamhub CLI; Playwright/Cua, or Linux AT-SPI/xdotool</td></tr><tr><td>Voice</td><td>LiveKit, FFmpeg, Soniox transcription, xAI live voice</td></tr></table>
+<p>Per-agent credentials authorize business operations independently of active model runs. The daemon carries queued work and events; runtimes call model endpoints directly. This helps reconnects and background work but is not an all-traffic egress firewall. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/agentauth/agentauth.go">apps/teamhub/internal/agentauth/agentauth.go</a> resolves current tenant/actor/resource facts rather than treating a client-supplied target as authority.</p>
+<h4>Authentication, Network and Credential Boundaries</h4>
+<ul><li><strong>Real API authorization:</strong> action allowlists, tenant-qualified queries, current room/document access and task-context restrictions exist in <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/agentauth/agentauth.go">apps/teamhub/internal/agentauth/agentauth.go</a>. This is positive API isolation, not proof of safe unrelated-tenant cohosting.</li><li><strong>Session lifecycle:</strong> <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/account/session.go">apps/teamhub/internal/account/session.go</a> stores token digests, locks against stale password verification and rechecks renewed sessions. Complete route-level auth/CSRF coverage was not audited.</li><li><strong>Broad local-origin trust:</strong> <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/app/cors.go">apps/teamhub/internal/app/cors.go</a> accepts configured origins plus localhost, loopback and private-IP origins, reflecting them with credentials enabled. This expands trust beyond an explicit allowlist; CORS alone does not bypass authentication and exploitability was not tested.</li><li><strong>Shared service trust:</strong> <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/SECURITY.md">SECURITY.md</a> documents seed-derived service credentials and a deployment encryption key. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/secretbox/secretbox.go">apps/teamhub/internal/secretbox/secretbox.go</a> uses AES-256-GCM for saved secrets, not end-to-end document encryption against the server operator. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/node-services/src/service-bearer-auth.ts">apps/node-services/src/service-bearer-auth.ts</a> compares token digests timing-safely.</li><li><strong>Local credential files:</strong> <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/desktop/src/main/computer-credential.ts">apps/desktop/src/main/computer-credential.ts</a> atomically writes owner-only files, explicitly not OS keychain storage, and accepts ws or wss. Same-account compromise remains relevant.</li><li><strong>Remote setup:</strong> Compose defaults database/media ports to loopback. SECURITY requires private secrets and HTTPS before exposure. The shorter self-hosting example shows HTTP/ws and only one replacement secret; follow the stronger security guidance, not that example verbatim. Replace database defaults and the example owner password too.</li></ul>
+<h4>Privacy, Provider Flows and Costs</h4>
+<p>
+Local inference is not an offline feature matrix. Codex, Claude Code and Pi can use remote subscriptions/API endpoints; background memory/wiki work follows runtime routing. The selected provider receives required context. Composio mediates connected apps and holds upstream credentials; mail/calendar/chat cross that integration boundary. Browser control can use existing signed-in Chrome sessions.</p>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/docs/voice.md">docs/voice.md</a> explicitly sends transcription/archive-recovery audio to Soniox and uses xAI for live voice. Saved voice keys are deployment-wide, and the documentation allows any signed-in person to replace them unless environment keys lock them. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/voicekey/voicekey.go">apps/teamhub/internal/voicekey/voicekey.go</a> implements environment precedence and encrypted stored keys. This is shared operational authority, not tenant-isolated billing.</p>
+<p>Local inference avoids vendor token charges, not hardware/RAM/storage/power costs. Remote inference, Composio and voice carry their own quotas/pricing; no current price quote or universal spending cap was verified. Background consolidation and proactive/parallel agents consume inference too. Diagnostics upload is optional and user-confirmed, with file/receiver preview and redaction (<a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/docs/diagnostics-upload.md">docs/diagnostics-upload.md</a>); receiver retention is a recommendation, not independently verified hosted behavior. Obtain participant consent before meeting recording.</p>
+<h4>Persistence, Retention, Export, Delete and Recovery</h4>
+<p>
+PostgreSQL holds business records, permissions and jobs; local workspaces and daemon SQLite retain execution state; artifacts/media add file storage. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/computer/local-daemon/internal/daemon/operation_ledger.go">apps/computer/local-daemon/internal/daemon/operation_ledger.go</a> provides persisted operation handling. Reconnect replay and uncertain-action handling improve resilience but cannot undo external effects.</p>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/retention/retention.go">apps/teamhub/internal/retention/retention.go</a> explicitly excludes business content—messages, room events, documents, wiki and recordings—from age deletion. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/store/queries/retention.sql">apps/teamhub/internal/store/queries/retention.sql</a> cleans working data in bounded batches, including eligible 30-day document events and seven-day non-recording voice state. Disconnecting an app or deleting a chat must not be assumed to erase derived memory, logs, backups or provider copies.</p>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/document/export.go">apps/teamhub/internal/document/export.go</a> validates media type, byte length, SHA-256 and asset/thread correspondence for Markdown, text, HTML or blocks exports. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/teamhub/internal/roomcreation/deletion.go">apps/teamhub/internal/roomcreation/deletion.go</a> waits for membership revocation before finalizing a room deletion event. These are narrower lifecycle capabilities, not a demonstrated full-account export or secure-erasure contract.</p>
+<p>No comprehensive, tested deployment backup/restore runbook was established in the reviewed documentation. Inventory the database, artifact/media files, daemon state, workspaces and encryption keys; take consistent backups and rehearse isolated restore. DB-only backup may omit files and cannot recover lost encryption keys. Update rollback is not data rollback.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Desktop coworker</td><td>Linger integrates wiki and documents</td><td>OpenWorker: compare permission scope</td></tr><tr><td>Coding</td><td>Broad personal-workspace stack</td><td>Magnitude or runtime plus local inference</td></tr><tr><td>Memory only</td><td>Full product adoption</td><td>Hindsight as a component</td></tr><tr><td>Knowledge</td><td>Includes host authority</td><td>Outline without desktop-agent scope</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Dependencies, Install, Updates and Maturity</h4>
+<p>
+The workspace pins pnpm, requires Node 26, and includes lockfiles, Go sums, generated contracts and dependency build-script allowlists. Native dependencies include SQLite, image/media libraries, browser tooling and Electron. Patches to Hocuspocus, LiveKit, Deep Agents and an alpha Playwright build add compatibility maintenance. No advisory scan was run; locked versions do not establish safety. See <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/package.json">package.json</a> and <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/pnpm-workspace.yaml">pnpm-workspace.yaml</a>.</p>
+<p>Mac documentation describes unsigned packages and quarantine removal. SHA256SUMS establishes consistency only relative to a trusted manifest. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/computer/local-daemon/internal/selfupdate/stager.go">apps/computer/local-daemon/internal/selfupdate/stager.go</a> downloads a server-advertised archive, bounds size, verifies hash and executes its installer. <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/apps/computer/local-daemon/internal/selfupdate/selfupdate.go">apps/computer/local-daemon/internal/selfupdate/selfupdate.go</a> handles staged activation, confirmation and rollback. The server origin and manifest are code-distribution authorities; matching hashes are not independent publisher signatures.</p>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/.github/workflows/ci.yml">.github/workflows/ci.yml</a> provides path-aware gates, frontend shards and daemon Go checks. It explicitly leaves heavier node-services, voice, integration, container and E2E suites local. Many targeted tests address grants, confirmations, sessions and updates, but none ran here and no passing CI status is asserted.</p>
+<p>Public GitHub metadata retrieved November 19 showed creation November 10, last push November 19, 1,382 stars, 98 forks and 38 open issues/PRs combined. The latest-release API identified desktop-v0.1.5; the source desktop manifest says 0.16.20, and release packaging can override it. Neither substitutes for the exact reviewed SHA. Recent PR listings include operation-ID handling after unreadable write responses. This is active, very young public software; popularity is not validation.</p>
+<h4>License and Assets</h4>
+<p>
+Read <a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/LICENSE">LICENSE</a>, not just the open-source headline. Outside-organization hosted/managed services need producer authorization/commercial licensing, and frontend logo/copyright removal is restricted. Internal commercial use is permitted subject to terms. These restrictions materially affect white-label and SaaS reuse.</p>
+<p><a href="https://github.com/simplexai-labs/linger/blob/cd0e23af6cacbca311bfe1964e11ea6c73cc7562/NOTICE">NOTICE</a> separately identifies integration trademarks, Hindsight/Codex adaptations, MPL components, LGPL/possibly distribution-specific GPL media components, fonts and proprietary LiveKit model terms. Inference-model licenses remain independent. No upstream code or assets were extracted.</p>
+<h4>Adoption Gate</h4>
+<p>
+Start with synthetic data on a dedicated account, local-only inference and connectors/voice disabled. Test human confirmation, revocation, reconnect, ambiguous effects, provider spending and complete restore before real accounts. Verify the chosen runtime's actual policy behavior, especially Pi. Do not expose it as an untrusted multi-tenant service or assume the license permits managed hosting.</p>
+<p><strong>Bottom line:</strong> worth studying and carefully piloting for its server/host split, checked wiki and content-bound approvals. This static review does not justify a “fully private, safely autonomous, free Claude-class assistant” conclusion.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantial consent, knowledge and recovery engineering; pilot on a dedicated account. Full host authority, Pi review gaps, provider egress and custom licensing prevent an uncomplicated deployment recommendation. Static review only; no tests or benchmarks run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/simplexai-labs/linger">simplexai-labs/linger</a> · Custom Linger license; component terms</span>
+    <span><a href="linger.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
