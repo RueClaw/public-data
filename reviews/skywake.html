@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skywake — Review</title>
+<meta name="description" content="Branchable filesystems and hybrid search indexes for agents, backed by object storage.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / skywake</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">skywakehq/skywake · reviewed 2026-11-19</div>
+    <h1>Skywake</h1>
+    <p class="one-liner">Branchable filesystems and hybrid search indexes for agents, backed by object storage.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; component terms separate</span>
+      <span class="chip">Rust · TypeScript · PostgreSQL · S3</span>
+      <span class="chip"><a href="https://github.com/skywakehq/skywake">skywakehq/skywake ↗</a></span>
+      <span class="chip"><a href="skywake.md">Full evidence and limitations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">41</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Fork data, not the security boundary</h3><p>Copy-on-write trees and branchable search are useful for parallel agents. A branch is not a VM, and disk-scoped S3 write keys reach more than one unprotected branch.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>fsync does not always mean in the bucket</h3><p>With cache nodes and positive log copies, fsync can acknowledge replicated cache logs before object-storage persistence. The default is three copies; without that tier, the bucket path applies.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Deletion and recovery span several systems</h3><p>Historical data, delayed GC, durable deletion queues, PostgreSQL, browser replicas and provider processing have separate lifecycles. Removing the daemon access file also broadens group access rather than denying it.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Engine</td><td>Rust, FastCDC, BLAKE3, zstd, Tantivy</td></tr><tr><td>API</td><td>Node/Hono/Zod, N-API, PostgreSQL/Drizzle</td></tr><tr><td>Console</td><td>Next.js, Better Auth, Zero</td></tr><tr><td>Mount</td><td>FUSE/virtio-fs, daemon and optional cache write log</td></tr><tr><td>Revision</td><td>686871971b2ccaba342a047700d76c5e15a48be0</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Skywake serves teams running many agents against related working data. A disk is a versioned tree; each agent can fork a branch, change files and propose a three-way merge instead of copying a whole environment. Linux FUSE or virtio-fs exposes it as a mounted filesystem; HTTP SDKs and MCP support agents that do not mount. It does not itself create an isolated VM or container for those agents.</p>
+<p>An index holds searchable rows with vectors, text and attributes. It also branches, restores historical versions and supports filtering, hybrid retrieval and optional reranking. Disk search is a separately synchronized index: file saves and search visibility are not one atomic transaction. The console and control-plane database track organizations, environments, keys, activity and search synchronization; the bucket alone is not a complete service backup.</p><p>Embedding adapters support OpenAI-compatible, Voyage, Cohere and Gemini request shapes; reranking transmits a query and selected result text to the configured service. Enabling disk search can extract and embed file content automatically. Self-hosting storage does not make those remote requests private or free. Use numeric vectors or approved local endpoints when external processing is unacceptable, and verify provider retention terms separately.</p>
+<p>Provider calls have batching, timeout/retry handling and usage admission/accounting. That is not proof of a universal prepaid cost ceiling: embeddings, retries, indexing, pinned RAM, API/database replicas, object requests, stored history and cross-region egress all affect cost. No current hosted price quote or provider bill was independently verified. Logs/audit and Zero's browser-side replicas also enlarge the data lifecycle beyond the bucket; do not upload secrets merely because branches are easy to delete.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/indexes/providers.ts">apps/api/src/features/indexes/providers.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/indexes/models.ts">apps/api/src/features/indexes/models.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/indexes/embeddings.ts">apps/api/src/features/indexes/embeddings.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/indexes/rerank.ts">apps/api/src/features/indexes/rerank.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/links/sync.ts">apps/api/src/features/links/sync.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/audit/retention.ts">apps/api/src/audit/retention.ts</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>API and tenant boundaries</h4>
+<p>API keys contain random secrets, are stored hashed and compared with timing-safe equality. Authorization distinguishes organization, environment, resource scope and read/write/admin role. Key cache invalidation is supported; mutations recheck key records. Console JWTs constrain algorithm, issuer, audience and expiry, with five-minute issuance configured in the console. JWT role claims should not be mistaken for immediate revocation on every API request.</p>
+<p>Resource access resolves namespace rows within the caller's organization. Explicitly public namespaces can be read across organizations, including by unauthenticated callers through the relevant v1 access path; indexes are not public. Public visibility is therefore a deliberate disclosure feature, not a universal private-by-default guarantee for all configured resources. CORS is configured from allowed origins, and body/rate limits exist; CORS is not tenant authentication.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/auth/keys.ts">apps/api/src/auth/keys.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/auth/authenticate.ts">apps/api/src/auth/authenticate.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/auth/tokens.ts">apps/api/src/auth/tokens.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/auth/access.ts">apps/api/src/auth/access.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/console/server/auth.ts">apps/console/server/auth.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/app.ts">apps/api/src/app.ts</a>.</p>
+<h4>A disk-scoped credential is not branch isolation</h4>
+<p>The STS policy narrows access to a disk folder, denies object deletion and denies writes to GC state, the kind marker and protected refs. But writable credentials can still overwrite other unprotected branch refs and content objects inside that disk. Hash validation detects corrupted content; it does not prevent denial of service. Previously minted credentials remain usable until expiry, normally 15 minutes. A revoked API key does not instantly revoke an already-issued S3 session.</p>
+<p>Use separate disks or a stronger credential/execution boundary for mutually hostile tenants. Do not give an agent whole-bucket keys and expect API scopes to protect the bucket from its direct calls. Protected refs reduce one attack surface, not all attacks on their reachable data.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/credentials/mint.ts">apps/api/src/features/credentials/mint.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/docker/README.md">docker/README.md</a>.</p>
+<h4>Host authority and a fail-open configuration edge</h4>
+<p>The daemon validates access-file ownership and permissions, and supports per-user/group branch policy. <strong>If the access file is absent—or is removed during reload—the policy becomes unrestricted for members of the configured daemon group.</strong> Invalid contents retain the last good policy; removal is explicitly different. Existing mounts keep their original access until unmounted. Root and the daemon owner remain privileged, and direct store credentials bypass these daemon rules.</p>
+<p>A branch is a storage boundary, not process isolation. FUSE, VM socket ownership, host filesystem permissions, network restrictions and the actual VM/container boundary remain operator responsibilities. MCP grants tools according to the configured key's role; no independent human confirmation gate was found in the inspected registration path. The bash adapter uses just-bash over SkywakeFs rather than automatically spawning a host shell, but accepts caller-provided options/custom commands. Its run helper can commit changes even when the command returned a nonzero exit status if a commit option was requested.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/crates/daemon/src/access.rs">crates/daemon/src/access.rs</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/packages/skywake/src/mcp.ts">packages/skywake/src/mcp.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/packages/skywake/src/shell.ts">packages/skywake/src/shell.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/packages/skywake/src/run.ts">packages/skywake/src/run.ts</a>.</p>
+<h4>Network and secret handling</h4>
+<p>Customer bucket keys are sealed with AES-256-GCM using row-bound authenticated context; assumed roles use an external ID. This protects stored key material, not a compromised API process holding the sealing key. Preserve that key securely with recoverable backups.</p>
+<p>The bring-your-own-bucket endpoint is accepted as a URL and used by the server during verification. The inspected schema and route do not impose a public-address allowlist or private-network rejection. Treat tenant-admin-selected storage endpoints as an outbound network trust boundary; enforce egress policy before offering this to untrusted organizations. This is a static hardening concern, not a reproduced exploit. Shared cache tokens require a trusted network or TLS transport; content hashes provide integrity, not confidentiality.</p>
+<p>Compose publishes API, console and Zero ports without loopback-only bindings. It is a convenient starter, not a hardened Internet deployment. Zero's PostgreSQL REPLICATION capability can decode broader database changes than its SELECT grants suggest; the documentation correctly says to trust it like the API and keep Postgres private.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/security/sealed.ts">apps/api/src/security/sealed.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/packages/contract/src/environments.ts">packages/contract/src/environments.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/environments/routes.ts">apps/api/src/features/environments/routes.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/environments/buckets.ts">apps/api/src/features/environments/buckets.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/compose.yaml">compose.yaml</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/docker/README.md">docker/README.md</a>.</p><h4>Qualify both headline durability claims</h4>
+<p>The README's “lose at most 2 seconds” is not an unconditional recovery-point objective under slow uploads, errors or network partitions. The detailed guide already adds “plus the save in flight”; the saver records lag/failures and cannot make an unavailable bucket durable on a timer. Monitor save lag and test failures under the intended workload.</p>
+<p>More importantly, the source enables a write log when cache nodes are configured and log copies are positive (default three). In that mode fsync can return after changes are recorded on cache nodes in distinct zones; the bucket gets them at the next save. When logging fails it falls back to waiting for the bucket. New mounts seal/replay those logs. Thus cache-node storage, zone placement and recovery become part of the durability guarantee. Setting zero log copies selects bucket-waiting semantics; evaluate this explicitly instead of relying on the guide's blanket wording.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/crates/daemon/src/server/mod.rs">crates/daemon/src/server/mod.rs</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/crates/daemon/src/mounted/save.rs">crates/daemon/src/mounted/save.rs</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/crates/daemon/src/mounted/log.rs">crates/daemon/src/mounted/log.rs</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/crates/core/src/cache/log.rs">crates/core/src/cache/log.rs</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/docs/how-it-works.md">docs/how-it-works.md</a>.</p>
+<h4>History is useful—and retains deleted data</h4>
+<p>Deleting a file from the current tree does not remove its reachable historical bytes. Disk GC preserves reachable history and observes an eight-day default grace period. Index versions are kept indefinitely by default; retentionDays can restrict replaced-version retention, with GC needed to reclaim unreferenced data. Removing a whole disk/index queues eventual folder destruction rather than instant physical erasure. Provider-side object versioning, backups, caches, audit records and browser replicas are separate retention domains.</p>
+<p>Files can be downloaded and index rows paginated for export. Those are data exports, not complete org/identity/configuration backups. Mount-local hard-link identity, owners, access times and extended attributes do not all persist as full POSIX metadata; FIFOs, sockets and device nodes are not saved. Ignored build directories are intentionally local and disposable. Unsaved recovery state helps after daemon failures, but cannot recover a destroyed host's only local dirty bytes.</p>
+<p>Back up PostgreSQL, object storage, configuration/sealing keys and any durability-bearing cache log state together, and test restore ordering. AWS deployment files provide database-backup options, but no end-to-end restore was exercised here. Automatic startup migrations plus a moving git-pull update recipe warrant a pinned release and a rollback/restore rehearsal.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/docs/content/docs/indexes/time-travel.mdx">apps/docs/content/docs/indexes/time-travel.mdx</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/docs/content/docs/indexes/write.mdx">apps/docs/content/docs/indexes/write.mdx</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/crates/core/src/store/gc/mod.rs">crates/core/src/store/gc/mod.rs</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/apps/api/src/features/deletions/worker.ts">apps/api/src/features/deletions/worker.ts</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/deploy/terraform/aws/database.tf">deploy/terraform/aws/database.tf</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/docker/README.md">docker/README.md</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/docs/how-it-works.md">docs/how-it-works.md</a>.</p><p>Public metadata on the review date reported 41 stars, 5 forks, repository creation on 2026-11-12 and last push on 2026-11-16. Release v0.2.0 was published on November 16. These are a young public project's activity signals, not reliability evidence; earlier benchmark dates may reflect pre-public development.</p>
+<p>The <a href="https://github.com/skywakehq/skywake/actions/runs/43975148213">CI run for this exact SHA</a> reported success. The separate <a href="https://github.com/skywakehq/skywake/actions/runs/43975148227">Release PR workflow</a> reported failure; that is not the same as failing tests. CI configuration includes Rust formatting/clippy/tests, FUSE and privileged tests, TypeScript builds/typechecking, API/SDK integration tests, a synthetic 100-agent swarm, deployment validation and cargo deny/audit. This review did not run or independently reproduce those jobs. The swarm is orchestration evidence, not proof that 100 autonomous models solve real tasks safely.</p>
+<p>Published benchmark reports are better than unsupported marketing numbers, and explicitly admit pre-release code and uncommitted changes: <strong>no single commit exactly reproduces them</strong>. The 10M-vector cold/warm results depend on dataset, recall, hardware, head caching and disk cache. Rebenchmark the reviewed SHA with production-like latency, churn, recovery and cost accounting.</p>
+<p>Cargo and pnpm lockfiles, commit-pinned GitHub Actions, security policy and release-attestation steps are positives. The workspace patches Tantivy locally; native Rust/N-API, FUSE, container images, JavaScript packages and SDK tooling widen maintenance responsibility. Docker images use version tags rather than universal digest pinning, Rust CI follows stable, and the starter can install missing tooling with consent. Do not execute it as a harmless inspection command. Native npm CLI prebuilts target glibc Linux x64/arm64; the wrapper allows an explicit binary override. Release workflow attestations were inspected, not downloaded or cryptographically verified.</p>
+<p>The root and manifests specify Apache-2.0, permitting modification/commercial use subject to its notice, attribution and other terms; it does not grant trademark rights. Vendored Tantivy and every distributed dependency/image retain their own terms. No project code, logos, fonts or other assets were extracted into this review.</p>
+<p>Evidence: <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/.github/workflows/ci.yml">.github/workflows/ci.yml</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/.github/workflows/release.yml">.github/workflows/release.yml</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/docs/benchmarks.md">docs/benchmarks.md</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/scripts/start.sh">scripts/start.sh</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/packages/skywake/bin/skywake.cjs">packages/skywake/bin/skywake.cjs</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/LICENSE">LICENSE</a>, <a href="https://github.com/skywakehq/skywake/blob/686871971b2ccaba342a047700d76c5e15a48be0/vendor/tantivy/LICENSE">vendor/tantivy/LICENSE</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Need</td><td>Alternative</td><td>Tradeoff</td></tr><tr><td>Few local agents</td><td>Git worktrees</td><td>Simpler; no integrated object-backed search</td></tr><tr><td>Versioned objects</td><td>lakeFS</td><td>Dataset focus, different workspace semantics</td></tr><tr><td>Shared filesystem</td><td>JuiceFS</td><td>Different metadata and branch model</td></tr><tr><td>Search first</td><td>Qdrant / pgvector</td><td>Workspace layer remains separate</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Start only in an isolated pilot with synthetic data. Pin a source/release revision; keep public services behind HTTPS; restrict database/cache networks; decide whether BYOB endpoints need egress filtering; use narrow API credentials and separate disks for separate trust domains. Protect main branches and require the orchestrator's own review/approval before merging consequential changes.</p>
+<p>Before production: reproduce cross-tenant/key-expiry tests, fail-open access-file behavior, takeover and conflict recovery, provider egress, sustained save lag, cache-log zone failures, GC concurrent with writers, full backup restoration and deletion across replicas/backups. Document the exact fsync mode and accepted data-loss window. None of those deployment acceptance tests was run for this static review.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong storage and recovery engineering, but pilot before production. Cache-tier fsync semantics, disk-wide credentials, access-file removal behavior, provider egress and full-service recovery need explicit operational decisions. Static review only; no tests or deployments run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/skywakehq/skywake">skywakehq/skywake</a> · Apache-2.0; component terms separate</span>
+    <span><a href="skywake.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

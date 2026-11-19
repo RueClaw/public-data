@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [skywake.md](reviews/skywake.md) [page](reviews/skywake.html) | [skywakehq/skywake](https://github.com/skywakehq/skywake) | Apache-2.0; component terms | ⚠️ Interesting | Branchable object-backed filesystem and search; strong recovery, but cache-tier durability, credential boundaries and retention caveats. Static review. |
 | [landmines.md](reviews/landmines.md) [page](reviews/landmines.html) | [interfere-inc/landmines](https://github.com/interfere-inc/landmines) | MIT | ⚠️ Interesting | Opinionated Oxlint testing rules; useful count baselines, but MSW, timer and directory-policy gaps. Static review. |
 | [braitenberg-vehicles.md](reviews/braitenberg-vehicles.md) [page](reviews/braitenberg-vehicles.html) | [njodal/Braitenberg-Vehicles](https://github.com/njodal/Braitenberg-Vehicles) | No license specified | 📚 Study | Fourteen inspectable sensor–motor simulations; strong teaching circuits, approximate physics and reproducibility/licensing limits. Static review. |
 | [lastbook.md](reviews/lastbook.md) [page](reviews/lastbook.html) | [Immortal-Protocols/lastbook](https://github.com/Immortal-Protocols/lastbook) | MIT; component/content terms | ⚠️ Interesting | Offline survival library with maps and local AI; strong bridge/download defenses, but recovery, citation and privacy limits. Static review. |
