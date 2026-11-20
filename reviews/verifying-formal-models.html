@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verifying formal models of Raft implementations — Review</title>
+<meta name="description" content="Proofs establish model safety; trace validation tests whether instrumented implementations follow the model.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: normal; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / verifying-formal-models</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Padhye &amp; Wayne · Antithesis · reviewed 2026-11-20</div>
+    <h1>Verifying formal models of Raft implementations</h1>
+    <p class="one-liner">Proofs establish model safety; trace validation tests whether instrumented implementations follow the model.</p>
+    <div class="verdict-pill">📚 Good reference</div>
+    <div class="chips">
+      <span class="chip">Article · no reuse license established</span>
+      <span class="chip">TLA+ · Lean · trace validation</span>
+      <span class="chip"><a href="https://antithesis.com/blog/2026/verifying-formal-models/">Padhye &amp; Wayne · Antithesis ↗</a></span>
+
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>The bridge is still empirical</h3><p>Model validity, proof soundness, implementation refinement and testing are separate obligations. The artifacts explicitly leave trace-binding correspondence argued rather than mechanically checked.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Storage assumptions change the claim</h3><p>Atomic synced Entries + HardState writes support the etcd demonstration. Some upstream-documented split-write crash states are outside the model; process crashes do not test loss of synced data.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Inspectable evidence, not reproduced results</h3><p>Public bug schedules, specification hashes, proof commands and negative mutations are substantive. Equal bounded-state counts do not prove equivalence, and no upstream proof or test was executed for this review.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Claims, evidence and assurance boundaries.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Source</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Evidence</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Limits &amp; lessons</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Publication</td><td>November 19, 2026 · Antithesis</td></tr><tr><td>Review / retrieval</td><td>November 20, 2026 UTC</td></tr><tr><td>Method</td><td>Static article and pinned artifact-documentation inspection</td></tr><tr><td>Article SHA-256</td><td style="overflow-wrap:anywhere">0d94fee029b985fb0874f07f8a7784ef1d2fa1a9e6238c1d043ce87cf8a048dd</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Summary</h4>
+<p>Antithesis describes an iterative workflow: infer implementation-shaped TLA+ models using an AI assistant, manually review safety properties and scope, explore bounded instances with TLC, instrument running implementations, and reject execution traces that do not fit the model. Counterexamples lead to instrumentation repairs, model changes or software patches. Proof attempts supply feedback rather than serving only as a final badge. <a href="https://antithesis.com/blog/2026/verifying-formal-models/">Article</a></p>
+<p>The targets are HashiCorp Raft and etcd-raft, not merely abstract Raft. Persistence boundaries, snapshots, concurrency, read indexes and membership-change semantics are where textbook reasoning can stop matching code. The article reports seven patches across the implementations, bounded exploration exceeding 1.6 million states in some instances, and safety proofs in Lean/Veil and directly in TLA+ through TLAPS. These are author-reported results, not independently reproduced here.</p>
+<p>The central bridge remains empirical. Proofs concern behaviors admitted by formal models under their definitions and assumptions; trace checking concerns observed, instrumented executions. The authors acknowledge that distinction and exclude liveness and several features. Their closing “mice, not humans” analogy acknowledges that closely aligned implementation/model abstraction levels make this demonstration easier than general industrial conformance checking.</p>
+<p>Supporting artifacts sharpen the story. Both formalization READMEs warn that the material is almost entirely AI-generated, a research demonstration, and neither authoritative nor maintained for upstream users. Their assumption documents say the handwritten trace-binding steps and summary-property implications are <strong>argued, not mechanically checked</strong>. That is a specific assurance boundary, beyond the generic observation that testing is finite. <a href="https://github.com/antithesishq/hashicorp-raft-formalized/blob/abcc6e40ec7a082a480be956981f345aa989664c/antithesis-fm/README.md">HashiCorp artifact</a> <a href="https://github.com/antithesishq/etcd-raft-formalized/blob/b3c7c16e9c21d973a53a2894c4c9f33131121cd2/antithesis-fm/README.md">etcd artifact</a> <a href="https://github.com/antithesishq/hashicorp-raft-formalized/blob/abcc6e40ec7a082a480be956981f345aa989664c/antithesis-fm/spec/README.md">HashiCorp assumptions</a> <a href="https://github.com/antithesishq/etcd-raft-formalized/blob/b3c7c16e9c21d973a53a2894c4c9f33131121cd2/antithesis-fm/spec/README.md">etcd assumptions</a></p>
+<h4>Key Claims and Evidence</h4>
+<table><tbody><tr><td>Claim</td><td>Public evidence inspected</td><td>Assessment</td></tr><tr><td>Checking, testing and proving together find faults</td><td>Two detailed upstream reports, patch descriptions and reproduction entry points</td><td>Concrete case-study evidence; not a controlled comparison of discovery methods</td></tr><tr><td>Both models have unbounded safety proofs</td><td>Artifact descriptions list obligations, goals, spec hashes and check commands</td><td>Inspectable; proof execution and axiom/hole audit not performed here</td></tr><tr><td>Implementations match their models</td><td>Reported 3/5-node campaigns, trace fixtures, mutations and bindings</td><td>Sampled conformance for selected harnesses, not universal refinement</td></tr><tr><td>AI makes this affordable</td><td>Under $1,200 in model tokens and about 2,000 Antithesis compute-hours per library</td><td>Vendor-reported figures, not total engineering cost or a general benchmark</td></tr><tr><td>Direct TLAPS proofs remove translation doubt</td><td>Separate proof paths for the claimed properties</td><td>Reduces translation reliance for those properties; does not certify bindings or code</td></tr></tbody></table>
+<h4>Four Different Questions, Not One “Verified” Label</h4>
+<ul><li><strong>Model validity:</strong> Does the model represent the intended system and requirements? Human scope/property review, counterexamples and trace validation help. A sound proof can establish an incomplete or wrong requirement.</li><li><strong>Proof soundness:</strong> Does the conclusion follow from stated assumptions under trustworthy checking machinery? Lean kernel checking and TLAPS have their respective trusted components. Neither label eliminates axioms, specification errors, backend trust or configuration mistakes. This review did not check proof terms or audit all trusted declarations.</li><li><strong>Implementation refinement:</strong> Does every relevant code behavior map to an allowed model behavior? That is a universal relation, often involving abstraction mappings, stuttering and crash semantics. The case study tests conformance and explains bindings; it does not prove this relation for all Go executions.</li><li><strong>Testing:</strong> Did selected workloads, faults and observations violate the oracle? Passing tests add evidence, not proof of unvisited behavior. Conversely, failing to prove a conjecture is not itself a counterexample: proof search can fail on a true statement. Producing and validating a concrete violating scenario is the substantive step.</li></ul>
+<p>Proving a property of model M and observing that sampled code traces fit M does not imply that <strong>all</strong> code traces fit M. Even the sampled claim depends on faithful extraction and binding.</p>
+<h4>What the Public Artifacts Add</h4>
+<p>The HashiCorp snapshot claims 3,032 TLAPS obligations across 12 modules and 1,250 Lean goals; etcd claims 9,148 obligations across 19 modules and 1,272 Lean goals. Counts measure proof organization, not independent confidence units. READMEs describe clean-cache strict TLAPS checks, specification hashes, pinned Lean 4.35.0/Veil dependencies and the TLAPM commit used. A rolling 1.6.0-pre binary and its glibc requirement remain reproduction caveats. Expected output is documentation, not an observed review result. <a href="https://github.com/antithesishq/hashicorp-raft-formalized/blob/abcc6e40ec7a082a480be956981f345aa989664c/antithesis-fm/README.md">[2]</a>, <a href="https://github.com/antithesishq/etcd-raft-formalized/blob/b3c7c16e9c21d973a53a2894c4c9f33131121cd2/antithesis-fm/README.md">[3]</a></p>
+<p>Reported campaigns total about 2,010 compute-hours for HashiCorp and 2,100 for etcd; etcd also reports roughly 12,800 simulator runs. Recorded-trace checks describe 29 and 60 negative mutations respectively; etcd additionally describes 55 seeded implementation/harness-mutant runs. These test the oracle, but do not establish mutation completeness, exhaustive coverage or residual bug probability. Model and oracle can share an error, particularly in a jointly AI-generated workflow.</p>
+<p><strong>Matching state counts is not equivalence.</strong> The reproduction READMEs illustrate TLA+/Veil comparison by matching reachable-state counts on bounded instances (6,488 and 15,800, for example). Equal counts alone do not establish equal states, transitions or behaviors, much less unbounded equivalence. The article calls this bounded equivalence checking; the inspected documented count check supports a weaker sanity check unless accompanied by stronger correspondence evidence. Direct TLAPS proofs reduce translation dependence for the stated TLA+ properties; they do not turn cardinality into semantic equivalence.</p>
+<h4>Two Concrete Faults Worth Studying</h4>
+<h4>HashiCorp: persistence atomicity is a protocol concern</h4>
+<p><a href="https://github.com/hashicorp/raft/issues/746">hashicorp/raft#746</a> reports that saving LastVoteTerm before LastVoteCand can leave a new term paired with an old candidate after a crash. A duplicate-vote shortcut then grants that candidate a vote without rechecking log eligibility. The alleged consequence is <strong>Leader Completeness</strong>, not the previously alleged double-vote failure: a candidate missing committed entries may win. The proposed write-order swap depends on the current term already being durable and each store operation preserving durability/order. The focused reproducer and explanation of why an earlier double-vote interpretation was wrong are stronger evidence than merely attaching “Raft” to a crash bug.</p>
+<h4>etcd: membership and commit-index persistence interact</h4>
+<p><a href="https://github.com/etcd-io/raft/issues/558">etcd-io/raft#558</a> describes a five-node joint-membership schedule in which a follower retains a newer configuration log entry but loses the commit-index update. After restart it may campaign under an older configuration, allowing disjoint groups to commit different entries at the same index. The report includes an entries-then-HardState failure/control schedule and notes a liveness cost of its proposed candidate restriction. It explicitly leaves actual etcd reachability and some persistence questions unverified. A library-level reproducer is not a confirmed production etcd incident.</p>
+<p>Both reports were open at retrieval and attribute discovery to the researchers. Their schedules and outputs are available evidence, not reviewer reproduction or proof fixes shipped upstream. Seven patches also must not become “seven reproduced safety bugs”: HashiCorp's assumptions document says R1 and R2 were argued from code without a reproducing run; other patches address state-machine/snapshot behavior. <a href="https://github.com/antithesishq/hashicorp-raft-formalized/blob/abcc6e40ec7a082a480be956981f345aa989664c/antithesis-fm/spec/README.md">[4]</a></p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Assumptions, Oracle and Coverage Limits</h4>
+<h4>Storage discipline narrows the result</h4>
+<p>The article's “individual writes are not torn” explanation does not fully characterize the etcd result. The artifact says the service uses <strong>atomic synced Entries + HardState writes</strong>. Term/vote → entries → commit-index split writes are modeled; upstream-documented entries → HardState order is only partly covered, with some crash states explicitly neither proved nor refuted. Membership changes in that order enable E3. Atomicity of each database transaction does not make a multi-transaction protocol update atomic. <a href="https://github.com/antithesishq/etcd-raft-formalized/blob/b3c7c16e9c21d973a53a2894c4c9f33131121cd2/antithesis-fm/spec/README.md">[5]</a></p>
+<p>HashiCorp likewise assumes per-write all-or-nothing durability and ordered completion. Campaigns crash processes, not corrupt or lose synced data. Device/filesystem failures, faulty adapters and Byzantine peers are not guarantees supplied by these crash-fault models. Formal ASSUME declarations are not the whole operational assumption list: model actions and harnesses encode restrictions too.</p>
+<h4>The checker is part of the trusted bridge</h4>
+<p>Wrappers report writes before they occur and reconcile uncertain final writes on restart. Per-node report order and loss detection matter. Several reports expand to multiple model actions; trace history is summarized rather than retained in the proof model's exact form. Both artifacts say binding correspondence and implication from summarized Safe to model properties are argued, not checked. Negative mutations cannot establish that every incorrect mapping is rejected. <a href="https://github.com/antithesishq/hashicorp-raft-formalized/blob/abcc6e40ec7a082a480be956981f345aa989664c/antithesis-fm/spec/README.md">[4]</a>, <a href="https://github.com/antithesishq/etcd-raft-formalized/blob/b3c7c16e9c21d973a53a2894c4c9f33131121cd2/antithesis-fm/spec/README.md">[5]</a></p>
+<p>The sensor appendix illustrates the issue: it logs “passed” before adding a reading to a dataset. If the subsequent effect fails without a faithful event/error mapping, the log can look conformant while the business effect did not occur. This is analysis of illustrative pseudocode, not a discovered Raft trace-kit bug. Logging intent and completed effect are different contracts.</p>
+<h4>Scope is not the whole product</h4>
+<ul><li>HashiCorp excludes membership changes, Restore, the heartbeat fast path and some log-store behavior; application state-machine contents are not proved.</li><li>etcd excludes lease-based reads, Bootstrap, the Node wrapper, applications declining membership changes, and coalescing multiple queued async writes into one. Its read-index trace check evaluates a direct property rather than replaying the complete read-action protocol.</li><li>Both exclude liveness. Safety does not promise eventual elections, bounded responses, deadlock freedom or useful operation after a patch.</li><li>Tests use three/five-node clusters; formal claims quantify over finite server sets under the models. TLC bounds are separate: etcd documentation says it does not exhaust membership instances with more than one change.</li><li>Trace timelines are limited by TLC behavior capacity. Longer clean campaigns are not exhaustive long-history coverage.</li></ul>
+<p>Read-index safety is not automatically end-to-end application linearizability: API semantics, serving reads relative to applied state, storage adapters and the state machine remain integration obligations.</p>
+<h4>Strengths, Incentives and Counterarguments</h4>
+<p><strong>Strengths:</strong> The piece does not pretend the original Raft proof proves production forks. It treats failed proofs, nonconforming traces and invariant violations as different signals; describes human intervention; and publishes limitations, negative controls and reproduction commands. Direct TLA+ proofs after freezing the spec sensibly reduce one translation dependency.</p>
+<p><strong>Commercial incentives:</strong> This is an Antithesis vendor blog, not an independently peer-reviewed evaluation established here. It promotes the platform/plugin and compares resource use to a subscription allowance. That does not invalidate technical artifacts, but encourages crediting the platform and highlighting successful cases. No ablation isolates AI, manual expertise, ordinary simulation, TLC, TLAPS and Antithesis; no success-rate distribution across unrelated systems is supplied. Human review, instrumentation, iteration, hosted compute price and ongoing maintenance are missing from a full cost model. The model name and token expenditure are article claims, not independently benchmarked here.</p>
+<p><strong>Counterargument:</strong> Direct deductive verification or proved implementation refinement can offer a stronger bridge for a small stable component. For a rapidly changing service, cheaper stateful tests, deterministic simulation and history-based consistency checking may offer more operational value per engineering hour. Conversely, bounded TLC alone cannot justify unbounded invariants, and testing alone can miss the rare schedule exposed during proof development. Methods are complementary; choose by failure cost and maintainability, not proof prestige.</p>
+<h4>Alternatives and Related Public Reviews</h4>
+<ul><li><strong>TLA+ with TLC and manual review:</strong> Early design exploration without AI or a hosted service; needs deliberate bounds and a separate conformance strategy.</li><li><strong>Deterministic simulation, stateful property tests and history checking:</strong> Exercise implementations and external behavior; still need reachable workloads and adequate oracles. The public etcd simulator offers a lower-infrastructure path than hosted campaigns, not necessarily equivalent coverage.</li><li><strong>Direct deductive verification / proved refinement:</strong> Invest in the code/spec connection where feasible; runtime and environmental assumptions remain. The existing <a href="verus.md">Verus review</a> is relevant to that boundary, not a drop-in verifier for concurrent Go Raft libraries.</li><li><strong>Property-based UI exploration:</strong> The existing <a href="bombadil.md">Bombadil review</a> reinforces oracle quality, finite temporal observation and replay lessons. Bombadil is not the Raft proof tool or evidence these campaigns ran.</li></ul>
+<p>These are conceptual tradeoffs, not a comparative benchmark or paid-service recommendation.</p>
+<h4>Practical Lessons and Reproduction Gate</h4>
+<ul><li>Maintain an assurance matrix: requirement, property, model revision, code/patch revisions, assumptions and unverified bridges. Separate safety, progress and application correctness.</li><li>Review properties independently before model/proof co-evolution. Freeze baselines; justify every model relaxation against the intended requirement, not merely the latest trace.</li><li>Audit instrumentation: missing events, ordering, intent versus completion, crashes, stuttering and summaries. Mutate models, events <strong>and</strong> code; retain negative controls and coverage records.</li><li>Reproduce clean-cache proofs and exact spec hashes before reliance. Inspect holes/axioms, backend versions and trace-binding correspondence. Matching state counts is not a substitute.</li><li>Recheck deployed storage discipline, feature flags, upstream patch inclusion and integration APIs. Keep regression/fault tests and explicit liveness checks; rerun after relevant changes.</li></ul>
+<p>These are acceptance criteria, not upstream tests performed by this review.</p>
+<h4>Provenance and Verification Record</h4>
+<p>The raw page's canonical link confirmed the source identity. Full article, appendix and footnotes were accessible anonymously. Public reviews, README and repository tracking index were checked for the canonical article URL; no prior matching review was found. Page-byte hashes can change with unrelated markup and are not semantic revision identifiers.</p>
+<p>Supporting snapshots retrieved 2026-11-20:</p>
+<ul><li>HashiCorp formalization: <strong>abcc6e40ec7a082a480be956981f345aa989664c</strong>, branch antithesis-fm-demo; artifact states upstream base a5b4692.</li><li>etcd formalization: <strong>b3c7c16e9c21d973a53a2894c4c9f33131121cd2</strong>, same branch name; artifact states upstream base 99f9ffb.</li><li>Documentary scope: both top-level READMEs, antithesis-fm/README.md and antithesis-fm/spec/README.md. Public issue bodies #746 and #558 read statically, including reported schedules/outputs.</li></ul>
+<p>This is an article review with supporting documentation inspection, not a complete audit of repository proofs, patches or harness code. No installations, toolchain/model downloads, accounts, paid calls, live-system probes or deployments occurred. Review files received offline consistency/markup checks; no browser rendering or formal verification is implied.</p>
+<h4>Sources and Attribution</h4>
+<p><strong>Attribution:</strong> Rohan Padhye and Hillel Wayne, Antithesis, <a href="https://antithesis.com/blog/2026/verifying-formal-models/">original article</a>; Antithesis and upstream Raft contributors for supporting artifacts. No explicit article reuse license established; independent analysis and short paraphrases only, no article/source republication. Repository licenses do not automatically license blog prose. Index license is N/A for this article review.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Good reference</div>
+      <p>Adopt the layered assurance method, not a blanket verified-Raft conclusion. Strong technical artifacts and explicit limitations make this useful reading; implementation refinement, storage semantics and the trace oracle still need independent scrutiny. Static review only: proofs and reported bugs were not reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://antithesis.com/blog/2026/verifying-formal-models/">Padhye &amp; Wayne · Antithesis</a> · Article · no reuse license established</span>
+    <span><a href="verifying-formal-models.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
