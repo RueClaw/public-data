@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [verus.md](reviews/verus.md) [page](reviews/verus.html) | [verus-lang/verus](https://github.com/verus-lang/verus) | MIT | ⚠️ Interesting | Rust deductive verification with ghost ownership; explicit assumptions, partial Rust support and soundness-monitoring obligations. Static review. |
 | [baguette.md](reviews/baguette.md) [page](reviews/baguette.html) | [tddworks/baguette](https://github.com/tddworks/baguette) | Apache-2.0; component/asset caveats | ⚠️ Interesting | Mac-hosted mobile-device control and capture; strong ability model, anonymous local authority, unsandboxed plugins and private-API/recovery caveats. Static review. |
 | [doop.md](reviews/doop.md) [page](reviews/doop.html) | [kgoedecke/doop](https://github.com/kgoedecke/doop) | AGPL-3.0 | ⚠️ Interesting | Collaborative HTML/MCP design canvas; public media, credential encryption, replay, renderer isolation and durability caveats. Static review. |
 | [oldjobobo-umami.md](reviews/oldjobobo-umami.md) [page](reviews/oldjobobo-umami.html) | [OldJobobo/umami](https://github.com/OldJobobo/umami) | MIT; component terms | ⚠️ Interesting | Omarchy recipe compositor with consent-aware plugins; declarative code-generation, crash recovery and upgrade-compatibility caveats. 103 offline tests pass. |

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verus — Review</title>
+<meta name="description" content="Deductive Rust verification with ownership-aware ghost resources—and explicit trust boundaries.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / verus</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">verus-lang/verus · reviewed 2026-11-20</div>
+    <h1>Verus</h1>
+    <p class="one-liner">Deductive Rust verification with ownership-aware ghost resources—and explicit trust boundaries.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Rust · rustc · VIR/AIR · Z3</span>
+      <span class="chip"><a href="https://github.com/verus-lang/verus">verus-lang/verus ↗</a></span>
+      <span class="chip"><a href="https://github.com/verus-lang/verus/commit/d749566d31400c9d1ab437f0853ee16d769d1b04">Source d749566d3140</a></span><span class="chip">Static review · metadata 2026-11-20</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3,882</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">268</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A precise contract is the actual claim</h3><p>Verification proves selected obligations under preconditions and models—not unstated product requirements. The binary-search example assumes the key already exists.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Ghost ownership is useful, but trust remains</h3><p>Spec/proof state is erased; tracked resources support permission reasoning. admit, assume, external bodies, library axioms and build divergence require explicit audits.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Soundness fixes are part of operations</h3><p>Public issue #3566 was open at retrieval and reports proving false through state-machine macro name resolution. This review did not reproduce it or establish exact-SHA applicability.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Implementation and role</td></tr>
+<tr><td>Syntax/frontend</td><td>builtin_macros and forked syn; rustc parsing, expansion and type information</td></tr>
+<tr><td>Rust integration</td><td>rust_verify and compiler-internal overrides/forked components</td></tr>
+<tr><td>Verification IR</td><td>vir AST → statement-oriented SST → AIR assertions/assumptions</td></tr>
+<tr><td>Solver backend</td><td>air emits SMT-LIB and interprets local Z3/cvc5 process responses</td></tr>
+<tr><td>Libraries</td><td>builtin, vstd, state_machines_macros; models, lemmas and trusted interfaces</td></tr>
+<tr><td>Tooling</td><td>cargo-verus, toolchain manifests, verusdoc, regression tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Specifications, proofs and executable code are distinct</h4>
+<p>Function modes are spec, proof and exec. Specification functions express mathematical properties; proof functions establish logical facts; exec functions are compiled. Both spec and proof are ghost code. Mathematical int/nat are not machine integers, and ghost values cannot simply leak into executable computations. Arithmetic safety obligations in exec code must not be confused with mathematical expressions that have unspecified values outside their useful domain. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/modes.md">Modes</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/ghost_vs_exec.md">ghost/exec</a></p>
+<p>Variable modes are a separate distinction: exec, ghost and tracked. Tracked resources are erased like other ghost state but retain ownership discipline, supporting permission/token reasoning rather than freely duplicable mathematical facts. Ghost/Tracked wrappers contain PhantomData in the actual builtin definitions, not runtime copies of the represented proof data. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/reference-var-modes.md">Variable modes</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/builtin/src/lib.rs">builtin</a></p>
+<h4>Contracts need deliberate coverage</h4>
+<p>The binary search in examples/vectors.rs requires a sorted vector <strong>and the existence of the searched-for value</strong>. Its successful proof would not specify an absent-key API. Its loop carries quantified invariants and a decreases measure. The reverse example uses a ghost snapshot, multiple quantified invariants and an explicit trigger. These are useful, concrete demonstrations of the work needed to connect an efficient implementation to a mathematical specification. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/examples/vectors.rs">Examples</a></p>
+<p>Recursive spec/proof functions need termination reasoning for consistency. Executable termination is subtler: the guide calls its default decreases checking a lightweight lint conditional on callees terminating, not a complete termination guarantee; exec nontermination is allowed. Do not advertise verification as universal liveness, deadlock freedom or termination. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/exec_termination.md">Termination</a></p><h4>Supported Rust and adoption cost</h4><p>The feature matrix (itself dated 2026-05-13) lists ordinary functions, structs/enums, shared/mutable references and many traits as supported. It lists async/await, function-pointer types, Pin, hardware intrinsics, printing/I/O, custom Drop and transmute as unsupported; floating point, pointer operations, iterators, dyn traits and multi-crate integration have partial support. This is a documented snapshot, not an independent exhaustive compatibility test. Existing applications often need a verified core plus unverified integration boundaries. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/features.md">Feature matrix</a></p>
+<p>Budget for writing models/contracts, identifying loop invariants, proving helper lemmas, managing quantifier triggers and reveal/fuel choices, and adapting proofs after dependency or solver changes. Timeout/unknown is not a counterexample, and more solver budget is not a substitute for a missing invariant. The repository's examples, guide, negative tests and libraries are meaningful maturity signals; they do not establish a predictable proof-to-code ratio or maintenance cost. No proof-effort benchmark was run.</p>
+<p>vstd covers collections, arithmetic, raw memory, interior mutability, atomics and concurrency helpers; examples extend to linked structures, state machines and a cuckoo hash table. That is substantially more useful than a minimal syntax demo. Review the exact abstractions used rather than extrapolating to full Rust ecosystem coverage. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/vstd">vstd</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/examples">examples</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/rust_verify_test/tests">tests</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The driver uses rustc expansion/type information and lowers HIR through rust_verify into VIR. The vir crate handles well-formedness, mode checks, simplification, recursion and verification-condition translation; SST removes expression/statement nesting before AIR. The air crate manages SMT processes, resource limits and result interpretation. Compilation is a distinct path with ghost erasure and ordinary Rust code generation. The decomposition is a good maintainability feature, but each translation is a potential semantic correctness boundary. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/CODE.md">Architecture</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/rust_verify/src/driver.rs">driver</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/rust_verify/src/verifier.rs">verifier</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/vir/src/modes.rs">modes</a></p>
+<p>The inspected solver result code distinguishes unsat, sat, unknown and cancellation; it is not merely searching the log for the word “verified.” Nevertheless, this review found a solver-response-based pipeline, not evidence of an independently checked end-to-end proof certificate for the generated executable. Solver correctness and faithful encoding remain trust assumptions. cvc5 is described as experimental, and is not an automatic independent cross-check of every Z3 result. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/air/src/smt_verify.rs">SMT result handling</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/air/src/smt_process.rs">process interface</a></p>
+<p><strong>Documentation discrepancy:</strong> source/CODE.md says Ghost/Tracked “unwrap to T” in its erasure section, while builtin/src/lib.rs defines PhantomData wrappers and the guide says ghost/tracked values are erased. The latter is the appropriate reading; do not infer runtime storage of proof values from the overview sentence. The erasure guide's illustrative counterexample also appears internally inconsistent (its shown verification branch returns zero despite a nonzero postcondition). Its explicit warning about configuration divergence is still important, but that snippet was not reproduced or treated as an observed successful proof. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/erasure.md">Erasure guide</a></p><h4>Trust boundaries</h4><ul><li><strong>admit and assume:</strong> the frontend lowers admit to an assumption of false; assume inserts the supplied proposition as an assumption. An admit is a proof hole, not evidence. A contradictory assumption can justify arbitrary conclusions. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/rust_verify/src/fn_call_to_vir.rs">Lowering</a></li><li><strong>external_body / axioms:</strong> a proof function with an unverified body can introduce an axiom; an exec function with external_body has an assumed contract rather than a verified implementation. assume_specification and external function specifications likewise move obligations into the trusted boundary. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/tcb.md">Trust guide</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/reference-assume-specification.md">assumed specs</a></li><li><strong>external is different:</strong> ignoring a function does not itself make that function callable from verified code with arbitrary guarantees. A trusted wrapper often supplies the bridge. Ignored trait implementations can still affect rustc's reasoning, including Send/Sync. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/tcb.md">Trust guide</a></li><li><strong>Trait and library assumptions:</strong> unchecked external trait specifications can constrain all implementations, including future unverified ones. vstd documents an obeys_* pattern to make such conditions explicit. “Standard library” does not mean “every implementation proved”: vstd combines proved lemmas, axioms and external interfaces. Seq has both lemmas replacing older axioms and a remaining axiom declaration; raw pointers use an abstract provenance model and tracked permissions. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/external_trait_specifications.md">Traits</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/vstd/seq.rs">Seq</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/vstd/raw_ptr.rs">pointers</a></li><li><strong>Unsafe and FFI:</strong> absence of the unsafe keyword is not a sufficient audit for Verus. Its memory-safety guide explains APIs whose safety depends on verified preconditions rather than defensive checks for arbitrary unverified Rust callers. Foreign code, OS interfaces and unverified dependencies need an explicitly reviewed specification/implementation bridge; this review establishes no blanket FFI guarantee. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/memory-safety.md">Memory safety</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/docs/guide/src/calling-unverified-from-verified.md">unverified calls</a></li><li><strong>Erasure and build parity:</strong> the code/configuration actually compiled must match the verified exec behavior. The guide explicitly warns that conditional executable code using verus_only can break guarantees. Include features, target architecture, dependencies, compiler and solver versions in the verification record.</li><li><strong>Remaining TCB:</strong> macro expansion, rustc integration, VIR/AIR transformations, models/axioms, solver, ghost erasure, rustc/LLVM, linking and runtime/environment assumptions. This is not a fully verified compiler stack. Application claims also require adequate specifications for I/O, security policy, failure handling, side channels and concurrency progress; those are not implicit outputs of a successful proof.</li></ul>
+<h4>Known soundness reports: a real operational consideration</h4>
+<p>Public issue data retrieved on 2026-11-20 includes <strong>open #3566</strong>, reporting that a use import inside a tokenized state-machine transition can rebind pre or a field type and permit proving false. The report includes purported verifier output; <strong>this review did not run it or establish applicability to this exact SHA</strong>. It is a reason to review the feature's issue/fix status before relying on it, not a reproduced finding. <a href="https://github.com/verus-lang/verus/issues/3566">Issue #3566</a></p>
+<p>The same snapshot shows closed reports #3565 (transition-let side effects omitted from a relation), #3564 (forging generated instances from within the macro body), #3502 (dyn supertrait positivity) and #3498 (recursive call type arguments in decreases checking). These document the kinds of subtle bugs a verifier must exclude. Closed status alone is not proof that a chosen binary contains the fix; verify its commit ancestry and regressions. No claim is made that all these closed issues affect the reviewed revision. <a href="https://github.com/verus-lang/verus/issues/3565">#3565</a>, <a href="https://github.com/verus-lang/verus/issues/3564">#3564</a>, <a href="https://github.com/verus-lang/verus/issues/3502">#3502</a>, <a href="https://github.com/verus-lang/verus/issues/3498">#3498</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit relative to Verus</td><td>Important tradeoff</td></tr>
+<tr><td>Creusot</td><td>Another Rust deductive-verification workflow, using Why3</td><td>Compare supported language/library subsets and specification ergonomics on the actual component</td></tr>
+<tr><td>Prusti</td><td>Rust contract/ownership-oriented verification research</td><td>Different backend and feature/maturity tradeoffs; do not assume drop-in compatibility</td></tr>
+<tr><td>Kani</td><td>Automated harness-based bit-precise checking of Rust</td><td>Bounded model-checking workflows differ from maintaining quantified deductive invariants; bound/unwinding obligations matter</td></tr>
+<tr><td>Dafny</td><td>Verification-first programming with specifications and automated reasoning</td><td>Different source language/toolchain rather than verification of an existing Rust component</td></tr>
+<tr><td>Lean/Rocq frameworks</td><td>Explicit theorem development and small-kernel checking styles</td><td>Usually greater modeling/integration burden to connect to executable Rust behavior</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Build, CI and releases</h4><p>This main snapshot pins <strong>Rust 1.100.0</strong> (including rustc-dev/LLVM tooling) and downloads <strong>Z3 4.16.0</strong> in its helper. Cargo.lock is committed, while the manifest also contains a Git dependency on the parse-partial branch of getopts; retain the lockfile rather than assuming the branch name is immutable. Vendored syn/prettyplease and compiler-related source make upgrades coupled to internal compiler interfaces. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/rust-toolchain.toml">Toolchain</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/Cargo.toml">workspace</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/Cargo.lock">lockfile</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/BUILD.md">build instructions</a></p>
+<p>The public latest-release API reported <strong>release/0.2026.11.02.8bf68ee</strong>, published 2026-11-02, at retrieval. That is not the same revision as this review. Installation recommends point releases and offers rolling builds. Pin the actual release/SHA, toolchain, solver, target, lockfile, verification flags and vstd version together; do not silently upgrade a proof baseline. <a href="https://github.com/verus-lang/verus/releases/tag/release/0.2026.11.02.8bf68ee">Release</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/INSTALL.md">installation</a></p>
+<p>CI definitions include formatting, clippy, full Linux AIR/verifier tests, vstd build/verification, cvc5 smoke/selected tests, cross-platform basic tests and configuration smoke checks. These are <strong>configured jobs</strong>, not observed green runs for this SHA. CI also uses mutable action references and a latest verusfmt installer piped to sh; contents: write is set at workflow scope. Some documentation tools are explicitly checksum-checked. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/.github/workflows/ci.yml">CI</a></p><h4>Privacy and supply chain</h4><p>This is primarily local developer tooling, not a hosted application needing an auth/CORS/database deployment review. The inspected solver interface uses local process pipes; cloud submission is not necessary for the basic verification pipeline. That is not a comprehensive no-telemetry audit. The separately linked browser playground entails sending source to another service; do not assume local-processing privacy there.</p>
+<p>Build/install executes compilers, Cargo build scripts/procedural macros and downloaded tooling. Treat both the verifier supply chain and code being verified as executable development inputs; verification is not a sandbox. The Z3 helper downloads a versioned ZIP over HTTPS and unpacks/copies it without a visible checksum verification step. Installation also describes removing macOS quarantine and a rustup shell installer. None was executed in this review. Use isolated builds, explicit artifact provenance and pinned dependencies; examine scripts before adopting them. <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/source/tools/get-z3.sh">Z3 helper</a>, <a href="https://github.com/verus-lang/verus/blob/d749566d31400c9d1ab437f0853ee16d769d1b04/INSTALL.md">installation</a></p>
+<p>The workspace manifest itself flags older transitive dependencies in some auxiliary tools. That is a maintenance signal, not evidence of an exploitable vulnerability in the verifier: no advisory matching or reachability assessment was performed. Logs of VIR/AIR/SMT and diagnostics can contain source/specification details; treat CI logs and proof traces as code-sensitive artifacts. CPU/memory exhaustion and long solver runs also matter when accepting untrusted projects.</p><h4>Evaluation gate</h4><p>Choose a bounded component with a meaningful contract; enumerate all trusted functions/axioms and unchecked callers; prohibit admits and unreviewed assumptions; verify specification completeness with independent review and negative tests. Record the exact executable build configuration and proof-tool versions. Re-run proof/regression tests on upgrades and explicitly check soundness fixes affecting used features. Keep ordinary testing, fuzzing and integration/security review: they address gaps in specifications, tool implementations and external systems.</p><h4>Verification record</h4><p>Public anonymous source acquisition succeeded. Canonical identity is verus-lang/verus, root repository scope; .git is only the input URL suffix. Public review files, README and repository tracking index were searched for that canonical source; no prior matching review was found in the inspected destination snapshot. GitHub metadata showed 3,882 stars and 268 forks at retrieval, and a last push of 2026-11-20; these are volatile popularity/activity observations, not quality scores.</p>
+<p>Read-only static inspection covered the files cited above, not every implementation or dependency. Public issue descriptions are attributed reports, not independently reproduced exploits. No code from the source repository was executed, no toolchain/solver/model was downloaded, and no source tests were run. Artifact validation is limited to generated Markdown/HTML/index consistency and offline markup/provenance checks, not browser rendering or verification of Verus itself.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong candidate for targeted systems verification, not a complete application-correctness certificate. Proof engineering, assumptions, compiler/solver trust and soundness-fix monitoring remain essential. Static review only; no proofs were executed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/verus-lang/verus">verus-lang/verus</a> · MIT</span>
+    <span><a href="verus.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
