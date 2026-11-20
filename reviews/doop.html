@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doop — Review</title>
+<meta name="description" content="A collaborative HTML canvas where people and AI agents design together through MCP.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / doop</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">kgoedecke/doop · reviewed 2026-11-20</div>
+    <h1>Doop</h1>
+    <p class="one-liner">A collaborative HTML canvas where people and AI agents design together through MCP.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">AGPL-3.0</span>
+      <span class="chip">TypeScript · React · MCP · PostgreSQL</span>
+      <span class="chip"><a href="https://github.com/kgoedecke/doop">kgoedecke/doop ↗</a></span>
+      <a class="chip" href="doop.md">Full evidence review</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2,208</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">280</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real shared design model</h3><p>Humans and agents edit HTML frames through common actions; WebSocket rooms carry changes and presence. Inspect and screenshot tools support a concrete visual feedback loop.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Private canvas does not mean private media</h3><p>Image and asset routes intentionally authenticate by possession of an unguessable ID. Production credentials stay plaintext unless encryption keys are configured; enabled PostHog replay can include prompts and comments.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Deployment defaults need work</h3><p>The supplied Docker runtime disables Chromium sandboxing, and Compose persists the database but not default disk assets. Debounced write-through persistence and bounded version history are not a crash-proof backup.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Client</td><td>React/Vite/Zustand; sandboxed HTML frames</td></tr><tr><td>Server</td><td>Express/ws/MCP; shared TypeScript actions</td></tr><tr><td>Storage</td><td>Drizzle with PGlite/PostgreSQL; disk or S3 objects</td></tr><tr><td>Rendering</td><td>Puppeteer-core and local/remote Chromium</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Scope and provenance</h4><p>Reviewed main revision b2b4536e066118829344bd1ae8264fa370093ea4 on 2026-11-20 UTC. Package version 0.15.0; public metadata is a point-in-time snapshot, not quality evidence. Full evidence and operational findings are in the Architecture tab and linked Markdown.</p><h4>Product boundaries</h4><p>Pages, prototypes, comments, components, design memory and multi-provider agents are present. The README places Figma, Canva and PSD conversion outside the open-source edition.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Doop (kgoedecke/doop)</h4><p><strong>Repo:</strong> https://github.com/kgoedecke/doop</p><p><strong>Author:</strong> Kevin Goedecke / kgoedecke and contributors</p><p><strong>License:</strong> AGPL-3.0; preserve notices and satisfy corresponding-source obligations, including modified network-service versions. Dependencies retain their own terms.</p><p><strong>Reviewed:</strong> 2026-11-20 (UTC)</p><p><strong>Revision:</strong> b2b4536e066118829344bd1ae8264fa370093ea4 (main snapshot; package version 0.15.0). Scope: web/client, shared model, server/auth/MCP/providers/storage/rendering, deployment, tests/CI; selected desktop/extension boundaries, not exhaustive native-client audits.</p><p><strong>Verification:</strong> Static source review only. No dependencies installed, application or tests run, accounts connected, live service probed, or paid calls made.</p><p><strong>Stack:</strong> TypeScript, React/Vite/Zustand, Express/ws/MCP, Drizzle with PGlite/PostgreSQL, Puppeteer/Chromium; optional Tauri desktop and mobile clients.</p><p><strong>What it is:</strong> A collaborative HTML design canvas for people and AI agents—not a duplicate-file tool. Agents edit the same frames that humans manipulate, through MCP or a built-in model-driven worker.</p><h4>Verdict</h4><p>⚠️ <strong>Interesting: a credible agent-native design workbench, not a confidential-design drop-in.</strong> The shared human/agent mutation model, live rendering and inspect/screenshot feedback loop are unusually concrete. Pilot with non-sensitive designs first: unauthenticated asset/image URLs, optional plaintext credential storage, conditional session replay, asynchronous durability and a weak default Docker rendering boundary need explicit operational decisions.</p><h4>What It Is</h4><p>Doop stores canvases containing pages and HTML frames, rather than converting a proprietary vector-document format into application code. The browser editor changes layout, typography, shapes and elements; MCP clients create and patch HTML, inspect computed geometry and take screenshots. WebSocket rooms carry presence, cursors, changes and task progress. Prototypes connect frames with declarative interactions; comments can queue agent work.</p><p>Its built-in agent is separate from an externally connected MCP client. External clients bring their own inference/account environment. Built-in runs use connected model accounts or an explicitly enabled server allowance. Design references, decisions, guidelines, reusable components and tokens persist alongside the work. The first-canvas welcome animation is scripted; it is not evidence of model output quality.</p><p>The README explicitly excludes Figma, Canva and PSD import/export from the open-source edition. Do not equate the public checkout with complete hosted-service parity. Sources: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/README.md">README.md</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/mcp.ts">server/mcp.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/resident.ts">server/resident.ts</a>.</p><h4>Stack</h4><table><tbody><tr><td>Layer</td><td>Implementation</td></tr><tr><td>Editor</td><td>React 18, Vite, Zustand, HTML iframe runtime, Tailwind/Radix</td></tr><tr><td>Application</td><td>Node via tsx, Express, ws, shared TypeScript actions</td></tr><tr><td>Agent interface</td><td>MCP SDK, stateless HTTP POST; built-in provider-specific agent loops</td></tr><tr><td>Persistence</td><td>Drizzle PostgreSQL dialect; PGlite without DATABASE_URL; PostgreSQL otherwise</td></tr><tr><td>Rendering/assets</td><td>Puppeteer-core + installed or remote Chromium, sharp, PDF tooling; local disk or S3-compatible objects</td></tr><tr><td>Identity</td><td>Better Auth email/password, optional social/OIDC, MCP OAuth and account agent keys</td></tr><tr><td>Packaging</td><td>Bun lockfile; Docker; separate Tauri/Rust and native mobile trees</td></tr></tbody></table><h4>Key Features</h4><h4>One mutable design model for humans and agents</h4><p>REST, MCP and resident workers converge on shared actions, rather than maintaining separate design documents. MCP exposes HTML editing, page management, component/token operations, prototype wiring, imports, inspect and screenshot tools. Browser rooms show progress live. This is useful for iterative UI composition; it does not prove fidelity to an arbitrary production app. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/actions.ts">server/actions.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/mcp.ts">server/mcp.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/shared/types.ts">shared/types.ts</a>.</p><h4>Visual verification and design memory</h4><p>Agents can render their frame and inspect computed layout for overflow, clipping and overlap. Those are candidate problems, not an automated aesthetic oracle. Guidelines, pinned references and recorded decisions provide persistent design context. Imported website content, comments and memory remain untrusted model inputs: tool schemas and budgets constrain actions, but do not solve prompt injection. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/screenshot.ts">server/screenshot.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/guide.ts">server/guide.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/workBudget.ts">server/workBudget.ts</a>.</p><h4>Actual collaboration, with a centralized authority</h4><p>Canvas access distinguishes view/comment/edit and durable membership. Owners, invited members and workspace members edit; share-link permissions are weaker and separately checked. Signed-out visitors can view link-shared canvases, with team conversations omitted. Ownerless legacy canvases intentionally permit editing. The server—not a peer-to-peer CRDT—is authoritative. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/access.ts">server/access.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/index.ts">server/index.ts</a>.</p><h4>Architecture and durability</h4><p>The Express process owns in-memory maps and WebSocket rooms. Metadata hydrates from the database; frame HTML loads per canvas. Shared actions update memory, schedule persistence and broadcast. A journal queues external effects until an operation commits and can undo changes on failure; its own documentation explicitly disclaims isolation across awaited work. This is an application transaction mechanism, not proof of serializable database transactions. Multiple independent application replicas would need coordination not established by this review. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/store.ts">server/store.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/frameHtml.ts">server/frameHtml.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/journal.ts">server/journal.ts</a>.</p><p>Persistence deserves particular care. Ordinary mutations mirror asynchronously; general write failures are logged. Frames debounce for 400 ms, track dirty generations, remain loaded while unsaved, and retry failed writes during idle sweeping. A flush path and queued version writes exist; canvas duplication explicitly awaits a database transaction. These are real mitigations, but a UI-visible update is not automatically a durable commit, and process death can lose pending state. Do not describe this as a crash-proof collaborative database. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/db/persist.ts">server/db/persist.ts</a>.</p><p>Frame and guideline versions cap at 50 each. The hydrated log window is 100 entries per canvas for relevant histories; this is not a comprehensive retention/deletion policy. Export includes HTML-oriented workflows and PNG/JPG/vector PDF, not an independently verified full-instance backup/restore interchange. Account deletion removes private owned canvases but deliberately preserves shared/workspace canvases. No restore drill was performed. Back up the database, object bytes and encryption key material as one recoverable system. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/db/persist.ts">server/db/persist.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/accountDeletion.ts">server/accountDeletion.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/storage.ts">server/storage.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/README.md">README.md</a>.</p><h4>Security and privacy boundaries</h4><h4>Authentication is not the same as asset confidentiality</h4><p>MCP tools require OAuth or a revocable account-scoped bearer key; agent keys are stored as SHA-256 hashes of high-entropy secrets. They resolve to the human's access, not a separate per-canvas least-privilege identity. Anonymous MCP discovery is limited to static resource discovery/ping. Bans are checked beyond token validity. REST/room/tool permissions share canvas-role helpers, and admin access is deliberately separated from ordinary MCP authorization. These are positive controls, not a complete endpoint audit. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/agentKeys.ts">server/agentKeys.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/mcp.ts">server/mcp.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/auth.ts">server/auth.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/access.ts">server/access.ts</a>.</p><p><strong>Frame images and uploaded assets are deliberately public by unguessable ID.</strong> The /i/:id image handler checks frame existence, not canvas membership, and renders the current design. The /a/:id asset handler similarly omits membership checks, permits cross-origin loads and advertises one-year immutable caching. Thus a private canvas does not make a leaked asset/image URL private; turning off its share link is not equivalent to revoking those URLs or cached copies. This is observable route design, not a claimed live exploit. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/index.ts">server/index.ts</a> (public images/assets routes).</p><h4>Credential encryption must be configured</h4><p>Model/integration credentials can be AES-256-GCM sealed with per-write random IVs and a versioned key ID. Rotation/backfill is implemented. <strong>Production without SECRETS_ENCRYPTION_KEYS stores these credentials as plaintext and only warns at boot.</strong> Development uses a fixed test key. Better Auth social OAuth tokens have a separate encryption setting backed by the auth secret. Server compromise still exposes usable credentials; this is at-rest protection, not end-to-end encryption. The supplied Compose environment does not forward the secret-encryption setting, so merely defining it outside the container is insufficient unless deployment wiring is changed. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/secretBox.ts">server/secretBox.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/secretBackfill.ts">server/secretBackfill.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/env.ts">server/env.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/auth.ts">server/auth.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/docker-compose.yml">docker-compose.yml</a>.</p><h4>Replay is conditional, but potentially content-rich</h4><p>Without a build-time PostHog key, client analytics is disabled. When enabled, the code initializes session recording with cross-origin iframe recording, maskAllInputs false, and password/email masking; its comments explicitly include prompt/comment visibility. A same-origin relay is designed to avoid ordinary analytics-host blocking. Internal-domain and impersonation exclusions exist. Self-hosting alone therefore does not establish zero analytics egress; inspect the built bundle configuration and obtain appropriate consent. This review does not establish whether the hosted service currently enables recording. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/src/lib/posthog.ts">src/lib/posthog.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/src/lib/frameReplay.ts">src/lib/frameReplay.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/Dockerfile">Dockerfile</a>.</p><h4>HTML sandboxing and server-side rendering are different boundaries</h4><p>Editor/prototype frames use sandbox=allow-scripts without allow-same-origin, preventing normal same-origin access to the parent. That is not a blanket network-denial policy or proof that arbitrary HTML is harmless. Server rendering and website import execute web content in Chromium. Public-URL helpers reject private/literal/resolved network ranges, pin DNS for Node fetches, validate browser resources, impose byte budgets and block unsupported transports. Custom model endpoints require public HTTPS and reject redirects unless an operator explicitly enables private hosts. Declaring a remote renderer isolated changes enforcement and must reflect real network separation. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/src/components/FrameView.tsx">src/components/FrameView.tsx</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/src/components/PrototypePlayer.tsx">src/components/PrototypePlayer.tsx</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/publicUrl.ts">server/publicUrl.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/customProviderFetch.ts">server/customProviderFetch.ts</a>.</p><p>The Dockerfile enables CHROME_NO_SANDBOX and specifies no non-root USER. A container with Chromium's own sandbox disabled should not be treated as a strong hostile-document execution boundary. Use a deliberately isolated renderer/network and resource policy before accepting untrusted public workloads. No browser escape or SSRF exploit was tested. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/Dockerfile">Dockerfile</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/screenshot.ts">server/screenshot.ts</a>.</p><h4>Optional native integrations widen trust</h4><p>The desktop app wraps a chosen server and grants its origin native IPC capabilities. Its local Claude worker asks consent, runs an installed CLI in a temporary directory, disables built-in tools/settings/hooks/slash commands, and permits only the run's Doop MCP tools. This is materially narrower than an unrestricted shell agent, but depends on CLI behavior and trusts server-supplied work plus the native bridge. A separate Gemini worker also spawns a CLI with core tools/extensions/hooks disabled. Desktop updates use the Tauri updater and configured signing key; release builds check/download in the background. The Chrome capture extension requests activeTab, scripting and clipboardWrite—not unrestricted persistent all-site access in its manifest. None was installed or exercised. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/desktop/src-tauri/src/server.rs">desktop/src-tauri/src/server.rs</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/desktop/src-tauri/src/claude.rs">desktop/src-tauri/src/claude.rs</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/desktop/src-tauri/src/updates.rs">desktop/src-tauri/src/updates.rs</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/geminiCloudWorker.ts">server/geminiCloudWorker.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/chrome-extension/manifest.json">chrome-extension/manifest.json</a>.</p><h4>Providers, data flows and costs</h4><p>Built-in model adapters cover Anthropic, OpenAI, Gemini and Chat Completions-compatible providers, with custom endpoints behind explicit controls. Prompts, relevant design context, tool results and screenshots/images may leave the instance for the selected provider. Optional rendering, object storage, email, image search/generation, GitHub, Slack and Linear integrations add their own destinations and retention policies. External MCP clients also decide what they send to their models. A local canvas database is not local inference.</p><p>The server free-task allowance defaults to zero; connected user accounts or explicitly funded server keys enable real agent runs. Agent turns, image generation/description, remote rendering and storage can incur separate costs. Tool rate limits and work budgets are useful controls, not a universal money-denominated spending cap. Provider rates and hosted subscription prices were not independently verified.</p><p>The ChatGPT connection reuses Codex OAuth registration, with loopback, device and pasted-callback variants. The source itself warns that third-party-server subscription use is not sanctioned and may cause rate limits/suspension. Treat that as the maintainer's compatibility/terms warning, not an independent legal determination; prefer documented API-key arrangements for predictable operations. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/modelAccounts.ts">server/modelAccounts.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/agentModel.ts">server/agentModel.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/env.ts">server/env.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/imageGen.ts">server/imageGen.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/mcp.ts">server/mcp.ts</a>.</p><h4>Self-Hosting Notes</h4><ol><li>Start with non-sensitive sample designs on a restricted instance; configure production auth origin/secret, TLS, signup policy and real SMTP/SSO as appropriate. Development origin trust is deliberately permissive.</li><li>Configure and verify credential encryption inside the actual process/container. Preserve old rotation keys until data and backups remain recoverable.</li><li>Persist both database and assets. The supplied Compose file persists PostgreSQL, but gives the app no volume for its default disk assets: container recreation can discard uploaded files while database references survive. Add durable object storage or an appropriate app-data volume; do not mistake the database volume for a complete backup.</li><li>Isolate Chromium and egress; decide whether public-by-ID media is acceptable. For confidential material, redesign/access-gate delivery rather than relying on obscure IDs.</li><li>Keep PostHog disabled unless deliberately approved; audit every provider/integration destination. Use external provider-side spending controls.</li><li>Pin reviewed builds and lockfile, back up before boot migrations, and test restoration before upgrades. No deployment was attempted here.</li></ol><p>Sources: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/docker-compose.yml">docker-compose.yml</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/Dockerfile">Dockerfile</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/storage.ts">server/storage.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/db/index.ts">server/db/index.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/server/auth.ts">server/auth.ts</a>.</p><h4>Dependencies, licensing and maturity</h4><p>The repository is substantial rather than a tiny demo: 389 top-level test files matching *.test.* were counted, including access, SSRF/public URL, secret-box, custom-provider, journal, persistence and version-burst tests. CI config runs typecheck, lint/format/doc checks, build and four Vitest shards with pinned Chrome. This establishes test coverage intent, not passing results for this SHA: no suite or CI-run outcome was independently verified. Package install includes a prepare hook; build packages a Claude extension. Bun's frozen lockfile improves repeatability, while semver-ranged dependencies, tag-referenced Actions, floating Docker base tags and distro Chromium still require supply-chain review. No vulnerability database audit was performed. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/package.json">package.json</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/bun.lock">bun.lock</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/.github/workflows/ci.yml">.github/workflows/ci.yml</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/tests/publicUrl.test.ts">tests/publicUrl.test.ts</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/tests/secretBox.test.ts">tests/secretBox.test.ts</a>.</p><p>Public GitHub metadata checked 2026-11-20 reported creation 2026-08-22, last push 2026-11-19, 2,208 stars, 280 forks and 107 open issues/PRs combined. Latest release returned was v0.15.0, published 2026-11-16; the reviewed main SHA is not claimed to be that release commit. Rapid activity and wide surface area suggest a young, fast-changing product, not demonstrated long-term operational stability. Metadata: <a href="https://api.github.com/repos/kgoedecke/doop">repository API</a>, <a href="https://github.com/kgoedecke/doop/releases/tag/v0.15.0">release</a>.</p><p>The actual LICENSE is AGPL v3. The contributor agreement grants broad relicensing rights to the maintainer, including proprietary terms; that does not remove recipients' obligations for existing AGPL code. Hosted-only features are a separate product boundary. This review extracts no implementation code and does not provide legal advice. Evidence: <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/LICENSE">LICENSE</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/CLA.md">CLA.md</a>, <a href="https://github.com/kgoedecke/doop/blob/b2b4536e066118829344bd1ae8264fa370093ea4/README.md">README.md</a>.</p><h4>Comparison</h4><table><tbody><tr><td>Option</td><td>Practical distinction</td></tr><tr><td>Doop</td><td>Best fit when agents and humans should co-edit real HTML frames with MCP and visual feedback, and operators accept a young self-hosted application.</td></tr><tr><td>Paper.design</td><td>Closest stated product comparator for HTML-oriented design; compare current integration/pricing terms separately. Doop offers an inspectable AGPL server rather than assumed hosted parity.</td></tr><tr><td>Penpot</td><td>Consider for a conventional open-source collaborative design/document workflow; evaluate format and handoff needs rather than expecting Doop's exact HTML/MCP interaction model.</td></tr><tr><td>Figma</td><td>Consider when established design-file and team-tool compatibility is primary. Doop's README explicitly places Figma conversion in its hosted-only offering.</td></tr><tr><td>Plain HTML + browser preview + coding agent</td><td>Simpler for a solo developer who does not need multiplayer canvas, design memory or collaboration administration; fewer credentials and storage systems to operate.</td></tr></tbody></table><p>These are workflow alternatives, not newly benchmarked product comparisons. <strong>Practical call:</strong> pilot Doop for disposable or low-sensitivity design work; study its shared mutation and agent feedback patterns. Hold a confidential multi-user rollout until media access, encryption, replay, renderer containment, durable asset storage and restore behavior are verified in the intended deployment.</p><p><strong>Attribution:</strong> Kevin Goedecke / kgoedecke/doop and contributors, AGPL-3.0. Independent public-source analysis at the exact revision above; no private user or infrastructure data used.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Paper.design</td><td>Closest stated HTML-design product comparator; hosted terms require separate checking.</td></tr><tr><td>Penpot / Figma</td><td>Consider when conventional design-document workflow and interoperability dominate.</td></tr><tr><td>HTML + coding agent</td><td>Simpler solo workflow without the multiplayer canvas and server administration.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Before deployment: configure production authentication and credential encryption, persist both database and assets, isolate Chromium and egress, decide whether bearer media URLs are acceptable, disable unapproved replay and test a complete restore. No deployment, installation, native-client execution or paid call was made.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A credible agent-native design workbench for non-sensitive pilots. Public-by-ID media, opt-in credential encryption, conditional content-rich replay, asynchronous persistence and Docker renderer isolation need deliberate hardening before confidential use. Static review; tests and service behavior not exercised.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/kgoedecke/doop">kgoedecke/doop</a> · AGPL-3.0</span>
+    <span><a href="doop.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
