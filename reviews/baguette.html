@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baguette — Review</title>
+<meta name="description" content="One Mac-hosted CLI and browser workbench for simulators, iPhones and Android emulators.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / baguette</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">tddworks/baguette · reviewed 2026-11-20</div>
+    <h1>Baguette</h1>
+    <p class="one-liner">One Mac-hosted CLI and browser workbench for simulators, iPhones and Android emulators.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; component and asset caveats</span>
+      <span class="chip">Swift · Hummingbird · VideoToolbox</span>
+      <span class="chip"><a href="https://github.com/tddworks/baguette">tddworks/baguette ↗</a></span>
+      <span class="chip">Static review · source 481680f37b46</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2,302</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">132</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Unified devices, unequal abilities</h3><p>Simulators have the broadest control surface. Wired iPhones and Android emulators implement subsets; the Wi-Fi DeviceTwin preview is view-only.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Browser checks are not authentication</h3><p>Loopback Host/Origin defenses matter, but no-Origin callers remain allowed. Plugin grants constrain identified API calls, not native processes running as the operator.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Measure on the actual hardware</h3><p>Main includes unreleased WebRTC work, with no STUN/TURN and one encoder per viewer. The 60 fps headline is not a verified universal result; this review is static only.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Security &amp; state</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operations &amp; evidence</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Host</td><td>Apple Silicon, macOS 15+, Xcode 26; Swift 6.4 workflow</td></tr><tr><td>Server</td><td>Hummingbird HTTP/WebSocket; anonymous local control</td></tr><tr><td>Device engine</td><td>BaguetteDevice roles and private Apple framework adapters</td></tr><tr><td>Media</td><td>VideoToolbox, SceneKit, WebCodecs; custom WebRTCKit</td></tr><tr><td>State</td><td>JSON registries, device state, exported media, localStorage</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Baguette lets developers and automation harnesses boot devices, send gestures, inspect accessibility, capture screens and recordings, and manipulate simulated camera, motion, location and network conditions. The browser adds a device list, focus view, multi-device farm, bezels and 3D presentation. Its useful abstraction is “ask this device for an ability,” not “pretend every device implements every simulator feature.” Unsupported operations name the device and fail.</p>
+<p>The README's broad feature table primarily describes simulators. Cable iPhones need pairing with Xcode, Developer Mode, an unlocked device and mounted developer disk image; their input support is narrower. Android emulators use SDK tools and emulator control interfaces. The separate Wi-Fi DeviceTwin companion is a <strong>view-only preview</strong>, requiring the user to start an iOS broadcast; it is not the same thing as wired phone control. <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/README.md">Evidence: [README.md</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/features/real-devices/README.md">docs/features/real-devices/README.md</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/features/device-twin/README.md">docs/features/device-twin/README.md</a>]</p><p>- <strong>One interface, explicit capability failures:</strong> worth adopting as a design pattern. The route tree is /devices/:udid; older /simulators paths remain deprecated aliases, so integrations should expect migration rather than freeze the old spelling.<br>- <strong>Capture and presentation:</strong> screenshots, recordings, accessibility and interactive streaming are backed by real modules, not only demos. “60 fps” is a configuration/marketing ceiling, not a verified universal delivered rate. The WebRTC design records an end-to-end Chrome run at 38–40 fps and says congestion control was tested on a simulated link, not yet a real throttled one. This review did not reproduce those measurements.<br>- <strong>New remote-view transport:</strong> reviewed main includes unreleased WHEP/WebRTC work after v0.3.0. It supports H.264 High profile, with browser fallback where negotiation fails; host IPv4 candidates only, <strong>no STUN/TURN</strong>, and a UDP port per viewer. It is not a turnkey internet relay. Docs specify a 30-second connectivity-check expiry and a separate WebSocket control path.<br>- <strong>Simulated world controls:</strong> injected Objective-C libraries alter guest app behavior, including camera, CoreMotion and URLSession-related network conditioning. This is valuable testing instrumentation, not proof that all OS/device network traffic experiences a faithful network emulator. DYLD_INSERT_LIBRARIES changes are merged per library, rather than one feature erasing another's entry.</p>
+<p>Evidence: <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/serve.md">docs/serve.md</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/features/webrtc/README.md">docs/features/webrtc/README.md</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/features/webrtc/design.md">docs/features/webrtc/design.md</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Devices/Simulator/InjectedDylibs.swift">Sources/Devices/Simulator/InjectedDylibs.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Injected/VirtualNetwork/Sources/VirtualNetworkHooks.m">Injected/VirtualNetwork/Sources/VirtualNetworkHooks.m</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Loopback defenses are not login or tenant isolation</h4>
+<p>The default service is 127.0.0.1:8421. Its server checks Host, Origin and Sec-Fetch-Site, including loopback DNS-rebinding rejection. Explicit allowed hosts are trusted for both Host and cross-origin browser access, ignoring ports; credentialed CORS reflects allowed origins. This is meaningful browser protection, and BrowserTrustRouterTests covers both accepted and denied routes.</p>
+<p>But requests without Origin are deliberately allowed, and there is no general user login, per-device owner ACL or tenant session boundary in this control path. Any local program able to reach it shares the operator's authority; non-browser clients on a broadly bound interface do too. A wildcard allowed-host entry expands which web pages may control devices. <strong>Never treat CORS, a UDID, a viewer ID or a private network address as authentication.</strong> Add separately managed access control and encrypted transport if remote operation is necessary; avoid sharing one server between mutually untrusted users. The project's own security policy excludes deliberately broad exposure on untrusted networks. <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Server/Server.swift">[Sources/Server/Server.swift</a> (trust checks and middleware), <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Tests/BaguetteTests/Server/Router/BrowserTrustRouterTests.swift">Tests/BaguetteTests/Server/Router/BrowserTrustRouterTests.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/SECURITY.md">SECURITY.md</a>]</p>
+<h4>Plugins are trusted local programs</h4>
+<p>There are good safeguards: scan/install does not execute plugin commands; browser installation is restricted to already-trusted bakeries; adding trust stays a terminal operation; installs demand the recorded commit instead of silently substituting HEAD. Per-invocation grants carry declared capabilities, are revoked on completion, and invalid presented tokens fail closed. The child environment forwards PATH and explicit Baguette context rather than the full parent environment. Commands get a ten-second timeout followed by termination/escalation.</p>
+<p>These grants govern <strong>requests that identify themselves as plugins</strong>, not the process. PluginAccess treats an absent/empty token as anonymous, and plugin docs candidly explain that a child can call the ordinary local API, run other executables or read user files. No OS sandbox is established by the dispatcher. Tokens are not bound to one device in PluginGrants. A trusted plugin is therefore broad host trust, not a least-privilege app store. Git checkout also retains the host environment except for disabling terminal prompts, so source fetching remains subject to normal Git configuration and credential behavior. Plugin stdout accumulation is not visibly byte-capped in the dispatcher, despite the time limit. <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Plugins/Plugin/PluginDispatch.swift">[Sources/Plugins/Plugin/PluginDispatch.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Plugins/Plugin/PluginAccess.swift">Sources/Plugins/Plugin/PluginAccess.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Plugins/Plugin/PluginGrants.swift">Sources/Plugins/Plugin/PluginGrants.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Plugins/Bakery/Internal/GitCheckout.swift">Sources/Plugins/Bakery/Internal/GitCheckout.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/features/plugins/README.md">docs/features/plugins/README.md</a>]</p>
+<h4>Sensitive device contents and outbound flows</h4>
+<p>Screens, accessibility labels, app logs, pasteboards, notifications, app preferences and uploaded media can contain credentials or personal data. A connected automation harness gets consequential device actions, not just pictures; there is no per-tap human approval layer. Use synthetic accounts and spare test devices, and gate destructive actions in the calling harness.</p>
+<p>DeviceTwin requires a user-started broadcast and iOS recording indication, which is real capture consent. Its “pair” flow is entering an address: the inspected hello checks UDID consistency, not cryptographic device identity. Plain HTTP/WS remote use does not protect screen or control traffic. WebRTC encrypts media with DTLS-SRTP but does not by itself authenticate the ordinary HTTP signaling/control surface. <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Server/ServerDeviceTwinRoutes.swift">[Sources/Server/ServerDeviceTwinRoutes.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Companion/DeviceTwin/Wire/Sources/TwinTransport.swift">Companion/DeviceTwin/Wire/Sources/TwinTransport.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/features/device-twin/README.md">docs/features/device-twin/README.md</a>]</p>
+<p>No model provider, inference API key or token-metered AI service is required for the core tool. Expected external flows include package/release retrieval, Git bakery fetches, optional asset sources, and whatever the tested apps or trusted plugins do. This is not a blanket no-egress guarantee. Costs are primarily Apple hardware, storage, device/SDK maintenance, concurrent encoding and network bandwidth; the WebRTC docs describe one encoder per viewer. Any external agent or remote-access service adds its own data policy and possible costs.</p>
+<h4>Upload handling has guards, not service quotas</h4>
+<p>Upload routes strip supplied path components, validate extensions and resolve devices; camera staging validates its per-device slot. Ordinary uploads use unique temporary directories with deferred cleanup. The body cap is nevertheless <strong>1 GiB collected in memory per request</strong>, with no tenant quota established in that handler. Concurrent uploads/viewers are an operational resource risk on a shared service. The static inspection did not establish archive-decoder or malformed-media safety for all downstream parsers. <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Server/ServerFileRoutes.swift">[Sources/Server/ServerFileRoutes.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Device/Abilities/Camera/Internal/CameraSourceStaging.swift">Sources/Device/Abilities/Camera/Internal/CameraSourceStaging.swift</a>]</p><p>- <strong>Plugin provenance:</strong> the public docs describe a Baguette home containing trusted-bakery and installed-plugin JSON registries, cached checkouts and installed plugin directories. Registry writes are atomic and corrupted JSON is surfaced rather than silently interpreted as empty. A process-wide lock protects in-process read/modify/write, but the code explicitly says separate processes remain unserialized. Atomic file replacement is not a multi-file transaction or a backup.<br>- <strong>Captures and browser state:</strong> image/video exports and redirected logs are ordinary user-controlled files; browser localStorage retains capture/view preferences. App installs, Photos imports, preferences and other device mutations remain in the target device independently of the viewer.<br>- <strong>Temporary does not mean erased:</strong> camera sources outlive the upload until replacement or camera teardown clears the slot. Normal upload cleanup is best-effort. A crash, a never-started camera or filesystem errors can leave residue; no complete crash-time purge or secure-erasure guarantee was established.<br>- <strong>No comprehensive restore contract found:</strong> plugin remove/update and feature-specific stop/delete operations exist, but they do not constitute a global rollback of device state or an encrypted, versioned backup/export system. Before a pilot, keep known-good binaries/resource bundles, trusted-plugin pins and relevant test-device snapshots/backups. Avoid concurrent registry writers; test stop/reconnect/relaunch and restore on disposable devices after upgrades. Revoking a grant does not undo a program's filesystem or device side effects.</p>
+<p>Evidence: <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Plugins/Bakery/Internal/FileSystemBakeries.swift">Sources/Plugins/Bakery/Internal/FileSystemBakeries.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/docs/features/plugins/README.md">docs/features/plugins/README.md</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Device/Abilities/Camera/Internal/CameraSourceStaging.swift">Sources/Device/Abilities/Camera/Internal/CameraSourceStaging.swift</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Baguette/Resources/Web/capture/capture-settings.js">Sources/Baguette/Resources/Web/capture/capture-settings.js</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Xcode/simctl</td><td>Official lifecycle/debug workflows; less integrated farm UI</td></tr><tr><td>Appium / Maestro</td><td>Test assertions and scripted flows rather than a direct device workbench</td></tr><tr><td>scrcpy / adb</td><td>Better-scoped choice for Android-only mirroring</td></tr><tr><td>idb / AXe</td><td>Validate exact iOS/Xcode compatibility before switching</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The documented baseline is Apple Silicon, macOS 15+, Xcode 26 and Swift 6.4 for the current source workflow; Package.swift has a 6.1 tools-version declaration, which is not proof that every older compiler builds this revision. Android needs its SDK tools too. This is not a Linux server merely because it exposes HTTP. The Homebrew formula installs the executable beside its resource bundle and uses an archive checksum; its smoke test only checks --help.</p>
+<p>SwiftPM declares ArgumentParser, Mockable, Hummingbird, HummingbirdWebSocket and NIO SSL, with Package.resolved recording dependencies. Builds compile/stage guest helpers; committed resource binaries are not independently proven equivalent to source by this review. Release automation builds arm64, produces checksums and publishes archives, but the inspected workflow does not demonstrate Developer ID notarization or signed provenance attestations. CI actions use mutable version tags and setup-swift@latest. Checksums from the same release are useful integrity metadata, not independent publisher authenticity. No dependency advisory scan was run. Only the latest release receives security fixes per SECURITY.md.</p>
+<p>The root Apache-2.0 license permits reuse subject to its notices, modification and patent terms. HingeControl carries an MIT idb/Meta notice that must be preserved. Do not assume this grants rights to Apple's private frameworks, DeviceKit artwork or every bundled USDZ model: several model definitions have null downloadURL and sha256 fields, while the Duo definition points to an installed Xcode resource. The package comment promising downloaded SHA-256-verified large assets is not proof of provenance for all shipped assets. Verify the origin and redistribution rights of each model before repackaging; no assets were extracted for this review. <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/LICENSE">[LICENSE</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Baguette/Resources/HingeControl/LICENSE.idb">Sources/Baguette/Resources/HingeControl/LICENSE.idb</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Baguette/Resources/Models3D/iphone-17/definition.json">Sources/Baguette/Resources/Models3D/iphone-17/definition.json</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/Sources/Baguette/Resources/Models3D/iphone-duo/definition.json">Sources/Baguette/Resources/Models3D/iphone-duo/definition.json</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/build.sh">build.sh</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/.github/workflows/release.yml">.github/workflows/release.yml</a>, <a href="https://github.com/tddworks/baguette/blob/481680f37b46d4b59749d4c9333486bc3f17a959/.github/homebrew/baguette.rb.template">.github/homebrew/baguette.rb.template</a>]</p><p>Public GitHub metadata retrieved 2026-11-20 reported creation on 2026-05-01, last push on 2026-11-20, 2,302 stars, 132 forks and 13 open issues/PRs combined. These are discovery signals, not reliability evidence. The latest release endpoint reported <strong>v0.3.0, published 2026-11-19</strong>; this review covers the later main SHA above, including unreleased WebRTC changes.</p>
+<p>There is substantial test and documentation infrastructure: 484 files under Tests (including fixtures, <strong>not a test-case count</strong>), JS node:test, Swift tests with coverage, doc/changelog checks, and an Xcode compatibility workflow. Sampled router tests explicitly verify anonymous access, foreign-origin rejection, rebinding checks, CORS and invalid plugin grants. Coverage configuration excludes resources and low-level system seams, so unit coverage cannot prove private-framework or real-device compatibility. The presence of workflows is not a claim that all current jobs pass; no full CI result audit was completed.</p>
+<p><strong>Actually verified:</strong> anonymous public source and metadata accessibility, exact Git revision, named source paths, implementation/doc distinctions, release metadata, license texts and static test assertions. <strong>Not verified:</strong> buildability, test pass rates, actual device control, latency/fps, real-network congestion recovery, cryptographic implementation correctness, plugin containment, asset rights, dependency vulnerabilities or crash recovery. No upstream instructions were executed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong unified device abilities, capture and plugin provenance. Pilot locally on synthetic test devices; anonymous control, unsandboxed plugins, private Apple APIs and unreleased transport work rule out treating it as a secure multi-tenant device cloud.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/tddworks/baguette">tddworks/baguette</a> · Apache-2.0; component and asset caveats</span>
+    <span><a href="baguette.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
