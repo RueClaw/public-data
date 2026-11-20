@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ai-software-factory.md](reviews/ai-software-factory.md) [page](reviews/ai-software-factory.html) | [piomin/ai-software-factory](https://github.com/piomin/ai-software-factory) | No license specified | 📚 Study | OpenShift/Tekton coding-agent recipe; shared publisher trust, non-blocking verification, external approval and recovery caveats. Static review. |
 | [verus.md](reviews/verus.md) [page](reviews/verus.html) | [verus-lang/verus](https://github.com/verus-lang/verus) | MIT | ⚠️ Interesting | Rust deductive verification with ghost ownership; explicit assumptions, partial Rust support and soundness-monitoring obligations. Static review. |
 | [baguette.md](reviews/baguette.md) [page](reviews/baguette.html) | [tddworks/baguette](https://github.com/tddworks/baguette) | Apache-2.0; component/asset caveats | ⚠️ Interesting | Mac-hosted mobile-device control and capture; strong ability model, anonymous local authority, unsandboxed plugins and private-API/recovery caveats. Static review. |
 | [doop.md](reviews/doop.md) [page](reviews/doop.html) | [kgoedecke/doop](https://github.com/kgoedecke/doop) | AGPL-3.0 | ⚠️ Interesting | Collaborative HTML/MCP design canvas; public media, credential encryption, replay, renderer isolation and durability caveats. Static review. |

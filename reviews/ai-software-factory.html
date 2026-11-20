@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Software Factory — Review</title>
+<meta name="description" content="GitHub-to-PR automation on OpenShift with Tekton, OpenCode and in-cluster vLLM.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ai-software-factory</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">piomin/ai-software-factory · reviewed 2026-11-20</div>
+    <h1>AI Software Factory</h1>
+    <p class="one-liner">GitHub-to-PR automation on OpenShift with Tekton, OpenCode and in-cluster vLLM.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">No license specified</span>
+      <span class="chip">Tekton · OpenCode · vLLM · Bash</span>
+      <span class="chip"><a href="https://github.com/piomin/ai-software-factory">piomin/ai-software-factory ↗</a></span>
+      <span class="chip">SHA 2340226d69bb · static review</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">56</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">12</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A pipeline, not an approval system</h3><p>Plans are posted and implementation starts immediately. Issue pipelines request auto-merge; required reviews and CI must be configured separately.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Separate steps are not a trust boundary</h3><p>Agent and build can modify Git metadata and shared HOME later used by a publisher holding App credentials. Broad shell access also defeats a simple webfetch-deny privacy claim.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Useful repair loop, incomplete release gate</h3><p>Maven failures can trigger three repairs and draft new PRs. Existing PR updates still push after failed verification; unknown build types skip verification.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Implementation and implications</td></tr>
+<tr><td>Ingress</td><td>OpenShift edge-TLS Route → Tekton EventListener → GitHub HMAC and CEL interceptors</td></tr>
+<tr><td>Orchestration</td><td>Four triggers, three Pipelines; shared fetch-skills, verify-build, report-failure Tasks</td></tr>
+<tr><td>Agent</td><td>OpenCode image from Quay, config in a ConfigMap, unrestricted-by-default Bash with a few command denials</td></tr>
+<tr><td>Inference</td><td>OpenAI-compatible vLLM service; default named Qwen3.8 Flash model; second Qwen3 Coder deployment is optional</td></tr>
+<tr><td>SCM</td><td>GitHub App installation tokens, Git/gh; Contents, Issues and Pull Requests write permissions requested</td></tr>
+<tr><td>State</td><td>Kubernetes PipelineRun/TaskRun objects; per-run 1 GiB skills and 10 GiB work PVCs; separate 300 GiB model cache</td></tr>
+<tr><td>Build</td><td>Maven verify auto-detected by pom.xml; custom shell verify command optional</td></tr>
+<tr><td>Product UI/auth</td><td>No product frontend, user database or tenant identity system; GitHub and Kubernetes supply operational identity</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>This is a small collection of deployment manifests and embedded shell scripts, not a SaaS application, new model, general multi-agent framework or complete production delivery platform. GitHub issues and comments start Tekton runs; OpenCode plans and changes a repository using an in-cluster model; deterministic shell steps commit, push, open PRs and post replies. Its most natural audience is an OpenShift platform team experimenting with Java/Spring repositories and already operating GPUs.</p>
+<p>Three pipelines handle new issues, issue comments prefixed with <code>@ai</code>, and PR reviews/inline comments. Questions may get answers without code changes. Planning, implementation and repair are successive invocations of the same configured coding agent, not independently trusted reviewer roles. Imported skills/subagents come from an external OCI artifact; their content is not in this repository and was not acquired. A reviewer agent, plan approval, automatic downstream-CI repair and preview environments are explicitly future ideas. [E1–E6]</p><p>The flow is event logging → skills fetch → prepare/plan/agent → verify → publish, with a finally failure-report task. Prepare clones the branch, gathers context and hands a temporary token to planning. Planning writes and posts a checklist; implementation proceeds immediately, even when planning errors. Agent output is summarized outside the repository. Verify can ask the model to repair a failing build before publication. Publication excludes target directories but otherwise stages all repository changes. [E2–E6]</p>
+<p>This is inspectable infrastructure-as-code: the scripts make automatic side effects easy to locate. Passing webhook text through environment variables and quoted expansion is better than directly splicing arbitrary text into executable script source. That does not neutralize instructions presented to the model or code executed by build tooling.</p>
+<h4>Human approval is downstream and externally configured</h4>
+<p>There is <strong>no plan-approval gate</strong>. New issue and issue-comment change paths automatically push and create PRs, then request auto-merge unless the verification-failed marker exists. Whether a person must approve is determined by the target repository's branch protection, not the pipeline. The README correctly warns that without protection auto-merge may merge immediately. PR feedback pushes directly onto the existing PR branch; no new approval ceremony surrounds the push. Review triggers need no <code>@ai</code> prefix and do not require a change-request review state. [E1–E4,E7]</p>
+<p>HMAC verification authenticates delivery and OWNER/MEMBER association filters who can initiate runs. The new-issue filter only checks opened and association; unlike comment/review filters it has no explicit Bot exclusion. Fork PRs are rejected in prepare, after a run has already started. These are useful admission checks, not authorization of every piece of text read later.</p>
+<h4>Verification is informative, not a release gate</h4>
+<p>The shared task auto-runs Maven only when pom.xml is present; unknown builds and explicit skip return success without a verification note. Failed builds get up to three model repairs. Persistent failure writes a marker and note rather than failing the task. Issue pipelines then create drafts and do not enable auto-merge—a useful safeguard, but code is still pushed. The PR-comment publisher does <strong>not</strong> consume the failed marker to block pushing, convert the PR to draft or disable pre-existing auto-merge. Required external CI remains essential. [E3–E5]</p>
+<p>Tests and build configuration are editable by the same agent being assessed; a prompt not to weaken tests is not an independent oracle. Verification also executes repository-controlled build plugins/scripts. No separate immutable test set or reproducible benchmark is supplied.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Shared writable state crosses into a credentialed publisher — high priority</h4>
+<p>Not placing the App private key directly in the implementation step is a meaningful improvement. It is not a complete privilege boundary: the agent and build share the repository, Git metadata, HOME and workspace with a later publisher that receives the App private key and freshly minted installation token. Broad Bash and external-directory access allow changes outside tracked sources. Git hooks/configuration or shared executable/configuration state can affect later Git operations; the publisher does not reconstruct an independently validated clean tree or disable those execution paths. Planning reset/clean does not reset Git metadata or shared HOME. This is a static trust-boundary finding, not a demonstrated credential theft. [E2–E5,E8]</p>
+<p>The planner itself gets the installation token, with the installation's authority rather than a comment-only server-side token. The token-minting request has no per-repository or reduced-permission body. Allowing only selected gh command patterns does not reduce the token's API permissions. General shell/network commands remain allowed. Deleting the handoff file after loading it is good hygiene but does not make planning a secret-free sandbox.</p>
+<h4>Prompt injection and egress are not constrained by the model location</h4>
+<p>Issue/PR conversation collection includes other authors' comments without the initiating OWNER/MEMBER filter. Repository instructions, external skills and build-error output also enter prompts. An untrusted comment can therefore be read during an authorized run. Default Bash allow, external-directory allow and shell-capable tools make webfetch denial an inadequate egress or credential boundary. No NetworkPolicy is supplied. “Nothing leaves the cluster except GitHub” is a topology aspiration, not an enforced property: model/image/skill downloads, Maven dependencies and arbitrary shell networking are additional paths. Generated summaries and failing-build log tails are deliberately posted back to GitHub and could disclose sensitive output. [E1–E6,E8]</p>
+<h4>Authentication, Kubernetes authority and tenancy</h4>
+<p>The model service is ClusterIP over HTTP. Neither vLLM deployment supplies an API-key enforcement flag or network isolation policy; a placeholder client key is not server-side authentication. Do not expose it outside a restricted network or assume arbitrary cluster tenants are excluded. The public listener has HMAC checks and edge TLS, but this repository supplies no external rate limiter, abuse budget, repository allowlist or tenant-separated credentials/workspaces beyond per-run volumes. [E7–E10]</p>
+<p>The README says agent pods have no kubeconfig or RBAC, yet token automount is not disabled. Comment templates explicitly select the existing pipeline service account; new-issue runs rely on defaults. Effective permissions depend on the installed Tekton/OpenShift environment and were not measured. No cloud IAM credential wiring is included; ROSA is deployment context, not a guarantee of cloud isolation. kubectl and Skaffold binaries are present, but no automatic application deployment stage or deployment-specific RBAC is implemented. The operator must verify actual pod identity, mounted tokens, namespace permissions and metadata/network reachability rather than rely on that README assurance.</p>
+<h4>Persistence, Retry and Recovery</h4>
+<p>Fixed PipelineRun names based on issue/comment/review IDs suppress duplicate creation while the object exists. This is useful delivery deduplication, <strong>not exactly-once publication</strong>. Removing a run and redelivering, as documented, loses that guard. Push, PR creation, auto-merge setup and comment posting are separate side effects with no transactional journal or lookup-before-create recovery. A late failure may leave a pushed branch or existing PR; the generic failure report can still say no PR was created. Two distinct comments on one PR can race on its head branch; there is no per-PR lock, fetch/rebase/retry or conflict-resolution queue in the publisher. [E2–E4,E6,E9]</p>
+<p>Agent/planner errors and timeouts are deliberately logged and continued where possible. Whole task time is three hours, with 15 minutes reserved for finally; the agent's own three-hour allowance can consume all remaining verification/publication time. The repair loop checks its 45-minute deadline between attempts, so it is not a strict elapsed-time cap: a 15-minute repair and following 20-minute build can overrun it. Failure notification is best effort and suppresses token/comment errors. No durable retry scheduler, exponential backoff, result database, retention/pruning or backup policy is supplied. PVC and log lifecycle is an operator responsibility. Optional pod quota limits concurrency but not total spend; queued time consumes timeout. [E5,E6,E9]</p>
+<h4>Costs, Installation and Update Risk</h4>
+<p>Default Qwen3.8 Flash declares two GPUs, 180 GiB requested/200 GiB limited RAM, 4 requested/16 limited CPUs, a 300 GiB cache PVC and a 128k context. It starts scaled to zero. The second Coder manifest also requests two GPUs but actually requests 20 GiB/limits 50 GiB RAM and has no cache PVC, unlike the README's general prerequisite wording. These are declared requests, not measured adequate hardware or proof the model identifiers/images are available. No model assets were downloaded. [E10]</p>
+<p>Local inference avoids default per-token API billing, not GPU/cluster/storage/network cost. OpenShift/GPU operations, downloads, long agent runs and repeated verification dominate the economics; no dollar estimate, throughput measurement or token budget is supplied. The optional Claude Code Dockerfile and placeholder Anthropic secret are not used by the default pipelines; enabling a variant would introduce provider billing and data-egress considerations.</p>
+<p>Agent and some base images use mutable tags; npm agent installation is unpinned; the JDK download uses a latest URL; binary downloads lack explicit checksum/signature verification. The version-tagged skills artifact is neither digest-pinned nor signature-verified and tar archives are unpacked without a repository-level member allowlist. Its executable instructions deserve supply-chain treatment, not just documentation trust. Dockerfiles finish as non-root UID 1001, but that alone does not isolate subsequent tasks or establish runtime security policy. No lockfile/SBOM or tested update matrix makes this reproducible. Rebuild from reviewed dependencies, pin digests, verify provenance and audit external skills before trial. [E6,E8,E11]</p>
+<h4>Maturity, License and Claims Versus Evidence</h4>
+<p>The public API reported creation on 2026-11-18, last push 2026-11-20T12:36:26Z, 56 stars, 12 forks and zero open issues at retrieval on 2026-11-20. The releases endpoint returned an empty list. The issues endpoint showed one merged reliability PR (#1); its additions are present at the reviewed SHA. These are activity signals, not reliability evidence. The 46 tracked files contain no LICENSE, automated test suite or .github CI workflow. No general reuse permission was identified; dependency and model terms must also be assessed separately. [E12]</p>
+<p>Documentation and screenshots describe a showcase installation, but this review did not independently reproduce its runs or measure success rate. The README still says nothing verifies code after the agent, while the current implementation includes verify-build. It overgeneralizes bot filtering, model resources and no-cluster-credential isolation. Its future-work section is more candid: plan gates, evaluations, observability and hardening remain unfinished. Treat successful showcase PRs as examples rather than evidence of safe unattended operation.</p><p>All implementation references below are pinned to the reviewed SHA. Inspection covered the public tracked tree and source, not image contents, imported skills, dependency internals, target repository protection, actual cluster RBAC or model quality. No runtime exploit, build pass, deployment success, cost or throughput is claimed. No private account or project data was used.</p>
+<ul><li><strong>E1:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/README.md">README</a>.</li><li><strong>E2:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/pipeline-issue-agent.yaml">New-issue pipeline</a>.</li><li><strong>E3:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/pipeline-issue-comment-agent.yaml">Issue-comment pipeline</a>.</li><li><strong>E4:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/pipeline-pr-comment-agent.yaml">PR-comment pipeline</a>.</li><li><strong>E5:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/task-verify-build.yaml">Build and repair task</a>.</li><li><strong>E6:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/task-fetch-skills.yaml">Fetch skills</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/task-report-failure.yaml">failure reporting</a>.</li><li><strong>E7:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/eventlistener-new-issue.yaml">Event admission</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/route-new-issue.yaml">HTTPS route</a>.</li><li><strong>E8:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/agents/configmap-agent-config.yaml">Agent permissions and token helper</a>.</li><li><strong>E9:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/triggertemplate-new-issue.yaml">Issue template</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/triggertemplate-issue-comment.yaml">comment template</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/triggertemplate-pr-comment.yaml">PR template</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/tekton/resourcequota-agents.yaml">quota</a>.</li><li><strong>E10:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/ai/deployment-qwen38-flash.yaml">Default inference deployment</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/ai/deployment-qwen3-coder.yaml">Coder deployment</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/ai/service-qwen38-flash.yaml">model service</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/ai/pvc-qwen38-flash-cache.yaml">cache</a>.</li><li><strong>E11:</strong> <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/agents/Dockerfile.opencode">OpenCode image recipe</a>, <a href="https://github.com/piomin/ai-software-factory/blob/2340226d69bbb5de768e3c93d7587f032c150a16/agents/Dockerfile">optional Claude recipe</a>.</li><li><strong>E12:</strong> <a href="https://api.github.com/repos/piomin/ai-software-factory">Public metadata</a>, <a href="https://api.github.com/repos/piomin/ai-software-factory/releases">releases</a>, <a href="https://github.com/piomin/ai-software-factory/pull/1">reliability PR</a>; metadata is time-varying.</li></ul>
+<p><strong>Attribution:</strong> piomin/ai-software-factory, public source by piomin; no license specified. This is independent analysis, not a redistribution of the implementation.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff relative to this repository</td></tr>
+<tr><td>OpenCode with a supervised local checkout</td><td>A developer wants explicit per-task control</td><td>Much less platform overhead; lacks this webhook/Tekton automation unless added</td></tr>
+<tr><td>GitHub Actions plus an explicitly approved coding-agent job</td><td>GitHub-centric teams already operating CI</td><td>Reuses CI controls and protected environments; still needs isolation and narrowly scoped credentials</td></tr>
+<tr><td>OpenHands</td><td>Teams evaluating a broader coding-agent runtime</td><td>Compare its concrete sandbox, integrations and deployment mode rather than assuming safety from product breadth</td></tr>
+<tr><td>This Tekton recipe</td><td>OpenShift/GPU teams studying event-driven automation</td><td>Most transparent fit to existing Kubernetes operations; most of the safety and operational product work remains yours</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Before even a limited trial: obtain licensing clarity; choose an isolated disposable repository; require human reviews and immutable external CI; disable automatic merge initially; restrict App installation scope; isolate the publisher from agent-writable HOME/Git metadata; disable service-account token mounts on unprivileged pods; configure minimal RBAC and egress; authenticate/isolate inference; pin images and verify skill artifacts; redact logs; define retention and partial-publication recovery. Validate non-Maven, failing-build, duplicate-event and concurrent-PR paths offline or in an explicitly authorized disposable environment.</p>
+<p>For a team not already running OpenShift and GPU inference, a supervised coding CLI is a more proportionate starting point. For an existing platform team, study the orchestration and fresh-token placement—but do not confuse a separate Tekton step with a secure trust boundary.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>A clear orchestration recipe, not a hardened autonomous factory. Shared writable state reaches credentialed publication, verification is non-blocking, and human review depends on external branch protection. Static review; no deployment or agent execution.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/piomin/ai-software-factory">piomin/ai-software-factory</a> · No license specified</span>
+    <span><a href="ai-software-factory.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
