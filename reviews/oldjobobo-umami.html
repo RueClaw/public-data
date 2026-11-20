@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Umami Flavors — Review</title>
+<meta name="description" content="Recompose Omarchy customizations after updates — not web analytics.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / oldjobobo-umami</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">OldJobobo/umami · reviewed 2026-11-20</div>
+    <h1>Umami Flavors</h1>
+    <p class="one-liner">Recompose Omarchy customizations after updates — not web analytics.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; external component terms</span>
+      <span class="chip">Python · TOML · Omarchy · pacman</span>
+      <span class="chip"><a href="https://github.com/OldJobobo/umami">OldJobobo/umami ↗</a></span>
+      <span class="chip"><a href="oldjobobo-umami.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">13</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Keep intent, regenerate files</h3><p>Recipes target settings, bindings and patches on a fresh stock tree. Optional failures are reported; required failures select stock for the next boot, but semantic compatibility is not proved.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Declarative is not yet a security boundary</h3><p>Unchecked multiline recipe metadata enters generated Lua comments. Code-tier recipes intentionally have package-like authority, while user plugins remain unsandboxed.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Fallback is not complete rollback</h3><p>Two tree renames leave a crash window, old generations are deleted, and user settings/packages survive disable. Back up recipe assets, affected config and user ownership records separately.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operations</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Python 3.11+ standard library; Bash launcher</td></tr><tr><td>Desktop</td><td>Omarchy Lua Hyprland and shell IPC</td></tr><tr><td>Lifecycle</td><td>Root compositor; pacman ALPM hook; per-user sync</td></tr><tr><td>Persistence</td><td>Generated tree, TOML and plaintext JSON</td></tr><tr><td>Revision</td><td>825b0a8c8a6b6d6743f6d5728a0563990b5c9418</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Intent-oriented transforms, with qualified drift detection</h4>
+<p>An anchored patch requires exactly one match; a diff is checked before Git applies it, with ordered fallback diffs. Literal key chords can be replaced/removed; file/command replacement can record an upstream hash. Optional stale/failed changes do not block the rest; required stale/failed transforms fail composition. Hash mismatch is <strong>drift, still applied</strong>, including for required transforms. A successful exit alone is therefore not an acceptance test.</p>
+<p>These are syntactic and structural checks, not semantic compatibility proofs. Binding discovery is regex-based and misses dynamically constructed chords. IPC comparison counts target/function names, not argument types or behavior. lua.set only warns if its leaf name is absent; real validation happens when Hyprland loads it. Built-in compatibility patches can be stale while the overall report remains ok, because overall status considers recipe transforms, not the built-in patch results. </p>
+<p>The public open issue #1 reports whole PR diffs failing because packaged Omarchy omits existing test/docs files touched by those diffs. This is consistent with the all-or-nothing Git apply path, but the reported real installation was not reproduced here. Review a runtime-only patch deliberately rather than assuming a GitHub PR diff is package-ready. </p>
+<h4>Defaults and locks are different tools</h4>
+<p>Theme/bar defaults are recorded per flavor and changed entry; later personal choices normally survive. Locks reapply at login or load after user configuration. Missing theme/toggles anchors weaken precedence and produce warnings. Locks are desktop policy, <strong>not a security boundary</strong> or endpoint-management system: they do not remove the user's underlying OS authority or prevent alternate programs. </p>
+<h4>Plugin ownership is handled thoughtfully, but execution remains trusted</h4>
+<p>New plugins/suites normally require per-user consent; declines/removals and independently installed plugins are respected. Plugin fetch checks the URL through Omarchy, checks out an exact 40-character SHA, verifies HEAD and manifest ID, then calls Omarchy's validator. A changed pin updates a previously managed plugin without a fresh approval; --yes explicitly bypasses the initial prompt. An exact commit identifies bytes, not a signature or proof of marketplace review: no marketplace approval lookup is implemented here.</p>
+<p>Packages are restricted to names present in configured pacman repositories; suites verify command package ownership on installation/update and run as the user. Signature enforcement ultimately depends on pacman's configured policy, not an independent Umami signature verifier. Package installation occurs before composition and is not rolled back if later composition fails. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Trust and privacy</h4><p><strong>The declarative label needs hardening.</strong> recipe.py accepts a nonempty transform ID and flavor name without excluding newlines. compose.py interpolates both directly into generated Lua line comments/header text. Thus newline-bearing metadata can introduce executable Lua even when code = true was not declared. This is a static data-flow finding, not a live exploit test; it undermines the promise that arbitrary declarative recipe input is data only. Reject control characters or safely render metadata before treating untrusted recipes as declarative. The admin still explicitly installs the recipe, and this observation does not establish unauthenticated remote access. </p>
+<p>Code-tier recipes intentionally have package-like authority: they can replace executable Omarchy commands, and the composed bin directory is placed in sudo secure_path. code = true is a declaration, <strong>not</strong> a sandbox or signature check. Local recipe selection can shadow bundled names, and recipe staging dereferences symlinks while copying the entire directory; do not place secrets or unrelated files beside a recipe. The source/tree path checks are valuable for ordinary transforms but should not be treated as universal confinement: first-party plugin-add constructs its destination from a manifest ID without the ordinary inside() check. Such transforms already require trusted code-tier input. </p>
+<p>Third-party user plugins execute arbitrary unsandboxed code in a long-lived shell; plugin.hypr additionally loads plugin Lua in Hyprland. Limited shell host capabilities are not filesystem/process isolation. The generated plugin.hypr loader checks file presence, not a fresh consent record; an already-present user plugin can supply that file. Package suites likewise inherit user authority. Trust each plugin/package and its updates separately.</p>
+<p>No dedicated telemetry uploader, credential store or paid API flow was found. Network activity comes from Git plugin clones and package operations, and whatever installed plugins/suites do. Git inherits the user environment/configuration; disabling terminal prompts does not disable configured credential helpers or SSH identities. Reports, recipe copies and Git metadata are plaintext, with no dedicated encryption/redaction layer. Treat recipe contents and embedded URLs as potentially retained or shared through diagnostics. No cloud fee is intrinsic; costs are disk copies, network downloads and maintenance time. </p><h4>Recovery and persistence</h4><p>- <strong>System state:</strong> /etc/umami retains the active recipe directory; /var/lib/umami/tree holds generated files and a .flavor recipe/report; report.json holds the latest composition. The synthetic .git has no upstream and is a compatibility shim, not versioned rollback history.<br>- <strong>User state:</strong> XDG state holds umami/plugins.json and defaults.json; plugins live in the Omarchy user plugin directory; cache staging uses the XDG cache directory. JSON ownership/decline records matter to future behavior. No retention expiry or comprehensive export/delete command is provided.<br>- <strong>Activation is not fully atomic:</strong> recompose renames tree to tree.old, then tree.new to tree, then deletes old. There is a gap with no active tree path, no visible process lock/fsync/journal, and the next run deletes leftover old/new trees before rebuilding. A power loss or concurrent invocation is not equivalent to a tested rollback.<br>- <strong>Fallback is narrower than the wording suggests:</strong> a reported required-transform failure preserves the running tree and points next boot to stock; unexpected exceptions outside that report path are not a universal fallback handler. Hook mode returns zero for a handled failed composition, so automation must inspect reports. Disabling does not undo already-applied user settings, installed packages or plugin effects.<br>- <strong>Config preservation:</strong> point_at writes /etc/omarchy.conf wholesale and replaces/removes the shared omarchy-dev-path sudoers drop-in. visudo validation is good, but there is no merge or backup of pre-existing unrelated content in these files.<br>- <strong>User recovery edge:</strong> plugin state is saved before first enable succeeds. On the next sync, matching commit takes the already-ok branch rather than retrying enable; manual enable may be necessary. Plugin update deletes its old copy before post-update rescan verification. defaults.json is written directly; plugins.json uses rename but no visible lock/fsync.<br>- <strong>Uninstall:</strong> package hooks point back to stock and remove the Git safe-directory exception; tree/recipe remain until after reboot. Per-user state, plugins, packages and theme/bar changes are not comprehensively restored or deleted. The older shell uninstaller deletes the recipe immediately but also retains the active tree for reboot.</p>
+<p>Back up the recipe <strong>and assets</strong>, original affected system config, personal Omarchy settings and per-user ownership state separately. Preserve required plugin/package artifacts if offline replay matters; a SHA without an available repository is not a backup. JSON reports and plan diffs are useful exports, not a complete restore format. Exact-input lockfiles and whole-machine recovery are expressly future ideas. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>Fit</th></tr><tr><td>User overrides</td><td>Smaller privilege footprint for simple tweaks.</td></tr><tr><td>chezmoi / Stow</td><td>Personal dotfile ownership, not packaged-tree composition.</td></tr><tr><td>Fork / package patches</td><td>Explicit rebases for deeper changes.</td></tr><tr><td>Nix / Home Manager</td><td>Broader declarative environment; larger workflow change.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Platform and packaging</h4><p>This targets Arch-based Omarchy with its current Lua Hyprland APIs, shell command suite, pacman hooks, runuser/systemd user environment and GNU cp. Python stdlib-only does not imply portability to ordinary Linux desktops, macOS or Windows. README reports author VM verification on Omarchy 4.5.0 stable and a stable-to-edge switch, explicitly <strong>not a stable release bump</strong>; these are author claims, not reproduced acceptance evidence.</p>
+<p>The local package is version 0.1.0 and declares omarchy, python and git, without a compatibility version pin. packaging/build archives checkout HEAD, not uncommitted edits, then uses makepkg --nodeps. PKGBUILD marks the locally generated tarball checksum SKIP; that makes provenance depend on the trusted checkout/build process. No signing pipeline, release assets or repository-hosted CI workflow was found at this revision; the build script does not run the tests. Do not confuse the design's signed CI respin with a delivered update channel.</p>
+<p>MIT permits reuse with notice preservation. The root license is present, but the package() function does not install LICENSE into the usual license directory; distributors should include it. Bundled example recipes refer to external themes/plugins/packages, not a blanket MIT license over those assets. No code/assets were extracted for this review. </p><h4>Verification and limits</h4><p>GitHub public metadata at retrieval showed a public non-fork repository created 2026-11-19, pushed 2026-11-19, 13 stars, 0 forks, one open issue and no releases. These are a dated activity snapshot, not quality evidence.</p>
+<p>The 103 upstream unittest cases passed in 0.422 seconds in a secret-free, no-network sandbox: source read-only, synthetic writable home/tmp, no host home/config/device/session mounts. Tests use temporary source trees, local Git fixtures and fake Omarchy commands. Some subprocess ResourceWarnings were emitted; negative-fixture FAILED lines were expected test output, not suite failures. This verifies compositor and user-layer logic under fixtures, not actual pacman transactions, desktop accessibility/rendering, permissions on a live system, plugin safety, abrupt-power-loss recovery or cross-release upgrades. No extra packages, accounts, models or datasets were acquired.</p><p>Evidence: <a href="https://github.com/OldJobobo/umami/tree/825b0a8c8a6b6d6743f6d5728a0563990b5c9418">revision-pinned source</a>. See the full Markdown review for individual evidence links and attribution.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A focused intent-to-desktop compositor with 103 passing fixture tests. Evaluate in a VM: generated-comment injection weakens the declarative boundary, activation is not crash-safe, and stable-release upgrades remain unverified.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/OldJobobo/umami">OldJobobo/umami</a> · MIT; external component terms</span>
+    <span><a href="oldjobobo-umami.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
