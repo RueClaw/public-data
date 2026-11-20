@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tufazip v2 — Review</title>
+<meta name="description" content="A fixed-artifact neural enwik9 decoder—not a general-purpose ZIP replacement.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / tufazip</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Tufalabs/tufazip · reviewed 2026-11-20</div>
+    <h1>tufazip v2</h1>
+    <p class="one-liner">A fixed-artifact neural enwik9 decoder—not a general-purpose ZIP replacement.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT; component notices</span>
+      <span class="chip">Python · PyTorch/CUDA · C</span>
+      <span class="chip"><a href="https://github.com/Tufalabs/tufazip">Tufalabs/tufazip ↗</a></span>
+      <span class="chip"><a href="https://github.com/Tufalabs/tufazip/tree/b9d678db3a0f726e117c8cab51927975830395ac">Pinned source</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">123</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>The decoder learns as it runs</h3><p>A quantized offline prior initializes a 12-layer Transformer. Encoding and decoding reproduce online updates and replay training over already-coded prefixes.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Strong hashes, narrow compatibility</h3><p>The launcher pins the payload, vocabulary, weights, intermediate tokens and final output. It requires an exact runtime and two B200s; this is not evidence of portable or arbitrary-file decoding.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Ratio is not total operational cost</h3><p>The author reports 105,388,353 ranked bytes including the decoder ZIP. Roughly a week of GPU time, excluded offline training, trusted pickle checkpoints and overwrite-prone output make this a research artifact.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Source revision</td><td>b9d678db3a0f726e117c8cab51927975830395ac</td></tr><tr><td>Verification</td><td>Static inspection; no source tests, installation or GPU run</td></tr><tr><td>Runtime</td><td>Python 3.12.3, NumPy 2.4.6, PyTorch 2.12.0+cu130, CUDA 13.0, cuDNN 9.20, TensorBoard 2.20.0</td></tr><tr><td>Hardware</td><td>Exactly two visible NVIDIA B200s; x86-64</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>
+The README identifies v2 as the deterministic decoder for the 100,958,324-byte enwik9-v2.bin stream. It reports an original decoder ZIP of 4,430,029 bytes and a ranked total of 105,388,353 bytes. These are author-reported results, not measurements made for this review. The archive size includes the vocabulary and weights; do not add the vocabulary again to that README total.</p>
+<p>The launcher intentionally accepts only the expected payload, vocabulary and weights hashes. The lower-level nn.py retains encoding, experiment controls and alternative-backend options, but some referenced backend/tokenizer modules are absent from this release. The supported surface is much narrower than that experimental CLI suggests. There is no archive-member directory, filename metadata, permissions preservation, encryption, random-access extraction, or ZIP/gzip/zstd interoperability in the inspected format.</p>
+<p></p><p>
+| Item | Evidence and interpretation |
+|---|---|
+| Dataset | Single fixed 1 GB enwik9 corpus; no multi-corpus generalization evidence in this tree |
+| Compressed stream | Author reports 100,958,324 bytes: 10.0958% of input, about 0.807667 bits per original byte |
+| Ranked total | Author reports 105,388,353 bytes including original decoder ZIP: 10.5388%, about 0.843107 bits per byte |
+| Compression | Approximately 631,548 seconds excluding offline training: 7.31 days |
+| Decompression | Approximately 645,748 seconds: 7.47 days; roughly 1,549 original bytes/second averaged over the reported time |
+| Hardware | Two NVIDIA B200 GPUs, Linux x86-64 and pinned runtime; no independently measured energy, peak RAM/VRAM or full dollar cost |
+| Baselines | No same-machine baseline suite, repeated-run variance or speed/ratio frontier in the repository |</p>
+<p>Derived percentages/times above are arithmetic on README claims, not new benchmarks. The <a href="https://www.mattmahoney.net/dc/text.html">Large Text Compression Benchmark</a> history independently lists tufazip 0.1.0 on September 8 and v2 on September 30, 2026. That corroborates its benchmark context, not an independent reproduction of these timings, current rank or hardware fairness.</p>
+<p>Charging transmitted weights and vocabulary is important: a strong prior is not free decoder knowledge. Conversely, a ranked decoder ZIP is not the full deployed footprint of CUDA, PyTorch, drivers, optimizer state and checkpoints. The README explicitly describes the original verified archive; do not assume re-zipping this later public tree yields identical bytes. nn.py distinguishes modeled cross-entropy estimates from actual compressed-file sizes, a useful methodological detail (<a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L1610-L1720">final accounting</a>).</p>
+<p>Offline Cycle2 training data/procedure and complete training-to-packed-prior production are not furnished as a reproducible pipeline in this release. Consequently, prior training cost, tuning expenditure and training/evaluation overlap cannot be independently assessed from the tree. That is not proof of an invalid compression result: decoding a fully transmitted prior is different from claiming held-out model generalization. It does limit scientific and economic comparisons. The payload itself is not tracked and the README provides an expected hash rather than a direct artifact-download recipe; no release assets were available in the public releases API at review time.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>
+| Layer | Implementation |
+|---|---|
+| Supported entry point | tufazip validates inputs/runtime, launches two local distributed ranks, verifies tokens, compiles and invokes detokenization, verifies final bytes |
+| Probability model | 12-layer Transformer, width 1024, 8 heads, SwiGLU, RoPE, RMS/QK normalization; 4,097-symbol vocabulary, 192-token context |
+| Initialization | QPI1 packed quantized prior; metadata, tensor geometry, vocabulary digest, seed and block mapping checks |
+| Entropy coding | Rounded/clamped integer frequencies from softmax; 32-bit arithmetic coder with a four-byte big-endian token-count prefix |
+| Online adaptation | Batch streams, per-symbol updates and replay over already-coded prefixes, matching encoder/decoder ordering |
+| Recovery | Model, optimizers, RNG, coder/bitstream and output positions; fsync plus atomic replacement for latest checkpoint |
+| Output | Big-endian 16-bit token stream, then Bellard-derived C vocabulary detokenizer |</p>
+<p>Evidence: <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L38-L69">fixed configuration/model</a>, <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L339-L640">prior reader and validation</a>, <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L1135-L1216">input/output format</a>, <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L1430-L1515">online loop</a>, <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/tufazip#L103-L136">launcher</a>.</p>
+<h4>Learning is part of decoding</h4>
+<p>At each position the model supplies probabilities before the new target is learned. Decoding recovers that target, broadcasts it to ranks, and makes the same optimizer updates. Periodic retraining uses the previously coded prefix, not an unavailable future suffix (<a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L1254-L1335">retrain</a>). This is a valid conceptual route to adaptive lossless coding. It also makes numerical behavior, optimizer state, RNG and collective ordering part of the file-format contract, not merely performance details.</p>
+<h4>Explicit checks are a strength, not a portability proof</h4>
+<p>The launcher pins Python 3.12.3, NumPy 2.4.6, PyTorch 2.12.0+cu130, TensorBoard 2.20.0, CUDA 13.0 and cuDNN 9.20, exactly two visible NVIDIA B200s and x86-64. It sets deterministic environment variables; nn.py enables deterministic algorithms. Input hashes, the 570,405,660-byte intermediate-token hash, and the final 1,000,000,000-byte raw-output hash are checked. A successful supported invocation therefore checks byte identity against a fixed expected digest; this review did not observe such an invocation. These safeguards do not prove cross-driver/kernel/hardware reproducibility or arbitrary-file round trips. Evidence: <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/tufazip#L15-L66">runtime/hash gates</a>, <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/tufazip#L111-L136">verification sequence</a>.</p>
+<p></p><p>
+- <strong>Corrupt supported payloads fail early.</strong> Size and SHA-256 are checked before expensive decoding. Intermediate verification protects the C detokenizer from a divergent decoded stream; final verification catches raw-output errors. Hashes are integrity identifiers, not an independent signature or protection against a modified checkout.
+- <strong>The raw codec is not a hostile-file parser.</strong> Direct nn.py decoding reads a four-byte length without an exact-header-length check, allocates an int64 array from it, and lacks a general decompression budget. A maximum 32-bit count implies roughly 34.4 GB for that array alone per rank. Arithmetic EOF is intentionally treated as zero padding, not automatically rejected as truncation. This is normal arithmetic-coder termination behavior but requires an outer length/integrity contract. The supported launcher supplies one; direct use bypasses it. See <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L1157-L1199">allocation</a> and <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/arithmetic_coder.py#L253-L261">EOF handling</a>.
+- <strong>Weights have structural checks but no general resource policy.</strong> The reader validates magic/version, names, shapes, bit widths, byte counts, truncation and trailing bytes. Metadata length, tensor element totals and aggregate allocations are not subject to explicit application caps before parsing/unpacking. Trusted hash-pinned bundled weights are a different threat model from arbitrary QPI1 input (<a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L359-L440">reader</a>).
+- <strong>Checkpoints are executable trust.</strong> load_checkpoint uses torch.load(..., weights_only=False). A supplied or attacker-writable state directory can execute pickle payloads before configuration/prior checks run. This is not an attack through the hash-validated compressed payload itself. Never resume third-party state; isolate state from other users. See <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/checkpoint_utils.py#L131-L135">loader</a> and <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/nn.py#L1099-L1134">resume validation order</a>.
+- <strong>Destination paths can destroy existing files.</strong> Paths are resolved and subprocess arguments use lists rather than a shell, but there is no no-clobber flag, output/input alias rejection, exclusive creation, or atomic final-output promotion. The detokenizer opens the chosen output with wb. A caller can overwrite an existing destination—or even choose the payload path as output—and failures can leave partial output. State paths and symlinks must be trusted; there are no archive-entry paths to sanitize. See <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/tufazip#L111-L134">launcher paths</a> and <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/preprocess.c#L1028-L1037">C output open</a>.
+- <strong>Recovery is thoughtful but not a transactional filesystem.</strong> Atomic checkpoint replacement and fsync reduce torn-checkpoint risk; resume checks configuration, input size, world size and prior/vocabulary identity and truncates output to the saved position. DONE skips decoding but the launcher still hashes the intermediate. No state-directory lock prevents concurrent jobs sharing the same paths. Final output is not atomically replaced, and graceful stopping waits for a block boundary rather than providing an immediate budget cutoff.</p>
+<p>These are static observations, not exploit demonstrations or an exhaustive audit. Use a dedicated unprivileged workspace with trusted immutable inputs, private state and disposable output paths if independently reproducing the benchmark.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Fast everyday compression</td><td>Zstandard</td><td>Portable speed/ratio tradeoffs</td></tr><tr><td>Ordinary archives</td><td>7-Zip / xz plus tar</td><td>Established CPU/file workflows</td></tr><tr><td>Research comparisons</td><td>NNCP / cmix</td><td>Compare exact dataset and hardware conditions</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+The README prescribes frozen uv resolution and an exact interpreter; the manifest alone permits Python &gt;=3.10 and broad minimum dependency versions, so following only pyproject.toml is insufficient for deterministic decoding. The lockfile includes artifact hashes and a large native CUDA/PyTorch dependency chain. GCC compiles preprocess.c during the supported invocation; the compiler/system stack is not fully pinned by uv. No dependency installation, vulnerability audit or runtime compatibility test was performed.</p>
+<p>There is no model-provider API, cloud account, telemetry uploader or paid endpoint in the inspected decoding path. TensorBoard writes local run logs; torchrun/NCCL use process coordination/network facilities for the local two-GPU job. Package installation needs registries unless pre-provisioned, so “local decoding” does not imply a network-free setup process. Costs are hardware time, power, disk and potentially GPU rental, not per-token provider charges. Treat decoded text, local logs and checkpoint state as retained data. There is no updater here; pin source and lockfile together and revalidate hashes/runtime after changes.</p>
+<p></p><p>
+The root <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/LICENSE">MIT license</a> credits Tommy He. <a href="https://github.com/Tufalabs/tufazip/blob/b9d678db3a0f726e117c8cab51927975830395ac/NOTICE">NOTICE</a> attributes Fabrice Bellard's NNCP preprocessor and Project Nayuki's arithmetic coder; their notices remain relevant when reusing those components. No separate weights license was found in this small root-licensed tree; this is not a clearance opinion on training data or enwik9/Wikipedia content.</p>
+<p>At retrieval, public GitHub metadata reported 123 stars, 5 forks, zero open issues, creation on 2026-09-03 and last push on 2026-09-30. Tags and releases were empty. These are a time-stamped popularity/activity snapshot, not evidence of correctness. The tracked tree has no dedicated test suite or CI workflows. Runtime hashes and stop-after-blocks instrumentation are valuable acceptance hooks, not a substitute for automated round-trip, malformed-input, restart and portability tests. No tests were run for this review.</p>
+<p></p><p>
+This review inspected public source and metadata, not the compressed payload or a GPU run. It did not reproduce the original decoder ZIP, offline training, timing, power usage, arbitrary-file encoding, interrupted-run equivalence or cross-runtime byte identity. Useful next evidence would be a publicly retrievable payload/archive with hashes, a complete prior-production recipe and data accounting, small CPU-safe round-trip/corruption tests, and a logged clean two-B200 decode plus interrupted/resumed equivalence check. None was simulated here.</p>
+<p><strong>Attribution:</strong> Tommy He / Tufalabs/tufazip; MIT, with Bellard and Nayuki notices. Analysis references public code and documentation at the pinned revision; no source code extracted.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study synchronized online learning and exact-artifact verification. Reported decoding takes 7.47 days on two B200 GPUs; portability, prior-training reproducibility and hostile-state safety remain substantial limitations. Static review only.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Tufalabs/tufazip">Tufalabs/tufazip</a> · MIT; component notices</span>
+    <span><a href="tufazip.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

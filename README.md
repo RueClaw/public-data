@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [tufazip.md](reviews/tufazip.md) [page](reviews/tufazip.html) | [Tufalabs/tufazip](https://github.com/Tufalabs/tufazip) | MIT; component notices | 📚 Study | Fixed enwik9 neural decoder with synchronized online learning; strong hashes, two-B200 runtime, week-long decoding and trusted-state caveats. Static review. |
 | [linger.md](reviews/linger.md) [page](reviews/linger.html) | [simplexai-labs/linger](https://github.com/simplexai-labs/linger) | Custom Linger license; component terms | ⚠️ Interesting | Personal-agent workspace with checked wiki and connector approvals; host authority, cloud egress, retention and licensing caveats. Static review. |
 | [bombadil.md](reviews/bombadil.md) [page](reviews/bombadil.html) | [antithesishq/bombadil](https://github.com/antithesishq/bombadil) | MIT; component terms | ⚠️ Interesting | Browser/terminal property-based exploration with temporal oracles and shrinking; inspector exposure, credential echoes and replay/isolation caveats. Static review. |
 | [skywake.md](reviews/skywake.md) [page](reviews/skywake.html) | [skywakehq/skywake](https://github.com/skywakehq/skywake) | Apache-2.0; component terms | ⚠️ Interesting | Branchable object-backed filesystem and search; strong recovery, but cache-tier durability, credential boundaries and retention caveats. Static review. |
