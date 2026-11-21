@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inference Optimization Playbook — Review</title>
+<meta name="description" content="A conditional map of MoE inference experiments, not a reproduced benchmark suite.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / inference-optimization-playbook</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">alesha-pro/inference-optimization-playbook · reviewed 2026-11-21</div>
+    <h1>Inference Optimization Playbook</h1>
+    <p class="one-liner">A conditional map of MoE inference experiments, not a reproduced benchmark suite.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Markdown · Python stdlib</span>
+      <span class="chip"><a href="https://github.com/alesha-pro/inference-optimization-playbook">alesha-pro/inference-optimization-playbook ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">38</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">9</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>115 hypotheses, not 115 reproductions</h3><p>Six cases on one evolving rig; no bundled engine, harness or raw trace corpus. Static review only: no inference or source-tool execution.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Preserve quality before claiming speed</h3><p>Strong controls distinguish exact logits, distribution tolerance and application behavior. Small KL or one extra GSM8K success does not establish equivalence.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Do not universalize local observations</h3><p>Argmax frequency does not bound every speculative sampler. Nsight Systems supports CUDA-graph node tracing; profiling with graphs disabled changes the workload.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Scope</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Claims</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Evidence &amp; tools</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Risks &amp; references</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>53868e29b2a773ecd30ec6eda2ef9b675459a82b</td></tr><tr><td>Scope</td><td>Whole repository; all chapters, cases, ledger, protocols and two tools</td></tr><tr><td>Verification</td><td>Static inspection, primary references and arithmetic only; no source tests run</td></tr><tr><td>Provenance</td><td>alesha-pro / @superalesha; reviewed and retrieved 2026-11-21 UTC</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The notebook organizes work by bottleneck rather than offering a universal sequence of flags: identify residency and routing skew, compare CPU computation with PCIe transfers, model misses, then consider prefill, speculation, precision and session reuse. A situation card and tagged ledger help an engineer choose a relevant case. Every negative result has scope or a reason to revisit it. [S1–S4]</p>
+<p>The checked tree contains <strong>115 ledger rows</strong>, independently counted, matching the README and skill description. The GitHub repository description still says 97. There are six case files, including the newly added resident Inkling 2 Mini path; the opening map still says five models and understates its resident-model coverage. These are documentation-drift signals, not evidence that the experiments are fabricated. [S1–S3]</p>
+<p>The executable deliverables are only tools/route_sim.py and tools/fit_cost.py. There is no package/dependency manifest, automated test suite, CI workflow, GPU implementation, benchmark launcher, raw trace corpus or model weights in this revision. The README links separate author-owned benchmark/engine repositories; their existence does not make this notebook an independently validated implementation. [S1, S11, S12]</p>
+<h4>1. Optimize the expensive term, not a fashionable mechanism</h4>
+<p>The local approximation time = constant + misses × miss_cost is a useful first hypothesis, especially when compared with actual residency, transfer volume and end-to-end time. The cases correctly show a CPU lane beating PCIe on some models and losing on another, and tensor parallel winning in one configuration but losing elsewhere. The prefill discussion also distinguishes tokens served per expert load from activation tile size. NVIDIA's primary guidance supports minimizing repeated host/device transfers, pinned-memory DMA and measured overlap; it does not validate these specific speedups. [S4–S6, P1]</p>
+<p>Do not treat the fitted intercept as a physical, architecture-independent ceiling. Transfer/compute overlap, changing batch shapes, cache policy, heterogeneous expert sizes and resource contention can change both slope and intercept. Two or three points are weak evidence for extrapolation to zero misses. The text sometimes says 2–3 runs, while the one-regressor tool requires at least three. Its R² is in-sample, not a predictive interval. A CPU-versus-copy decision needs the entire overlapped critical path and merge cost, not just one isolated expert measurement.</p>
+<h4>2. Cache placement is not pruning; bits are a quality choice</h4>
+<p>Distinguishing frequency-based placement from expert importance is valuable. The notebook explicitly rejects several pruning and kernel changes despite speed gains, and separates fixed-history logits, distribution tolerances and application behavior. It recognizes that CPU/GPU summation order, quantization, KV precision and even chunk size can change routing and generated text. It also documents a first-turn match that failed on the second turn after a snapshot-boundary change. [S7–S9]</p>
+<p>However, a change within the variation of two stock configurations is <strong>not proof of unchanged quality</strong>. That stock variation can itself harm a downstream task. KL on selected forced positions, a 96-question GSM8K subset, and a few language examples are useful screens, not universal equivalence or statistical non-inferiority. The reported 74/96 versus 73/96 is one extra success, not established improvement. Require prespecified margins, representative held-out task panels, paired uncertainty estimates and multi-turn behavior checks. Keep KV precision fixed when attributing error to an expert kernel.</p>
+<h4>3. Speculation guidance has a material overgeneralization</h4>
+<p>Measuring committed tokens per full draft-plus-verification time is right. Distinguishing copied edits from fresh prose is particularly good: the author reports 488.9 tok/s for a repetitive 509-token edit versus roughly 113–114 tok/s for fresh prose/code on that serving profile. These are author results, not measurements reproduced here. [S10]</p>
+<p>But “the ceiling of any drafter is +20%” from the target choosing its argmax at 79% of positions is <strong>not a general bound</strong>. It can at most describe the specified exact-match proposal/verification method, workload and cost fit. Exact speculative sampling uses acceptance/rejection correction; if proposal distribution q equals target p, acceptance is one even for a high-entropy target. A perfect drafter is therefore not universally defined as “always the argmax.” The original speculative-decoding paper explicitly preserves the target distribution. Likewise, “under batching speculation loses everywhere” should remain a local observation, not a rule for all engines, hardware or batch sizes. [S10, P2]</p>
+<h4>4. Profiler and cache advice needs version and correctness qualifications</h4>
+<p>Chapter 14 says Nsight Systems cannot see kernels inside CUDA graphs and recommends disabling the graph. Current NVIDIA documentation explicitly supports node-level tracing via --cuda-graph-trace=node, with overhead and driver/mode qualifications. Graph-off profiling can help attribution but changes the workload; it must not stand in for graph-on end-to-end timing. [S8, P3]</p>
+<p>Chapter 11 suggests matching history prefixes by text after non-canonical tokenization. Text equality alone does not establish identical token IDs, positions or recurrent/KV state. A safe implementation needs a proved mapping to a valid checkpoint and correct replay of the unmatched suffix. This review did not inspect or validate the external engine implementation. [S13]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <table><tbody><tr><td>Dimension</td><td>What the notebook supplies</td><td>Remaining limitation</td></tr><tr><td>Hardware</td><td>1–4 RTX 3090 24 GB; PCIe 3.0 x16, P2P, no NVLink; EPYC 7642; changing DDR4 population, later 503 GiB and eight channels; generally 300 W/card after an earlier 220 W period</td><td>One rig, not cross-platform validation; topology, NUMA, cooling and power confound comparisons</td></tr><tr><td>Models and precision</td><td>Six named cases, expert shapes, GGUF/EXL3 variants and some KV formats; Hy4 main series Q3_K experts/MTP and Q8 KV</td><td>Not every row identifies immutable weight hashes, tokenizer, template, compiler, driver and engine revision</td></tr><tr><td>Batch/concurrency</td><td>Mostly one active request; speculative verify widths and prefill block sizes discussed; isolated multi-session and batching examples</td><td>No systematic offered-load, scheduler, queueing or concurrent throughput matrix in this repository</td></tr><tr><td>Latency/throughput</td><td>Prefill, decode, TTFT, reread, whole-session time, worst answer and rolling-window rates; recommends total tokens / total time</td><td>No consistent p50/p95/p99 client latency, request-rate/SLO goodput or error-rate reporting across cases; engine times omit some user-visible overhead</td></tr><tr><td>Memory</td><td>Residency, expert slots, pinned RAM, RSS/cgroup distinctions, some peak VRAM and warm-file-cache qualifications</td><td>No uniform peak CPU/GPU/allocator/workspace accounting per row; configured maximum context is not populated context</td></tr><tr><td>Warm/cold</td><td>Separates process loading, fresh HTTP input, warmed expert/prefix cache and OS page cache; describes first-turn graph preparation</td><td>Not every result fixes all cache states; one low-RAM combined run explicitly had warm OS cache</td></tr><tr><td>Controls/statistics</td><td>ABAB/control-candidate-control; frozen profiles; thermal bandwidth checks; acknowledges bundles, one-run results and selected failures</td><td>Mostly narrative summaries without complete raw per-trial records, seed/input IDs, intervals or ablation mapping</td></tr><tr><td>Quality</td><td>Forced full logits, KL/NLL, top-token agreement, multiple turns and languages, occasional application panels</td><td>Limited samples and external metrics are not universal equivalence; “bit-exact” applies only to the reported checked inputs</td></tr></tbody></table>
+<p>The reported Hy4 release gate is a good cautionary example: 187.67 tok/s overall, 159.35 on the worst full answer and 132.49 on the worst 32-token window did <strong>not</strong> satisfy a 170 tok/s target along the full context. Calling only the mean a pass would hide the failure. Another TP comparison explicitly excludes unexplained periods in which the CPU lane slowed by about 2×; that selection must remain visible when planning reliability or tail latency. [S6, S8, S9]</p>
+<p><strong>Independent arithmetic, not replication:</strong> 2,199 / 430 ≈ 5.11× for the bundled DeepSeek prefill changes; 1,510.2 / 415.6 ≈ 3.63× for the full Hy4 single-card build; 4,050 / 1,084 ≈ 3.74× for a single MiniMax replay; 660,006,416 × 96 / 2³⁰ ≈ 59.009 GiB for the Hy4 table. These ratios confirm arithmetic only, not causality, timing or quality. The first two must not be credited to one isolated optimization. [S1, S5, S14]</p>
+<p>The linked benchmark archive README was publicly readable and describes a separate JSONL/SQLite catalog with commands and methodology. It also contains stale 638-row introductory text next to a generated 1,064-row summary. Only its README was checked here; no archive dataset was downloaded, and no row-by-row linkage to the 115 hypotheses was established. Many notebook citations lead to another chapter rather than an immutable raw experiment; several external KL/throughput claims lack a direct primary citation at the claim. [P4]</p>
+<h4>Static tool review</h4>
+<h4>route_sim.py</h4>
+<p>A small, readable stdlib program that reads JSONL, builds a profile from the first part and scores static, oracle, LRU, heat and future-aware policies on the rest. The demo is explicitly synthetic; the “uniform” demo has local 200-token working sets and is not IID uniform traffic. [S11]</p>
+<p>Important interpretation limits:</p>
+<ul><li>Splitting is by per-layer record count after sorting token indices, not by independent session. Traces with token-index resets across requests can interleave histories; the schema has no session ID. Hold out whole requests or provide monotonic global processing indices.</li><li>Expert count defaults to maximum observed ID plus one. Unobserved experts above that ID are omitted; sparse/remapped or invalid IDs distort the random baseline. Supply the true expert count and validate IDs.</li><li>LRU/Belady flatten picks into a sequential access stream, whereas heat scores a whole token before movement. Real top-k dispatch, within-token eviction/admission and asynchronous copy budgets need not match those models. Belady permits bypass; its headroom is an offline bound for this abstraction, not achievable production throughput.</li><li>Capacity is fixed per layer and ignores heterogeneous bytes per expert, shared VRAM budgets, transfer cost and contention. Hit rate alone cannot rank latency.</li><li>No robust range/schema/resource validation: zero decay interval can divide by zero, empty picks can leave no maximum or zero denominator, non-object JSON can raise an uncaught attribute error, and negative capacities are not rejected. Layer aggregation of moves assumes aligned test durations. Files and flattened future-use arrays are retained in memory; no input-size cap.</li></ul>
+<p>These are static observations, not executed regression tests.</p>
+<h4>fit_cost.py</h4>
+<p>Fits ordinary least squares through normal equations and Gaussian elimination with partial pivoting. Useful for a quick small-dimensional sketch, but normal equations square the condition number; the fixed absolute singularity threshold is scale-dependent. There is no feature scaling, finite-number validation, uncertainty estimate, held-out validation or residual diagnostic. Negative slopes are permitted; a positive intercept does not prevent a zero/negative predicted time in later percentage/throughput calculations. Units must actually be milliseconds for 1000 / a to mean events per second. Treat its “ceiling” as a conditional extrapolation, not a hardware guarantee. [S12]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Notebook</td><td>Conditional negative results and release protocols</td></tr><tr><td>NVIDIA documentation</td><td>Hardware and profiler semantics, not validation of author speedups</td></tr><tr><td>Engine benchmark tooling</td><td>Needed for pinned, workload-specific reproduction</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The two inspected scripts import only Python standard-library modules, read a caller-selected local input and print results. No network client, subprocess launch, shell execution, dynamic evaluation, credential lookup or persistent write appears in their code. They are not servers, so authentication/CORS are not applicable. This is a narrow static assessment, not a security certification. Untrusted oversized or malformed inputs can still crash or exhaust resources. [S11, S12]</p>
+<p>Installing the repository as an agent skill is a separate authority decision: prose asks agents to inspect hardware, run experiments and modify engines. It supplies experimental discipline, not enforced permission boundaries, spend caps, secret isolation or rollback controls. Review and pin a revision before giving an agent execution authority; do not let source text authorize privileged changes. Linked patched engines and the mentioned gpu-unlock module are separate supply-chain/kernel-trust surfaces, not dependencies audited here. BIOS/NUMA, power-limit, driver/module and THP changes require explicit operator control and a restoration plan. [S5, S15]</p>
+<p>Real-session replay can retain prompts, generated code, tool results, router traces, KV snapshots and logits. Keep those artifacts local and access-controlled, minimize retention, sanitize any published reproducer and do not assume a router trace or KV snapshot is anonymous. This repository's contribution rules prohibit private paths and secrets, but no redaction mechanism is provided. Persistent cache reuse in a shared service also needs tenant isolation beyond the A → B → A correctness test. [S13, S15]</p>
+<p>No paid API is required by the utilities. Reproducing the reported setup is nevertheless expensive in hardware, memory, storage, energy and engineering time: four 300 W GPU limits alone total 1.2 kW before CPU/RAM/cooling, not a measured whole-system draw. An eight-channel EPYC system with roughly 512 GB RAM is not an ordinary small desktop. No installation, driver modification, live service probe, model download or paid call was performed for this review.</p>
+<h4>Maturity, alternatives and recommended use</h4>
+<p>Public GitHub metadata observed 2026-11-21 reports creation on November 20, last push November 21 at 13:19:40 UTC, 38 stars, 9 forks and zero open issue/PR items. The releases endpoint returned an empty list. The reviewed commit is dated November 21 at 13:19:39 UTC. The notebook claims experiments from July–November; that is author provenance, not independently established public history. A shallow checkout cannot establish the full maintenance record. [P5]</p>
+<p>Use this alongside NVIDIA's CUDA/Nsight documentation for hardware/profiler semantics, the original speculative-decoding work for algorithmic guarantees, and your chosen engine's pinned benchmark tooling for execution. The author's separate benchmark archive may supply richer launch records, but still needs per-claim mapping and independent reproduction. This notebook's comparative advantage is its conditional negative results and release discipline, not a replacement for maintained engine tooling or a serving benchmark. [P1–P4]</p>
+<p><strong>Recommended adoption:</strong> start with the situation card and experiment protocol, then choose one hypothesis whose bottleneck actually appears on your system. Freeze engine/weights/input IDs and all relevant cache states; run matched baseline/candidate experiments at target depth and concurrency with client latency, memory and energy accounting. Require quality acceptance before speed acceptance. Do not buy GPUs, reduce precision or change production scheduling based solely on the headline ratios.</p>
+<h4>Verification limits</h4>
+<p>All six cases and the core chapters, ledger, protocols and both scripts were read statically. The ledger row count and displayed ratios were independently checked. Public accessibility was verified anonymously through GitHub's API and HTTPS source retrieval; canonical source identity was checked for duplicate reviews before creating this review.</p>
+<p>No upstream code was executed, no synthetic tests of the source utilities were run, and no performance/quality claim was independently reproduced. External engine implementations, model cards/weight licenses, raw benchmark datasets, PR merges, driver/module safety and real service behavior were not audited. Primary references corroborate general mechanisms and identify specific overstatements; they do not certify the author's measurements.</p>
+<h4>Evidence</h4>
+<p>Source links below pin the reviewed commit; public metadata and external documentation are retrieval-date observations.</p>
+<ul><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/README.md">S1 — README</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/ledger/hypotheses.md">S2 — Ledger</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/cases/README.md">S3 — Rig and cases</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/01-cost-model.md">S4 — Cost model</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/07-prefill.md">S5 — Prefill</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/05-multi-gpu.md">S6 — Multi-GPU</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/09-quants.md">S7 — Quants</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/14-benchmarking-and-traps.md">S8 — Benchmarking</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/15-quality-and-release-gates.md">S9 — Quality gates</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/08-speculative-decoding.md">S10 — Speculative decoding</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/tools/route_sim.py">S11 — Route simulator</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/tools/fit_cost.py">S12 — Cost fitter</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/11-sessions-and-prompt-cache.md">S13 — Session cache</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/playbook/12-loading-and-big-tables.md">S14 — Loading and big tables</a></li><li><a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/SKILL.md">S15 — Agent skill</a>, <a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/AGENTS.md">contribution rules</a>, <a href="https://github.com/alesha-pro/inference-optimization-playbook/blob/53868e29b2a773ecd30ec6eda2ef9b675459a82b/LICENSE">MIT license</a></li><li><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#pinned-memory">P1 — NVIDIA CUDA Best Practices: pinned memory and transfers</a></li><li><a href="https://proceedings.mlr.press/v202/leviathan23a.html">P2 — Leviathan, Kalman and Matias, Fast Inference from Transformers via Speculative Decoding, ICML 2023</a></li><li><a href="https://docs.nvidia.com/nsight-systems/UserGuide/index.html#cuda-graph-trace">P3 — NVIDIA Nsight Systems: CUDA Graph Trace</a></li><li><a href="https://github.com/alesha-pro/4x3090-llm-benchmarks">P4 — Author's separate benchmark archive, README only checked</a></li><li><a href="https://api.github.com/repos/alesha-pro/inference-optimization-playbook">P5 — Public repository metadata</a>, <a href="https://api.github.com/repos/alesha-pro/inference-optimization-playbook/releases">releases</a></li></ul>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Useful negative results and experimental discipline. Treat speedups as author reports, correct the general speculation ceiling and profiler advice, and reproduce both performance and quality on the intended workload.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/alesha-pro/inference-optimization-playbook">alesha-pro/inference-optimization-playbook</a> · MIT</span>
+    <span><a href="inference-optimization-playbook.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
