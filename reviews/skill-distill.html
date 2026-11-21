@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>skill-distill — Review</title>
+<meta name="description" content="Replay one successful coding session to teach a chosen model and harness—not weight training.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / skill-distill</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">sybil-solutions/skill-distill · reviewed 2026-11-21</div>
+    <h1>skill-distill</h1>
+    <p class="one-liner">Replay one successful coding session to teach a chosen model and harness—not weight training.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Python · Bash · tmux · agent CLIs</span>
+      <span class="chip"><a href="https://github.com/sybil-solutions/skill-distill">sybil-solutions/skill-distill ↗</a></span>
+      <span class="chip">Static review · no model calls</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">293</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">23</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Replay is not generalization</h3><p>Frozen skills and three trials provide useful iteration discipline. A single selected task, no baseline and no held-out suite leave transfer and savings unproved.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Fresh workspace, broad authority</h3><p>Adapters bypass approvals or sandboxing. Environment credentials, shell setup, generated skills and browser requests need external isolation and egress controls.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Evidence can fail open</h3><p>Web capture can return success despite failed actions. Acceptance records a decision but does not enforce passing checks, three matches or a real human safety gate.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Implementation</td></tr><tr><td>Control plane</td><td>Teacher follows Markdown; Python CLI does bookkeeping</td></tr><tr><td>Trial execution</td><td>Git clone/checkout, generated Bash script, tmux window, Perl alarm</td></tr><tr><td>Model access</td><td>Installed omp, pi, Codex, Claude Code or opencode CLI and its configured provider</td></tr><tr><td>Evidence</td><td>JSONL parsers, optional checks.sh, Playwright screenshots, Pillow blank-frame heuristic</td></tr><tr><td>Persistence</td><td>Plain files: run.json, frozen skills, workspaces, traces, verdict JSON, append-only ledger, HTML report</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The operator is a skill for Claude Code or Codex. A user selects a successful reference session and a student harness/model. The teacher extracts the session, writes acceptance criteria and a student skill, launches three student trials from a Git starting point, inspects their outputs and repairs the instructions. It repeats until matches or a stated stopping rule, then asks the user to accept the result. The final artifact is a skill directory, not a trained model or a generally validated capability.</p>
+<p>The source recommends the first user message as the task, and a timestamp-derived Git commit as the initial state. Neither reconstructs later user clarifications, pre-existing dirty files, external services, installed dependencies or hidden environment state automatically. The operator must resolve these ambiguities before interpreting differences as model failures. [E1, E2]</p>
+<p><br>- <strong>Versioned replay:</strong> each iteration snapshots the skill and each trial gets a new starting workspace. Removing the clone&#x27;s origin reduces accidental pushes, but does not sandbox it or remove Git history. [E2]<br>- <strong>First-divergence repair:</strong> inspect the earliest meaningful error instead of polishing the final symptom. The workflow correctly says student claims of success are not evidence. [E1]<br>- <strong>Reference-calibrated checks and user veto:</strong> run the same checks on the reference and trials; compare full-resolution craft and intermediate states, not just features or thumbnail similarity. These are good methodological cautions, not automatic correctness guarantees. [E1]<br>- <strong>Portable adapters:</strong> the adapter contract is small and readable. README labels omp tested, Codex tested as teacher, and pi/opencode untested; that is author-reported compatibility, not independently reproduced here. [E3]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The dataflow is session log → extracted reference → teacher-authored skill/checks → frozen iteration → Git workspace plus skill pointer → harness → trace and evidence → teacher verdict → user decision → final skill. The original prompt is preserved except trailing whitespace removal and an appended skill-pointer instruction; the student does not intentionally receive the complete reference transcript. [E2]</p>
+<p>The manager is 373 lines; extraction 291; web capture 107. No packaged service, database or independent evaluator exists. Session detection supports Claude, Codex rollout, Codex exec and omp/pi formats; opencode has no parser. Extraction skips malformed JSON lines and clips tool text, so traces are lossy and tool-error counts are not uniform across formats. Reference extraction failure is printed but does not prevent run initialization. [E2, E4]</p>
+<h4>Selection, distillation and evaluation validity</h4>
+<p>1. <strong>Selection bias:</strong> one user-selected successful session is the entire reference set. There is no representative corpus selection, deduplication, train/validation/test split or held-out task suite.<br>2. <strong>Repeated adaptation to the same task:</strong> three trials help reveal variability, but repeated prompt revisions against the same reference can overfit. No no-skill baseline, blinded independent grading, seed control, confidence interval or transfer study is supplied.<br>3. <strong>Answer leakage is discouraged, not checked:</strong> the instruction bans the finished solution while permitting short snippets and scripts. There is no similarity detector or provenance audit proving the resulting skill teaches rather than embeds the answer.<br>4. <strong>A successful reference is not ground truth:</strong> the rule that a failed reference check must be wrong can excuse defects in the reference itself. Independently justified requirements still matter.<br>5. <strong>Acceptance is a record, not an enforced gate:</strong> CLI verdict scores are free floats despite help saying 0–10. Acceptance copies the selected frozen skill without requiring completed trials, three matches, passing checks, an independent identity or secret scanning. It cannot authenticate that a human actually approved. [E1, E2]<br>6. <strong>Capture exit status is weaker than interaction success:</strong> action exceptions are recorded with a <code>step </code> prefix and excluded from the errors used to compute <code>ok</code>. A nonblank first screenshot and no page errors can therefore yield exit 0 despite a failed click/key/JS/screenshot action or a bad later state. Console errors are also logged separately, not a blanket failure condition. The caller must assert outcomes explicitly. [E5]</p>
+<p>The README lists an examples directory, but none is tracked at this revision. The skill narrates pilot scores and visual-detail percentages, including a user&#x27;s rejection of superficially passing trials; no published run artifacts substantiate a reproducible benchmark here. [E1, E3]</p>
+<h4>Security, Permissions and Privacy</h4>
+<h4>Fresh folders are not isolation</h4>
+<p>Codex uses <code>--dangerously-bypass-approvals-and-sandbox</code>; Claude uses <code>--dangerously-skip-permissions</code>; omp uses <code>--auto-approve</code>. Context suppression varies by adapter and is not a filesystem or network permission boundary. Trials inherit the host/tmux environment, can read outside their workspace, and can run tools with the invoking user&#x27;s authority. Setup and checks execute shell commands; checks also execute against the reference workspace, which is not a frozen read-only copy. [E2, E3]</p>
+<p>Shell generation uses JSON double-quoting for exported values rather than shell-safe quoting, leaves several generated paths unquoted, and accepts unchecked environment names. Shell expansion such as dollar substitution can still occur inside double quotes. Treat all run settings, names, paths, setup commands and generated scripts as trusted executable configuration; do not pipe model- or transcript-derived strings into them unchecked. Extra student arguments undergo shell word splitting/globbing. These are static code findings, not live exploit tests. [E2]</p>
+<h4>Credentials and egress</h4>
+<p>No provider SDK or central credential vault is implemented. Credentials are supplied through harness configuration or environment; Claude&#x27;s adapter explicitly documents endpoint/token variables. Explicit <code>--env</code> values and student arguments are serialized into run.json and generated run.sh, potentially persisting secrets in plaintext. No secret scanning, permission-hardening or environment allowlist is implemented. [E2, E3]</p>
+<p>The helper scripts are largely local, but the workflow is not automatically local-only: teacher prompts/reference content go wherever the teacher model runs; student prompts, repository content and tool results go to its provider; setup/package tools, generated programs and browser pages can access the network. Web capture binds its default static server to loopback, but has no browser request allowlist; custom start commands can choose other exposure. Open weights do not imply local hosting. No telemetry uploader was found in these files, but harness/provider telemetry and retention were not audited. [E3, E5]</p>
+<h4>Transcript and prompt-injection boundaries</h4>
+<p>Removing known system/context wrappers is <strong>not redaction or injection defense</strong>. User content, assistant answers, tool inputs/results, file paths and final answers remain; the task and final answer are not clipped. There is no credential/PII detector. Source files, tool output or malicious reference text can influence the teacher&#x27;s generated instructions and later become a durable skill followed by an approval-bypassing student. The operator does not establish a robust data-versus-instruction boundary or quarantine generated scripts. [E1, E4]</p>
+<p>The instruction to check final output for secrets and install only if the user wants it is sensible, but manual. Acceptance only copies to final/; global installation is a separate optional teacher action. Require an explicit review of the exact skill and bundled scripts before adoption, with versioning and a removable installation. [E1, E2]</p>
+<h4>Retention and recovery</h4>
+<p>The ignored runs directory is a publication precaution, not encryption or access control, and an arbitrary run directory outside that repository does not inherit its ignore policy. Traces, summaries, prompt, screenshots, logs, provider arguments and reports remain on disk indefinitely; no TTL, purge or backup policy exists. Reports HTML-escape textual content, but still contain the task, skill, logs, workspace paths and screenshots and have no authentication mechanism. Do not expose a run directory as a public report. [E2, E4, E6]</p>
+<p>Frozen iterations and the ledger aid diagnosis. They are not tamper-evident, atomic transactional storage or immutable evidence: same-user agents can reach parent directories, verdicts can be overwritten while ledger entries accumulate, and reference results/checks can change. A partial trial launch leaves an iteration that cannot simply be relaunched under the same number. Status trusts marker files rather than confirming process liveness. The Perl timeout does not establish a process-group cleanup guarantee for all descendants; tmux windows intentionally linger. Accepting a new final deletes the previous final copy, although older iteration snapshots remain. [E2]</p>
+<h4>Costs, Supply Chain and Maturity</h4>
+<p>Default trials last up to 90 minutes, three per iteration. The prose suggests stopping at eight iterations or three without improvement: up to 24 student trials and 36 aggregate student-hours at the default timeout, excluding teacher work, setup and checks. This is an illustration, not a hard cap: CLI values and further iterations are unrestricted, and no token, dollar, GPU or concurrency budget meter is implemented. Provider pricing and local inference hardware determine actual cost. No paid calls were made for this review. [E1, E2]</p>
+<p>At retrieval, public GitHub metadata reported creation on 2026-11-21, last push 2026-11-21T03:48:01Z, 293 stars, 23 forks and zero open issues; tags and releases were empty. Popularity on the first day is not reliability evidence. The exact tree has no CI workflow, automated test suite, dependency manifest or lockfile. Install instructions clone the moving default branch and optionally install unpinned Playwright/Pillow plus Chromium; harness versions and model/provider configurations are external. Python helpers are small and mostly standard-library, but the effective supply chain includes the CLI harnesses, their tools, browser binaries, task dependencies and generated code. [E3, E7]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Better fit</td><td>Tradeoff</td></tr><tr><td>Manual skill authoring plus version-controlled regression fixtures</td><td>A small number of known workflows</td><td>Less automated replay, easier to constrain permissions and review changes</td></tr><tr><td><a href="https://github.com/stanfordnlp/dspy">DSPy</a></td><td>Programmatic LM pipeline optimization against datasets and metrics</td><td>Requires formalizing the program and evaluation; not this interactive end-of-session harness workflow</td></tr><tr><td><a href="https://github.com/promptfoo/promptfoo">promptfoo</a></td><td>Versioned prompt/model test matrices and regression comparisons</td><td>Not a replacement for a coding agent&#x27;s workspace execution or human craft assessment</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>These are capability-level alternatives, not head-to-head benchmarks or a fresh audit of those projects. The strongest idea to retain is the frozen-skill/first-divergence/evidence ledger pattern, augmented with held-out tasks, an unskilled baseline and a separate safety gate.</p><p>No server deployment is necessary. Any evaluation should use a disposable VM/container with a sanitized repository snapshot, no host home directory or production credentials, explicit egress limits and externally enforced time/spend limits. Pin the source, harness, model and dependencies. Review checks and scripts before executing them, keep reference evidence immutable, make interaction failures fatal, and require a separate manual promotion gate for generated skills. These are recommendations, not features present in the project. No installation or adoption was performed.</p>
+<h4>Evidence and Verification Limits</h4>
+<p>Pinned source evidence (all at the reviewed SHA):</p>
+<ul><li><strong>E1:</strong> <a href="https://github.com/sybil-solutions/skill-distill/blob/4c3b307096aea36ecd6cffddf52d1b415cf63d68/skills/skill-distill/SKILL.md">Operator workflow</a>: selection, evaluation, stopping rules, user acceptance and delivery.</li><li><strong>E2:</strong> <a href="https://github.com/sybil-solutions/skill-distill/blob/4c3b307096aea36ecd6cffddf52d1b415cf63d68/skills/skill-distill/scripts/distill.py">Run manager</a>: workspace setup (64–84), initialization (87–121), trial shell generation (124–162), collection, reporting and acceptance.</li><li><strong>E3:</strong> <a href="https://github.com/sybil-solutions/skill-distill/blob/4c3b307096aea36ecd6cffddf52d1b415cf63d68/README.md">README</a> and <a href="https://github.com/sybil-solutions/skill-distill/tree/4c3b307096aea36ecd6cffddf52d1b415cf63d68/skills/skill-distill/adapters">adapters</a>: claims, compatibility, permissions and installation.</li><li><strong>E4:</strong> <a href="https://github.com/sybil-solutions/skill-distill/blob/4c3b307096aea36ecd6cffddf52d1b415cf63d68/skills/skill-distill/scripts/extract_session.py">Session extractor</a>: filters, formats, truncation and retained fields.</li><li><strong>E5:</strong> <a href="https://github.com/sybil-solutions/skill-distill/blob/4c3b307096aea36ecd6cffddf52d1b415cf63d68/skills/skill-distill/scripts/capture_web.py#L58-L103">Web capture</a>: server/network behavior, actions and success predicate.</li><li><strong>E6:</strong> <a href="https://github.com/sybil-solutions/skill-distill/blob/4c3b307096aea36ecd6cffddf52d1b415cf63d68/.gitignore">Ignore rules</a> and <a href="https://github.com/sybil-solutions/skill-distill/blob/4c3b307096aea36ecd6cffddf52d1b415cf63d68/LICENSE">license</a>.</li><li><strong>E7:</strong> <a href="https://api.github.com/repos/sybil-solutions/skill-distill">Public repository metadata</a>, <a href="https://api.github.com/repos/sybil-solutions/skill-distill/releases">releases</a>, <a href="https://api.github.com/repos/sybil-solutions/skill-distill/tags">tags</a>, retrieved 2026-11-21; metadata is mutable.</li></ul>
+<p>All tracked source and documentation were read statically. No project tests, harness trials, capture sessions, model downloads or generated-skill executions were run. No private session logs were accessed. Reported bugs are code-path analysis, not runtime exploit demonstrations. Model quality, real costs, provider retention, adapter compatibility and pilot claims remain unverified. Publication checks cover artifact consistency, links, template integrity and public-only content, not product correctness.</p><p><strong>Revision:</strong> 4c3b307096aea36ecd6cffddf52d1b415cf63d68 · entire tracked tree · no release/tag available.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>📚 <strong>Study — useful replay discipline, not a safe autonomous distillation service.</strong> Frozen skill versions, repeated trials, first-divergence analysis and a human quality veto are worthwhile ideas. However, same-task replay is not evidence of generalization, execution deliberately bypasses important agent safeguards, and privacy, acceptance and budget rules mostly depend on the teacher obeying prose. Study or adapt in a disposable environment rather than install on a credential-bearing workstation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/sybil-solutions/skill-distill">sybil-solutions/skill-distill</a> · MIT</span>
+    <span><a href="skill-distill.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [skill-distill.md](reviews/skill-distill.md) [page](reviews/skill-distill.html) | [sybil-solutions/skill-distill](https://github.com/sybil-solutions/skill-distill) | MIT | 📚 Study | Session-to-skill replay; same-task evaluation, approval bypass, transcript privacy and fail-open capture caveats. Static review. |
 | [fieldwatch.md](reviews/fieldwatch.md) [page](reviews/fieldwatch.html) | [OffGridPete/Fieldwatch](https://github.com/OffGridPete/Fieldwatch) | MIT; data/component terms | ⚠️ Interesting | Android radio notebook and RSI consumer; heuristic identity, location privacy, update provenance and session-recovery caveats. Static review. |
 | [radio-signature-interchange.md](reviews/radio-signature-interchange.md) [page](reviews/radio-signature-interchange.html) | [OffGridPete/radio-signature-interchange](https://github.com/OffGridPete/radio-signature-interchange) | No license specified | ⚠️ Interesting | BLE/Wi-Fi rule-library proposal; real Fieldwatch implementation, conformance, publisher persistence and privacy caveats. Static review. |
 | [holyarrs.md](reviews/holyarrs.md) [page](reviews/holyarrs.html) | [HolyArrs/HolyArrs](https://github.com/HolyArrs/HolyArrs) | AGPL-3.0-only | ⚠️ Interesting | Consolidated media automation; backup-off rollback, plugin-network, hosted metadata and CI-evidence caveats. Static review. |
