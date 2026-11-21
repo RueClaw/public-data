@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deepsec — Review</title>
+<meta name="description" content="Resumable agent security review with meaningful onboarding, privilege and data-boundary caveats.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / deepsec</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Vercel / getting started · reviewed 2026-11-21</div>
+    <h1>Deepsec</h1>
+    <p class="one-liner">Resumable agent security review with meaningful onboarding, privilege and data-boundary caveats.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 · service terms separate</span>
+      <span class="chip">TypeScript · Node 22+ · agent SDKs</span>
+      <span class="chip"><a href="https://deepsec.sh/docs/getting-started">Vercel / getting started ↗</a></span>
+      <span class="chip"><a href="https://github.com/vercel-labs/deepsec">Source repository ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2.3.16</div><div class="lbl">Source version</div></div>
+      <div class="stat"><div class="num">Static</div><div class="lbl">Verification</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>One command starts work, not just setup</h3><p>Initialization installs a workspace and proceeds into AI source analysis and processing. Review a pinned scaffold, executable config, source-transfer policy and budget first.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Read-only is not a universal boundary</h3><p>Codex investigation requests workspace-write locally and never asks for approval. Claude’s local sandbox can degrade when unavailable. The CI guide refers to an authorization gate absent from its example.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Brokering protects tokens, not source privacy</h3><p>Cloud workers receive brokered model access but uploaded source/data and provider traffic still cross trust boundaries. Gateway retention, downstream provider retention and snapshot retention are different policies.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Guide claims compared with pinned public source.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Evidence</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Trust boundaries</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operations &amp; sources</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Source revision</td><td>9444b896ca60eb399f9cebaea0bef61655781d42</td></tr><tr><td>Guide</td><td>Public HTTP 200; no visible update date</td></tr><tr><td>Verification</td><td>No product execution or benchmark reproduction</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Deepsec reviews source repositories, not primarily running web applications or network targets. A local matcher scan selects security-relevant files; coding agents investigate batches with repository context, produce structured findings, and optionally revalidate them. Direct PR mode also investigates listed files with no matcher hits. Reporting/export and enrichment are separate stages. The product is suited to security engineers who can inspect findings, authorize model data transfer, and control agent execution. [1–3]</p>
+<p>The quickstart's single command is an automation entry point, not just an installer. It scaffolds a separate workspace, installs dependencies, selects model access, analyzes source, inventories surfaces, generates coverage matchers, scans and starts AI processing. The guide says this may take minutes to many hours. Model selection and payment-route questions are not per-tool approval gates. Scaffold-only and plan modes are useful review points, but invoking either still runs the downloaded Deepsec package itself. [1]</p>
+<p>Source inspection supports the broad architecture: setup checkpoints, typed per-file records, configurable agent adapters and explicit cloud upload/brokering code exist. It does not establish detection accuracy, absence of prompt injection, runtime enforcement of SDK restrictions, or a secure npm artifact. This review recommends an isolated, low-budget trial on approved code only—not a production deployment recommendation.</p><p>| Layer | Evidence and implication |<br>|---|---|<br>| Setup | Coordinator stores checkpoints/digests and resumes phases; inventory and declarative matcher coverage gate precede the main processing stage. Setup itself can use paid AI. [2,4] |<br>| Local scan | Regex/glob matching; no model charge for the scan stage. Coverage is heuristic, not proof that all exploitable paths were examined. [2] |<br>| Investigation | Claude, Codex and Pi backends consume source context and project INFO.md; findings/history are merged into per-file records. [2,5] |<br>| Revalidation | Another model-assisted assessment; vendor claims reduced false positives, not an independent exploit confirmation. [2,3] |<br>| PR mode | Changed/listed files are always investigated, including those without matcher hits. Exit status reflects net-new findings, not all unresolved findings. [6] |<br>| Cloud workers | App, target and data bundles uploaded to Vercel Sandbox; partitioned workers return records for merging. Provider credentials are injected through the egress policy. [7] |<br>| Extensibility | Configuration and plugins are executable code loaded with Jiti/import, not inert policy files. Trust them as part of the execution supply chain. [8] |</p>
+<p>The durable per-file state is the strongest design choice: expensive investigation is separable from scanning, reporting and retry. However, additive history retains sensitive source-derived findings; gitignored is neither encrypted nor automatically expired.</p><p>The inspected repository has Node 22/24 CI configuration with SHA-pinned actions, build/lint/Knip/unit/bundle checks, focused credential/network-policy tests and a release workflow. These are positive engineering signals, not a claim that current checks passed. Public metadata on retrieval showed 8,481 stars, 526 forks, 81 open issues/PRs combined, a 2026-11-20 push and no archive flag. The latest GitHub Release endpoint returned 404; this does not mean the npm package is unreleased. [9,14]</p>
+<p>The vendor publishes DeepSecBench results and the model picker consumes that public JSON. The FAQ claims roughly 10–29% false positives on HIGH+ after revalidation; architecture docs claim 50%+ reduction on most repositories. Those are vendor claims without an independently reproduced methodology in this review. A leaderboard does not establish performance on a particular codebase or recall for unknown vulnerabilities. No finding was reproduced and no benchmark/test suite was run. [2,3,15]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><strong>Source access is not permission to test a system.</strong> Obtain repository-owner approval, authorization to transmit source to the chosen providers, and an explicit scope for any agent tools. No live-target scanning or exploitation was performed for this review. A code-analysis finding is not permission to validate it against production or third parties.</p>
+<p>The Codex setup adapter requests read-only/no-network tools. Investigation instead sets local <code>workspace-write</code>, cloud <code>danger-full-access</code>, <code>approvalPolicy: &quot;never&quot;</code> and <code>networkAccessEnabled: false</code>. That is not a uniform read-only posture. The cloud VM is intended to be the boundary; SDK settings are not independently proven enforcement. [5]</p>
+<p>Claude requests <code>permissionMode: &quot;dontAsk&quot;</code>, and its local sandbox helper enables automatic Bash approval with <code>failIfUnavailable: false</code>. The source comments explicitly describe graceful degradation when the OS sandbox dependency is missing. Its child environment allowlist reduces unrelated inherited credentials but still forwards the model credential needed for authentication. Neither an allowlisted environment nor a read-oriented tool list proves source cannot influence shell behavior. Pi was not independently audited to the same depth; do not assume identical isolation across backends. [5]</p>
+<p>Human review should happen before installing/config loading, granting provider access, exporting source, enabling workers, spending money, and acting on findings. The unattended flow provides no reason to expect an approval prompt for each agent action.</p>
+<h4>CI example: useful separation, incomplete authorization story</h4>
+<p>The docs split analysis and comment publication: analysis has contents-read, while a separate comment job holds PR-write and reads an artifact. Fork PRs are skipped. These are useful boundaries. But the text says an <code>author_association</code> gate prevents secret exposure; <strong>the displayed YAML has only a same-repository gate, not an author-association gate</strong>. Same-repository provenance is not review approval. [6]</p>
+<p>The example exposes the Gateway secret to the Deepsec step, which loads PR-controlled config; its earlier install step is not shown with that secret environment, contrary to the prose's broad description. Do not “copy as-is” for untrusted changes. Use a trusted, separately approved analysis configuration and isolated execution, explicit maintainer approval, least-privilege credentials and full action SHA pins. Never combine PR-controlled execution and repository-write permissions. Treat model-generated comment artifacts as untrusted output as well.</p><p>- <strong>Local model route:</strong> repository snippets and context go to the configured model provider, directly or through Gateway. “No network” for agent shell tools is not “no model traffic.” Local subscription mode delegates authentication to existing CLI login and has no model-access preflight guarantee. [1,3,10]<br>- <strong>Credential storage:</strong> config records the environment-variable name rather than a BYOK value. Credentials can still be present in the calling environment or plaintext ignored <code>.env.local</code>; project metadata is stored separately. Use narrowly scoped/revocable credentials and protect local artifacts. [10]<br>- <strong>Cloud brokering:</strong> worker network policy selects the model host, injects headers at egress, and accepts extra allowed hosts. This usefully withholds real model tokens from worker environment values; it does not prevent authorized model calls from sending source or consuming budget. Host-side credentials remain sensitive. [7]<br>- <strong>Cloud source transfer is broader than snippets:</strong> orchestrator prepares app, target and data tarballs. Git mode includes tracked plus untracked-not-ignored files, removes symlinks and explicit nested workspace/data paths. Non-git target exclusions do not list <code>.env</code>, unlike app exclusions. Inspect the exact upload manifest; do not assume ignore rules or the broker sanitize every source secret. This is an observed packaging rule, not a demonstrated leak. [7]<br>- <strong>Retention is multiple policies:</strong> local records/reports, CI artifacts, cloud snapshots and providers are separate stores. The FAQ's “data stays on your machine unless exported” is incomplete for Sandbox mode. No unified deletion deadline or proof of snapshot cleanup was established. Vercel pricing explicitly charges for snapshot storage and advises a retention period. Stopping workers is not proof that snapshots are deleted. [3,7,11]<br>- <strong>Gateway is not the whole privacy boundary:</strong> Vercel's ZDR page says Gateway itself discards prompt/response content but records request metadata. It also says provider routing does not default to ZDR; eligible accounts must enable team-wide or per-request ZDR, with model/tool exceptions. BYOK agreements and prompt-training controls are separate. Deepsec's FAQ shorthand must not be interpreted as universal provider zero retention. [12]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Semgrep</td><td>Reviewed local rules for repeatable pattern checks</td></tr><tr><td>CodeQL</td><td>Semantic queries; check language, build and license fit</td></tr><tr><td>Human review</td><td>Validate impact and authorization; agents supply hypotheses</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The root manifest requires Node 22+ and pins its development package manager to pnpm 8.15.9. The CLI manifest is 2.3.16 and includes agent SDKs/CLIs, Vercel OIDC/Sandbox libraries, Jiti and archive tooling. Cloud upload uses system git/tar. The docs also offer an alternate package-manager invocation for repositories whose devEngines reject npx. [1,9]</p>
+<p>The advertised unversioned npx command resolves a moving registry package. This review inspected Git source, not an npm tarball/signature or registry provenance. For an approved trial, pin and verify the intended package/version and lockfile, review lifecycle dependencies, and inspect executable config/plugins before allowing secrets. Scaffold-only avoids dependency installation and scanning by Deepsec, but is not a substitute for trusting the launcher package. Do not run the quickstart inside arbitrary third-party checkouts on a credential-rich workstation.</p>
+<h4>Onboarding contradiction: direct key does not imply platform-free setup</h4>
+<p>Getting started says direct OpenAI/Anthropic keys need no Vercel account. The credential guide says the project link is always required. At the reviewed source revision, <code>ensureConnectedWorkspace</code> returns early only for <code>mode === &quot;local&quot;</code>; direct/custom routes proceed to <code>ensureVercelLink</code>. Thus the direct-key claim is not supported by this inspected setup path, while the credential guide's “always” claim is itself too broad for local subscriptions. This is a static finding; npm-distributed runtime behavior was not tested. Local model authentication also does not mean local inference: it uses existing machine-wide agent subscriptions. [1,10]</p><p>The FAQ estimates Claude Opus processing at $25–60 for 100 files, $130–300 for 500, and $500–1,200 for 2,000, with 2–3× complexity variation. These are vendor estimates, not measured here or a quote for current defaults. Revalidation may cost similarly to processing; setup/model verification and other AI stages are not made free by the scan stage being free. The README warns very large scans can cost thousands or tens of thousands. [3,9]</p>
+<p>Cost/duration limits, low file limits and reduced concurrency are useful safeguards, but a safe-point stop is not a provider billing hard cap. In-flight requests, retries and other phases/services require separate limits. Gateway token/add-on fees, direct-provider bills and Sandbox CPU, provisioned memory, transfer and snapshot charges are independent; even I/O-waiting workers consume provisioned-memory time. Put provider-side budgets in place and verify what each limit covers. [1,11,13]</p>
+<p>Re-running init/setup resumes completed checkpoints; interrupted processing preserves completed file records, and coverage failures carry repair/resume instructions. Revalidation and forced reinvestigation can intentionally incur new work. Back up protected state before migrations or destructive cleanup; protect caches as vulnerability data. After interruption, inspect status and outstanding workers/snapshots, collect results and confirm resources stopped. Rotate exposed credentials and verify provider billing before retrying. No crash/recovery, hard-cap, or cloud-cleanup behavior was executed here. [1–3,7]</p><p>Apache-2.0 plus NOTICE permits code reuse under its conditions; it does not grant free model inference, hosted compute or authority to scan third-party assets. Vercel's Terms distinguish exclusively open-source software from hosted Services; service/API terms and acceptable-use rules also apply. The fetched Terms are dated October 19, 2026 and include plan-dependent content/model-training provisions and personal/noncommercial Hobby restrictions. Apply the specific service policy and your actual agreement rather than inferring a blanket training entitlement or blanket prohibition from one page. Confirm provider/subscription terms, data-processing requirements and retention controls before confidential use. [16]</p><p>This refresh reuses the existing Deepsec review and index row rather than creating a second review for its getting-started URL. Previous review: 2026-05-19, no exact revision recorded, rated Deploy candidate. Current scope adds the public onboarding guide, 2.3.16 source, credential/egress boundaries, CI example, provider policies and recovery. Rating changes to Interesting because those boundaries require verification before adoption. Historical claims of 2,100 unit tests and 23 bundle tests passing are not current verification and are not carried forward as evidence for this revision.</p><p>Inspected README, LICENSE/NOTICE, manifests, CI, docs, setup coordinator/auth connection, config loader, Claude/Codex adapters, cloud network policy, upload/orchestration and public service documentation. Source paths below are pinned. Website/docs may change independently of Git or the npm artifact. No exhaustive dependency, Pi-backend, plugin, archive-path, provider-contract or prompt-injection audit was performed. Public docs accessibility and artifact link/markup checks are not product safety tests.</p><p>1. <a href="https://deepsec.sh/docs/getting-started">Getting started</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/docs/getting-started.md">pinned guide</a>.<br>2. <a href="https://deepsec.sh/docs/architecture">Architecture</a>.<br>3. <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/docs/faq.md">Pinned FAQ</a>.<br>4. <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/deepsec/src/setup/coordinator.ts">Setup coordinator</a>.<br>5. <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/processor/src/agents/codex-sdk.ts">Codex adapter</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/processor/src/agents/claude-agent-sdk.ts">Claude adapter</a>.<br>6. <a href="https://deepsec.sh/docs/reviewing-changes">Reviewing changes and CI example</a>.<br>7. <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/deepsec/src/sandbox/setup.ts">Sandbox setup/network policy</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/deepsec/src/sandbox/upload.ts">upload</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/deepsec/src/sandbox/orchestrator.ts">orchestrator</a>.<br>8. <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/deepsec/src/load-config.ts">Configuration loading</a>.<br>9. <a href="https://github.com/vercel-labs/deepsec/tree/9444b896ca60eb399f9cebaea0bef61655781d42">Repository at reviewed revision</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/deepsec/package.json">CLI manifest</a>.<br>10. <a href="https://deepsec.sh/docs/vercel-setup">Credential guide</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/packages/deepsec/src/auth/ensure-connected-workspace.ts">connection implementation</a>.<br>11. <a href="https://vercel.com/docs/sandbox/pricing">Sandbox pricing and snapshot retention guidance</a>.<br>12. <a href="https://vercel.com/docs/ai-gateway/security-and-compliance/zdr">AI Gateway ZDR and provider distinctions</a>.<br>13. <a href="https://vercel.com/docs/ai-gateway/pricing">AI Gateway pricing</a>.<br>14. <a href="https://api.github.com/repos/vercel-labs/deepsec">Public repository metadata</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/.github/workflows/ci.yml">CI definition</a>.<br>15. <a href="https://vercel.com/ai-gateway/leaderboards/deepsecbench/results.json">Vendor DeepSecBench results</a>.<br>16. <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/LICENSE">License</a>; <a href="https://github.com/vercel-labs/deepsec/blob/9444b896ca60eb399f9cebaea0bef61655781d42/NOTICE">NOTICE</a>; <a href="https://vercel.com/legal/terms">Vercel Terms</a>, <a href="https://vercel.com/legal/service-terms">Service Terms</a>, <a href="https://vercel.com/legal/acceptable-use-policy">Acceptable Use</a>.<br>17. <a href="https://semgrep.dev/docs/running-rules">Semgrep local-rule scanning</a>.<br>18. <a href="https://codeql.github.com/docs/codeql-overview/about-codeql/">About CodeQL</a>.</p>
+<p><strong>Attribution:</strong> Deepsec documentation and source by Vercel and contributors, Apache-2.0; linked service policies belong to their respective publishers. Analysis is independent; vendor statements are not independently validated guarantees.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot only on approved code with isolated execution, explicit source-transfer permission and provider-side budgets. Documentation contradictions and backend-dependent privileges prevent a blind quickstart recommendation. Static review only: no installation, scanning, paid calls or runtime security tests.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://deepsec.sh/docs/getting-started">Vercel / getting started</a> · Apache-2.0 · service terms separate</span>
+    <span><a href="deepsec.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
