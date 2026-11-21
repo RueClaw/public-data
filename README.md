@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [plannotator.md](reviews/plannotator.md) [page](reviews/plannotator.html) | [backnotprop/plannotator](https://github.com/backnotprop/plannotator) | MIT OR Apache-2.0; component terms | ⚠️ Interesting | Agent annotation and Inbox feedback; host-specific approval, remote exposure, default telemetry and retention caveats. Static review. |
 | [songe.md](reviews/songe.md) [page](reviews/songe.html) | [sous-labs/songe](https://github.com/sous-labs/songe) | Apache-2.0 | ⚠️ Interesting | Local prompt lessons and idle LoRA training; durable rollback, correlated promotion gate and persistent conversation privacy caveats. |
 | [appllama-skills.md](reviews/appllama-skills.md) [page](reviews/appllama-skills.html) | [Appllama/appllama-skills](https://github.com/Appllama/appllama-skills) | MIT; content rights separate | ⚠️ Interesting | Mobile design/research prompts; strong simulator QA, paid MCP, tool-output trust and unbounded execution caveats. Static review. |
 | [verifying-formal-models.md](reviews/verifying-formal-models.md) [page](reviews/verifying-formal-models.html) | [Verifying formal models of Raft implementations](https://antithesis.com/blog/2026/verifying-formal-models/) | N/A | 📚 Good reference | AI-assisted Raft proofs and trace validation; substantive artifacts, unproved bindings, storage-scope and reproducibility limits. Static article review. |

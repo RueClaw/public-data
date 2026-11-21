@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plannotator — Review</title>
+<meta name="description" content="Local plan, document, HTML and code review with a multi-agent feedback Inbox.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / plannotator</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">backnotprop/plannotator · reviewed 2026-11-21</div>
+    <h1>Plannotator</h1>
+    <p class="one-liner">Local plan, document, HTML and code review with a multi-agent feedback Inbox.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT OR Apache-2.0; component terms apply</span>
+      <span class="chip">TypeScript · Bun · React · file-backed storage</span>
+      <span class="chip"><a href="https://github.com/backnotprop/plannotator">backnotprop/plannotator ↗</a></span>
+      <a class="chip" href="https://github.com/backnotprop/plannotator/tree/6128f5f117ae2896a10c269bda3653231a0d3e4f">Reviewed source revision</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">14,097</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1,403</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Approval is host-specific, not containment</h3><p>Claude plan approval can allow ExitPlanMode and change the session permission mode. Inbox replies are new agent turns, not a universal tool gate; protected branches and OS isolation remain separate.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local-first is not offline or ephemeral</h3><p>Release builds send default-on anonymous daily pings; NO_ANON_PING=1 opts out. History copies plans/files, and feedback/drafts have separate retention; full share links grant read access.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Deployment boundaries differ by surface</h3><p>Ordinary review servers bind all interfaces in remote mode, including SSH-detected mode. Inbox instead stays loopback and gates bridges/devices separately; Host/Origin checks alone are not authentication.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>TypeScript / Bun</td></tr>
+<tr><td>UI</td><td>React / Vite; shared editor and diff surfaces</td></tr>
+<tr><td>Persistence</td><td>Markdown, JSON and append-only JSONL</td></tr>
+<tr><td>Integration</td><td>Host hooks/plugins, MCP; owner-only OpenClaw Inbox bridge</td></tr>
+<tr><td>Revision</td><td>6128f5f117ae2896a10c269bda3653231a0d3e4f</td></tr>
+<tr><td>Release observed</td><td>v0.29.1 (2026-11-19); reviewed main is newer</td></tr>
+<tr><td>Verification</td><td>Static only; no installation or upstream tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Precise feedback instead of another chat paragraph</h4>
+<p>Inline annotations, version comparison, diff comments and guided review chapters preserve the context a plain chat response loses. Feedback goes back through the relevant host adapter. This is useful UX, but the model still interprets the returned text; imported/team/agent annotations are not an independent policy engine. [1–3, 7]</p>
+<h4>Approval semantics: narrowly scoped, host-dependent</h4>
+<p>The classic Claude hook matches <strong>ExitPlanMode</strong>. On approval it emits a PermissionRequest allow decision, echoes the reviewed plan in updatedInput and can emit a session-level setMode permission update. Denial returns a deny decision plus feedback. The module integration adds non-blocking review and checks the reviewed plan on subsequent exit attempts. Thus “approve” can affect the host's permission mode; it is not necessarily a harmless UI acknowledgment. [2]</p>
+<p>This does <strong>not</strong> prove the later implementation matches the plan, stop tools outside this hook, enforce all agents' permissions identically, require CI, or authorize/complete a merge. A review decision and an actual forge action are separate flows. Use the host's permissions, OS isolation, repository checks and review rules for those guarantees. No bypass of a deployed system was tested.</p>
+<h4>OpenClaw support is an Inbox bridge, not universal approval interception</h4>
+<p>The shipped plugin exposes plannotator_inbox to the owner's eligible local/private sessions; its documentation and tests exclude groups/channels and other senders. Replies become a new turn in the same chat, waiting if busy; after a conversation reset they follow the chat's new conversation. It requires a same-machine Inbox and declares OpenClaw &gt;=2026.11.5-beta.1 compatibility. Installing it does not add a general gate around every OpenClaw tool. [3]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Review surface, host adapter, storage</h4>
+<p>The CLI in apps/hook/server dispatches modes. packages/server implements plan/review/annotate and long-lived Inbox HTTP services; packages/shared/core contain reusable policies, models and persistence, while editor/UI packages implement the browser side. Pi includes generated shared copies, creating a parity/packaging concern alongside the benefit of shared behavior. The server resolves decisions back into the host's protocol; Inbox uses a file-backed record stream and connection bridges instead. [1–3, 7]</p>
+<h4>Permissions and execution</h4>
+<p>This is privileged local software: it reads project files and diffs, writes history/configuration, invokes VCS and agent processes, and can perform explicit forge actions. AI-assisted review is not simply rendering text and may consume an existing provider account's quota. The Claude review-job implementation restricts tools, uses dontAsk, avoids loading project/local Claude settings and excludes unrelated MCP servers. It also explicitly warns that textual command allow/deny rules are <strong>not containment</strong>. Its default sandbox setting defers to the user's Claude sandbox configuration, rather than ensuring an OS sandbox exists; an opt-out can disable that sandbox for the job. Other adapters require their own analysis. [8]</p>
+<h4>Server, authentication and origin boundaries</h4>
+<ul><li>Ordinary plan/review/annotate servers bind 127.0.0.1 locally, but <strong>remote mode binds 0.0.0.0</strong>. Remote mode can arise from SSH environment detection as well as an explicit setting. Default local port is random; remote default is 19432. A public/display URL is not an authentication mechanism. [4]</li><li>Host allowlists and state-changing Origin/Sec-Fetch-Site checks are meaningful browser/DNS-rebinding defenses. The write guard intentionally permits clients with no Origin, and explicitly named proxy origins have allowances. These are <strong>not user authentication</strong> and do not stop an arbitrary non-browser client that can reach an exposed listener. Avoid bare public/LAN exposure; use an authenticated transport and restrictive network access. [4]</li><li>Inbox is different: it binds loopback regardless of those remote settings. Its bridge/control routes require a registry bearer token and no Origin; MCP refuses browser origins; window writes use origin checks and a serverSession nonce. Optional tailnet/device paths have separate owner/pairing gates. This remains a single-user trust model, not multi-tenant RBAC; a nonce also protects stale tabs, not against a compromised local account. The optional remote/device paths were not exercised. [5]</li><li>Raw HTML is active content: the viewer's default srcdoc sandbox allows scripts/modals but excludes same-origin. Live-app mode is a distinct path, unsandboxed by default. Do not generalize Markdown sanitation or an opaque-origin frame into a guarantee that arbitrary rendered content cannot use the network. [6]</li></ul>
+<h4>Sharing, retention and privacy</h4>
+<p>Small shares encode compressed content in the URL fragment: compression is not encryption. Large shares encrypt locally with AES-256-GCM, a fresh 256-bit key and 12-byte IV, then upload ciphertext; the decryption key stays in the full link's fragment. The paste handler defaults to a seven-day TTL and 5 MiB limit. Anyone with the full link can read it, and the recipient/hosting page's JavaScript gets access to fragment contents. Link copies in chats, browser history or backups outlive any server expiry. This is not identity-controlled sharing or guaranteed revocation. PLANNOTATOR_SHARE=disabled disables the documented sharing path. [9]</p>
+<p>Guide sharing has its own contract: encrypted by default, with an explicit public option that stores plaintext and enables public metadata. Do not apply paste-service TTL assumptions to every guide/workspace/relay path. Hosted deletion, backups, operational logs and enforcement of expiry were not independently verified. [10]</p>
+<p>Local history also matters: plans are saved on arrival, before approval; annotate history copies reviewed file contents. Decision snapshots, drafts and feedback archives are separate stores, so disabling planSave is not a global retention-off switch. Annotate and feedback history have separate controls. Submitted feedback is archived before draft deletion, retaining the draft on write failure; direct reviews posted to a forge are documented as an exception to local feedback archival. There is no universal seven-day local retention promise. Protect/back up the data directory and explicitly delete/purge unwanted history. [7]</p>
+<p><strong>Default-on telemetry is a material caveat.</strong> Release builds schedule an anonymous daily ping per tool (up to five tool categories), carrying version, install-age bucket, tool, first-of-day flag and favicon choice. The implementation/documentation describes no persistent user ID or content payload; the service code aggregates counts. NO_ANON_PING=1 is the documented opt-out, not a Settings toggle. The server necessarily receives network metadata; deployed logging behavior was not audited. Sharing, relay, optional AI/provider requests, update checks and remote Git checks add distinct egress paths. “No account needed for local review” is not “offline by default.” [11]</p>
+<h4>Persistence and recovery</h4>
+<p>Inbox's authoritative local log is per-project append-only JSONL. Full record snapshots append as lines; unreadable torn lines are skipped and separated before the next write. Deletions rewrite files via temporary file/rename and preserve a sequence floor so consumers do not reuse cursor positions. SSE cursors and drafts support reconnect/recovery. These are good engineering choices, not proof of fsync-level power-loss durability, exactly-once downstream agent execution or a tamper-evident compliance ledger. Recovery behavior was read, not fault-injected. [7, 12]</p><p>
+The advertised shell installer is executable code, not a passive download. It can install binaries and wire agent-specific hooks/configuration/skills; it has explicit minimal and integration-skip options. It supports pinned versions and SHA-256 checks. SLSA/GitHub attestation verification is available but <strong>opt-in, default off</strong>; matching a checksum fetched from the same release origin is weaker than verifying provenance. Inspect and pin the installer itself as well as the binary, and use its verification path where possible. No installer was run. [13]</p>
+<p>The source has a Bun lockfile, dependency overrides, local patches and vendored tarballs. Root postinstall runs a viewer-manifest synchronization script. These are reproducibility inputs and supply-chain review surfaces, not assurances that transitive packages are safe. Native/runtime additions and optional adapters increase the trusted set. This review did not install packages, scan a resolved SBOM or verify release signatures/binary-source equivalence. [1, 13]</p>
+<p>Both LICENSE-MIT and LICENSE-APACHE are present and package manifests say MIT OR Apache-2.0; GitHub's single Apache classification is incomplete. Choose and comply with the applicable project license; third-party UI/assets/vendor notices remain separate. No source code was extracted into this review. [14]</p><p>
+Public metadata on the review date showed 14,097 stars, 1,403 forks and 236 open issues/PRs combined, with activity the same day. Those are snapshots, not quality metrics. The tree contains 2,683 .test.ts/.test.tsx files (file count, <strong>not executed test cases</strong>) plus browser/E2E workflows. CI includes type/package checks, sharded tests, browser/mobile/security and platform-specific paths; the main Test workflow uses frozen-lockfile installation and pinned action SHAs. SECURITY.md supports only the latest release. [15]</p>
+<p>At inspection, workflows attached to the exact reviewed SHA were still queued/pending (Test pending; Security Scanning and Mobile contract queued; Deploy skipped). <strong>No green-build claim is made for this SHA.</strong> No upstream test suite, UI, installer, exploit scenario, remote feature, provider or durability test was run. This is a representative static assessment of a large, rapidly evolving codebase, not a full security audit or all-integrations certification.</p><p>Numbered evidence citations are resolved in the <a href="plannotator.md">full Markdown review</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Plannotator</td><td>Rich cross-host annotation and feedback</td><td>More local authority and optional services</td></tr>
+<tr><td>Native host dialogs</td><td>Narrow plan/tool decisions</td><td>Less rich annotation</td></tr>
+<tr><td>GitHub/GitLab review</td><td>Team review and protected-branch enforcement</td><td>Not a live local artifact review surface</td></tr>
+<tr><td>Plain Markdown/editor comments</td><td>Minimal dependencies and manual handoff</td><td>More copying and weaker context</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+For an initial evaluation, use a pinned release in a disposable non-sensitive workspace, keep ordinary servers local (explicitly force local mode if needed), and avoid remote exposure. Decide telemetry, sharing, AI, update and Git-remote behavior before supplying private content. Review history/draft/feedback settings independently. Add one host integration at a time and verify deny, approval-mode changes, browser close, restart and stale-tab outcomes against that exact host version.</p>
+<p>If remote access is necessary, review the specific authenticated tailnet/proxy/device path rather than forwarding a generic wide listener. Self-hosting the paste service can move ciphertext custody but does not remove full-link access risks or magically disable other egress. No deployment was performed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A strong human-feedback surface, not an execution security boundary. Pilot locally with explicit permission, retention and egress choices: plan approval does not constrain every later command, and local does not mean offline.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/backnotprop/plannotator">backnotprop/plannotator</a> · MIT OR Apache-2.0; component terms apply</span>
+    <span><a href="plannotator.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
