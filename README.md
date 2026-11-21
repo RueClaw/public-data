@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [songe.md](reviews/songe.md) [page](reviews/songe.html) | [sous-labs/songe](https://github.com/sous-labs/songe) | Apache-2.0 | ⚠️ Interesting | Local prompt lessons and idle LoRA training; durable rollback, correlated promotion gate and persistent conversation privacy caveats. |
 | [appllama-skills.md](reviews/appllama-skills.md) [page](reviews/appllama-skills.html) | [Appllama/appllama-skills](https://github.com/Appllama/appllama-skills) | MIT; content rights separate | ⚠️ Interesting | Mobile design/research prompts; strong simulator QA, paid MCP, tool-output trust and unbounded execution caveats. Static review. |
 | [verifying-formal-models.md](reviews/verifying-formal-models.md) [page](reviews/verifying-formal-models.html) | [Verifying formal models of Raft implementations](https://antithesis.com/blog/2026/verifying-formal-models/) | N/A | 📚 Good reference | AI-assisted Raft proofs and trace validation; substantive artifacts, unproved bindings, storage-scope and reproducibility limits. Static article review. |
 | [ai-software-factory.md](reviews/ai-software-factory.md) [page](reviews/ai-software-factory.html) | [piomin/ai-software-factory](https://github.com/piomin/ai-software-factory) | No license specified | 📚 Study | OpenShift/Tekton coding-agent recipe; shared publisher trust, non-blocking verification, external approval and recovery caveats. Static review. |
