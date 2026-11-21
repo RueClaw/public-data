@@ -3,12 +3,28 @@
 **Repo:** https://github.com/sous-labs/songe
 **License:** Apache-2.0; permissive reuse with license/notice obligations and patent terms. Model weights and bundled OFL fonts have separate terms.
 **Reviewed:** 2026-11-21 (UTC)
-**Revision:** e806a187c018455c217fbed57632ff1b8bfdd3d9 (main); package version 0.1.0a13. Scope: README, design/contracts, manifests, CI, proxy/API, storage, learning/gating, backends, artifacts, integrations and representative tests.
-**Verification:** Static review plus isolated offline Python syntax and four focused gate assertions; no installation, GPU training, model downloads, service activation or live model requests.
+**Revision:** 79d02b420280bfe964314279bd2cd304751194bf (main); package version 0.1.0a14. Scope: README, design/contracts, manifests, CI, proxy/API, storage, learning/gating, backends, artifacts, integrations and representative tests.
+**Verification:** Static check-in and AST parse of 186 Python files; earlier isolated gate assertions retained as historical evidence. No installation, GPU training, model downloads, service activation or live model requests.
 **Stack:** Python 3.11+, Starlette/Uvicorn, HTTPX, SQLite, MLX or PyTorch/Transformers/PEFT, Textual, vanilla browser UI.
 **What it is:** A local OpenAI-compatible proxy that records coding-agent interactions and uses idle compute to personalize a local model through prompt lessons and LoRA training. It is not a coding agent or a tool-executing reinforcement-learning environment.
 
 ---
+
+## Update Notes — 2026-11-21
+
+Checked 2026-11-21 (UTC). Previous review: 2026-11-21 at e806a187c018455c217fbed57632ff1b8bfdd3d9 (0.1.0a13). Current main: 79d02b420280bfe964314279bd2cd304751194bf (0.1.0a14), 20 commits later; exact diff: 51 files, 1,424 insertions and 102 deletions. Tag v0.1.0a14 resolves to f5f0926a22d0cc2380cb3842e29ceb8cc887cc93, two commits behind main. The anonymous GitHub releases endpoint still returned no releases; a source tag/package version is not proof of a published PyPI package.
+
+Operational fixes are material: Linux initialization now skips service installation when the systemd user manager is unavailable and tells the user to run songe serve; uninstall handles that absence. Unclaimed proxy traffic goes to the original local server, and Dream reading, review and examples use model-aware serving routes. The calibration probe now unpacks the training backend’s three-value result. These are code-inspected fixes, not reproduced runtime outcomes.
+
+Learning/growth summaries now invalidate via a dedicated SQLite data_version watcher rather than filesystem timestamps. llama.cpp reports its served context limit; opencode 1.19 title/summary/continuation traffic is recognized; setup/doctor/undo messages are clearer. Development documentation corrects several old proxy/default/split descriptions.
+
+CI now declares installed-wheel smoke tests and a headless Chromium dashboard check. Tagged publication additionally depends on a Modal L4 Deep Dream check using a small downloaded model and synthetic records/practice. That check bypasses reading/practice generation and passes either an accepted or rejected candidate after training/evaluation; it is packaging/pipeline coverage, not evidence of better coding ability. No paid job or model download was started for this review; successful CI execution was not independently established.
+
+Verdict remains Interesting. gate.py, judged.py, checkpoint/recovery/swap implementation and the forget method are unchanged: correlated judged moments still count separately, and deleting records still does not erase learned weights. Apache-2.0 and dependency requirements are unchanged (the lockfile only bumps Songe’s own version). No fix to the existing local-trust/content-retention concerns was found in this delta.
+
+Check-in verification: full Git history/diff inspected and all 186 Python files parsed with the host Python AST parser, without importing or running source. Prior isolated gate assertions are historical evidence at the previous SHA, not rerun results. No installation, upstream pytest, live requests, browser exercise, training, downloads or vulnerability scan was performed.
+
+Delta evidence: [exact comparison](https://github.com/sous-labs/songe/compare/e806a187c018455c217fbed57632ff1b8bfdd3d9...79d02b420280bfe964314279bd2cd304751194bf), [service fallback](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/platform/services.py), [serving routes](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/schedule.py), [probe fix](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/sleep/probe.py), [release workflow](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/.github/workflows/release.yml), [release check scope](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/.github/ci/release_dream.py).
 
 ## Verdict
 
@@ -65,13 +81,13 @@ The code separates server adapters, accelerator backends, platform services, art
 
 ## Maturity, Tests and Evidence Limits
 
-Public GitHub metadata retrieved anonymously on 2026-11-21 reported creation on November 20, last push November 21 at 08:00:28 UTC, 58 stars, 10 forks and four open issue/PR items. The releases endpoint returned an empty list; 0.1.0a13 is the checked-in package version, not a verified GitHub release. The reviewed commit timestamp is 2026-11-21 08:00:23 UTC. Popularity and a large test tree are not runtime proof. [S14]
+Public GitHub metadata retrieved anonymously on 2026-11-21 at about 20:29 UTC reported creation on November 20, last push November 21 at 20:21:06 UTC, 147 stars, 21 forks and two open issue/PR items. The releases endpoint returned an empty list; 0.1.0a14 is the checked-in package version and a Git tag, not a verified GitHub release or PyPI publication. The reviewed main commit timestamp is 2026-11-21 20:21:06 UTC. Popularity and a large test tree are not runtime proof. [S14]
 
 CI declares Ruff, pytest and build jobs on Linux/Windows Python 3.11/3.12 and Apple Silicon macOS Python 3.12. Representative tests cover gate regressions, swap, networking, configuration, storage and platform behavior. Fixtures isolate home directories and reject requests to several known real-model ports; that fixture is not a complete network sandbox. CI configuration was inspected; successful runs at this SHA were not independently established. README reports end-to-end testing for LM Studio/macOS and vLLM/Linux, Apple Silicon and NVIDIA; AMD and the other supported servers should not be assumed equally proven. [S1] [S15]
 
-**Actually run:** in a no-network Bubblewrap namespace with cleared environment, no host home or GPU devices and read-only source, Python 3.14 parsed all 181 Python files. Four reviewer-authored gate assertions passed: independent improvement accepted, no change rejected, same-conversation unjudged improvement rejected, same-conversation judged wins accepted. This is syntax/helper verification, not the upstream pytest suite, minimum-Python compatibility or learning efficacy.
+**Earlier verification at e806a187c018455c217fbed57632ff1b8bfdd3d9:** in a no-network Bubblewrap namespace with cleared environment, no host home or GPU devices and read-only source, Python 3.14 parsed all 181 Python files. Four reviewer-authored gate assertions passed: independent improvement accepted, no change rejected, same-conversation unjudged improvement rejected, same-conversation judged wins accepted. This is syntax/helper verification, not the upstream pytest suite, minimum-Python compatibility or learning efficacy.
 
-**Not run:** installation, upstream suite, dependency vulnerability scan, dashboard/browser exercise, model conversion/download, GPU calibration/training, real agent traffic, crash recovery or uninstall. Public issue #12 reports Linux init/uninstall failure without a systemd user manager; #13 reports documentation drift. These are community reports, not reproduced findings here. [S16]
+**Not run:** installation, upstream suite, dependency vulnerability scan, dashboard/browser exercise, model conversion/download, GPU calibration/training, real agent traffic, crash recovery or uninstall. The earlier review cited issue #12 (Linux service-manager failure) and #13 (documentation drift); this delta adds a service-manager fallback and corrects development documentation. Neither fix was exercised here. [S16]
 
 ## Comparison
 
@@ -94,24 +110,24 @@ Before an evaluation, choose a compatible model/server and non-sensitive dataset
 
 All source-file links below are pinned to the reviewed SHA; mutable public metadata and issue reports were retrieved 2026-11-21.
 
-[S1]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/README.md
-[S2]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/proxy.py
-[S3]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/quick.py
-[S4]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/practice/checks.py
-[S5]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/config.py
-[S6]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/sleep/gate.py
-[S7]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/sleep/judged.py
-[S8]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/storage.py
-[S9]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/sleep/swap.py
-[S10]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/agents/__init__.py
-[S11]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/api.py
-[S12]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/log.py
-[S13]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/artifacts/tools.py
+[S1]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/README.md
+[S2]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/proxy.py
+[S3]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/quick.py
+[S4]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/practice/checks.py
+[S5]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/config.py
+[S6]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/sleep/gate.py
+[S7]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/sleep/judged.py
+[S8]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/storage.py
+[S9]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/sleep/swap.py
+[S10]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/agents/__init__.py
+[S11]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/api.py
+[S12]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/log.py
+[S13]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/artifacts/tools.py
 [S14]: https://api.github.com/repos/sous-labs/songe
-[S15]: https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/.github/workflows/ci.yml
+[S15]: https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/.github/workflows/ci.yml
 [S16]: https://github.com/sous-labs/songe/issues/12
 
-Additional implementation evidence: [training checkpoints](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/backends/training.py), [recovery](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/sleep/recovery.py), [worker/gate integration](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/sleep/worker.py), [Torch model loading](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/backends/torch.py), [backend installation](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/src/songe/backends/install.py), [test fixtures](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/tests/conftest.py), [gate tests](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/tests/test_gate.py), [roadmap](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/ROADMAP.md), [license](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/LICENSE), [package manifest](https://github.com/sous-labs/songe/blob/e806a187c018455c217fbed57632ff1b8bfdd3d9/pyproject.toml), [empty release listing](https://api.github.com/repos/sous-labs/songe/releases), [documentation issue](https://github.com/sous-labs/songe/issues/13).
+Additional implementation evidence: [training checkpoints](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/backends/training.py), [recovery](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/sleep/recovery.py), [worker/gate integration](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/sleep/worker.py), [Torch model loading](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/backends/torch.py), [backend installation](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/src/songe/backends/install.py), [test fixtures](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/tests/conftest.py), [gate tests](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/tests/test_gate.py), [roadmap](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/ROADMAP.md), [license](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/LICENSE), [package manifest](https://github.com/sous-labs/songe/blob/79d02b420280bfe964314279bd2cd304751194bf/pyproject.toml), [empty release listing](https://api.github.com/repos/sous-labs/songe/releases), [documentation issue](https://github.com/sous-labs/songe/issues/13).
 
 ---
 
