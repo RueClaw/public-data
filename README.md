@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ohm.md](reviews/ohm.md) [page](reviews/ohm.html) | [astral-experiments/ohm](https://github.com/astral-experiments/ohm) | MIT OR Apache-2.0; component notices | ⚠️ Interesting | Experimental Rust iteration toolchain; pinned releases and shared reuse, but unsound-cache tradeoffs, benchmark trust opt-ins and native execution boundaries. Static review. |
 | [biscotti.md](reviews/biscotti.md) [page](reviews/biscotti.html) | [lucasgelfond/biscotti](https://github.com/lucasgelfond/biscotti) | MIT; component terms | 📚 Study | iMessage agent with disposable VMs; selective approvals, MCP token-origin, public artifact, trace privacy and recovery caveats. Static review. |
 | [skill-distill.md](reviews/skill-distill.md) [page](reviews/skill-distill.html) | [sybil-solutions/skill-distill](https://github.com/sybil-solutions/skill-distill) | MIT | 📚 Study | Session-to-skill replay; same-task evaluation, approval bypass, transcript privacy and fail-open capture caveats. Static review. |
 | [fieldwatch.md](reviews/fieldwatch.md) [page](reviews/fieldwatch.html) | [OffGridPete/Fieldwatch](https://github.com/OffGridPete/Fieldwatch) | MIT; data/component terms | ⚠️ Interesting | Android radio notebook and RSI consumer; heuristic identity, location privacy, update provenance and session-recovery caveats. Static review. |
