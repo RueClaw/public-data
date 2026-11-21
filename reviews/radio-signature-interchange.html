@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radio Signature Interchange — Review</title>
+<meta name="description" content="A proposed JSON catalog for labeling parsed BLE and Wi-Fi observations—not RF fingerprinting or recorded signals.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / radio-signature-interchange</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">OffGridPete/radio-signature-interchange · reviewed 2026-11-21</div>
+    <h1>Radio Signature Interchange</h1>
+    <p class="one-liner">A proposed JSON catalog for labeling parsed BLE and Wi-Fi observations—not RF fingerprinting or recorded signals.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">No license specified (specification)</span>
+      <span class="chip">JSON · Python/ReportLab · Kotlin implementation</span>
+      <span class="chip"><a href="https://github.com/OffGridPete/radio-signature-interchange">OffGridPete/radio-signature-interchange ↗</a></span>
+      <a class="chip" href="https://github.com/OffGridPete/Fieldwatch/tree/a7d9e6a5d9883a6bfe986e59915ef706551ff930">Fieldwatch revision ↗</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">68</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A format, not a radio detector</h3><p>RSI exchanges recognition rules over already-parsed BLE/Wi-Fi broadcasts. It neither captures IQ nor proves a person, device identity or medical event; other radio profiles are not defined.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>The implementation has caught up—and has edge cases</h3><p>Fieldwatch 1.2.1 now has RSI parsing/export beyond the proposal’s future-tense 1.2.0 plan. Static inspection finds rejection of valid empty catalogs and a publisher-only manual-import change that is not persisted.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Catalogs remain untrusted and potentially identifying</h3><p>Publisher names are not authenticated signatures. Exact MAC rules and notes can expose identifiers; no accuracy study or independent interoperability proof was verified. Static review only, with public catalog JSON counts checked.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology and scope</td></tr><tr><td>Specification</td><td>17-page PDF, generated from Python/ReportLab prose and tables</td></tr><tr><td>Wire format</td><td>One UTF-8 JSON object, optional BOM on input, recommended .rsi extension</td></tr><tr><td>Reference implementation inspected</td><td>Fieldwatch Android/Kotlin exchange, compiled matcher and payload decoder</td></tr><tr><td>Persistence inspected</td><td>Fieldwatch JSON config file and stock-catalog overlay</td></tr><tr><td>Machine validation</td><td>No JSON Schema, standalone validator, matcher library or automated tests in the four-file specification repository</td></tr><tr><td>Authentication</td><td>No cryptographic publisher identity or signed-catalog protocol specified</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Scope and revisions</h4><p><strong>Revision:</strong> <code>23549d07b66849b06d368d2d06e3d2498e10eaa6</code>; RSI-1 document revision 1.0.0, published 2026-11-15. Entire four-file tree inspected; PDF and Python document generator are the principal sources.</p>
+<p><strong>Implementation cross-check:</strong> Fieldwatch <code>a7d9e6a5d9883a6bfe986e59915ef706551ff930</code>, app version 1.2.1; targeted exchange, matcher, decode, storage, tests and catalog review, not a whole-app audit. Public latest release v1.2.1 dated 2026-11-20.</p>
+<p><strong>Verification:</strong> Static review; independent JSON parse/count of the published catalog. No source execution, builds, Android tests, hardware access, RF collection/transmission, deployment or live security probes.</p><h4>Explicit schema, defaults and units</h4>
+<p>The root contains a required <code>fleets</code> array, format marker, schema <code>formatVersion</code> and separate publisher-local <code>catalogVersion</code>. Empty fleets is valid in the specification. Signature id/name/rules are required; matchAny defaults true. Rules default enabled, null radio, empty text/payload prefix and companyId 0. The company identifier is numeric, 16-bit Bluetooth assigned-number semantics; MAC addresses are 48-bit, OUI prefixes commonly 24-bit. UUID equivalence preserves custom 128-bit identifiers rather than collapsing them to a short Bluetooth UUID. [S1 §§6, 9, 13–15]</p>
+<p>There are eleven baseline rule kinds. NAME_GLOB is whole-name matching with only * and ? as wildcards; regex punctuation is literal. Manufacturer-data companyId 0 is a wildcard, whereas MANUFACTURER_ID 0 means company zero specifically. SERVICE_DATA without a UUID has substring/reversed-byte-pair behavior, not simply prefix matching. Known other-radio rules are ignored in ALL mode, but unsupported radio/rule tokens fail required tests closed. These details matter to a compatible implementation. [S1 §§10–17]</p>
+<p>Optional decode maps use zero-based byte offsets, explicit widths, little-endian by default, integer/float/bit/text/address types, conditional gates and raw × scale + offsetAdd, with optional modulo before scale. Units are free-form display labels, not a normalized physical-unit ontology. No RF sample rate, center-frequency, RSSI calibration or location coordinate system is defined. The optional group profile uses a seconds-based peer window (default 60), default group count 3 and a last-16-address-bits distance threshold of 64. [S1 §§18–20]</p>
+<h4>Compatibility is deliberate, but partial results need caution</h4>
+<p>Baseline clients reject unknown enum names and higher schema versions; conforming parsers retain useful known portions and report newer formats. For version-1 unknown required rules, ALL mode fails closed, while ANY mode can still match a known alternative. Higher schema versions are different: the document recommends reading understood members even when semantics have changed, provided partial results are not presented as complete. An application must surface that warning, not silently treat a partially understood future catalog as authoritative. [S1 §§5, 7, 21–23]</p>
+<p>The publisher/id identity rule helps migration: equal ids merge when publishers match or either is absent. It is not a transitive equivalence relation: publisher A is compatible with an absent publisher, which is compatible with B, although A and B differ. The spec does not fully settle a three-way ambiguous merge. Fieldwatch's indexOfSame uses explicit preference rules, including its own publisher when incoming publisher is absent; another reader could choose differently. Publisher tokens are names, not authenticated ownership. [S1 §8; I2]</p>
+<h4>Implementation exists, but the badge is not proof</h4>
+<p>Fieldwatch implements raw preservation of unknown rules, unknown-class display fallback, per-field decode rejection, radio-scoped matching and publisher-aware export. Its checked-in tests cover unsupported radios, mixed-radio ALL matching, UUID behavior and publisher migration. Its Android CI workflow runs unit tests before building an APK. These are verified code/test definitions, not tests run in this review. [I2–I6]</p>
+<p>Concrete static findings:</p>
+<ul><li><strong>Empty catalogs disagree:</strong> RSI §6 explicitly permits an empty fleets array; SignatureExchange.parsePack throws when it is empty. The same parser does not explicitly enforce formatVersion &gt;= 1, and format defaults to fieldwatch-signatures when omitted. Strict format/schema validation is therefore not demonstrated. [S1 §6; I2]</li><li><strong>Publisher-only manual import can be lost:</strong> merge fills a missing publisher but counts that branch as skipped, with added=0 and merged=0. ConfigStore.importFleets returns without writing when both counters are zero. The unit test checks the returned merged list, not persistence through ConfigStore. Thus a publisher-only manual import does not persist that migration on this inspected path; stock overlay uses a different path. [I2, I5, I6]</li><li><strong>Do not substitute app labels for raw conformance results:</strong> SignatureEngine.match calls product-specific suppression functions; fleetHits also has an id-specific iBeacon exception. The specification permits post-match display policy, but the app-level result is not an independent core-matcher oracle. [S1 §§2, 10; I3]</li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The specification repository implements document production only: a ReportLab flow assembles prose, tables and examples into the committed PDF. There is no bundled capture or recognition runtime. Its dependency is named in the README, without a lockfile or reproducible PDF-build test. The separate Fieldwatch chain is bounded file input → JSON deserialization/custom serializers → catalog merge/store → compiled rules → optional payload decode → application-specific display decisions. [S2–S3; I2–I5]</p>
+<h4>Validation and untrusted input</h4>
+<p>The proposal is detailed on matching but incomplete as an adversarial-input contract. It does not set catalog/rule/string/depth limits, fully define malformed/odd hex handling, duplicate JSON members, oversized offsets, numeric overflow or truncated decode payload behavior. Section 20 refers unknown endian/gate operations back to §5.3, which explicitly spells out source/type handling but not those two cases. More machine-readable negative vectors would reduce implementation drift. [S1 §§5–6, 12, 20; Appendix A]</p>
+<p>Fieldwatch improves the boundary with an 8 MiB signature import/download cap, timeout-bounded stock retrieval, tolerant unknown-field serializers and bounds checks plus exception containment around individual decoded field formatting. Still, glob compilation translates * into regex .*, with no per-pattern complexity budget in that function, and decode gates recurse through and. Large adversarial patterns/nesting merit offline fuzzing; this review did not demonstrate a denial of service. [I3–I4]</p>
+<p>CatalogRemote fetches a fixed public HTTPS raw-GitHub stock URL with redirects enabled. Neither RSI nor the inspected fetch path establishes a content-signature trust chain. A publisher string or increasing catalog number cannot authenticate a library. Importing a malicious rule library can change labels and decoded interpretations without executing embedded code. Treat catalogs as untrusted policy/data, render labels as text, bound work and review provenance. No server auth/CORS deployment applies to the specification itself. [I4; S1 §§6–8]</p>
+<h4>Privacy and accuracy</h4>
+<p>The author explicitly prohibits treating a match alone as proof of a person, medical/safety event or particular physical object. Names and OUIs can be shared or spoofed, and no ground-truth dataset, precision/recall study, spoof-resistance evaluation or cross-device field trial is included. Appendix A is a useful semantic conformance table, not evidence that model labels are accurate in the wild. [S1 §24, Appendix A]</p>
+<p>The statement that the file contains no location/owner/credential describes intended fields, not an enforced privacy guarantee. Free-text notes, exact MAC rules and payload decoders can carry identifiers; exporting a custom library deserves inspection. This is concrete in the implementation: SignatureEngine.suggestFleet starts with the full MAC as a rule and writes that MAC into notes. RSI observations also have addresses and group recency. Although position is not required by RSI, a receiving application's logs may correlate observations with locations. This review did not audit Fieldwatch's broader logging/location/export system. [S1 §§9, 18, 24; I3]</p>
+<h4>Persistence and recovery</h4>
+<p>RSI requires storage-capable consumers to preserve application metadata, local mute/extra rules and bookmarks during overlays, and not collapse distinct known publishers. It does not specify transactions, backups, crash recovery or a universal update transport. Ignoring unknown object members is not lossless preservation of every future field. [S1 §§5, 8, 19, 23]</p>
+<p>Fieldwatch overlays retain local enabled and extra rules and gate stock updates by catalogVersion. ConfigStore writes a temporary config then renames before updating memory; however rename failure falls back to overwriting the live file, with no fsync/backup protocol shown. Load/parse failure reseeds and writes defaults over the config. That is useful normal-path discipline but not demonstrated crash-safe recovery; retain exports before major catalog migrations. The publisher-only manual-import issue above is a separate state-loss edge. [I2, I5]</p><h4>Provenance and verification</h4><p>Unauthenticated public GitHub metadata on 2026-11-21 reported 68 stars, 5 forks and 0 open issues for the specification, last push 2026-11-15T14:31:01Z. Its release and tag lists were empty; 1.0.0 is a document revision, not a GitHub release. Popularity and lack of open issues do not establish conformance. The source tree contains exactly README, badge SVG, PDF and its Python generator. [M1]</p>
+<p>Independent local checks parsed Fieldwatch's public dist/fieldwatch-signatures.rsi using the Python standard-library JSON parser: radio-signatures, formatVersion 1, catalogVersion 114, 328 signatures and 7,118 rules; all 328 signature publisher values are fieldwatch, with zero duplicate publisher/id pairs. This verifies catalog structure/counts only, not rule correctness or recognition accuracy. No private observations were used.</p>
+<p>The PDF SHA-256 is <code>b0f7668a5195fa2205d1534ff22fb0ac8b1d8aa0253c72f3badc547d488c9298</code>. PDF text was extracted and read alongside generator source; the PDF was not rebuilt. Fieldwatch tests/CI definitions were inspected but not executed, and no CI success claim is made. No independent second implementation or interoperability round-trip was verified. No APK was installed or run.</p><h4>Evidence links</h4><ul><li><strong>S1:</strong> <a href="https://github.com/OffGridPete/radio-signature-interchange/blob/23549d07b66849b06d368d2d06e3d2498e10eaa6/docs/papers/Radio_Signature_Interchange.pdf">RSI-1 PDF at reviewed commit</a>; section/page citations above refer to this 17-page document.</li><li><strong>S2:</strong> <a href="https://github.com/OffGridPete/radio-signature-interchange/blob/23549d07b66849b06d368d2d06e3d2498e10eaa6/README.md">README/status and badge disclaimer</a>.</li><li><strong>S3:</strong> <a href="https://github.com/OffGridPete/radio-signature-interchange/blob/23549d07b66849b06d368d2d06e3d2498e10eaa6/docs/papers/build_signature_spec.py">Complete specification generator</a>.</li><li><strong>I1:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/releases/tag/v1.2.1">Fieldwatch release v1.2.1</a>, <a href="https://github.com/OffGridPete/Fieldwatch/tree/a7d9e6a5d9883a6bfe986e59915ef706551ff930">revision tree</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/LICENSE">MIT license</a>.</li><li><strong>I2:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/SignatureExchange.kt">SignatureExchange.kt</a>.</li><li><strong>I3:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/SignatureEngine.kt">SignatureEngine.kt</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/Models.kt">Models.kt</a>.</li><li><strong>I4:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/SignatureRuleJson.kt">SignatureRuleJson.kt</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/SignatureFieldDecoder.kt">SignatureFieldDecoder.kt</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/ImportFiles.kt">ImportFiles.kt</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/CatalogRemote.kt">CatalogRemote.kt</a>.</li><li><strong>I5:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/ConfigStore.kt">ConfigStore.kt</a>.</li><li><strong>I6:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/test/java/app/fieldwatch/domain/SignatureExchangeTest.kt">SignatureExchangeTest.kt</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/.github/workflows/android.yml">Android CI</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/dist/fieldwatch-signatures.rsi">catalog inspected</a>.</li><li><strong>M1:</strong> <a href="https://api.github.com/repos/OffGridPete/radio-signature-interchange">Public repository metadata</a>, <a href="https://api.github.com/repos/OffGridPete/radio-signature-interchange/releases">releases</a>, <a href="https://api.github.com/repos/OffGridPete/radio-signature-interchange/tags">tags</a>. Mutable metadata retrieved 2026-11-21.</li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Need</td><td>Better fit / tradeoff</td></tr><tr><td>Share model-label rules over parsed BLE/Wi-Fi observations</td><td>RSI is directly aimed at this; presently vendor-led and needs conformance/licensing clarification</td></tr><tr><td>Share recorded IQ/RF samples plus capture metadata</td><td><a href="https://github.com/sigmf/SigMF">SigMF</a> addresses recording portability, not interchangeable RSI recognition rules</td></tr><tr><td>Receive/decode many sub-GHz sensor protocols</td><td><a href="https://github.com/merbanan/rtl_433">rtl_433</a> is a receiver/decoder ecosystem, not an RSI reader verified here; RSI's 433 MHz profile remains undefined</td></tr><tr><td>Use the existing Android implementation</td><td><a href="https://github.com/OffGridPete/Fieldwatch">Fieldwatch</a> already has RSI paths and public tests, but its app policies/privacy/storage are broader than the interchange contract</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no RSI service to deploy. Evaluate the document and exchange boundary offline before integrating it into an existing receiver. Do not assume a new radio token is supported merely because a library names it. A useful next milestone is a licensed, machine-readable schema plus conformance fixtures for empty/invalid files, three-way publisher merges, future-version warnings, malformed decode fields and round-trip recovery, tested by two independent implementations. The document generator is optional tooling, not required to consume .rsi.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Concrete matcher semantics and a real Fieldwatch implementation make RSI worth following. Empty-catalog conformance, publisher-only import persistence, trust and recovery gaps remain; independent interoperability and detection accuracy are unproved. Clarify the specification license before reuse.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/OffGridPete/radio-signature-interchange">OffGridPete/radio-signature-interchange</a> · No license specified (specification)</span>
+    <span><a href="radio-signature-interchange.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
