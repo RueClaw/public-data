@@ -2,121 +2,155 @@
 
 **Repo:** https://github.com/NandhaKishorM/laya
 **Author:** Convai Innovations / NandhaKishorM
-**License:** Apache-2.0 source; retain license and applicable notices, mark modifications, and check separately distributed checkpoint/dependency terms.
-**Reviewed:** 2026-10-18 (UTC)
-**Revision:** d74e8be46ef5241e4ba2b16cd25e896f24f71373 (v0.4.11 package; latest commit 2026-10-17). Scope: Python inference, routing, serving, MCP remote transport, model construction, benchmark documentation/results layout, manifests and CI; other language SDKs inspected at manifest/workflow level, not exhaustively audited.
-**Verification:** Static source review and unauthenticated public GitHub metadata. No source tests, inference, benchmarks, downloads of weights, training, paid APIs or deployment were run.
-**Stack:** Python 3.10+, PyTorch, Transformers, safetensors, Hugging Face Hub, NumPy; optional FastAPI/Uvicorn, MCP, ONNX Runtime and TileLang.
-**What it is:** A locally runnable, non-autoregressive decision-model library for classifying text into caller-specified choices, ordinal scores and yes/no probabilities, with checkpoint routing and agent-framework adapters.
+**License:** Apache-2.0 source; preserve license/notices and mark modifications. Reader weights, dependencies and hosted services have separate terms.
+**Reviewed:** 2026-11-21 (UTC)
+**Revision:** e150aa92a0d4059ac621875b39b620847cf1b88a, v0.5.2; release published 2026-11-21T19:24:04Z.
+**Scope:** Python engine dispatch, classic inference/routing, Vega adapter, learning facade, policy persistence, HTTP/MCP transports, media decoding, manifests, selected tests and CI. Not an audit of the separately resolved vegaml implementation, every SDK, or model weights.
+**Verification:** Static public-source review; no source code/tests, inference, training, installs, model downloads, paid calls or live service probes executed.
+**Stack:** Python 3.10+, PyTorch, Transformers, safetensors, Hugging Face Hub, NumPy, vegaml>=0.18.0, cryptography; optional FastAPI/Uvicorn, MCP, ONNX, media libraries and ffmpeg.
+**What it is:** A typed-decision library for classification, routing and triage. Version 0.5 defaults the basic Agent to a frozen-reader Vega engine, while retaining classic non-autoregressive encoder checkpoints and adding a facade for continuous learning and teacher escalation.
 
 ## Verdict
 
-⚠️ **Interesting — pilot for bounded classification, not a security authority.** Laya offers a substantive open alternative to using a generative model for every routing or triage decision: typed results, local inference, explicit checkpoint routing, calibration utilities and multiple serving surfaces. But type correctness is not decision correctness, the strongest headline comparisons are not matched independent experiments, and the project's own evidence shows weak moderation and indirect-injection detection. Adopt only after a domain-specific held-out evaluation and calibrated abstention/fallback policy.
+⚠️ **Interesting — a bounded classification pilot, not an authorization or security gate.** The useful idea is typed predictions with explicit review routing, fitted heads and recoverable learning state. The new default materially changes model, dependency, resource and privacy assumptions; teacher agreement and calibrated routing are not independent correctness guarantees. Pin the actual engine and assets, evaluate on your own held-out data, and keep consequential execution under deterministic host policy.
+
+## Update Notes
+
+The previous review covered v0.4.11 at d74e8be46ef5241e4ba2b16cd25e896f24f71373 on 2026-10-18. This refresh reuses the canonical review rather than creating another entry. Material changes include the Vega default, multimodal/long-input routing, mandatory vegaml and cryptography dependencies, signed policy loading, continuous-learning/teacher facades, additional HTTP hardening and expanded tests. The prior encoder-only description and benchmark framing no longer describe the whole product. Rating remains Interesting. [S1], [S2], [S3], [S4], [S5], [S6], [S7], [S8]
 
 ## What It Is
 
-Applications supply a state (text, email, ticket or JSON) plus natural-language questions and options. Laya scores those options without generating prose. The three advertised checkpoints are English ModernBERT-large (421M parameters, default 512-token context), multilingual mmBERT-base (322M, default 1,024, configurable to 8,192), and English typed-decisions (421M, default 1,024). These are upstream specifications, not independently measured here. [README](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/README.md)
+Applications supply state and typed questions: choice among supplied labels, ordinal score, or yes/no (noul). Classic models encode a state/question row and score option markers without generating prose. The new Vega path instead delegates to a frozen reader plus a small decision engine, exposing conformal prediction sets, abstention, off-distribution signals and fitted heads. Neither output format nor a field named route grants permission to act. [S1], [S2], [S3], [S4]
 
-This is a decision component, not a general autonomous-agent runtime or an authorization system. A chosen tool label or action probability does not grant permission to execute that tool. The host still owns validation, authorization, side effects, retries and human escalation. The useful audience is developers with repeated classification workloads and enough labelled examples to measure their actual error costs.
+This is not a desktop controller or a general autonomous agent. Its tool selector maps a classified choice back to caller-supplied tool metadata/objects; the surrounding application remains responsible for argument validation, authorization, execution and compensation. Hooks are trusted in-process callbacks, not sandboxed plugins. [S9]
 
 ## Stack
 
-| Layer | Technology / role |
+| Layer | Implementation and boundary |
 |---|---|
-| Core inference | PyTorch encoder and typed decision head; NumPy probability decoding |
-| Model assets | Hugging Face snapshots, JSON/tokenizer configs, safetensors weights |
-| Routing | Python script/language heuristics plus explicit model/task/language overrides |
-| Services | FastAPI/Uvicorn Jev-style HTTP API; MCP local or remote transport |
-| Optional acceleration | ONNX Runtime, compiler backends and TileLang; hardware-dependent |
-| Integrations | LangChain/LangGraph, LlamaIndex, CrewAI, Agno; structured Pydantic decisions |
-| Other clients/runtimes | TypeScript local ONNX runtime and separate HTTP SDKs; Rust/Go/Java/.NET trees/workflows |
-
-The Python manifest uses broad lower bounds (for example torch>=2.0 and transformers>=4.48), not a universally reproducible environment. Optional integrations widen compatibility risk; the macOS Intel ONNX extra contains a platform-specific NumPy cap. A production deployment should lock its tested full dependency graph rather than treating the README's current-version installation discussion as the resolver contract. [Manifest](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/pyproject.toml), [TypeScript manifest](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya-ts/package.json)
+| Default Agent | VegaAgent delegates loading/inference to separately installed vegaml |
+| Classic inference | ModernBERT/mmBERT-family encoder, typed decision head, local tensors |
+| Router | Explicit model/task overrides; Vega lane for media, fitted questions or long text; classic language/workflow routing otherwise |
+| Learning | Learner, Escalator and vllm_teacher are lazy facades over vegaml.learn |
+| Policy artifacts | NPZ arrays with pickle disabled, JSON, SHA-256 manifest, optional Ed25519 signature |
+| Serving | FastAPI/Uvicorn HTTP; MCP local or remote; optional framework adapters |
+| Media | Vision/audio dependencies; video invokes local ffmpeg/ffprobe subprocesses |
+| Packaging | Broad dependency lower bounds; multi-language clients/runtimes also present |
 
 ## Key Features
 
-### Typed decisions without generated JSON
+### The same constructor can now select a different engine
 
-Choice returns a known option key and probabilities; score returns the expected **index** over ordinal levels; noul returns the probability of yes. In particular a score of 0.82 on four levels is not an 82% risk probability. This removes free-form parsing problems, not classification errors. The README's “nothing to hallucinate” wording is too broad if read as a reliability guarantee. [Decoder](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/agent.py#L1332-L1408)
+Since 0.5.0, an unnamed Agent/load call normally chooses Vega if vegaml is available. Naming a checkpoint, explicitly setting vegaml=False, or supplying a classic-only option keeps the encoder path. Missing vegaml falls back with a warning. Notably, expected_sha256 is a classic-only dispatch option: adding what looks like a security control can also change the selected engine. Be explicit about backend and test configuration, rather than assuming old performance or digest controls carry over. [S2]
 
-### Routing before inference
+Router is different from bare Agent: it retains classic routing and adds an automatically available Vega lane. Explicit model/task wins; otherwise media, matching fitted heads and estimated text beyond 8,192 tokens can select Vega. The inspected Vega construction branch forwards device/token but not the router's classic revision/digest configuration. Do not assume those settings pin every lane; attach an explicitly configured Vega agent or disable the lane until its assets are controlled. This is a source-level observation, not a reproduced deployment failure. [S3]
 
-Routing precedence is explicit model, explicit task, opt-in workflow matching, language override, caller hint, then script/language detection and fallback. Unidentified language defaults to multilingual in the current code. Loading is lazy and the router manages resident checkpoints, eviction and revisions. Routing matters because the English model can be confidently wrong outside English; short or code-switched text still warrants explicit testing or trusted language hints. [Router](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/router.py#L1203-L1299)
+### Review routing is useful, not a safety proof
 
-### Calibration is usable, but fields differ
+VegaAgent translates schemas and applies calibration itself. Without a fitted band, abstention or a multi-option prediction set requests review; with a band, a fitted precision target drives routing. Changed options and policy novelty can also trigger review. The unbound signal alone no longer routes in this adapter: upstream reports it fired on 71% of ordinary banking77 rows. Escalator's documented rules do include unbound, so these interfaces do not have identical gating semantics. Nominal risk/precision targets depend on calibration and distribution assumptions, not universal guarantees on arbitrary traffic. [S4], [S5]
 
-For choice/score, legacy confidence is normalized entropy; noul confidence is max probability. answer_confidence is the cross-type field intended for calibrated answer gating, with optional fitted binning. The HTTP compatibility layer adds x_jev_confidence unless strict mode is selected. Do not transfer Jev thresholds or treat entropy as empirical accuracy. Fit on a separate calibration set and evaluate coverage/error tradeoffs on held-out traffic. [Decoder](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/agent.py#L1332-L1408), [Server](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/serve.py), [Calibration](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/calibrate.py)
+### Continuous learning introduces a new trust relationship
 
-### Long input and large option sets are explicit tradeoffs
+Laya's learning module is a small forwarding facade, not the learner implementation. Documentation says feedback refits a head every 50 confirmed answers, holds strongly disagreeing batches, supports accept/discard/undo and state following, and escalates uncertain answers plus a 5% audit sample to a teacher. Teacher agreement cannot detect a consistently wrong teacher. Documentation also says failed/unusable teacher responses fall back to the learner's answer: a host needing fail-closed behavior must check the result and enforce that policy separately. Dependency internals, crash safety and these guarantees were not independently verified here. [S5]
 
-Default context limits truncate; multilingual 8,192-token support requires an override and can be missed if an English document routes to the English checkpoint. Long-document scanning and option tournaments add multiple passes, so “single forward pass” does not describe every operation. The benchmark discussion reports a large-label banking77 weakness and advises small option sets. More context or tournament stages are not free accuracy guarantees. [README](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/README.md), [Benchmarks](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/BENCHMARKS.md), [Agent scanning](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/agent.py#L1601)
+### Multimodal is not joint video understanding
+
+The video adapter selects speech transcription when meaningful speech exists; otherwise it samples frames into a contact sheet for vision. It does not establish that spoken and visual evidence were jointly evaluated. The source marks image-path results uncalibrated. Video decoding invokes subprocesses with argument lists rather than a shell, but its common subprocess helper has no timeout and captures output in memory. Treat uploaded media as an untrusted codec/resource workload and isolate it with size, duration, memory and time limits. Raw-byte videos are written to temporary files. [S10]
 
 ## Architecture
 
-1. The router chooses a checkpoint using request controls and text heuristics, without model inference for the routing step.
-2. The sequence builder combines question instructions/options and state into a bounded sequence per question. Batched questions are rows, not cost-free extra questions over one shared state embedding.
-3. A bidirectional encoder produces contextual states; type embeddings and a transformer decision head score option markers. An auxiliary action head is a prediction, not an executor.
-4. Temperature-scaled logits become probabilities and typed answers. Hooks can observe/alter pipeline behavior; trusted application code owns those callbacks.
-5. HTTP, MCP and framework wrappers expose the same component, while ONNX and other SDKs add compatibility surfaces requiring parity checks.
+1. Select an engine explicitly or via dispatch/routing. Classic and Vega paths have different context, confidence, model and persistence behavior.
+2. Normalize state/questions and build bounded model inputs. Classic questions form separate rows; more questions, scanning and tournaments are not free single-pass work.
+3. Run the chosen model and decode typed answers. Classic score is expected ordinal index, not an arbitrary percentage probability.
+4. Apply calibration, abstention/review controls and trusted hooks. The host decides whether and how to act.
+5. Optionally collect feedback or call a teacher, changing future fitted-head behavior; persist the resulting model/calibration state with provenance.
 
-[Sequence/model construction](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/common.py#L157), [DecisionModel](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/common.py#L575-L637), [Agent](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/agent.py), [Hooks](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/hooks.py)
+The pattern worth studying is separation of output shape, probabilistic decision, learned policy artifact and host execution. The operational burden is keeping those contracts aligned across two engines, multiple readers, calibration versions and serving adapters. [S2], [S3], [S4], [S5], [S9]
 
-The useful design pattern is separating deterministic output shape, probabilistic content, and host-owned execution. The cost is a substantial compatibility matrix: checkpoint layouts, contexts, precision/backends, calibration formats and SDK versions can disagree even when the API shape matches.
+## Security, Permissions, Credentials and Egress
 
-## Claims and Evidence
+- **HTTP remains opt-in auth.** Bare laya-serve binds 0.0.0.0:8000 and accepts requests without a key unless LAYA_API_KEY is set. With a key, byte-wise constant-time bearer comparison is used; unauthenticated health is liveness-only and interactive API docs are disabled. This is shared-key authentication, not per-user authorization or tenant isolation. No CORS middleware was found in the reviewed serve module; that is not access control. [S6]
+- **Resource defenses improved, but do not bound total inference time.** Limits include 2 MiB body, 50,000 state characters, 64 questions, 64 batch states, default 16 admitted concurrent requests, option/token budgets and a 10-second body-read timeout. Batch chunking limits a forward pass, not total time occupying inference. The code still documents a 512-token default width estimate undercounting classic multilingual width by 2×. Add gateway rate limits and measured deadlines. [S6]
+- **Local is a deployment choice.** Classic loaders fetch Hugging Face assets and can use an explicit token or HF_TOKEN. Vega loading crosses into a separately installed dependency. Remote MCP sends supplied state/questions and optional bearer credentials to LAYA_BASE_URL; HTTP as well as HTTPS is accepted. Its request path uses urllib's default opener, whereas the tool-selector remote adapter explicitly rejects cross-origin/downgrade redirects. Do not assume equivalent transport protection across adapters; avoid redirects and require trusted HTTPS endpoints. No live redirect test was run. [S2], [S7], [S9]
+- **Teachers see real records.** The local/no-per-call-cost wording for vllm_teacher assumes a model you actually operate locally. The facade forwards arguments; it does not enforce a network-isolation boundary. Teacher callbacks, hosted Studio workflows, remote inference, hooks and logging need separate data authorization. No Studio account/service or dependency telemetry behavior was audited. [S5]
+- **No classifier output authorizes execution.** Request bodies cannot supply callable hooks to the HTTP service. Application-installed callbacks and media subprocesses run with process authority; there is no general OS sandbox. Keep permissions minimal and require independent checks for destructive actions. [S6], [S9], [S10]
 
-| Claim / attraction | What the public source supports | Review assessment |
-|---|---|---|
-| 33 ms, one forward pass | README quotes T4 single-question latency; benchmark page gives 32.8 ms p50 | Hardware/workload-specific author measurement, not cold-start or service p99 |
-| 100+ languages | Multilingual checkpoint claim; reported MASSIVE sweep covers 51 languages | Language availability is not uniform task accuracy |
-| Strong multilingual decisions | Refreshed 51-language 20-option MASSIVE macro accuracy 0.4008, macro ECE 0.3911 | Useful above random, far from universal high-confidence correctness |
-| Fine-tuned typed-decisions accuracy 0.766 | Benchmark page explicitly says no committed result file behind this headline yet | Treat as reported, not independently reproducible from a complete result artifact |
-| Better than Jev | Jev numbers are third-party published, not measured in the same harness | Not a controlled head-to-head; prompts and sample sizes differ |
-| Guardrails/moderation | Application table reports toxicity accuracy about 0.53; indirect-injection page reports misses and false positives | Not a sole blocking/allowing security layer |
+## Persistence, Integrity and Recovery
 
-The benchmark documentation is unusually candid: it preserves superseded results, identifies a non-reproducing multilingual run, and distinguishes training-mix applications from held-out tasks. That transparency is a strength, not grounds to relabel historical numbers as current validation. The 0.993 spam/phishing figures come from domains included in the training mix; they do not establish production readiness on a new distribution. [BENCHMARKS](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/BENCHMARKS.md), [Result directory](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/research/results)
+Classic models use disk caches with optional revision pins and digest maps. The security guide explicitly says unlisted files are unchecked and its suggested digest map omits mutable tokenizer configuration. Safetensors and the absence of trust_remote_code in inspected classic construction are useful controls, not proof of safe dependencies or every reader. [S2], [S11]
 
-The guardrail limitation page attributes a 53-case synthetic report to issue #781 on older 0.3.21/0.3.22 packages and a pinned model revision. It reports full-rule recall 0.76 and false-positive rate 0.29, with document-shaped attacks slipping through. This is a concrete warning, **not** a fresh test of v0.4.11; no fix was demonstrated by this review. [Limitations](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/docs/guardrail-limitations.md)
+VegaAgent saves heads.npz, calibration JSON and a manifest. Loading can check hashes, recognized Ed25519 signatures and engine identity; NPZ uses allow_pickle=False. However, default verify=True also accepts legacy manifestless artifacts as unverified and unsigned manifests as integrity-only. Only verify="signed" requires a signature. Engine comparison is skipped when either digest is unavailable, reported as not checked. Require the verification state your application actually needs; a signature establishes an accepted signer, not model quality. ZIP members are read without extraction, but the policy reader has no explicit decompressed-size budget. [S4], [S8]
 
-## Security, Privacy and Trust Boundaries
+The save method writes multiple files directly into an existing directory, not as an atomic directory transaction. A crash can leave mismatched state, and reusing a directory can retain an older calibration file if the current agent has none. The loader installs heads incrementally before all later calibration parsing finishes. These are static recovery cautions: use fresh versioned directories, validate before switching a serving process, keep backups, and exercise interrupted-save/corrupt-load recovery before deployment. [S4]
 
-- **Local inference is possible, not automatic network isolation.** Initial loading fetches public model assets from Hugging Face. The loader passes an explicit token or HF_TOKEN when present. Provision reviewed assets separately and use a verified offline configuration if network isolation matters. The reviewed core path computes on local tensors; that observation is not an exhaustive no-telemetry certification. [Loader](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/agent.py#L575-L632)
-- **Remote MCP changes the privacy boundary.** LAYA_BASE_URL selects a remote server; RemoteRouter posts the state/questions and optionally a bearer key. HTTP is accepted as well as HTTPS. Use HTTPS for non-local transport and trust the endpoint with the entire supplied text. Hooks and tracing exporters are additional application-controlled disclosure paths. [Remote transport](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/mcp/remote.py)
-- **HTTP authentication is opt-in.** Bare laya-serve defaults to 0.0.0.0:8000 and no API key. When configured, bearer comparison uses hmac.compare_digest; unauthenticated health exposes only liveness in keyed mode. This is not per-user authorization or tenant isolation. Do not expose a keyless service publicly. No explicit CORS middleware was found in the reviewed serve module; that is not a substitute for authentication. [Server](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/serve.py)
-- **Resource controls are real but not a latency guarantee.** The server caps body size (2 MiB), state characters (50,000), questions (64), batch states (64), concurrency (16 by default), and token budgets. Batch chunking bounds each forward pass, not the total time a request holds the single inference worker. Its default row-width estimate is 512 tokens and the source documents undercounting multilingual default width by 2x. Add edge rate limits, deadlines and load testing. [Server limits](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/serve.py#L105-L164)
-- **Weights and configuration are trusted inputs.** The primary load path uses safetensors, verifies configured digests before parsing, and the inspected model construction does not enable trust_remote_code. Those are good boundaries, not blanket protection from malicious assets or native-runtime vulnerabilities. Revision pins and SHA-256 maps are opt-in; unspecified files/checkpoints remain unchecked. The tokenizer-config normalization can rewrite a parsed file, which the recommended digest map intentionally omits. [Security documentation](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/docs/security.md), [Model builder](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/common.py#L695-L716)
-- **Prediction is not execution approval.** HTTP explicitly refuses callable hook controls from request bodies. Installed hooks/framework code still executes with the host process's authority. Treat classifier outputs as untrusted suggestions and retain independent allowlists, argument checks and approvals for consequential tool calls. [Server controls](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/laya/serve.py#L166-L198)
+Learner workdir version retention, resume, undo, read-only followers and portable bundles are documented but implemented in vegaml. Treat stored examples, labels, features and bundles as potentially sensitive; validate actual retention, encryption, concurrent-writer behavior and rollback in the resolved dependency. No durable job queue or exactly-once external side-effect guarantee is established by these APIs. [S5]
 
-## Maturity and Verification
+## Supply Chain, License and Costs
 
-Public GitHub metadata on 2026-10-18 showed creation on 2026-09-18, last push on 2026-10-17, 33,342 stars, 2,993 forks and 85 open issue/PR items (GitHub's combined open_issues_count). Latest release was v0.4.11, published 2026-10-17. This is a roughly one-month-old, rapidly evolving beta despite substantial adoption; popularity is not assurance. [Repository metadata](https://api.github.com/repos/NandhaKishorM/laya), [Release](https://github.com/NandhaKishorM/laya/releases/tag/v0.4.11)
+The package is Apache-2.0 and declares beta status. Core dependencies now include vegaml>=0.18.0 and cryptography>=41 in addition to broad Torch/Transformers/Hub/NumPy minimums. A Laya source SHA therefore does not identify the full installed engine or weights. Lock the dependency graph, separately pin reader/engine assets, inspect licenses and use controlled artifact provisioning. Selected CI actions are full-SHA pinned; this does not pin arbitrary pip resolution. Other SDKs and their transitive dependencies were not exhaustively reviewed. [S1], [S12]
 
-There are 105 files under tests in the inspected tree, not 105 claimed passing tests. CI config includes Python 3.10–3.13, Windows, TypeScript, package checks, weight-free ONNX export tests, SDK packaging/transport tests and dedicated language workflows. Actions are SHA-pinned in the inspected CI workflow. Real checkpoint regression/parity lives in a separate scheduled/release workflow; its release trigger is **published**, so its presence alone is not evidence of a prepublication gate. [CI](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/.github/workflows/ci.yml), [Evals workflow](https://github.com/NandhaKishorM/laya/blob/d74e8be46ef5241e4ba2b16cd25e896f24f71373/.github/workflows/evals.yml)
+There is no required Laya API subscription for local use, but compute, storage, downloads, evaluation and operations are real costs. README's 73,728-token context and 0.8B–27B reader claims are not equivalent-cost modes, and its classic 33 ms headline is not a latency guarantee for the new default. Its CPU learning example reports 6.4 GB RAM and 34 seconds for 300 answers; these are author measurements, not a capacity estimate reproduced here. Optional hosted teachers/Studio can introduce separate costs and data terms; no paid service is recommended or priced by this review. [S1], [S5]
 
-An unauthenticated API sample of the ten latest workflow runs for the exact source SHA reported success for Go, Java, .NET, Rust, Release, Docs, Docker and Security entries (including duplicate language runs). That sample is not a complete all-checks certification and did not establish current benchmark quality. [Example Release run](https://github.com/NandhaKishorM/laya/actions/runs/39051696214)
+## Claims, Maturity and Verification
 
-**Review limits:** No repository code was executed or installed. No weights/model cards were exhaustively audited, no inference/parity/latency or adversarial tests were reproduced, and no dependency vulnerability scan or live deployment audit was performed. Documentation and committed result artifacts are author evidence; workflow statuses are GitHub-reported evidence. The review is not a security certification.
+| Evidence | What it supports / limitation |
+|---|---|
+| New README learning table | Author reports 84.7% to 96.0% after 120 confirmations across 14 templates/31 questions, using generated initial examples and 60 held-out rows per template; not independent production validation |
+| New streaming/reader tables | Reported 4B banking77 and typed-decisions results and a 50,676-record reader comparison; methodology/artifact chain not fully reproduced or audited here |
+| Classic BENCHMARKS.md | Explicitly says its Jev figures are third-party/unmatched and the 0.766 headline lacks a committed result file; do not apply that caveat indiscriminately to the newer README comparisons |
+| Classic multilingual rerun | Reports 0.4008 macro accuracy and 0.3911 ECE for 51-language/20-option MASSIVE; stronger than random, not universal multilingual reliability |
+| Security use | README acknowledges prompt-injection weaknesses; older guardrail limitation reports are not a fresh adversarial test of v0.5.2 |
+| Test inventory | 116 files beneath tests, including policy, Vega and router-Vega tests; file count is not passing-test count |
+| CI metadata | Exact-SHA ten-run sample included successful CI, Release, Go, Java and C++ runs, while Rust and .NET entries were pending; not all checks certified |
+
+Public unauthenticated GitHub metadata on 2026-11-21 showed 35,776 stars, 3,208 forks, 103 open issue/PR items and last push 2026-11-21T18:11:03Z. Latest release was v0.5.2. These are mutable popularity/activity observations, not assurance. The project remains young (created September 2026) and changed substantially since the October review. [S13]
+
+CI declares Python 3.10–3.13, TypeScript and additional platform/language checks. Selected policy tests use synthetic signing keys without models; Vega adapter tests exist. Real checkpoint evaluation remains a separate scheduled/manual/release workflow whose release trigger is published, not proof of a pre-release gate. We did not execute these tests or download their dependencies. [S12]
+
+**Limits:** Static review only, with exact source/previous-ref comparison and public release/CI metadata. No installed dependency audit, model-card/weight audit, benchmark reproduction, training, inference, adversarial experiment, load test, vulnerability scan, deployment, hardware or desktop access. New learning guarantees are explicitly dependency/documentation claims. This review is not a security certification.
 
 ## Comparison
 
-| Option | Better fit | Tradeoff versus Laya |
+| Alternative | Better fit | Tradeoff |
 |---|---|---|
-| TypeSafe Jev | Managed typed-decision API | Less local infrastructure, but hosted trust/cost boundary; Laya compatibility does not imply identical probabilities |
-| SetFit | A small fixed label taxonomy with representative training examples | More task-specific training, less arbitrary question/schema flexibility; compare on the same held-out data |
-| Rules or a conventional supervised classifier | Stable low-complexity categories, strict deterministic constraints | Less flexible language understanding, but easier to reason about and often cheaper |
-| Generative LLM with constrained output | Tasks genuinely needing richer reasoning or extraction | More decoding/cost and still needs validation; constrained JSON does not guarantee semantic truth either |
-| laya-mlx | Apple-Silicon-specific experimentation | Independent implementation and parity/version burden; see the separately scoped [MLX review](laya-mlx.md) |
+| Rules / conventional classifier | Stable narrow labels and deterministic constraints | Less flexible, easier to audit; establish this baseline first |
+| SetFit | Representative labelled examples and a fixed taxonomy | More task-specific fitting, fewer arbitrary-question features |
+| TypeSafe Jev | Managed typed decisions without local inference operations | Hosted privacy/cost boundary; confidence semantics and thresholds are not interchangeable |
+| Constrained-output generative model | Rich extraction/reasoning | More decoding and validation work, but different task capability |
+| Direct vegaml | Specifically adopting the new reader/learner | Avoids mistaking a Laya facade for an independently implemented engine; requires its own review |
+| laya-mlx | Apple-Silicon classic-model experimentation | Separate implementation/version/parity burden; not a substitute for verifying the new Vega default |
 
-These are architectural comparisons, not newly measured performance rankings. Also see the older, separately scoped [Unsloth integration review](unsloth-decision-api.md); it must not be read as verification of current upstream Laya defaults. Reference alternatives: [SetFit](https://github.com/huggingface/setfit), [TypeSafe](https://typesafe.ai/).
+These are architectural alternatives, not newly measured rankings. References: [SetFit](https://github.com/huggingface/setfit), [TypeSafe](https://typesafe.ai/), [vegaml](https://github.com/NandhaKishorM/vegaml), and the separately scoped [Laya-MLX review](laya-mlx.md). The older [Unsloth integration review](unsloth-decision-api.md) must not be read as verification of current upstream defaults.
 
 ## Self-Hosting Notes
 
-Start with one pinned checkpoint and representative shadow traffic, not every optional backend. Match explicit model/language and context budgets to the task. Pre-download assets in a controlled environment, record revision and calibration provenance, lock dependencies, and confirm actual compute device via authenticated health after a checkpoint has loaded. Preloading affects startup latency and RAM; a resident-model cap smaller than the routed set can induce reload churn.
+For a pilot, explicitly choose classic versus Vega, one pinned model and a frozen evaluation set. Start in shadow mode with recoverable routing decisions; measure error/coverage by label, language, length and distribution shift. Teacher evaluation must include truth labels independent of teacher agreement. Test failure behavior, including missing model assets, teacher outage and corrupt policy state.
 
-Bind loopback or a private network, enable LAYA_API_KEY before remote access, terminate TLS, and apply request-rate and time limits outside the worker. Keep sensitive state out of hooks/log exporters unless deliberately authorized. Calibrate on separate data, measure false positives/negatives by language and input length, and preserve a deterministic fallback or human review path. Avoid using low guard scores as evidence that embedded instructions are safe.
+Keep service binding private, enable authentication before remote access, terminate TLS and add edge resource limits. Disable unused routing lanes and media paths. Separate asset provisioning from inference and verify offline operation if privacy requires it. Back up versioned policy/calibration/feedback state, validate restores, and retain host-owned approvals for consequential actions. No install or deployment was performed for this review.
 
-**Practical decision:** Worth a bounded triage/routing pilot where errors are recoverable and measured. Do not deploy as an autonomous security gate, a universal 100-language classifier, or a drop-in replacement whose confidence thresholds are assumed equivalent to another API.
+## Sources
+
+All source links below pin the reviewed revision; external metadata and alternative projects are separately identified.
+
+[S1]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/README.md
+[S2]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/agent.py
+[S3]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/router.py
+[S4]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/vega.py
+[S5]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/docs/vegaml.md
+[S6]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/serve.py
+[S7]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/mcp/remote.py
+[S8]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/policy.py
+[S9]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/integrations/tools.py
+[S10]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/video.py
+[S11]: https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/docs/security.md
+[S12]: https://github.com/NandhaKishorM/laya/tree/e150aa92a0d4059ac621875b39b620847cf1b88a/.github/workflows
+[S13]: https://api.github.com/repos/NandhaKishorM/laya
+
+- [Learning facade](https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/laya/learn.py)
+- [Manifest](https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/pyproject.toml), [license](https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/LICENSE)
+- [Classic benchmarks](https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/BENCHMARKS.md), [guardrail limits](https://github.com/NandhaKishorM/laya/blob/e150aa92a0d4059ac621875b39b620847cf1b88a/docs/guardrail-limitations.md)
+- [Tests](https://github.com/NandhaKishorM/laya/tree/e150aa92a0d4059ac621875b39b620847cf1b88a/tests), [observed CI run](https://github.com/NandhaKishorM/laya/actions/runs/44934087375), [release](https://github.com/NandhaKishorM/laya/releases/tag/v0.5.2)
 
 ---
 
-**Attribution:** NandhaKishorM/laya, Convai Innovations, Apache-2.0. This review is independent analysis of public sources; no source code or model weights are redistributed here.
+**Attribution:** NandhaKishorM/laya, Convai Innovations, Apache-2.0. Independent analysis of public sources; no source code or model weights redistributed.
