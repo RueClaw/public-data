@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fieldwatch — Review</title>
+<meta name="description" content="Android radio observations and field notebooks, not verified threat attribution.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / fieldwatch</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">OffGridPete/Fieldwatch · reviewed 2026-11-21</div>
+    <h1>Fieldwatch</h1>
+    <p class="one-liner">Android radio observations and field notebooks, not verified threat attribution.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; data/component terms separate</span>
+      <span class="chip">Kotlin · Android · Compose · local files</span>
+      <span class="chip"><a href="https://github.com/OffGridPete/Fieldwatch">OffGridPete/Fieldwatch ↗</a></span>
+      <a class="chip" href="https://github.com/OffGridPete/radio-signature-interchange">RSI format</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4,753</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">548</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Signals are not identities</h3><p>328 catalog entries and protocol decoders make observations readable. No independently validated detection accuracy is established; Remote ID authentication signatures are not verified.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local does not mean private by default</h3><p>Privacy mode does not erase full coordinates from logs. Optional geocoding, map retrieval, sharing and UDP TAK feeds cross distinct disclosure boundaries.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Good update checks, weaker session durability</h3><p>Updates check package, version and installed signer before Android confirmation. Session JSON is overwritten directly; malformed sessions are skipped and only ten closed sits are retained.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology / boundary</td></tr><tr><td>App / UI</td><td>Single Android app, Kotlin, Compose, ViewModel and StateFlow</td></tr><tr><td>Acquisition</td><td>Foreground ScanService; Wi-Fi, BLE, GNSS and cell wrappers</td></tr><tr><td>Classification</td><td>Deterministic SignatureEngine, protocol decoders, catalogs and anomaly heuristics</td></tr><tr><td>Storage</td><td>In-memory live store; JSON settings/sits, rotating logs, local map cache</td></tr><tr><td>Networking</td><td>GitHub update/catalog fetches; optional map/geocoder/sensor-list retrieval and TAK UDP feed</td></tr><tr><td>Authentication</td><td>Android device/app sandbox; no Fieldwatch account or server-side login</td></tr><tr><td>Build</td><td>Java 17, AGP 8.7.3, Gradle 8.11.1; Google/Maven Central/Gradle plugin repositories</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Fieldwatch observes what Android exposes: access-point scan results, BLE advertisements, the phone's GNSS behavior and serving-cell context. It organizes them into live lists, maps, watchlists, signal-strength hunting and saved observation sessions called “sits.” It does not provide monitor-mode Wi-Fi client capture, Bluetooth Classic inquiry, arbitrary spectrum analysis or direction finding. The README's older “not cellular” bullet should be read alongside the newer serving-cell monitor: it is not a general cellular scanner. [E1, E2]</p>
+<p>The README describes it as entirely passive. That is reasonable shorthand for not joining target devices or attacking them, but <strong>not a radio-silence guarantee</strong>: WifiRadio explicitly calls Android's startScan(), and BLE uses the platform scanner without establishing a guaranteed passive-only RF mode. Firmware and OS scanning behavior remain outside this app's control. No RF behavior was measured here. [E2]</p><h4>A practical observation pipeline</h4>
+<p>Wi-Fi scanning has quota tracking and retry backoff; BLE handles failures, scan intensity and vendor-specific behavior. DeviceStore bounds the live list (400 steady-state target, 900 hard ceiling), keeps short signal histories and avoids repeatedly matching unchanged identities. SignatureEngine indexes OUI prefixes and compiles rules rather than walking every catalog prefix per refresh. These are credible implementation details, not proof of reliable background scanning across OEM phones. [E2, E3]</p>
+<h4>Signatures and Radio Signature Interchange</h4>
+<p>The bundled RSI file parses as format radio-signatures, formatVersion 1, publisher fieldwatch, catalogVersion 114, with <strong>328 fleet entries</strong> counted independently. Entries are not 328 independently validated device identities. Matching uses names/globs, MAC/OUI prefixes, manufacturer data, service UUIDs, vendor information elements and clustering. Special-case suppression rules address overlapping product classifications. Shared identifiers and spoofable broadcast names remain ambiguous. [E3, E4]</p>
+<p><a href="https://github.com/OffGridPete/radio-signature-interchange">Radio Signature Interchange</a> is the related format/specification project; Fieldwatch is a consuming/producing application and catalog publisher, not the specification itself. SignatureExchange supports RSI exports, older Fieldwatch/Spectre formats, unknown-field tolerance and preservation of foreign rule data. SignatureEngine excludes unknown rules from execution and blocks an all-rules match when an enabled foreign rule is present. Unsupported decode sources can be skipped while the understood signatures still import. This is pragmatic forward compatibility, not evidence of complete cross-application conformance. No independent interoperability suite was run. [E4]</p>
+<h4>Alerts are hypotheses, not authenticated measurements of intent</h4>
+<p>GNSS monitoring detects changes from a phone-local baseline; a problem present at startup may not trigger it, and benign conditions can resemble interference. CellWatch learns serving cells at places; a changed cell or generation downgrade does not establish an IMSI catcher. Tracker, pairing-flood, trusted-network and Remote ID swarm/perimeter logic combine thresholds and broadcast data, not a trained detector with published sensitivity/specificity. RSSI heat clouds show where the phone heard a signal more strongly, not a triangulated source location. [E1, E5]</p>
+<p>Remote ID parsing can expose advertised aircraft positions, but RemoteIdAuth stores authentication-message metadata rather than verifying signatures. The changelog explicitly says verification is not performed. A message claiming authentication is not an authenticated aircraft. The map's ordinary observation coordinates are the phone at hear-time, not the observed transmitter; decoded broadcast locations and imported sensor-map points are different evidence classes. Camera lists are external records, not detections of currently functioning cameras. [E1, E5, E6]</p>
+<h4>Reports without an embedded AI service</h4>
+<p>Sits support paths, debriefs, comparisons and shareable exports, including AI-oriented text. “AI Export” is prepared evidence/prompt material, not proof of an onboard model or automatic cloud inference. If passed to an external assistant, radio names and other broadcast strings remain untrusted data and the exported location history becomes that recipient's data. [E1, E7]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Android acquisition wrappers feed observations into DeviceStore and pure-Kotlin domain logic; ScanService owns foreground collection, while the UI exposes observable state. Distinct domain modules cover protocol parsing, signatures, geospatial representation, anomaly rules and report construction. ConfigStore, SitStore and LogStore handle separate persistence concerns rather than a transactional database. The pure-domain separation enables JVM tests; the large feature surface and central app/UI coordination still make changes cross-cutting. [E2, E3, E7]</p>
+<h4>Persistence and recovery</h4>
+<p>Sits flush on a 10-second loop, cap radios at 6,000 and path points at 16,000, and retain only ten closed sessions. SitStore writes directly to the destination JSON file; loading skips malformed files and chooses the newest open sit, deleting extra open-session files. A crash or disk failure during overwrite can therefore lose a session, not merely the last ten seconds. There is no transactional journal or demonstrated crash-recovery test result in this review. [E7]</p>
+<p>Logs rotate through twelve files using a configurable size threshold (initially 1 MiB); default settings enable logging. Rotation is a capacity policy, not a time-based privacy retention guarantee. ConfigStore and MapKeyStore use temporary-file rename with a non-atomic direct-write fallback; map tiles are retained until cleared or pruned above 512 MiB. Android backup is disabled. Export signatures/settings before destructive reinstall, but those exports are not a complete backup of logs and GPS history. [E1, E7, E8]</p><h4>Evidence and verification</h4><p>Revision: a7d9e6a5d9883a6bfe986e59915ef706551ff930; default-branch snapshot, repository-wide static sampling. App version 1.2.1, versionCode 56. Latest release v1.2.1 was published 2026-11-20; its annotated tag resolves to baddc62019aa4ae5f4ee378198f072d4cf2bfb72, not this later update-notes commit.</p><p>Static review only; no build, app execution, hardware or RF tests.</p>
+<p>Public unauthenticated GitHub metadata on 2026-11-21 showed 4,753 stars, 548 forks and 12 open issue/PR items; last push was 2026-11-20. Popularity is not validation. Release v1.2.1 and the detailed changelog show active iteration and corrections to privacy wording, decoder assumptions and device classification. The author describes it as a hobby project. [E1, E10]</p>
+<p>There are <strong>81 files under app/src/test</strong> covering decoders, signatures, privacy formatting, storage behavior and domain rules. The checked-in workflow runs JVM unit tests before building a debug APK. GitHub reported <a href="https://github.com/OffGridPete/Fieldwatch/actions/runs/44784320906">CI run 44784320906</a> successful for the exact reviewed SHA; this is an upstream result, not a local rerun or device test. No independently labeled detection corpus, field accuracy benchmark, broad handset validation or adversarial security audit was established by this review. We did not verify the APK, PDFs in depth, all catalog entries, RF behavior, battery lifetime or crash durability. [E10]</p><h4>Pinned evidence</h4>
+<p>All source links below are pinned to the reviewed SHA; GitHub metadata and linked external alternatives are time-varying.</p>
+<ul><li><strong>E1:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/README.md">README</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/CHANGELOG.md">changelog</a>.</li><li><strong>E2:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/radio/WifiRadio.kt">Wi-Fi acquisition</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/radio/BleRadio.kt">BLE acquisition</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/radio/ScanService.kt">ScanService</a>.</li><li><strong>E3:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/SignatureEngine.kt">SignatureEngine</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/DeviceStore.kt">DeviceStore</a>.</li><li><strong>E4:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/dist/fieldwatch-signatures.rsi">RSI catalog</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/SignatureExchange.kt">SignatureExchange</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/ImportFiles.kt">ImportFiles</a>.</li><li><strong>E5:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/GnssInterference.kt">GNSS heuristics</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/CellWatch.kt">CellWatch</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/RemoteIdAuth.kt">RemoteIdAuth</a>.</li><li><strong>E6:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/FlockFiles.kt">Sensor download sources</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/dist/fieldwatch-sensors.txt">OSM attribution</a>.</li><li><strong>E7:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/Sit.kt">Sit constants</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/SitStore.kt">SitStore</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/LogStore.kt">LogStore</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/domain/Models.kt">settings defaults</a>.</li><li><strong>E8:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/AndroidManifest.xml">Manifest</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/MapKeyStore.kt">MapKeyStore</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/PathTiles.kt">PathTiles</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/PlaceLookup.kt">PlaceLookup</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/radio/TakPublisher.kt">TAK publisher</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/ConfigStore.kt">ConfigStore</a>.</li><li><strong>E9:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/AppUpdateClient.kt">Update download</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/AppUpdateInstall.kt">install verification</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/main/java/app/fieldwatch/data/CatalogRemote.kt">catalog download</a>.</li><li><strong>E10:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/build.gradle.kts">App build</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/.github/workflows/android.yml">CI workflow</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/gradle/wrapper/gradle-wrapper.properties">wrapper</a>, <a href="https://github.com/OffGridPete/Fieldwatch/tree/a7d9e6a5d9883a6bfe986e59915ef706551ff930/app/src/test">tests</a>, <a href="https://github.com/OffGridPete/Fieldwatch/releases/tag/v1.2.1">release</a>.</li><li><strong>E11:</strong> <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/LICENSE">LICENSE</a>, <a href="https://github.com/OffGridPete/Fieldwatch/blob/a7d9e6a5d9883a6bfe986e59915ef706551ff930/NOTICE">NOTICE</a>.</li></ul>
+<p><strong>Attribution:</strong> OffGridPete/Fieldwatch, copyright 2026 Off Grid Pete LLC, MIT source. Preserve MIT notices when reusing code; AndroidX/Kotlin and related dependencies have their own terms. IEEE/Bluetooth SIG tables and Fast Pair names are not relicensed as MIT by this repository; OSM sensor data is ODbL 1.0. Fieldwatch trademark rights are separate. No source code or datasets were extracted. [E11, E6]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Need</td><td>Fieldwatch</td><td>Alternative / tradeoff</td></tr><tr><td>Portable phone-local radio notebook</td><td>Broad integrated signatures, maps and reports</td><td><a href="https://github.com/VREMSoftwareDevelopment/WiFiAnalyzer">WiFiAnalyzer</a> is narrower Wi-Fi channel/AP tooling, with less combined inference</td></tr><tr><td>BLE engineering inspection</td><td>Readable classification and advertised fields</td><td><a href="https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-mobile">nRF Connect for Mobile</a> focuses on BLE inspection and interaction, not the same field-notebook workflow</td></tr><tr><td>Rich wireless capture / sensor infrastructure</td><td>Limited to Android APIs, no dongle</td><td><a href="https://www.kismetwireless.net/">Kismet</a> fits capable capture hardware and deeper wireless monitoring, with more infrastructure and operational complexity</td></tr><tr><td>Shared signature libraries</td><td>Consumer and producer of RSI</td><td>Radio Signature Interchange supplies a format, not acquisition, identity validation or a deployment substitute</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <ul><li><strong>Local authority:</strong> no web service to expose, no server CORS or login to harden. Protection primarily comes from Android's sandbox and the device lock. The scan service and FileProvider are non-exported; the launcher activity is exported. No root requirement appears in the reviewed build/manifest. Location, nearby radios, foreground service, wake-lock, notification, activity-recognition and battery-optimization exemptions are meaningful permissions, not decorative install prompts. [E8]</li><li><strong>Privacy mode is not erasure:</strong> the README explicitly warns that full coordinates remain in logs even when screens/reports are masked. Reports, raw logs, radio detail and AI exports may carry location and observed identifiers off-device. Local files and map keys are not app-level encrypted stores in the inspected implementations; rely on OS storage protection, not a claimed application encryption layer. [E1, E7, E8]</li><li><strong>Offline-capable is not network-isolated:</strong> opening the app online checks GitHub for update metadata. Catalog and sensor-list downloads contact public hosts; optional geocoding uses the system provider, and map tile requests can disclose viewed areas to tile providers. MapKeyStore excludes keys from settings export, a useful boundary, but stores accepted tokens as local JSON. No Fieldwatch backend is necessary for these disclosures. [E6, E8, E9]</li><li><strong>TAK is an outbound sharing boundary:</strong> TakPublisher emits UDP unicast/multicast/loopback CoT traffic, not authenticated TLS transport. Privacy mode pauses the feed. Use only an explicitly trusted network/recipient; do not assume recipients, network observers or retained exports honor later deletion. [E8]</li><li><strong>Imports remain untrusted:</strong> ImportFiles caps signature packs at 8 MiB, settings at 2 MiB and trusted-network files at 1 MiB. Those limits reduce simple memory exhaustion, but do not establish parser fuzzing, bounded semantic expansion, catalog authenticity or correct classifications. Review imported signatures before using their alerts. [E4, E8]</li></ul><h4>Installation and supply chain</h4>
+<p>Sideloading is the documented distribution path; Android 10 is the minimum and target/compile SDK is 35. The app requests permission to install packages for updates. AppUpdateClient uses fixed GitHub main-branch URLs rather than letting update metadata choose an arbitrary APK URL; it bounds downloads, checks ZIP magic and cleans partial files. AppUpdateInstall then checks package name, exact advertised version, newer version code and signer correspondence with the installed application before opening Android's confirmation UI. This is significantly stronger than a download-and-open updater. [E9]</p>
+<p>The first install is still a bootstrap trust decision. No APK signature or source-to-binary reproducibility verification was performed here. A mutable main-branch APK URL is not an immutable release artifact; use a deliberately chosen release and independently verify its publisher fingerprint. CI builds a debug artifact, not proof that the checked-in release APK was built from the same source. The project documents a historical certificate migration requiring uninstall (and loss of app data without export). [E1, E9, E10]</p>
+<p>Dependencies have explicit versions/BOM, but the inspected wrapper lacks distributionSha256Sum and CI actions use mutable major-version tags rather than full commit pins. The build downloads SDK/packages and plugins; this review did not run Gradle or install anything. Those are supply-chain hardening opportunities, not evidence of malicious code. [E10]</p><h4>Operating fit</h4>
+<p>There is no server stack to self-host. Evaluate a pinned build on a dedicated Android device, grant only features you intend to use, keep location and outbound sharing deliberate, and export important sessions before pruning/reinstall. Require handset-specific validation, trusted APK provenance and a clear retention/backup policy before relying on it in consequential field work. Do not interpret the lack of alerts as evidence that an area is safe or unmonitored.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>⚠️ <strong>Interesting — unusually broad phone-local observation tooling, not a source of verified identities or threat attribution.</strong> Fieldwatch combines readable Wi-Fi/BLE observations, extensible signatures, paths and session reports with substantial protocol-specific code and explicit uncertainty warnings. Its strongest fit is informed exploration on a controlled Android device; use independent corroboration before treating an alert as a tracker, hostile cell, jammer, camera or aircraft identification. Location-bearing exports, optional network features and non-atomic session persistence deserve more attention than the “no backend” headline.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/OffGridPete/Fieldwatch">OffGridPete/Fieldwatch</a> · MIT; data/component terms separate</span>
+    <span><a href="fieldwatch.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
