@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HolyArrs — Review</title>
+<meta name="description" content="One media-automation control plane, with real security plumbing and important recovery/privacy caveats.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / holyarrs</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">HolyArrs/HolyArrs · reviewed 2026-11-21</div>
+    <h1>HolyArrs</h1>
+    <p class="one-liner">One media-automation control plane, with real security plumbing and important recovery/privacy caveats.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">AGPL-3.0-only</span>
+      <span class="chip">Go · Svelte · SQLite</span>
+      <span class="chip"><a href="https://github.com/HolyArrs/HolyArrs">HolyArrs/HolyArrs ↗</a></span>
+      <span class="chip"><a href="holyarrs.md">Pinned evidence and full review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2,571</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">165</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Consolidation, not a whole media server</h3><p>Requests, scoring, imports and notifications share one process and two SQLite databases. Downloaders and playback servers remain external; writable mounts concentrate file-changing authority.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Backup Off changes rollback safety</h3><p>The docs promise pre-update retention even when backups are Off. Implementation and a specific test instead delete successfully checked migration copies in that mode; keep a separate manual snapshot and matching key.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Self-hosted does not mean no external data</h3><p>Default lookups use an installation token and the hosted metadata service; country counting is on. Your own keys/Off modes matter, and a TMDB key alone does not sever that dependency.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Backend</td><td>Go 1.27.4; standard-library HTTP and jobs</td></tr><tr><td>UI</td><td>Svelte 5 / SvelteKit 3; embedded static assets</td></tr><tr><td>Storage</td><td>Main and event SQLite databases</td></tr><tr><td>Secrets</td><td>Argon2id passwords; AES-256-GCM integration secrets</td></tr><tr><td>Scope</td><td>HEAD 4b0349ea890d01e26668466cbfdbb7cc22f80eaf</td></tr><tr><td>Release</td><td>1.2.0 tag d63e43f36a3a2babf475624f61b0a11021fd98fc; differs from HEAD</td></tr><tr><td>Verification</td><td>Static review only; no source execution</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>One pipeline, fewer integration seams</h4>
+<p>The request → approval → source search → release scoring → download → import → media-server notification path is wired in one program. Module layering, module-owned SQL and injected interfaces are documented and have dedicated structure-check code. Shared jobs, events, secrets and outbound networking reduce repeated plumbing. This simplifies operations but concentrates failure and compromise impact into one process. [2]</p>
+<h4>Security mechanisms are real, not just a README checkbox</h4>
+<p>Password hashing uses Argon2id with 19 MiB, two passes and one lane. Default minimum password length is eight bytes, but owners can lower it to four: leave it stronger. Session cookies are HttpOnly/SameSite=Lax; Secure follows direct TLS or a trusted HTTPS proxy. Browser mutations check origin/host and CSRF tokens; API credentials use a distinct path. Optional LAN sign-in skipping exists and is off unless configured. These are positive implementation signals, not proof against all authentication bypasses. [3]</p>
+<p>Integration secrets use AES-256-GCM with random nonces and record-bound associated data. The 32-byte master key is generated in a mode-0600 file separate from the database, with optional external key-file configuration. This protects a database-only leak, not theft of the whole config volume or compromise of the running process. Library/history databases themselves are not thereby encrypted. [4]</p>
+<h4>Recovery is useful, but one advertised guarantee is contradicted</h4>
+<p>Scheduled/manual backups and versioned pre-update copies are implemented. Restore checks database/key compatibility, stages work for restart and preserves displaced databases. <strong>Do not rely on the docs saying pre-update backups survive with backups Off:</strong> the implementation removes pre-update database copies made and successfully checked during that startup when the preset is Off. The explicit <code>TestOffMakesNoBackupOnUpdate</code> expects no retained backup, while <code>TestOffKeepsACopyNotCheckedThisStart</code> preserves an unchecked leftover. This directly contradicts the backup/update guides, which promise pre-update retention even when Off. Keep an independent manual pre-update backup and the matching key; do not infer downgrade safety from a successful migration. [5, 6]</p><h4>Privacy</h4><p>Default metadata lookups use <code>https://api.holyarrs.com</code> and register an installation credential. Requests carry an install token and lookup information; documentation enumerates search terms, media IDs, language/region and the public IP. “Count this install” is on unless disabled; opting out signals the server through a header, rather than hiding the IP or eliminating lookups. The server can therefore correlate requests with an installation. Its logging/retention practices were not independently audited. [12]</p>
+<p>“Your own keys” and “Off” metadata modes are important escape hatches, with feature tradeoffs. <strong>Setting only a TMDB key does not disconnect the HolyArrs service:</strong> music, extra metadata and other lookups may still use it. The outside-address documentation also lists browser-side images/video, optional provider sign-ins, watchlists, alerts and update checks. Browser egress is not stopped by a server-only firewall. Automatic trailers and country counting deserve explicit opt-in decisions. [12]</p>
+<p>Stored requests, user records, library paths/history, downloaded backup zips and logs are sensitive household data. Secret masking is not whole-record anonymization. Backups exclude media, artwork, logs and the master key; use separate encrypted off-host storage and a separately protected key kit. Removing a container does not erase any of those retained copies or third-party service records. [4, 5]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The executable entry/wiring lives in <code>app/backend/cmd/holyarrs</code>; <code>app/backend/internal</code> contains accounts, requests, movies, shows, music, sources, downloads, mediafiles, importer, metadata, backups and other modules. Core packages supply database migrations, jobs, filesystem helpers, web routing, secrets and outbound calls. Two SQLite files separate primary state from trimmable event history. The frontend is built separately then embedded; there is no Node service in the final container. [2, 7]</p>
+<p>Outbound dialing checks resolved addresses, including cloud-metadata and special-address ranges. Public-only and LAN-capable policies differ deliberately because local download/media servers are normal integrations. This is useful SSRF defense, but configured integrations still confer intentional network authority. Treat administrator-controlled endpoints, proxy rules and API keys as privileged settings. [8]</p>
+<p>MCP/AI-app connectivity is feature-gated by <code>ai_apps</code> in the reviewed code. Do not describe a held-back integration as a default installed agent, or assume that “connect apps” means permission-free access. [9]</p><h4>Authority and network boundaries</h4><ul><li>The documented Compose example publishes port 6262 without a host-address restriction, normally exposing it on host interfaces. Initial owner creation has no setup code; the first accepted setup request wins. Initialize on a restricted network before allowing other clients. Origin/host checks are not an out-of-band ownership proof. [1, 3]</li><li>The scratch image has no shell, but starts as root for config ownership handling and then switches to PUID/PGID (default 1000:1000). A fixed container user can avoid that startup privilege. No privileged mode or Docker socket is requested in the standard example. Media/download mounts are writable and give file-changing authority; a shell-free image does not make that authority harmless. [7]</li><li>Keep it behind a VPN or HTTPS reverse proxy, explicitly configure trusted proxies/allowed hosts, and avoid direct router port-forwarding. Plain HTTP does not protect passwords or cookies in transit. Prefer narrow mounts and a read-only root filesystem with required writable paths. [1, 3]</li><li>Proxmox scripts are a separate high-authority installation path: they create containers, install packages, fetch release artifacts and manage systemd. Review those scripts independently rather than treating the container quick start as proof of their safety. No installer was executed here. [10]</li><li><strong>Plugin confinement is overstated in the manual.</strong> It says plugins reach only listed websites. The Linux sandbox source explicitly says “no network allowlist”; filesystem Landlock restrictions and no-new-privileges do not enforce destination allowlists. CPU/memory/process caps require usable delegated cgroups. Signed plugins remain trusted code, not fully network-confined code. Documentation currently says no plugins are available, so this is a framework/documentation boundary finding, not a demonstrated malicious-plugin exploit. [11]</li></ul><h4>Supply chain and maturity</h4><p>The Dockerfile pins Node and Go base images by digest, uses the npm lockfile with install scripts disabled during dependency installation, and produces a scratch image. Go modules have checksums. Build/release actions inspected are SHA-pinned. Trivy is configured to fail on fixable HIGH/CRITICAL image findings; this intentionally excludes unfixed findings. CodeQL and separate cosign/provenance/SBOM workflows exist. Their presence is not verification that this revision's runs passed, or that a downloaded artifact matches source. No images/signatures were downloaded or verified. Pin an accepted image digest instead of the README's moving <code>latest</code>. [7, 13]</p>
+<p>The root license is AGPL v3 and package/image labels say AGPL-3.0-only. Preserve notices and meet corresponding-source obligations when distributing or offering modified covered software over a network. The contributor agreement permits the maintainer to offer additional commercial/proprietary licenses while keeping included public contributions AGPL for that release. Media, artwork, metadata and third-party dependency rights remain separate. No source components were extracted by this review. [14]</p>
+<p>Public GitHub metadata at retrieval (2026-11-21 UTC): repository created 2026-11-09, last push 2026-11-20T19:49:10Z, 2,571 stars, 165 forks and 244 open issues/PRs combined. These are activity indicators, not security evidence. HEAD is dated 2026-11-19T23:22:05Z. Latest published release observed: <strong>1.2.0</strong>, published 2026-11-17T21:33:45Z; tag resolves to <strong>d63e43f36a3a2babf475624f61b0a11021fd98fc</strong>. The reviewed HEAD is different even though VERSION still says 1.2.0. Findings here describe HEAD, not a verified release binary. [15]</p>
+<p>Static inventory found <strong>1,481 Go test files</strong>, <strong>308 TypeScript unit-test files</strong> and <strong>70 Playwright spec files</strong> under app. Tests include authentication, outbound policies, backup restoration and downloader contracts. File counts are not test results or coverage. A material documentation gap: the testing guide says CI runs full Go/frontend/race suites, but the checked-in workflows inspected mainly build/scan, vet/cross-compile, package, sign and run CodeQL; the advertised full application test jobs were not found. Require actual test-run evidence before trusting that claim. [16]</p>
+<p>A sampled open issue, #624, questions “Subtitled” history totals. Source inspection confirms the filter matches <code>subtitle_*</code> rather than only successful saves. The reported counts were not reproduced. This is a useful example of why a polished dashboard is not a substitute for checking actual completed side effects. [17]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>HolyArrs</td><td>Consolidated interface; early history and shared failure domain</td></tr><tr><td>Separate Arr stack + Seerr</td><td>Specialized components; more configuration and independent upgrades</td></tr><tr><td>Jellyfin/Plex + manual management</td><td>Playback focus; no equivalent acquisition orchestration</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Before any pilot, pin a release/digest; restrict first-run access; use a fixed low-privilege UID, minimal mounts and separate test media. Keep config/SQLite on local storage. A common parent mount for downloads and library enables same-filesystem operations; separate mounts may force copies. Do not let two automation systems simultaneously rename or delete the same production media. [1, 7]</p>
+<p>Keep backups enabled, manually export a pre-change snapshot, and separately save the matching key. Test a restore on an isolated copy before changing a production schema. To roll back, restore compatible pre-update data <strong>and</strong> select the older image; an older binary alone cannot undo schema changes. Restored databases do not undo filesystem moves/deletions or downloader-side effects. Do not assume the backup-off path retains a rollback snapshot. [5, 6]</p>
+<p>For uninstall, stop/remove the deployment while initially retaining its config and media, revoke integration/API credentials and remove proxy exposure. Only after validating retention needs should config, logs, backups, plugin state and key copies be deliberately deleted. Native packages/Proxmox deployments also require removing their service/package/container resources. No universal destructive uninstall procedure was validated; container removal is neither complete erasure nor migration rollback.</p><h4>Verification limits</h4><ul><li>Public unauthenticated GitHub API and HTTPS source access succeeded; normalized canonical source is the repo URL above. No prior matching canonical review was found in the public index/reviews.</li><li>Reviewed README/license/manifests, Dockerfile/workflows, architecture/testing/privacy/recovery docs and selected auth, secret, outbound, plugin, backup and frontend-history implementations. This is targeted static analysis, not exhaustive code audit.</li><li>No source execution, build, dependency installation, product tests, deployment, live endpoint probing, account creation, signature verification or media retrieval. Availability, performance, integration compatibility, restore atomicity and runtime exploitability remain unverified.</li><li>Review Markdown/HTML/index consistency, source-link paths, trusted-template script identity, placeholder/redaction scans and task-only Git diff are validated separately.</li></ul><h4>Evidence and attribution</h4><p>All numbered references and pinned source links are in the <a href="holyarrs.md">full Markdown review</a>. Public metadata retrieved 2026-11-21 UTC. No upstream scripts, assets or tracking are embedded in this page.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot with disposable media before replacing a working stack. Encrypted secrets and a modular single binary are promising, but backup-off rollback, plugin network confinement and advertised CI coverage differ from the documentation. Static source review only; no product tests or deployment.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/HolyArrs/HolyArrs">HolyArrs/HolyArrs</a> · AGPL-3.0-only</span>
+    <span><a href="holyarrs.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

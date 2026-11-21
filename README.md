@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [holyarrs.md](reviews/holyarrs.md) [page](reviews/holyarrs.html) | [HolyArrs/HolyArrs](https://github.com/HolyArrs/HolyArrs) | AGPL-3.0-only | ⚠️ Interesting | Consolidated media automation; backup-off rollback, plugin-network, hosted metadata and CI-evidence caveats. Static review. |
 | [cook.md](reviews/cook.md) [page](reviews/cook.html) | [Leonxlnx/cook](https://github.com/Leonxlnx/cook) | MIT | ⚠️ Interesting | Visual iteration skill; useful shot/critic ledger, prose-only permission and budget gates, FFmpeg and prompt-privacy caveats. Static review. |
 | [plannotator.md](reviews/plannotator.md) [page](reviews/plannotator.html) | [backnotprop/plannotator](https://github.com/backnotprop/plannotator) | MIT OR Apache-2.0; component terms | ⚠️ Interesting | Agent annotation and Inbox feedback; host-specific approval, remote exposure, default telemetry and retention caveats. Static review. |
 | [songe.md](reviews/songe.md) [page](reviews/songe.html) | [sous-labs/songe](https://github.com/sous-labs/songe) | Apache-2.0 | ⚠️ Interesting | Local prompt lessons and idle LoRA training; durable rollback, correlated promotion gate and persistent conversation privacy caveats. |
