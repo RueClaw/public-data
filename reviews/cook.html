@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cook — Review</title>
+<meta name="description" content="Reference-driven visual iteration instructions for coding agents, not an execution controller.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / cook</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Leonxlnx/cook · reviewed 2026-11-21 UTC</div>
+    <h1>Cook</h1>
+    <p class="one-liner">Reference-driven visual iteration instructions for coding agents, not an execution controller.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT · Leon Lin</span>
+      <span class="chip">Markdown · Node.js · FFmpeg</span>
+      <span class="chip"><a href="https://github.com/Leonxlnx/cook">Leonxlnx/cook ↗</a></span>
+      <span class="chip"><a href="https://github.com/Leonxlnx/cook/tree/b23cac6fd9439dfddcab61b14808e7bf72549b46">Reviewed source revision</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">780</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">59</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A playbook, not a runtime</h3><p>The host supplies rendering, subagents, tools, permissions and inference. Cook contributes instructions, templates and a 75-line comparison helper.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Evidence improves; authority does not</h3><p>Fixed views, calibrated critics and measured-versus-eyeballed logs are useful. Approval and spend constraints are prose only, with ongoing refinement while awaiting approval.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local does not mean private or bounded</h3><p>FFmpeg runs with inherited authority and no timeout or output confinement. Prompts and references persist locally and may reach model providers or published artifacts.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Orchestration</td><td>Host agent interprets Markdown</td></tr><tr><td>Comparison</td><td>Node built-ins and external FFmpeg</td></tr><tr><td>State</td><td>Project-local brief, shots, rounds and media</td></tr><tr><td>Optional measurement</td><td>Python, Pillow and NumPy snippet</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Reproducible viewpoints and evidence-led rounds</h4>
+<p>Fixed camera/viewport presets and reference-matched framing make changes easier to compare. Measured frame times and color deltas are kept separate from subjective scores, and the ledger records what was not checked. This is stronger than a single “looks good” completion claim. The color example measures saturation and brightness, not perceptual similarity, layout or semantic fidelity. [E2, E3, E5]</p>
+<h4>Critics with less builder-context bias</h4>
+<p>The playbook asks for at least two fresh-context critics, median dimension scores, another critic on large disagreements and calibration against user feedback. Different models are optional; independence is not guaranteed, and no benchmark establishes calibration quality. The documented 99.9% target is explicitly a motivational stretch, not a validated accuracy metric. The fallback permits self-scoring when a fresh session is unavailable, weakening the otherwise independent stop criterion. [E2, E3]</p>
+<h4>A readable handoff ledger</h4>
+<p>BRIEF, SHOTS and recent ROUNDS entries support context-reset handoff. Still/comparison directories are organized by round, a “best so far” pointer supports rollback, and local commits are recommended after each round. These are sensible conventions, not implemented transactional persistence or automatic recovery. [E1, E3, E7]
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture and Implementation</h4><p>
+The executable surface is only scripts/side-by-side.mjs (75 lines). It parses output path, height, aspect and alternating reference/render paths; checks inputs are files; probes FFmpeg; then constructs scale/pad, horizontal-stack and vertical-stack filters. All cells are letterboxed, output is one frame, and FFmpeg failures produce a nonzero exit. Argument-array spawning avoids shell interpolation of filenames. [E6]</p>
+<p>Important static edge cases:</p>
+<ul><li>The aspect regex accepts zero components: 16:0 yields an invalid infinite computed width and 0:9 produces zero width. Minimum height is checked, but there is no upper bound on dimensions, pairs, decoded media size or process duration.</li><li>FFmpeg is resolved from PATH and inherits the process environment and current user's permissions. No sandbox, protocol whitelist, resource ceiling or timeout is applied.</li><li>Input existence checks reduce accidental URL input but do not validate format or restrict FFmpeg demuxers. Malicious media/playlist handling and indirect network access remain FFmpeg-dependent, not prevented by Cook.</li><li>Output is unrestricted and passed to FFmpeg with overwrite enabled (-y). There is no project-root confinement, output protocol restriction, parent-directory creation or atomic temporary-output replacement. Arbitrary local paths and FFmpeg-supported output destinations are a host-policy concern.</li></ul>
+<p>These are trust-boundary limitations in a small local helper, not demonstrated remote exploits. Its normal use is on trusted local media with a trusted FFmpeg binary. No executable rendering harness, screenshot capture, color-check program file or critic runner is included. [E5, E6]
+</p>
+<h4>Execution, Permissions and Privacy</h4><p>
+<strong>Good intent:</strong> intake records download/push/publish permissions; the default is prepare locally without publishing; work is scoped in prose to the project folder; final costly exports need still approval; source guidance warns against publishing keys, tokens or private data. [E1, E4, E8]</p>
+<p><strong>Missing enforcement:</strong> after intake the skill repeatedly says never ask questions and to continue refining while awaiting approval. That is unsuitable as an override of host authorization, budget stops or newly discovered sensitive actions. Even a hard cap is described as finishing the round before stopping, so it is not a precise kill deadline. No approval tokens, tool allowlists, spending ceilings, cancellation implementation or network isolation exist here. The user's harness must impose these independently. Broad triggers such as “cook” and “99%” also make explicit activation preferable to accidental matching. [E1–E3]</p>
+<p><strong>Credentials and egress:</strong> Cook has no API client, credential store, login server or explicit telemetry implementation. Inference credentials and request routing belong to the host agents, and FFmpeg inherits environment variables. References, source code, prompts and critic images may go to their model providers; preview messages go through the host's messaging tools. Instructions additionally contemplate image generation, reference research, licensed-audio downloads and opt-in Git publication. “Zero external assets” is not an offline/no-egress promise. No provider retention policy or data-flow audit is supplied. [E1–E6, E8]</p>
+<p><strong>Persistent sensitive content:</strong> copied references, original filenames, verbatim user feedback, prompt text and renders accumulate under cook/. The publishing guide recommends reconstructing the real prompt into docs/PROMPT.md and a manual secret scan, making explicit redaction review essential. The supplied .gitignore does not ignore cook/, .env or frame caches, despite the guide advising generated projects to cover sensitive/cache files. git grep alone omits untracked files and historical commits and is not a complete secret scanner. Avoid treating a permission to publish code as blanket consent to publish conversation-derived material. [E4, E7–E9]</p>
+<p>Reference ownership and media licenses must be checked separately. The instruction not to name third-party clips publicly does not itself grant derivative-use rights or remove attribution duties. [E4, E5]
+</p>
+<h4>Supply Chain and Installation</h4><p>
+The README recommends an unversioned npx skills add operation against this repository, or copying into an agent's skill directory. Installation was not performed. The former delegates code retrieval/execution to an external npm-distributed skills CLI and a mutable repository revision; neither that CLI nor its transitive supply chain was audited here. Manual copying still makes persistent instructions available to the agent across projects, depending on host loading rules. [E8]</p>
+<p>There is no package manifest, dependency lockfile, lifecycle install script, bundled model or binary in the reviewed tree. That keeps Cook's own dependency surface small, but Node, FFmpeg, optional Python packages, the agent client and all generated-project dependencies remain separate trust decisions. Pin the reviewed revision and trusted tool versions if evaluating later; do not interpret the absence of npm dependencies as a complete supply-chain guarantee.
+</p>
+<h4>Persistence, Recovery and Cost</h4><p>
+On resume the agent is told to read the brief, shots and last two round entries; shipped runs move to cook-archive/date/. This has no locking, schema validation, collision policy or automated consistency checks. Frame-by-frame output with “skip existing frames” is only a suggested renderer design; no checksum/settings validation prevents resuming incompatible or partially written frames. Disk retention, archiving cleanup and rollback mechanics are not implemented. [E1, E3, E4]</p>
+<p>The skill is MIT and has no stated Cook service fee, but inference, critics, image generation, subscriptions, storage and rendering compute can cost substantially. Default demo effort is an eight-hour floor; the guidance targets roughly 99% of a five-hour usage window. Neither is a monetary budget. More critics and parallel builders multiply calls, while waiting for approval can continue consuming resources. [E1, E3]</p>
+<p>The README's Athenaion example reports about 45 hours, 55 subagents, 11 million output tokens and $1.8k–$2.3k API-equivalent cost on a subscription plan, plus a roughly 13-hour GPU render in the shipping guide. These are upstream self-reported example figures, not verified invoices, benchmark results, current model availability or a prediction for another project. No paid services or models were used for this review. [E4, E8]
+</p>
+<h4>Maturity and Verification</h4><p>
+Unauthenticated GitHub metadata on 2026-11-21 confirmed public accessibility, creation and last push on 2026-10-31, 780 stars, 59 forks and zero open issues/PRs in the aggregate open_issues_count field. Releases and tags endpoints both returned empty lists. Popularity is not evidence of safety or reproducibility. [E10]</p>
+<p>The checked-out commit is the “Add cook skill” revision dated 2026-10-31. The tracked tree contains no test suite, CI workflow, manifest or lockfile. Review covered all 11 content files plus ignore rules; no source was executed and no agent behavior, media-decoding edge case, render quality, cost, recovery or demo claim was reproduced. Public demos were not independently audited. A shallow checkout does not establish full historical activity.</p>
+<p>Publication artifacts were checked separately for provenance, task-only diff, standalone template structure, unchanged trusted JavaScript, escaped content, safe links and unresolved tokens. Those checks are not tests of Cook.
+</p>
+<h4>Evidence</h4><p>
+All source links below are pinned to the reviewed commit.</p>
+<ul><li><strong>E1:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/SKILL.md">SKILL.md</a>: state, intake, loop, gate, stop criteria.</li><li><strong>E2:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/references/target-and-bar.md">Target and bar</a>: rubric, stretch targets, calibration and measurement snippet.</li><li><strong>E3:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/references/loop-and-critics.md">Loop and critics</a>: critic isolation, pacing, feedback, recovery recommendations.</li><li><strong>E4:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/references/ship.md">Ship</a>: export approval, restart advice, prompt publication and privacy scan.</li><li><strong>E5:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/references/rules.md">Rules</a>: assets, rendering and workspace scope.</li><li><strong>E6:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/scripts/side-by-side.mjs">Comparison helper</a>: complete executable implementation.</li><li><strong>E7:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/templates/ROUNDS.md">Round template</a> and <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/templates/brief.md">brief template</a>.</li><li><strong>E8:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/README.md">README</a> and <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/references/intake.md">intake</a>: install, demos, defaults and permissions.</li><li><strong>E9:</strong> <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/LICENSE">License</a> and <a href="https://github.com/Leonxlnx/cook/blob/b23cac6fd9439dfddcab61b14808e7bf72549b46/.gitignore">.gitignore</a>.</li><li><strong>E10:</strong> Public <a href="https://api.github.com/repos/Leonxlnx/cook">repository metadata</a>, <a href="https://api.github.com/repos/Leonxlnx/cook/releases">releases</a> and <a href="https://api.github.com/repos/Leonxlnx/cook/tags">tags</a>, retrieved 2026-11-21 UTC; mutable snapshots.</li></ul>
+
+<p><strong>Attribution:</strong> Leon Lin / Leonxlnx/cook, MIT. Independent analysis; no upstream code extracted or installed.
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Project checklist + agent approvals</td><td>Simpler for bounded small jobs; less packaged critique</td></tr><tr><td>Playwright screenshot assertions</td><td>Enforced UI regression baselines, not art direction</td></tr><tr><td>Blender / native renderer + FFmpeg</td><td>Actual production tooling; no agent critique loop</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+There is no Cook service to deploy and no listening port or server-side authentication surface. A future evaluation would load the skill into an already configured agent and provide rendering tools. Keep it in a disposable project with trusted references, restricted filesystem/network access, explicit permission gates and externally enforced spend/time/concurrency limits. Require human review before exposing references, publishing prompt-derived files or starting large exports. No installation or adoption is recommended by this review without those controls.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong fixed-shot evidence and round-ledger patterns. Near-unreachable targets, eight-hour floors and “never ask again” need independent permission checks and hard budgets. Static review only; no installs, tests, model calls or renders.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Leonxlnx/cook">Leonxlnx/cook</a> · MIT · Leon Lin</span>
+    <span><a href="cook.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
