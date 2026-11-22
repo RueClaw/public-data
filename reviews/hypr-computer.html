@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hypr-computer — Review</title>
+<meta name="description" content="Nine MCP tools for an existing Hyprland desktop: compact implementation, whole-session authority.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / hypr-computer</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">malik-na/hypr-computer · reviewed 2026-11-22</div>
+    <h1>hypr-computer</h1>
+    <p class="one-liner">Nine MCP tools for an existing Hyprland desktop: compact implementation, whole-session authority.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; component licenses separate</span>
+      <span class="chip">Python · FastMCP · Hyprland · uinput</span>
+      <span class="chip"><a href="https://github.com/malik-na/hypr-computer">malik-na/hypr-computer ↗</a></span>
+      <span class="chip"><a href="https://github.com/malik-na/hypr-computer/tree/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d">Source ac29d4702ffd</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Good mechanics, no frame binding</h3><p>Coordinate conversion handles HiDPI, rotation and offsets. Actions recompute layout without screenshot IDs, target-window binding or stale-frame rejection.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Consent and privacy live outside the adapter</h3><p>All monitors are captured and focused-window input is unrestricted. No per-app permissions, capture masking or server-enforced takeover switch exists; even the read-only self-check captures a screenshot.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Early project with persistent install effects</h3><p>Plugin metadata says 0.3.0, but public releases and tags were empty. System setup persists uinput access and a user service; no uninstaller or transactional rollback is included. Seven isolated synthetic assertions passed, not live desktop integration.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology / boundary</td></tr><tr><td>Protocol</td><td>FastMCP local stdio; caller owns model and approval UX</td></tr><tr><td>Runtime</td><td>Python &gt;=3.11, inline dependency <code>mcp&gt;=1.10,&lt;2</code>, launched by uv</td></tr><tr><td>Capture</td><td>grim JPEG, quality 80, default maximum long edge 1456 pixels</td></tr><tr><td>Pointer</td><td>Hyprland &gt;=0.55 Lua cursor dispatch; ydotool button/wheel events</td></tr><tr><td>Keyboard</td><td>ydotool evdev keycodes, wtype for non-ASCII/non-US typing</td></tr><tr><td>Installation</td><td>Bash, pacman, udev uaccess, modules-load, user systemd service</td></tr><tr><td>Storage/auth</td><td>No application database or application credential store; local process/session permissions</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p><br>The client supplies the agent loop and model. This server exposes nine tools: screenshot, click, move, drag, scroll, type_text, key, cursor_position and list_windows. It uses local subprocesses to capture and control a running Hyprland session, including session discovery when started from SSH or tmux. “Omarchy Mac” describes Linux running on Apple hardware, not macOS support. The README reports development on an M3 Max MacBook Pro with Omarchy/Arch Linux ARM; that is upstream testimony, not compatibility independently established here. [1][2]</p><p>Image-capable MCP clients can receive a JPEG; actual client/model image support remains a prerequisite. There is no accessibility tree, semantic element selector, per-window input channel, built-in LLM or workflow planner. Extensive client configuration examples are documentation, not proof that every listed integration works. [1]</p><h4>Key Features</h4><p><br>### Coordinate handling is explicit, but freshness is only advice</p><p><code>Layout</code> converts logical monitor rectangles into screenshot coordinates, including scale, negative offsets and rotated outputs. Cursor motion goes through Hyprland rather than accelerated relative mouse motion. These transformations have focused unit tests; our synthetic checks corroborate basic arithmetic. But actions recompute the current layout: no saved screenshot identity, frame token, expiration, target-window binding or changed-screen rejection exists. A layout/focus/content change between capture and click can misdirect input. Coordinates are not bounded to the captured image. [2][3]</p><h4>Typing pragmatism, not semantic targeting</h4><p>ASCII on a US layout uses ydotool; other runs use wtype, prefixed with a Shift tap to address an upstream-reported Chromium first-key issue. Text follows the currently focused window. Shortcuts use physical US-layout keycodes. Argument arrays and <code>--</code> before text avoid shell interpolation and option interpretation; this is a useful narrow defense, not protection against an agent deliberately opening a terminal and typing executable commands. [2]</p><h4>Session discovery reduces setup friction and weakens explicit targeting</h4><p>The server copies its environment, finds Wayland sockets, selects a recent live Hyprland instance and assumes the user runtime ydotool socket. This makes non-desktop launch contexts practical, but separate socket-selection heuristics need not identify the same intended session when several are available. There is no interactive session-selection or ownership-confirmation step inside tool execution. [2]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p><br><code>server.py</code> is 324 lines: pure layout/key/text helpers, session/subprocess helpers, nine nested FastMCP tools, then a self-check and entry point. Each subprocess has a 30-second timeout and captured output; failures become runtime errors. There is no generic shell-execution tool and no HTTP listener configured in the entry point. Authentication/CORS for a network API are therefore not the relevant boundary: launching the stdio process with access to the desktop is the grant of authority. A downstream network wrapper would require a separate security review. [2]</p><p>The server is largely stateless. <code>drag</code> attempts button release in <code>finally</code>, which is a good exception-path precaution, but cannot guarantee release after abrupt process death or a failing release subprocess. There is no transaction log, action idempotency, undo, durable task checkpoint, input watchdog or server-enforced human takeover switch. Concurrent client actions and human activity have no explicit application-level arbitration. Click counts have a lower bound but no upper bound; scroll amounts and text size are not operationally capped. Per-subprocess timeout is not a whole-tool budget. [2]</p><h4>Permissions, Consent and Security</h4><p><br>- <strong>Install consent is not action consent.</strong> The installer prints a plan and prompts (default yes); <code>--yes</code> skips it. README instructions ask agents to obtain permission first, but prose is not enforcement. The server has no per-action confirmation, per-app allowlist, sensitive-window masking or read-only mode. Client tool-approval settings are decisive. [1][4]<br>- <strong>Persistent input authority is broad.</strong> System setup installs packages, writes an active-seat uaccess rule for <code>/dev/uinput</code>, persists module loading, loads the module, reloads/triggers udev and enables the ydotool user service. This is not an application-scoped permission or a portal-mediated capture/input consent session. It need not make the server root, but it gives the authorized desktop user powerful virtual input capability. The two fixed <code>/etc</code> files are overwritten rather than merged. [5]<br>- <strong>Visible content is untrusted.</strong> Screenshots and window titles may contain prompt injection. No source-side instruction/content isolation or policy engine mediates the agent response. The server cannot distinguish harmless typing from financial, destructive or credential-bearing UI actions. [2]<br>- <strong>Local execution still matters.</strong> Helper executables are resolved through inherited PATH and receive an inherited environment. Do not confuse lack of shell interpolation with a sandbox or minimal privilege. No executable integrity check or environment secret scrubbing is present. [2]</p><h4>Privacy, Credentials and Egress</h4><p><br>Capture includes every monitor, with no selectable-region or redaction option. JPEGs use a temporary file, are read into memory, and normally unlink on context exit; abnormal termination may leave a temporary file. Returned image bytes and window titles leave the server through MCP. Client/model providers may store or transmit them: the absence of a direct HTTP client in this server does <strong>not</strong> mean end-to-end local privacy. <code>list_windows</code> enumerates Hyprland clients with workspace, application class, title and geometry, not just the focused window. [2]</p><p>No explicit clipboard read/write API, telemetry sender, secret vault, credential extraction routine or persistent screenshot database appears in the reviewed code. UI shortcuts can nevertheless paste clipboard contents or expose secrets onscreen. Typed text is passed as subprocess arguments, creating possible exposure through process inspection; captured subprocess errors may flow back to the client. The server inherits the launching process environment. Do not type secrets through this interface merely because it has no credential field. [2]</p><p>The advertised “read-only” <code>--check</code> does not click/type, but <strong>does capture a real screenshot</strong> into a temporary file and queries session/input metadata. It is not privacy-neutral. We did not run it. Installation/update also contacts package/repository infrastructure, and uv resolves/downloads Python dependencies; client model egress is a separate boundary. [2][4][5]</p><h4>Maturity and Verification</h4><p><br>Public unauthenticated GitHub metadata on 2026-11-22 reported creation on 2026-11-21, last push 2026-11-22 00:57:00 UTC, one star, zero forks and zero open issues/PRs in the aggregate counter. Releases and tags endpoints returned empty arrays. The reviewed commit is dated 2026-11-22 00:56:58 UTC. These are a very early project snapshot, not reliability metrics. The source clone was shallow; historical development breadth was not established. [7]</p><p>The tracked tree contains 11 pytest test functions (13 cases including parametrization) for layout conversion, chord parsing/order, text splitting, keyboard detection and UTF-8 environment handling. No CI workflow, installer tests or live MCP/desktop integration tests are tracked. Upstream hardware/version claims and the Chromium workaround were not reproduced. [3]</p><p><strong>Actually run:</strong> Python AST parsing plus seven reviewer-authored assertions for HiDPI forward/reverse conversion, chord parsing, release order, text argument delimiter, non-US typing command selection and multi-monitor geometry. All passed inside a network-isolated sandbox with a cleared environment, synthetic runtime directory, no home/session sockets and no host desktop devices. Only pure helpers were called; no source subprocess, capture, installer or MCP startup ran. These checks are not the upstream pytest suite (pytest was unavailable and was not installed), and do not validate actual input delivery, capture accuracy, focus races, SDK compatibility or cross-client behavior.</p><h4>Evidence</h4><p><br>All code citations pin the reviewed SHA. Public metadata is mutable and was retrieved 2026-11-22 UTC.</p><p>1. <a href="https://github.com/malik-na/hypr-computer/blob/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d/README.md">README: purpose, client requirements, limitations, upstream platform/version claims</a>.<br>2. <a href="https://github.com/malik-na/hypr-computer/blob/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d/server.py">server.py: layout/text helpers L50–130, session/subprocess L136–175, tools L181–271, self-check L274–324</a>.<br>3. <a href="https://github.com/malik-na/hypr-computer/blob/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d/tests/test_server.py">tests/test_server.py: complete helper test scope</a>.<br>4. <a href="https://github.com/malik-na/hypr-computer/blob/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d/install.sh">install.sh: download/update, configuration backups and registration</a>.<br>5. <a href="https://github.com/malik-na/hypr-computer/blob/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d/scripts/install-system.sh">scripts/install-system.sh: persistent device/service changes</a>.<br>6. <a href="https://github.com/malik-na/hypr-computer/blob/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d/.claude-plugin/plugin.json">Plugin version/license metadata</a>, <a href="https://github.com/malik-na/hypr-computer/blob/ac29d4702ffdb52e8496d6c4b97bb4f1ce6e6d5d/LICENSE">MIT license</a>. Dependencies are separately licensed (including AGPL ydotool); MIT here does not relicense those components.<br>7. <a href="https://api.github.com/repos/malik-na/hypr-computer">Public repository metadata</a>, <a href="https://api.github.com/repos/malik-na/hypr-computer/releases">releases</a>, <a href="https://api.github.com/repos/malik-na/hypr-computer/tags">tags</a>.</p><p>---</p><p><strong>Attribution:</strong> Naeem Malik / malik-na/hypr-computer, MIT. This review contains independent analysis, not redistributed implementation code.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Prefer when</td><td>Tradeoff</td></tr><tr><td>hypr-computer</td><td>An MCP agent needs basic control of an explicitly disposable Hyprland session</td><td>Small adapter, but whole-desktop authority and visual targeting</td></tr><tr><td>Direct <a href="https://gitlab.freedesktop.org/emersion/grim">grim</a>, <a href="https://github.com/ReimuNotMoe/ydotool">ydotool</a>, <a href="https://github.com/atx/wtype">wtype</a></td><td>A deterministic, narrow script suffices</td><td>Avoids model/tool-loop complexity; still requires careful device/session permissions</td></tr><tr><td><a href="https://github.com/microsoft/playwright">Playwright</a></td><td>The task is confined to a browser</td><td>DOM/locator-oriented automation and dedicated browser contexts; not general desktop control</td></tr><tr><td>Portal-mediated remote-desktop/screencast designs</td><td>Explicit compositor-mediated session consent is required</td><td>Different integration and compositor support; not supplied by this repo</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Installation, Updates and Removal</h4><p><br>This is an assessment, not an installation recommendation. The README advertises a mutable hosted curl-to-shell bootstrap without an explicit URL scheme; it is not a pinned, authenticated release artifact recipe. The hosted bootstrap itself was not acquired or executed. The checked-in installer clones the current default branch, pulls existing checkouts with <code>--ff-only</code>, or downloads a main-branch archive without a checksum/signature gate. An existing checkout is updated without verifying its origin first. There is no dependency lockfile: the MCP SDK is range-constrained, not reproducibly pinned. Version 0.3.0 in plugin metadata is not evidence of a tagged or signed release. [1][4][6]</p><p>Positive details: config updates preserve unrelated JSON keys; existing configs get <code>.bak-hypr-computer</code> backups; replacement uses a temporary file and rename; non-plain JSON is refused rather than silently stripped. Codex registration skips an existing named block rather than reconciling a stale path. Backups use a fixed name and can be overwritten. Newly created replacement files use ordinary process umask rather than explicitly preserving restrictive file modes; if a client config contains credentials, review resulting permissions and backup handling. This is a code-level risk, not a demonstrated leak. [4]</p><p>Installation is not transactional: system changes can remain after self-check or client-registration failure. Some client failures are reported as manual setup warnings. No uninstaller or automatic rollback is included. Removal needs deliberate reversal of client entries/plugin registration, the installed checkout, applicable ydotool service enablement, uinput rules/module-loading changes and optional packages/caches/backups; shared dependencies and pre-existing rules must not be blindly deleted. [4][5]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful coordinate and typing integration, but not a safe unattended desktop boundary. Capture covers all monitors; action consent belongs to the client. Prefer an explicitly isolated session, with reproducible dependencies and stronger targeting before broader adoption.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/malik-na/hypr-computer">malik-na/hypr-computer</a> · MIT; component licenses separate</span>
+    <span><a href="hypr-computer.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

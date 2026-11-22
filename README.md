@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [hypr-computer.md](reviews/hypr-computer.md) [page](reviews/hypr-computer.html) | [malik-na/hypr-computer](https://github.com/malik-na/hypr-computer) | MIT; component terms | ⚠️ Interesting | Hyprland MCP desktop control; useful coordinate helpers, whole-session authority, capture privacy and persistent-install caveats. Seven offline assertions passed. |
 | [omarchy-canary.md](reviews/omarchy-canary.md) [page](reviews/omarchy-canary.html) | [shaggyrs6-netizen/omarchy-canary](https://github.com/shaggyrs6-netizen/omarchy-canary) | MIT | ⚠️ Interesting | Third-party outage widget; conservative caching, guarded custom feeds, best-effort alerts and desktop-session trust. 11 offline tests passed. |
 | [oxyn-frontend.md](reviews/oxyn-frontend.md) [page](reviews/oxyn-frontend.html) | [lokidotdev/oxyn-frontend](https://github.com/lokidotdev/oxyn-frontend) | MIT claimed; license text missing | 📚 Study | Semantic React loaders and read-only discovery MCP; thoughtful canvas lifecycle, licensing and telemetry caveats. Static review. |
 | [flowtunes.md](reviews/flowtunes.md) [page](reviews/flowtunes.html) | [omacom/flowtunes](https://github.com/omacom/flowtunes) | MIT code; separate model/content terms | ⚠️ Interesting | Native generated-music radio; careful queue recovery, remote-engine trust and incomplete output provenance. Static review. |
