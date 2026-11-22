@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSIRIS — Review</title>
+<meta name="description" content="Public-source intelligence map with reconnaissance lookups and BYOK AI forecasting.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / osiris</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">simplifaisoul/osiris · reviewed 2026-11-22</div>
+    <h1>OSIRIS</h1>
+    <p class="one-liner">Public-source intelligence map with reconnaissance lookups and BYOK AI forecasting.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT; component/data terms</span>
+      <span class="chip">TypeScript · Next.js · MapLibre · ONNX</span>
+      <span class="chip"><a href="https://github.com/simplifaisoul/osiris">simplifaisoul/osiris ↗</a></span>
+      <span class="chip"><a href="osiris.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">11,836</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">2,467</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real dashboard, not an agent operating system</h3><p>Map-centric OSINT aggregates feeds, cameras and enrichment. Availability and freshness differ by source; plotted data is not independent verification.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Public boundaries matter</h3><p>Forecast UUIDs grant read access; SDK ingest authentication does not protect the public stream. Browser-held model keys pass through the server, and page middleware attempts IP analytics.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Forecast machinery is not validation</h3><p>Source-linked multi-world runs and price-baseline backtests exist. Full LLM forecast calibration is unproven; research runs estimate 34, 88 or 132 model calls before retries.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>UI</td><td>React 19 / Next.js 16 / MapLibre 6 / TypeScript</td></tr><tr><td>Services</td><td>Next API routes, Express intel, nginx cache</td></tr><tr><td>AI</td><td>Fixed provider adapters, ONNX camera detection, BYOK OI</td></tr><tr><td>Revision</td><td>c1342f27cfa1a6d0152a348d79e83af08fe44e08</td></tr><tr><td>Verification</td><td>Static only; upstream CI success observed, not reproduced</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Broad feed integration with useful degradation handling</h4>
+<p>Adapters cover many camera regions, aviation, disasters and other public sources. Source caching deduplicates in-flight requests, caps keys and retains last-good data on errors. Camera catalogs merge partial results and retry missing regions with bounded backoff. Catalog snapshots use temporary-file-plus-rename writes and can seed the next process. These are useful engineering patterns, but stale-on-error improves availability, not freshness. Verify timestamps and upstream attribution before operational use. [E5]</p>
+<h4>Forecasts with inspectable machinery, not proven calibration</h4>
+<p>OI keeps source-linked context, dated simulation periods, multiple worlds, event traces and report generation. The quantitative module really implements historical price-level backtesting, Brier scores and calibration bins; it explicitly notes overlapping windows are not independent. This tests a price baseline, not the reliability of the full LLM report or geopolitical forecasts. Prompting a model to be calibrated and linking a source do not establish statistical calibration or claim entailment. No independent end-to-end forecasting evaluation was located in the inspected scope. [E3]</p>
+<p>The depth configuration implies approximately <strong>34 / 88 / 132 model calls</strong> for quick / standard / deep runs with research, before retries and follow-up questions. User text can reach 100,000 characters; panel mode repeats a bounded portion across actors. Call estimates are not a dollar cap. [E4]</p>
+<h4>Reconnaissance is not uniformly active scanning</h4>
+<p>The README describes TCP scanning, but the inspected portscan route queries Shodan or its keyless InternetDB record; it does not itself establish fresh TCP connections to the target. Separately, the scanner proxy delegates allowed operations to a configured backend, including quick, TLS, headers and vulnerability operations. Target validation and rate limits are meaningful controls, but do not establish target-owner consent. The external scanner implementation is not provided by that route and was not audited. [E8]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Browser map and panels call Next API routes, which aggregate third-party data or proxy selected services. The Express intel sidecar enriches entities from a cached sanctions list and Wikidata. OI REST and MCP reuse a service layer; the run manager starts an asynchronous engine, folds stamped events into state, and exposes replay/live SSE. The page assistant uses a bounded action bridge (layers, camera movement, panels, forecasts, terrain and reconnaissance), rather than an arbitrary shell executor in the inspected path. [E2–E7]</p>
+<h4>Permissions, authentication and execution boundaries</h4>
+<p>- <strong>No general workspace/tenant authentication boundary was found in the inspected dashboard and feed paths.</strong> Middleware performs analytics, not login. OI's provider bearer/key header pays for model calls; it is not an application-user role system. MCP checks browser Origin, supports configured origins and local clients, and allows requests without Origin; this is not account authentication. [E6, E9]<br>- <strong>Read access and mutation access differ.</strong> A forecast's random UUID is its shareable read capability. A separate random token, compared in constant time, protects injection/cancellation. Anyone given a run link can read the run; do not treat it as a private case file. [E4]<br>- <strong>SDK ingestion is fail-closed on a configured key, but SDK streaming is not protected by that ingest key.</strong> The stream handler returns current normalized entities without an authorization check. Do not ingest confidential operational tracks into an exposed instance. GitHub webhook forwarding separately requires configuration and HMAC verification. [E10]<br>- <strong>Public-target filtering is defense in depth, not a network sandbox.</strong> The shared guard resolves targets and checks redirect hops; it explicitly documents that socket-level IP pinning is absent. The scanner forwards the original target to a separate consumer. Use egress restrictions and authorized target scope rather than assuming validation fully eliminates rebinding or downstream behavior risk. No exploit was attempted. [E8]<br>- <strong>Rate limits depend on deployment trust.</strong> They are in-memory and identify clients from proxy/platform headers. Directly exposing the application while accepting those headers is not equivalent to a trusted edge overwriting them. Compose publishes application and cache ports broadly, and nginx does not constitute an account/consent gate. [E7–E9]<br>- Next headers include HSTS, nosniff, framing and permissions policies, but the CSP permits broad HTTPS sources, inline code and eval. Browser location and microphone are allowed for self; camera, USB and screen capture are denied by the configured policy. These controls should not be confused with protection from every same-origin script accessing browser-held keys. [E11]</p>
+<h4>Credentials, privacy and egress</h4>
+<p>OI keys default to sessionStorage and can be remembered in localStorage. They are sent in request headers to the OSIRIS server, retained in the active run's chat closure, and used against fixed provider endpoints. “Never stored on the server” is best read as no durable key field in the inspected run store—not that the server never receives the key. Same-origin scripts, the hosting operator and infrastructure logging remain part of the trust boundary. The scanner backend key is sent in a query string, so backend/proxy URL logging deserves special attention. [E4, E8, E12]</p>
+<p>Questions, uploaded/pasted context, public research text and optional camera images can be sent to the selected model provider. Lookup targets and research queries also leave for feed/enrichment/search services. Some camera media is fetched directly by browsers. Public-source status does not remove privacy, redistribution or surveillance obligations. Treat article text, feed text and model responses as untrusted; action validation is not proof of prompt-injection immunity. [E1–E3, E12]</p>
+<p>The middleware makes two best-effort Umami calls per matched page, including an explicit IP event plus page/referrer/user-agent metadata. It targets an internal production service name and the Compose file assumes an external analytics network. This is actual telemetry code, not evidence that every self-host deployment successfully transmits it; DNS/network availability determines that. Remove or deliberately configure it before claiming a private self-host. [E6–E7]</p>
+<h4>Persistence and recovery</h4>
+<p>OI runs live on globalThis in one process. Defaults include two active runs per address, 24 globally, a 20-minute deadline, 150 retained runs and a three-hour completed-run TTL. SSE event replay supports reconnecting to a still-present run, not recovery after process loss. Browser history retains 25 entries and run mutation tokens live in sessionStorage; history entries do not restore the server engine. Multiple independent workers will not automatically share run state. SDK entities and intel indexes are also process-local. [E4, E6, E10, E12]</p>
+<p>Camera catalogs have a real disk snapshot, and nginx has a persistent tile-cache volume. However, stock Compose does not mount an application catalog volume; container replacement need not preserve that snapshot. Atomic cache writes and last-good sanctions retention are useful resilience measures, not a database, audit trail, backup plan or durable workflow queue. [E5–E7]</p><h4>Maturity and supply chain</h4><p>Anonymous GitHub metadata on 2026-11-22 reported 11,836 stars, 2,467 forks and 33 open issues (GitHub's combined issue/PR counter), repository creation 2026-05-12 and last push 2026-11-22T01:51:05Z. These are popularity/activity snapshots, not quality scores. The reviewed commit timestamp is 2026-11-21T03:10:40Z. Latest returned release: <a href="https://github.com/simplifaisoul/osiris/releases/tag/v5.0.0">v5.0.0</a>.</p>
+<p>There are <strong>174 tracked .test.ts files</strong>. Vitest covers src and intel; live-network cases are documented as opt-in. CI declares npm ci, type-checking, Vitest and production npm audit. The public API reported successful <a href="https://github.com/simplifaisoul/osiris/actions/runs/44859752748">CI</a> and <a href="https://github.com/simplifaisoul/osiris/actions/runs/44859752791">Docker publication</a> for this exact SHA. Those statuses are upstream evidence, not locally reproduced results or a complete security audit. [E13]</p>
+<p>Importantly, Docker publication triggers independently on master pushes: the YAML does <strong>not</strong> depend on successful CI completion, despite CI comments saying checks precede the image. Images/base images and Actions use mutable tags rather than immutable digests/commit pins. Lockfiles and non-root runners are positives; lifecycle preparation copies/prunes bundled MapLibre workers. The tree also tracks 589 files beneath intel/node_modules and Python bytecode under engine/__pycache__ without corresponding engine Python source in that directory. These complicate provenance and review; the inspected running web/forecast path is TypeScript, not an inferred Python service. No binaries, vendored modules or model weights were executed or independently authenticated. [E2, E7, E13]</p><h4>Pinned evidence and limits</h4><p>Pinned source references (all at the reviewed SHA):</p>
+<p>- <strong>E1:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/README.md">README.md</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/conflicts/route.ts">src/app/api/conflicts/route.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/maritime/route.ts">src/app/api/maritime/route.ts</a>.<br>- <strong>E2:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/package.json">package.json</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/assist/tools.ts">src/lib/oi/assist/tools.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/assist/recon.ts">src/lib/oi/assist/recon.ts</a>.<br>- <strong>E3:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/engine.ts">src/lib/oi/engine.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/web.ts">src/lib/oi/web.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/prompts.ts">src/lib/oi/prompts.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/quant.ts">src/lib/oi/quant.ts</a>.<br>- <strong>E4:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/runs.ts">src/lib/oi/runs.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/depths.ts">src/lib/oi/depths.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/service.ts">src/lib/oi/service.ts</a>.<br>- <strong>E5:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/sourceCache.ts">src/lib/sourceCache.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/camera-catalog.ts">src/lib/camera-catalog.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/cctv-snapshot.ts">src/lib/cctv-snapshot.ts</a>.<br>- <strong>E6:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/middleware.ts">src/middleware.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/intel/server.js">intel/server.js</a>.<br>- <strong>E7:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/docker-compose.yml">docker-compose.yml</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/Dockerfile">Dockerfile</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/intel/Dockerfile">intel/Dockerfile</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/nginx/nginx.conf">nginx/nginx.conf</a>.<br>- <strong>E8:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/scanner/route.ts">src/app/api/scanner/route.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/osint/portscan/route.ts">src/app/api/osint/portscan/route.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/ssrf-guard.ts">src/lib/ssrf-guard.ts</a>.<br>- <strong>E9:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/mcp/route.ts">src/app/api/mcp/route.ts</a>.<br>- <strong>E10:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/sdk/ingest/route.ts">src/app/api/sdk/ingest/route.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/sdk/stream/route.ts">src/app/api/sdk/stream/route.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/app/api/github-webhook/route.ts">src/app/api/github-webhook/route.ts</a>.<br>- <strong>E11:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/next.config.ts">next.config.ts</a>.<br>- <strong>E12:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/client.ts">src/lib/oi/client.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/oi/providers.ts">src/lib/oi/providers.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/vision/store.ts">src/lib/vision/store.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/src/lib/vision/detect.ts">src/lib/vision/detect.ts</a>.<br>- <strong>E13:</strong> <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/.github/workflows/ci.yml">.github/workflows/ci.yml</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/.github/workflows/docker-publish.yml">.github/workflows/docker-publish.yml</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/vitest.config.ts">vitest.config.ts</a>; <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/tools/prepare-map-worker.mjs">tools/prepare-map-worker.mjs</a>.</p>
+<p>Public accessibility and canonical identity were verified without private account access. Existing public review/index entries were checked for the canonical repository before creating this review. Static inspection and source inventory only: no dependency install, test suite, build, live target scan, demo session, model inference or hardware access. Upstream test success, service availability, throughput, forecast accuracy and exploitability were not independently reproduced. The standalone review page and index were checked separately as publication artifacts.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> simplifaisoul/osiris, MIT; dependency and data-provider terms remain separate. No source code extraction included.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Public map</td><td>OSIRIS integrated feeds and OI</td><td>World Monitor: another global dashboard</td></tr><tr><td>Geographic analysis</td><td>Interactive situational view</td><td>QGIS: dedicated desktop GIS</td></tr><tr><td>Threat knowledge</td><td>Enrichment and overlays</td><td>OpenCTI: specialized knowledge platform</td></tr><tr><td>Scope</td><td colspan="2">Comparisons are not fresh audits; see full Markdown links.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Do not adopt the README quick-start as a production security recipe. First decide whether all data may be public, put private instances behind authenticated access, restrict direct app exposure, normalize trusted proxy headers, set egress policy and isolate any scanner. Configure HTTPS before transmitting BYOK credentials; secure headers alone do not terminate TLS. Disable OI if unwanted, and set provider-side spend limits rather than relying on call estimates. No setup or deployment was performed for this review.</p>
+<p>Budget for server CPU/memory, map/video bandwidth and caching, API limits, optional commercial lookup access and model tokens. The code is MIT, not an entitlement to free upstream services. Compose currently requires an existing external analytics network and introduces nginx and intel in addition to the main app; its advertised one-command simplicity is conditional. Plan snapshot storage separately and assume in-flight forecasts are lost at restart. [E4, E7]</p>
+<p>The <a href="https://github.com/simplifaisoul/osiris/blob/c1342f27cfa1a6d0152a348d79e83af08fe44e08/LICENSE">MIT license</a> names simplifaisoul (2026). Preserve dependency notices, including bundled YOLOX's Apache-2.0 license and MapLibre notices. The README labels an OpenSanctions source CC-BY 4.0; that statement is not an independent verification of every dataset's current terms or commercial-use rights. Camera operators, broadcasters, tiles and enrichment providers retain their own access/attribution/licensing rules. SECURITY.md requests defensive, authorized use; policy text does not technically enforce target consent.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Real adapters, caching and a developed forecast engine. Public-by-design APIs, shareable runs, telemetry and process-local state require explicit boundaries; enterprise equivalence and full forecast calibration remain unverified.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/simplifaisoul/osiris">simplifaisoul/osiris</a> · MIT; component/data terms</span>
+    <span><a href="osiris.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
