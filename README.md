@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [flowtunes.md](reviews/flowtunes.md) [page](reviews/flowtunes.html) | [omacom/flowtunes](https://github.com/omacom/flowtunes) | MIT code; separate model/content terms | ⚠️ Interesting | Native generated-music radio; careful queue recovery, remote-engine trust and incomplete output provenance. Static review. |
 | [locals.md](reviews/locals.md) [page](reviews/locals.html) | [Generated-Computers/Locals](https://github.com/Generated-Computers/Locals) | Apache-2.0; model/third-party terms | ⚠️ Interesting | Apple-silicon batched agent inference; write-only confinement, persistent prompts and qualified speed claims. Static review. |
 | [osiris.md](reviews/osiris.md) [page](reviews/osiris.html) | [simplifaisoul/osiris](https://github.com/simplifaisoul/osiris) | MIT; component/data terms | ⚠️ Interesting | OSINT map and BYOK forecasts; public API boundaries, telemetry, ephemeral runs and unverified calibration. Static review. |
 | [cover-your-ais.md](reviews/cover-your-ais.md) [page](reviews/cover-your-ais.html) | [jdpru/cover-your-ais](https://github.com/jdpru/cover-your-ais) | No license specified | 📚 Study | One agent-safety audit prompt; useful blast-radius checklist, prose-only gates, sensitive inspection scope and uncited efficacy claim. Static review. |

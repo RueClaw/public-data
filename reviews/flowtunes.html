@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flowtunes — Review</title>
+<meta name="description" content="Native genre radio that generates songs through Omarchy’s model engine and saves a local MP3 library.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / flowtunes</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">omacom/flowtunes · reviewed 2026-11-22</div>
+    <h1>Flowtunes</h1>
+    <p class="one-liner">Native genre radio that generates songs through Omarchy’s model engine and saves a local MP3 library.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code; separate model/content rights</span>
+      <span class="chip">C++17 · Qt 6/QML · FFmpeg · MPRIS</span>
+      <span class="chip"><a href="https://github.com/omacom/flowtunes">omacom/flowtunes ↗</a></span>
+      <span class="chip"><a href="https://github.com/omacom/flowtunes/commit/8a9a76fde98f22e21ddd3f1286d2ecd120060675">Reviewed SHA: 8a9a76f</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Thoughtful buffering, not guaranteed endlessness</h3><p>Twelve genres, optional vocals, 180-second targets and two queued songs. Atomic saves and retry/cancellation logic are substantive; generation speed still determines whether fresh music keeps up.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local-first does not mean isolated</h3><p>Paired hosts can generate music remotely. Bearer-authenticated requests trust the engine endpoint, and ordinary desktop privileges—not an application sandbox—protect files, media and credentials.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>MIT is not a music-rights guarantee</h3><p>Application code is MIT; weights, runtimes and imported/generated music have separate provenance. Saved MP3s lack a complete generation manifest. Static review only; upstream CI passed at the reviewed SHA.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>UI</td><td>Qt Quick/QML, embedded resources, shader aurora and waveform display</td></tr><tr><td>Orchestration</td><td>C++ Flow state machine, Models discovery, Backend facade</td></tr><tr><td>Generation</td><td>External engine endpoint; asynchronous <code>/lm</code>, <code>/synth</code>, <code>/job</code> protocol</td></tr><tr><td>Audio</td><td>Lazy-loaded Qt Multimedia player; FFmpeg subprocess for waveform analysis</td></tr><tr><td>Persistence</td><td>MP3 files and QSettings; no application database</td></tr><tr><td>Desktop</td><td>Session-bus MPRIS; Omarchy theme/language file watching; Hyprland rounding query/event socket</td></tr><tr><td>Build</td><td>CMake, system Qt libraries and Arch package dependencies</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Pick one of twelve genres: Lo-fi, Ambient, Synthwave, Deep House, Techno, Drum &amp; Bass, Jazz, Classical, Downtempo, Post-Rock, Acoustic or Cinematic. Built-in caption fragments vary each generation; an optional lyrics mode asks the model to write vocals in the selected language. Tracks target 180 seconds. The application tries to keep two prepared tracks behind the current one, but this is a buffer target, not proof that playback or rapid skipping can never stall. [E1–E3]</p>
+<p>Existing MP3s in each genre folder are shuffled and consumed before generation begins. The lyrics switch filters by filename: files ending in <code>-instrumental</code> (including numbered collisions) are instrumental; other MP3s are treated as sung. This is a naming convention, not audio classification. Saved-library playback does not inherently require a running generator. [E2]</p><h4>Buffered generation with explicit recovery</h4>
+<p><code>Flow</code> posts a caption/lyrics/language request to <code>/lm</code>, submits the resulting song description to <code>/synth</code>, polls jobs every 500 ms, and fetches the result. HTTP transfers have a 30-second timeout. Failed generation retries after three seconds, with slower 30-second retries while music remains available; exhausted playback exposes an error and explicit retry. Lyrics generation has a six-attempt ceiling when the model returns too few sung lines. [E2–E3]</p>
+<p>A generation counter ignores stale callbacks after genre changes. Known jobs receive cancellation requests, including jobs whose IDs arrive after reset; event-loop lockers give cancellation a chance during ordinary window close. This is best-effort cancellation, not crash-safe job recovery: there is no persisted outstanding-job journal. A server that keeps returning a nonterminal status can be polled indefinitely; there is no overall job deadline. [E2]</p>
+<h4>Durable music, limited provenance</h4>
+<p>Generated MP3s are saved under the standard Music location in genre folders, with timestamp, BPM, key and instrumental suffix in the filename. Collision suffixes avoid ordinary duplicate names. <code>QSaveFile</code> commits atomically with direct-write fallback disabled; write failures become visible errors. Genre and lyrics choice survive in QSettings, but playback position/queue do not. No retention quota, automatic cleanup, backup or disk-space budget is implemented. [E2]</p>
+<p>Track titles are generated from a repeated lyric line or a built-in genre word pair. The writer replaces the leading ID3v2 tag with a title tag; it does not preserve a full generation manifest, model revision, seed, prompt, lyrics or licensing record alongside each song. Imported MP3s retain their existing files. Consequently, saved output is convenient listening material but weak evidence for reproducible generation or rights clearance. [E2]</p>
+<h4>Real desktop integration</h4>
+<p>Media keys and MPRIS support play/pause/next, seek, raise and quit; Previous restarts the current song rather than maintaining history. Metadata includes title, genre and local file URL. Theme/language changes are watched, and Hyprland rounding is queried rather than implemented as a separate window-manager policy. Audio quality, gaplessness, accessibility and translation quality were not tested. [E4–E5]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p><code>main.cpp</code> wires Theme, Translator and Backend into QML. Backend owns Models, Flow and Mpris. Models reads the engine status/list/network files, selects a music model, and reads a local or paired-host bearer key. Local active music is preferred over a remote active model; a paired active host can serve when local generation is unavailable. Flow owns the request lifecycle and local queue; TunePlayer owns actual audio playback. [E2, E4–E6]</p>
+<p>The process invokes <code>omarchy-agent-local</code> using a program and argument list, not a constructed shell command. Startup requests a detached cache refresh; playback may start an installed model automatically. Installing a model and stopping blocking text models are offered through UI actions. Those are real lifecycle/resource effects, not merely player preferences. FFmpeg and <code>hyprctl</code> are also subprocess dependencies. [E5–E6]</p><h4>Security, Permissions and Privacy</h4><ul><li><strong>Desktop trust, not application sandboxing:</strong> normal user filesystem, network, audio and session-bus privileges apply. No microphone/camera capture, application account, browser server or analytics SDK was found in the reviewed source. There is no application-level multi-user auth/CORS surface; generation-server authorization belongs to the engine. This is not a full dependency or binary audit. [E2, E4–E6]</li><li><strong>Credentials and endpoint trust:</strong> requests attach a bearer key loaded from the engine configuration. Remote key filenames validate host labels against a restricted character set. However, endpoint selection trusts engine state: <code>origin()</code> checks URL validity/host and strips <code>/v1</code>, without enforcing HTTPS, loopback-only addressing or a destination allowlist. Tampered trusted-user state could redirect authenticated requests. Protect engine state and key files; a remote route must supply its own transport security. [E2, E6]</li><li><strong>Not strictly on-device:</strong> genre captions, vocal-language choice and generated song descriptions can travel to a paired music server; audio returns from it. No code path uploading the user’s existing MP3 library was found. Setup delegates image/model downloads to the engine, so “no telemetry found” does not mean “no network.” Remote-server logging and retention were not audited. [E2, E6, E9]</li><li><strong>Desktop metadata exposure:</strong> MPRIS publishes local track URLs and titles to the session bus and accepts controls from its peers. This is expected desktop integration, but not private from other processes with session-bus access. [E4]</li><li><strong>Input/resource hardening gaps:</strong> network results are read into memory without an explicit response-size limit; multipart audio parsing is minimal, and job IDs are concatenated into query strings rather than encoded with a query builder. FFmpeg and Qt parse local/generated media with user privileges. There is no FFmpeg deadline here. Waveform downsampling reduces storage greatly, but its levels buffer still grows with track duration despite the source comment suggesting constant memory. These are static robustness concerns, not demonstrated exploits. [E2]</li></ul><h4>Media Provenance and Licenses</h4><p>The actual application LICENSE grants MIT permissions and attributes David Heinemeier Hansson plus Omarchy starter files; preserve notices when redistributing code. GitHub’s metadata classified it as “Other,” but the checked license text is MIT. That grant does not license arbitrary imported songs, guarantee generated music is non-infringing, or establish rights in training data. [E7]</p>
+<p>Flowtunes does not bundle recordings or weights and does not fix one model revision in its own source. As a concrete integration example, the public engine catalog at <code>e7fe801bc66dab37118baa8d4e06c5d786a3f45e</code> offers ACE-Step 1.5 Turbo: a 4B language model, 2B diffusion model, Qwen3 embedding encoder and VAE, using the third-party <code>Serveurperso/ACE-Step-1.5-GGUF</code> conversion at <code>666ac70204440867d8c01ba4b119cc79c95b370a</code>. That recipe labels its artifacts MIT and lists 7.57 GiB of downloads excluding the runtime image. This is an engine-maintainer declaration, not an independent audit of every upstream weight license, training corpus or generated-output right. [E9]</p>
+<p>The engine’s pinned runtime review declares an MIT acestep.cpp build and retained third-party notices. Its isolation and authorization acceptance tests are upstream reports, not tests repeated here. Qt, FFmpeg, container contents and model components retain their own applicable licenses. Do not market the resulting music as guaranteed royalty-free solely because the frontend is MIT. No generated audio was acquired or listened to for this review. [E9]</p><h4>Persistence and Operational Fit</h4><p>Saved MP3s remain useful after restart; invalid/unreadable library media can be skipped, and three successive playback failures produce an error. Atomic commits protect against partially written final files, not disk exhaustion, simultaneous-process races, user deletion or loss of the music directory. An interrupted generation may leave work at the remote server even though no local song was saved. [E2]</p>
+<p>Hardware suitability is external. The example Vulkan recipe reports an 8 GiB memory budget and a 45-second generation measurement for a 180-second song on one Strix Halo configuration; the runtime review reports 109 seconds for 60 seconds of audio on a different Intel configuration. These are distinct upstream measurements, not directly comparable benchmarks or universal real-time guarantees. A queue cannot make a slower-than-playback model sustain an endless fresh stream. [E9]</p><h4>Maturity, Tests and Supply Chain</h4><p>Public metadata observed on 2026-11-22: repository created 2026-11-20, last pushed 2026-11-21, 4 stars, 1 fork and 1 open issue/PR counter entry. These are a time-stamped snapshot, not quality evidence. v0.2.0 is the latest observed release; its annotated tag was reported unsigned. [E8]</p>
+<p>The 1,360-line Qt test file covers discovery, paired-host keys, queueing, cancellation, failure/retry behavior, library reuse, names/tags, translations, theme handling, QML interaction and MPRIS. The upstream Actions run for the exact reviewed commit reports <strong>success</strong>. This review did not run the tests or independently reproduce that result. Tests exercise synthetic services and desktop components; their existence is stronger evidence than a screenshot, but not a substitute for sustained generation/playback testing. [E8]</p>
+<p>CI has read-only repository permissions and builds/tests as an ordinary user, but uses mutable <code>archlinux:latest</code>, <code>actions/checkout@v4</code> rather than a commit pin, rolling packages, and downloads then <strong>sources</strong> the current external omarchy-pkgs PKGBUILD in its dependency-install step. That external branch is executable CI input and weakens reproducibility. The observed package recipe pins the release archive by SHA-256 and lists Qt Multimedia/FFmpeg runtime dependencies that are not all evident from CMake’s linked components. No complete lockfile/SBOM or reproducible-build proof was found in the inspected application tree. [E8, E10]</p><h4>Evidence and Limits</h4><p>All source evidence is public. Static review cannot establish audible quality, sustained throughput, real-world cancellation, GPU isolation, absence of dependency vulnerabilities, accessibility, or legal clearance. No application/server probes, accounts, deployments or media downloads were performed. HTML/index checks validate the review artifacts, not Flowtunes itself.</p>
+<ul><li><strong>E1:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/README.md">README and product claims</a>.</li><li><strong>E2:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/flow.cpp">Flow implementation</a>.</li><li><strong>E3:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/flow.h">Flow constants</a> and <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/genres.cpp">genre presets</a>.</li><li><strong>E4:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/mpris.cpp">MPRIS</a> and <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/TunePlayer.qml">player</a>.</li><li><strong>E5:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/main.cpp">main</a>, <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/Main.qml">QML</a>, <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/theme.cpp">theme</a>.</li><li><strong>E6:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/src/models.cpp">Engine discovery, credentials and lifecycle</a>.</li><li><strong>E7:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/LICENSE">Application LICENSE</a>.</li><li><strong>E8:</strong> <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/tests/flowtunes_tests.cpp">Tests</a>, <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/.github/workflows/test.yml">CI configuration</a>, <a href="https://github.com/omacom/flowtunes/actions/runs/44940963110">exact-commit successful run</a>, <a href="https://github.com/omacom/flowtunes/releases/tag/v0.2.0">release</a>, <a href="https://api.github.com/repos/omacom/flowtunes">public metadata</a>.</li><li><strong>E9:</strong> Engine <a href="https://github.com/omacom/omarchy-local-ai/blob/e7fe801bc66dab37118baa8d4e06c5d786a3f45e/README.md">README</a>, <a href="https://github.com/omacom/omarchy-local-ai/blob/e7fe801bc66dab37118baa8d4e06c5d786a3f45e/recipes/ace-step-1.5-turbo-acestep.toml">model recipe</a>, <a href="https://github.com/omacom/omarchy-local-ai/blob/e7fe801bc66dab37118baa8d4e06c5d786a3f45e/runtimes/acestep.toml">runtime</a>, <a href="https://github.com/omacom/omarchy-local-ai/blob/e7fe801bc66dab37118baa8d4e06c5d786a3f45e/reviews/acestep-93d2296c887c.toml">upstream runtime review</a>.</li><li><strong>E10:</strong> <a href="https://github.com/omacom/omarchy-pkgs/blob/a673427cb54d9e98a0b2f282c2ef883c4e1be35c/pkgbuilds/flowtunes/PKGBUILD">Package recipe</a> and <a href="https://github.com/omacom/flowtunes/blob/8a9a76fde98f22e21ddd3f1286d2ecd120060675/CMakeLists.txt">CMake build</a>.</li></ul>
+
+<p><strong>Attribution:</strong> omacom/flowtunes; David Heinemeier Hansson; application code MIT. Related engine/package and alternative projects are attributed through their public source links. No source code or media is redistributed in this review.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Flowtunes</td><td>Preset-driven background music and Omarchy media keys</td><td>Minimal creative controls; depends on engine integration and generation speed</td></tr><tr><td><a href="https://github.com/ServeurpersoCom/acestep.cpp">acestep.cpp</a></td><td>Direct local music-generation server/browser UI</td><td>More direct generation workflow and platform/backend choices; not the same genre-radio desktop experience</td></tr><tr><td><a href="https://www.videolan.org/vlc/">VLC</a> with a licensed local library</td><td>Predictable playback without a model</td><td>No fresh AI generation, but avoids inference cost and model-weight provenance; music rights still matter</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a desktop application, not a web service to expose publicly. Building requires the declared CMake/Qt toolchain; operation also requires Qt Multimedia, FFmpeg and a compatible model engine for new songs. Omarchy packaging supplies these pieces, but package v0.2.0 is not identical to the reviewed master commit. Setup can download multi-gigabyte model artifacts and start or stop model services. No installation is recommended as part of this review; first verify compatible engine commands, hardware, authenticated endpoint routing, storage policy and component/content licenses. [E6, E8–E10]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>⚠️ <strong>Interesting — a thoughtful local-radio frontend, not yet a broadly proven music appliance.</strong> Queueing, atomic saves, failure handling and desktop integration are unusually deliberate for a two-day-old repository. Its usefulness still depends on an independently installed model engine, adequate generation speed, and acceptance of model/content provenance limits. “Local” can include a paired remote host, and the application itself does not enforce an offline or sandboxed boundary.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/omacom/flowtunes">omacom/flowtunes</a> · MIT code; separate model/content rights</span>
+    <span><a href="flowtunes.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
