@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omarchy Canary — Review</title>
+<meta name="description" content="Third-party Omarchy outage widget: cautious incident caching, not authoritative uptime monitoring.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omarchy-canary</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">shaggyrs6-netizen/omarchy-canary · reviewed 2026-11-22</div>
+    <h1>Omarchy Canary</h1>
+    <p class="one-liner">Third-party Omarchy outage widget: cautious incident caching, not authoritative uptime monitoring.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Python stdlib · QML · Quickshell</span>
+      <span class="chip"><a href="https://github.com/shaggyrs6-netizen/omarchy-canary">shaggyrs6-netizen/omarchy-canary ↗</a></span>
+      <span class="chip"><a href="omarchy-canary.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">5</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Not an official Omarchy canary release</h3><p>This is an independently owned outage-monitor widget. Official refers to provider feeds; no inspected evidence establishes Omarchy endorsement.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Careful caching and public-feed boundaries</h3><p>Missing incidents do not become false recoveries. Custom HTTPS feeds reject private and mixed DNS answers and use the checked address with hostname TLS verification.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Notification opt-in is not network opt-in</h3><p>Refreshes fetch all fifteen built-in feeds, even without subscriptions. Muted or failed notifications are not replayed, and disabling the widget is not a documented data purge.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Desktop</td><td>Qt Quick / Quickshell / Omarchy UI</td></tr><tr><td>Worker</td><td>Python 3 standard library</td></tr><tr><td>State</td><td>JSON + flock + atomic replacement</td></tr><tr><td>Notifications</td><td>notify-send; no durable delivery queue</td></tr><tr><td>Revision</td><td>42709a6a65011ca413caf3ec5c23972905500ce4 (v0.2.0)</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The repository belongs to <strong>shaggyrs6-netizen</strong>; the manifest names its author “Lee” and the MIT notice names Lee Shand. No inspected source establishes official Omarchy ownership, endorsement or affiliation. “Official” describes the upstream provider status feeds, not the plugin's institutional status. GitHub reports a public non-fork repository. [E1–E3]</p>
+<p>Opening the panel checks fifteen built-in service feeds, including GitHub, OpenAI, Claude, Cloudflare and cloud-provider notices. A country directory provides links rather than scraping account-specific ISP/power outages. Bundled local suggestions cover the US, UK, Canada and Australia; other countries can use global feeds and custom entries. Unsupported custom services become browser shortcuts, not monitored services. [E1, E4]</p>
+<p>Favourites, alert subscriptions and polling are separate controls. Background polling and reachability probes default off; subscribing controls alerts and the bar indicator, <strong>not which built-in feeds are fetched</strong>. All fifteen built-ins are due on an ordinary refresh, subject to backoff. Opening the panel therefore causes third-party network traffic even without subscriptions. [E4, E5]</p>
+<h4>Conservative incident state</h4>
+<p>The first successful feed check establishes a quiet baseline. New incidents, increased severity/component scope and explicit resolutions can notify. Missing incidents remain cached rather than turning into false recoveries; AWS/Azure are notices, not health assertions. UI freshness uses a fifteen-minute window and distinguishes unknown status and cached incidents. A green indicator means no reported active incidents among selected, currently known feeds—not proven uptime. Amber/red count affected selected services, not outage severity. Fixtures support the lifecycle and failure-retention claims. [E4–E6]</p>
+<h4>Bounded failure isolation</h4>
+<p>Fetch bodies are limited to 4 MiB. Built-in requests have five-second socket timeouts; the refresh batch has an eighteen-second deadline with daemon worker threads. Failed feeds back off from five to thirty minutes, retaining prior incidents. Custom-feed detection has a seven-second outer deadline. These are useful bounds, but there is no global custom-service count or worker-pool limit: many selected custom entries spawn many concurrent threads. [E4]</p>
+<h4>Alerts are best-effort, not a queue</h4>
+<p>Quiet hours (22:00–08:00) and one-hour snooze suppress notifications while state still advances. There is no later replay of those transitions. State is saved before notify-send, whose ordinary nonzero result is ignored; a failed notification therefore is not retried. The test-alert path does report success/failure and intentionally bypasses pause/subscription settings. This is acceptable convenience behavior, not guaranteed alert delivery. [E4, E6]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>BarWidget draws the bird and loads Dashboard. Dashboard holds the view model, navigation and timers, delegates work to one Python process at a time, and parses its JSON output. Background polling runs every five minutes only while the bar exists. With background disabled, an open panel's minute timer requests visits, while Python normally rate-limits refreshes to 270 seconds. A startup poll loads/saves local state even when background network work is disabled. [E4, E5]</p>
+<p>The helper normalizes RSS, Statuspage, Google and Slack incidents into one schema, merges against prior state, computes changes and renders a JSON view. State locking waits at most two seconds; network work can hold that lock for longer, so competing instances can fail rather than wait indefinitely. QML's busy guard drops overlapping requested actions rather than queuing them. Local Quickshell IPC exposes status/indicator JSON and show/hide/preview functions; this is desktop IPC, not an internet service or separately authenticated API. [E4, E5]</p>
+<p>- <strong>Good URL boundary for custom feeds:</strong> only recognized HTTPS Statuspage paths on port 443 qualify. DNS answers must all be public; private/mixed answers, multicast and disallowed IPv6 ranges are rejected. The checked address is connected directly, preserving hostname TLS verification without a second DNS lookup. No proxies or redirects are used on this path. Tests verify private/mixed-address rejection, not the complete real TLS flow. [E4, E6]<br>- <strong>Different browser boundary:</strong> custom shortcut validation allows HTTP/HTTPS, including private destinations, query strings and fragments; credentials in URL authority and other schemes are rejected. These shortcuts open only on user action through the default browser, where browser cookies, login and tracking rules apply. Do not paste sensitive signed/query-token URLs: the URL is retained in local state. Backend public-address restrictions do not make browser navigation safe or private. [E4, E5]<br>- <strong>Built-ins differ:</strong> their fixed HTTPS URLs use urllib, disallow redirects and retain standard certificate checks, but inherit normal proxy behavior; the custom-feed DNS/proxy policy does not cover this fetch path. Optional Google/Cloudflare connectivity requests reveal the normal client IP/request metadata, as do provider feed requests. A successful feed also suffices for the refresh's “reachable” result; this is not a comprehensive connectivity diagnosis. [E4]<br>- <strong>No observed telemetry collector or credential store:</strong> local state contains country, favourites, custom names/URLs, alert settings and cached public incidents. Providers receive requests; clicked provider pages may separately require accounts or location information. Diagnostics emit feed ID and error type/HTTP code rather than response bodies. Notifications can expose service names and incident transitions to the desktop notification history. [E4–E6]<br>- <strong>Execution trust remains broad:</strong> QML and Python run as the desktop user, without a repository-defined sandbox or permission manifest. There is no observed sudo, system-service installation, shell-interpolated command construction or downloaded executable execution in this tree. Plain-text QML rendering and label cleaning reduce markup injection; subprocess arguments are arrays, with notify-send's option terminator. Installing/updating the plugin still trusts repository code with session access. [E2, E4, E5]<br>- <strong>Small dependency surface, not reproducible supply-chain proof:</strong> Python uses only its standard library and there are no pip/npm dependencies or lockfiles. Host Python, Qt/Quickshell, Omarchy components and notify-send determine runtime compatibility. v0.2.0 has no uploaded release assets; no CI workflow, SBOM, build attestation or project-enforced signature verification was found. Tag/commit identity was checked, not cryptographic signer authenticity. [E2, E7]</p>
+<p>Public GitHub metadata retrieved 2026-11-22: created 2026-11-20, last push 2026-11-21T11:45:52Z, 5 stars, 0 forks and 0 open issues. These are snapshot activity signals, not quality evidence. The only release returned was v0.2.0, published 2026-11-21T11:46:08Z; its annotated tag peels to the reviewed SHA. Its release notes claim eleven tests and Omarchy plugin validation; we reproduced the eleven Python tests, <strong>not</strong> plugin validation or screenshot behavior. [E3, E7]</p>
+<p>The suite covers parser/lifecycle behavior, missing incidents, bad and stalled feeds, bounded subprocess exit, failed serialization, custom entry persistence/removal, private-DNS rejection and mocked notification arguments. It ran with an empty environment, read-only source/system runtime, isolated temporary storage and no network or host home/session sockets. No source installation occurred. QML rendering, IPC access, supported Omarchy version, TLS endpoint compatibility, provider feed accuracy, notification delivery, update/uninstall and long-running polling remain unverified. No CI configuration or QML integration tests were present in the reviewed tree. [E6]</p>
+<p>All code citations below are pinned to the reviewed revision. Public accessibility was checked without account authentication; canonical URL and existing review/index entries were checked for duplication.</p>
+<p>- <strong>E1:</strong> <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/blob/42709a6a65011ca413caf3ec5c23972905500ce4/README.md">README and advertised operational behavior</a>.<br>- <strong>E2:</strong> <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/blob/42709a6a65011ca413caf3ec5c23972905500ce4/manifest.json">Manifest</a> and <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/blob/42709a6a65011ca413caf3ec5c23972905500ce4/LICENSE">MIT license</a>.<br>- <strong>E3:</strong> <a href="https://api.github.com/repos/shaggyrs6-netizen/omarchy-canary">Public repository metadata</a> (mutable snapshot).<br>- <strong>E4:</strong> <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/blob/42709a6a65011ca413caf3ec5c23972905500ce4/outages.py">Python helper</a>: SOURCES, fetch, service_url, fetch_custom_feed, completed_checks, merge, refresh, save and main.<br>- <strong>E5:</strong> <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/blob/42709a6a65011ca413caf3ec5c23972905500ce4/Dashboard.qml">Dashboard</a> and <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/blob/42709a6a65011ca413caf3ec5c23972905500ce4/BarWidget.qml">bar widget</a>.<br>- <strong>E6:</strong> <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/blob/42709a6a65011ca413caf3ec5c23972905500ce4/tests/test_outages.py">Eleven fixture tests</a>.<br>- <strong>E7:</strong> <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/releases/tag/v0.2.0">v0.2.0 release</a> (author claims) and <a href="https://github.com/shaggyrs6-netizen/omarchy-canary/tree/42709a6a65011ca413caf3ec5c23972905500ce4">reviewed tree</a>.</p>
+<hr>
+<p><strong>Attribution:</strong> shaggyrs6-netizen/omarchy-canary; manifest author Lee; copyright Lee Shand; MIT. Independent review; no official affiliation implied.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Provider subscriptions / RSS</td><td>Less shell trust; still upstream notices</td></tr><tr><td>Uptime Kuma</td><td>Independent endpoint checks; separate hosting</td></tr><tr><td>Gatus</td><td>Declarative monitoring; service configuration overhead</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The README delegates installation/enabling and Git-managed updates to Omarchy's plugin manager using ID <strong>shaggyrs6.service-outages</strong>. Its advertised commands add/enable this repository, update that ID, optionally restart the shell for refreshed controls, or disable the widget. <strong>None was executed.</strong> The plugin-manager implementation is outside this review: exact manager config/file changes and update-ref behavior are not established by this repository. No independent installer, package hook, cron job or systemd unit appears in the source tree. [E1, E2]</p>
+<p>The helper creates <strong>$XDG_STATE_HOME/omarchy-service-outages</strong>, falling back to <strong>~/.local/state/omarchy-service-outages</strong>, with state.json and a lock file. A newly created state directory requests mode 0700; temporary state files use tempfile's restrictive defaults. Existing directory modes are not repaired. Same-directory replacement protects the old JSON against a failed serialization, which the tests verify; it is not fsync-backed power-loss durability, versioned backup or encryption. [E4, E6]</p>
+<p>Malformed state JSON is not quarantined or automatically repaired: loading it raises an error. There is no schema migration/version, previous-state copy or code rollback mechanism. Updates reuse the state; backward compatibility is unproven. A careful operator should keep a separate state backup and known-good source revision before evaluation. Recovery may require disabling the widget, restoring a validated state backup or starting a new state directory, losing preferences/history. This is operational advice, not a tested recovery procedure. [E4]</p>
+<p>Disabling stops widget operation but is not documented as deleting state or removing plugin files. Removing a custom entry explicitly clears its subscription and incident history; unpinning does not. The README does not supply a complete uninstall/data-purge or release-rollback procedure. Confirm those steps in the installed Omarchy manager before adoption rather than assuming disable is uninstall. [E1, E4]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A defensively implemented desktop convenience with eleven passing offline tests. Broad desktop-session trust, best-effort alerts and incomplete rollback documentation keep this an evaluation candidate rather than a sole incident detector.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/shaggyrs6-netizen/omarchy-canary">shaggyrs6-netizen/omarchy-canary</a> · MIT</span>
+    <span><a href="omarchy-canary.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
