@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cover Your AIs — Review</title>
+<meta name="description" content="One Markdown checklist for auditing coding-agent blast radius—not a scanner or security boundary.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / cover-your-ais</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">jdpru/cover-your-ais · reviewed 2026-11-22</div>
+    <h1>Cover Your AIs</h1>
+    <p class="one-liner">One Markdown checklist for auditing coding-agent blast radius—not a scanner or security boundary.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">No license specified</span>
+      <span class="chip">Markdown · external coding agent</span>
+      <span class="chip"><a href="https://github.com/jdpru/cover-your-ais">jdpru/cover-your-ais ↗</a></span>
+      <span class="chip"><a href="cover-your-ais.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">22</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">4</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>The product is a prompt</h3><p>Two tracked Markdown files; one eleven-area checklist. No executable scanner, service, database, dependencies, tests, or CI.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Approval prose is not enforcement</h3><p>Audit first, no credential use, then approved in-repo fixes is a sensible plan. Filesystem isolation, provider privacy, authentication and tool permissions remain the host agent’s responsibility.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Good controls, unproven efficacy</h3><p>Least privilege and independent backups are concrete recommendations. The warning-effectiveness claim has no study citation, and there is no benchmark or general reuse license.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Content</td><td>README + one audit prompt</td></tr><tr><td>Execution</td><td>User-selected coding agent; no bundled runtime</td></tr><tr><td>Security</td><td>External sandbox, credentials and approval controls</td></tr><tr><td>Revision</td><td>aafd6217a61071beca2faa191e692bfc44651991; static review</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>The public owner, <strong>jdpru</strong>, describes a collection of prompts for catching AI-related mistakes. At this revision there is only one prompt. A person copies it into an existing coding agent, initially read-only, then reviews findings before approving fixes. The README explicitly says prompts are not security boundaries. [S1]</p><p>The checklist covers production databases in test configuration, readable production credentials, destructive cleanup, infrastructure deletion and backups, prose-only rules, GitHub permissions, cloud-synced directories, MCP/hooks/skills, privileged AI CI jobs, approval bypasses, and money/message tools. It asks for file-and-line evidence, hazard explanations, remediation, and blast-radius prioritization. These are instructions to another model, not implemented detectors. [S2]</p><h4>Audit before modification</h4><p>The prompt requests no changes initially, no secret values in output, no credential use, approval before fixes, and only in-repository edits; account/token/settings changes become manual steps. This is a good workflow specification. It cannot itself enforce read-only access, prevent tool execution, or constrain approval scope. The final instruction to add command warnings should be interpreted as proposed remediation under the earlier approval gate, not immediate edit authority. [S2, lines 6–7 and 42]</p><h4>Real blast-radius controls</h4><p>The advice to use read-only database roles, narrowly scoped credentials, branch protection, deletion protection, and backups outside an agent token’s deletion authority is more useful than another “be careful” system prompt. The checklist also recognizes that shell aliases are not reliable agent controls and calls out untrusted CI inputs and MCP supply-chain exposure. None of these controls is provisioned or verified by repository code. [S2, lines 18–25 and 30–40]</p><h4>Claims need qualification</h4><p>The final sentence invokes “the study” and claims hazard-and-consequence warnings reduced agent harm much more than repeated rules. Neither tracked file identifies a study, author, URL, sample, baseline, or measured outcome. Treat this as an unsupported claim in this repository, not an independently reproduced result. Warnings may help users and agents, but are not access controls. [S2, line 42]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture and Execution Boundaries</h4><p>The entire flow is <strong>human → external coding agent → local files/tool results → findings → human approval → in-repo edits</strong>. There is no CLI, server, API, plugin protocol implementation, background worker, or executable entry point. There are no bundled tests, CI workflows, evaluation fixtures, or dependency installers. Repository text includes shell examples, but this review did not execute them. [S1, S2, S3]</p><h4>Permissions, authentication, and prompt injection</h4><p>The audit’s requested scope is wider than a repository: it names shell-readable cloud/CLI credential locations, default contexts, GitHub scopes, and branch protection. Those checks can conflict with the explicit no-credential-use rule when current settings require authenticated queries. A safe interpretation is to report unavailable evidence and leave authenticated checks to the operator, rather than silently broaden privileges. Read-only filesystem access still permits disclosure. [S2, lines 7, 12, 24]</p><p>No mechanism distinguishes untrusted repository instructions from authoritative audit policy. Host agents must independently resist prompt injection from files, hooks, and tool output. Even in-repository fixes can change CI, hooks, or symlink targets with effects outside the repo; “in-repo” is not a sufficient execution boundary. Actual tool restrictions, isolated credentials, network policy, and diff review remain necessary. These are architectural limitations, not demonstrated exploits.</p><h4>Credentials, privacy, and egress</h4><p>This repository itself has no telemetry, remote endpoint, authentication backend, or credential storage. The chosen coding agent may transmit file contents and tool output to a model provider or retain them in logs. “Do not print secrets” only constrains intended reporting, not what tools read or what enters model context. Even names, file paths, account identifiers, and findings can reveal sensitive architecture. Prefer a redacted repository snapshot, metadata-only checks, and separately performed operator checks for host credentials; do not give this checklist broad home-directory access by default. Provider retention and egress behavior are outside the source evidence.</p><h4>Remediation is a starting point, not a safe patch generator</h4><p>- A database hostname that looks local does not prove a disposable database: tunnels and proxies can reach production. Use a dedicated database identity and environment-specific guard, not hostname alone.<br>- Ignoring a leaked key does not erase Git history or revoke it. The prompt correctly mentions rotation, but incident response must address history, artifacts, logs, and downstream copies separately.<br>- Shell strict mode and resolved-path checks need shell-aware implementation, failure tests, and handling of symlink/race conditions; strict mode is not universally compatible.<br>- Terraform lifecycle protection and provider deletion protection have different guarantees; do not treat them as interchangeable. Do not delete or archive state casually without backend ownership and recovery planning.<br>- Unicode removal and unknown-hook deletion require review: invisible characters can be legitimate, and removing integration files can break workflows.</p><p>These caveats qualify the generic fix recipes; no vulnerable target environment was examined. [S2, lines 9–19 and 30–31]</p><h4>Persistence and Recovery</h4><p>No persistent service, audit database, transactional edit mechanism, checkpoint, undo feature, or recovery workflow is shipped. Findings and edits persist only through the external agent, its logs, and the target repository. Backups are recommended, not created or restore-tested. Before any real remediation, retain a clean diff baseline and independent backups; approval should be per reviewed change. The project cannot prove rollback or recover an already destroyed database.</p><h4>Supply Chain, Costs, License, and Maturity</h4><p>The tracked tree has two Markdown files and no third-party runtime dependencies, package scripts, lockfiles, vendored code, or CI. Copying a pinned revision avoids unnoticed prompt drift, but does not pin or secure the host agent, its model, MCP servers, or hooks. The prompt appropriately flags unpinned MCP packages and permission-bypass switches. [S2, S3]</p><p>Public API checks on 2026-11-22 returned 22 stars, 4 forks, zero open issues, an empty all-issues result, no releases or tags, and two commits in the returned history. Last push was 2026-11-21T23:24:56Z. This is a very small early collection, not evidence of a validated audit product. Counts can change and are not quality metrics. No evaluation data establishes detection coverage, false positives, model portability, or remediation safety. [S4]</p><p>There is no service subscription or bundled inference dependency. Running the prompt may consume paid model tokens or agent subscriptions, with costs depending on context size, tool behavior, and provider. No cost benchmark or budget control is provided.</p><p>No LICENSE file or license declaration was found, and GitHub metadata returned no license. The README invites copying into a coding agent, but does not supply general open-source redistribution/modification terms. This review analyzes and links the work rather than republishing its prompt. Obtain explicit terms before packaging it into another product.</p><h4>Verification and Limits</h4><p>Verified unauthenticated public accessibility and canonical repository identity; read both tracked files at the exact SHA; inspected tree, commit metadata, releases, tags, and issues. The source instructions were treated as evidence, not executed. No runtime tests are applicable to a Markdown-only implementation, and no synthetic model evaluation was attempted. Findings are a static assessment of the checklist’s design and missing guarantees, not a penetration test or proof of harm reduction. Publication markup and consistency checks are separate from source efficacy testing.</p><h4>Sources</h4><p>- <strong>S1:</strong> <a href="https://github.com/jdpru/cover-your-ais/blob/aafd6217a61071beca2faa191e692bfc44651991/README.md#L1-L15">README at reviewed SHA</a>.<br>- <strong>S2:</strong> <a href="https://github.com/jdpru/cover-your-ais/blob/aafd6217a61071beca2faa191e692bfc44651991/prompts/ai-codebase-safety-audit.md#L1-L43">Complete audit prompt at reviewed SHA</a>.<br>- <strong>S3:</strong> <a href="https://github.com/jdpru/cover-your-ais/tree/aafd6217a61071beca2faa191e692bfc44651991">Tracked tree at reviewed SHA</a>.<br>- <strong>S4:</strong> Public GitHub API: <a href="https://api.github.com/repos/jdpru/cover-your-ais">repository</a>, <a href="https://api.github.com/repos/jdpru/cover-your-ais/commits">commits</a>, <a href="https://api.github.com/repos/jdpru/cover-your-ais/releases">releases</a>, <a href="https://api.github.com/repos/jdpru/cover-your-ais/tags">tags</a>, <a href="https://api.github.com/repos/jdpru/cover-your-ais/issues?state=all">issues</a>. Retrieved 2026-11-22 UTC; mutable metadata.</p><p>---</p><p><strong>Attribution:</strong> jdpru/cover-your-ais. No license specified; original analysis, no prompt extraction.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Cover Your AIs</td><td>Broad model-dependent checklist; no enforcement</td></tr><tr><td><a href="https://github.com/gitleaks/gitleaks">Gitleaks</a></td><td>Focused secret scanning</td></tr><tr><td><a href="https://github.com/zizmorcore/zizmor">zizmor</a></td><td>GitHub Actions static analysis</td></tr><tr><td>Sandbox / least privilege</td><td>Enforce boundaries; complement checklists and scanners</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is nothing to deploy or self-host here. The operational choice is which already-controlled agent, if any, receives the checklist and what sanitized evidence it can read. Start with a human review of the prompt and read-only, secret-free inputs. Do not run target tests, hooks, installers, cloud CLIs, or production probes merely to satisfy the checklist. This review did none of those actions.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Useful audit-first structure and emphasis on controls outside the model. No enforcement or efficacy evaluation, an uncited study claim, and sensitive host-inspection scope make this a human-review aid, not a safety certification.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/jdpru/cover-your-ais">jdpru/cover-your-ais</a> · No license specified</span>
+    <span><a href="cover-your-ais.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
