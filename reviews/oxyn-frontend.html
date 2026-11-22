@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oxyn frontend — Review</title>
+<meta name="description" content="Animated React loaders for agent activities—not an agent runtime.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / oxyn-frontend</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">lokidotdev/oxyn-frontend · reviewed 2026-11-22</div>
+    <h1>Oxyn frontend</h1>
+    <p class="one-liner">Animated React loaders for agent activities—not an agent runtime.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT claimed; license text missing</span>
+      <span class="chip">React · TypeScript · Canvas · Cloudflare</span>
+      <span class="chip"><a href="https://github.com/lokidotdev/oxyn-frontend">lokidotdev/oxyn-frontend ↗</a></span>
+      <span class="chip">Static review · <a href="https://github.com/lokidotdev/oxyn-frontend/commit/692ce83bfb0b3db89b1de5182eea1c77bd70362d">692ce83bfb0b</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">13</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Meaningful motion, supplied by the application</h3><p>The playground models reading, searching and other activities. It does not observe agent execution; MCP only returns catalog data and installation instructions.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Good lifecycle and packaging ideas</h3><p>Canvas animation sleeps offscreen, respects reduced motion and cleans up observers. AST-based generation shares internal helpers while shipping standalone component source.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>License and deployment boundaries need work</h3><p>MIT is claimed but no license file was found. Install counts use stable pseudonymous hashes; optional analytics and public MCP input handling warrant deliberate controls.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Catalog and playground</td><td>React 19, TypeScript, TanStack Router/Query, Tailwind 4, Motion</td></tr>
+<tr><td>Rendering</td><td>Canvas 2D and requestAnimationFrame; shared scene/geometry helpers</td></tr>
+<tr><td>Server</td><td>TanStack Start SSR bundled for Cloudflare Workers</td></tr>
+<tr><td>Distribution</td><td>TypeScript-AST inlining, shadcn registry JSON, source copying</td></tr>
+<tr><td>Discovery</td><td>JSON catalog, llms.txt / llms-full.txt, stateless HTTP MCP</td></tr>
+<tr><td>External content API</td><td>Configurable API origin for banners, SEO and install counts; implementation absent</td></tr>
+<tr><td>Persistent database</td><td>None implemented in this frontend; backend storage unknown</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Oxyn replaces a generic indeterminate spinner with motions for reading, searching, writing, thinking, transferring and other states. Developers supply the actual state; the animations do not inspect an agent or prove that work is happening. Shape families include dots, circles, squares, arcs, bars and noise. The About page explicitly excludes determinate progress, skeleton screens and non-React frameworks. [1,2]</p>
+<p>The site provides component previews, parameter controls, usage snippets, generated source, installation commands, machine-readable catalog/docs and two read-only MCP discovery tools. The copy/install workflow is distinct from running a backend. The README appears extracted from a larger layout: its parent README and CONTRIBUTING links do not resolve to files in this checkout. [1,3]</p>
+<h4>State-oriented loaders, not agent execution</h4>
+<p>State definitions centralize names, props, usage and component loading. Group components morph between animations; single components cover one state. The playground persists changed parameters to the URL after a 200 ms debounce. Numeric values are clamped, select values checked, colors restricted to six-digit hex and toggles coerced. This is useful bounded UI input handling, not general API validation. [2,4]</p>
+<h4>A reusable animation lifecycle</h4>
+<p>LoaderCanvas owns interpolation, shape cross-fades, pause/resume, device-pixel-ratio limiting, visibility observers and cleanup. It stops drawing offscreen or in hidden tabs and holds motion still for reduced-motion preferences. The wrapper carries a status role and label. These are concrete implementation strengths, not proof of screen-reader correctness, low CPU use across devices or accessible announcements in a real application. [5]</p>
+<h4>Single-file distribution from shared internals</h4>
+<p>The build walks state definitions, inlines reachable library declarations using TypeScript's AST, checks duplicate/shadowed names, writes generated components and imports each output to check that its named export is a function. The Vite plugin serves the same inlined source to the playground. This reduces divergence between preview and distributed files. The inliner deliberately supports a restricted import/declaration vocabulary, rather than being a general bundler. Its smoke check does not render a component or test its behavior. [6]</p>
+<h4>MCP is discovery, not installation authority</h4>
+<p>The embedded handler exposes search_loaders and get_loader, returning descriptions, props, usage and a shadcn command. It does not execute that command, access a filesystem, call a model or control tools. Search is lexical token scoring, not embedding/model inference. The public endpoint has wildcard CORS and no application authentication; that is a public catalog boundary, not evidence of missing protection on an unseen administration API. [7]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p>State catalog → playground/docs/MCP and registry generator → standalone React component files → static registry assets. The Cloudflare Worker serves registry assets before optionally recording CLI-looking downloads; other requests enter TanStack Start SSR. API-backed banner and SEO reads have a three-second timeout and fallback values, so unavailable metadata need not prevent registry-driven pages from rendering. [3,6–9]</p>
+<p>There is no backend directory, account system, model integration, worker queue or database schema in this repository. README/environment comments refer to a separate backend without supplying its implementation. Public open PR #11 mentions future sponsor integration with a backend change; it is unmerged and excluded from this revision. No claims about payments, backend access control, retention or migrations are inferred from it. [10]</p>
+<h4>Security, Privacy and Permissions</h4><p>- <strong>Public MCP robustness:</strong> JSON parsing is caught, but the parsed value is cast rather than structurally validated. JSON null or a batch containing null reaches property access in the filter and can throw. No application-level request-body/batch limit, rate limiter or Origin check is visible in this handler. Platform limits may exist, but were not inspected. This is a static error-handling/abuse concern, not a demonstrated exploit or claim of host compromise. [7]<br>- <strong>API trust:</strong> getJson casts successful JSON to the requested type. Banner URLs flow directly to an anchor without an explicit scheme/host allowlist; banner text is ordinary React text. Treat the configured content API and its administrators as trusted publishers, validate its responses and allowed URLs, and do not infer an XSS exploit from this observation alone. [8]<br>- <strong>Server secret boundary:</strong> INSTALLS_TOKEN is read from the Worker environment and sent to the configured API as a header when present. It is not the Vite public environment namespace. Missing token does not stop the frontend from attempting the POST; whether the backend rejects it is unknown. Keep API-origin configuration trusted and use HTTPS so a server credential is not sent to an unintended endpoint. No credentials were exercised. [9]<br>- <strong>Install telemetry:</strong> for successful GETs of registry items with a non-Mozilla user agent, the Worker POSTs a stable, unsalted SHA-256 of IP plus user-agent and the slug to the API. This is pseudonymous, linkable telemetry—not anonymization. The outbound JSON does not include the raw IP, but Cloudflare/hosting necessarily handles the request and observability is enabled. User-agent classification and the fallback address are heuristics, not reliable unique-install accounting. Retention and deduplication are backend unknowns. [9]<br>- <strong>Other egress:</strong> the browser queries GitHub's API for star count. Optional production Umami configuration injects an external script with page privileges; unset both values to omit it. The API receives metadata queries; analytics and hosting may observe URL parameters. The example analytics values are configuration, not proof of deployed tracking. No deployed privacy policy or traffic was tested. [8,11]<br>- <strong>Local storage and permissions:</strong> theme preference is stored in localStorage; playground settings are URL search state. Copy buttons use the clipboard for user-selected snippets. No agent secrets, login session store or user document persistence was found in the inspected frontend flows. Browser permissions and actual data handling in the external analytics script are not established by this repository. [4,11]</p>
+<h4>Persistence and Recovery</h4><p>Theme survives reload locally; changed playground props can be restored from a copied URL. Animation clocks/shapes and query caches are ephemeral application state, not durable job state. Hidden-tab resume and component cleanup are explicit. Metadata failures degrade to defaults. Install reporting runs through waitUntil, catches failures and has no visible retry/outbox or response-status handling, so counts can be lost without breaking downloads. No backup, restore, migration or durable execution guarantee is provided here. [4,5,8,9]</p>
+<h4>Supply Chain, License and Maturity</h4><p>The committed pnpm lockfile gives dependency-resolution evidence; package ranges alone are not reproducibility guarantees. Workspace configuration allows build steps for esbuild, lightningcss and workerd. Build tooling executes imported project modules and generated components, so installation/build belongs in a trusted isolated environment. Displayed install commands use shadcn@latest and a mutable remote registry URL; pin and inspect tool versions and generated source before adopting. This review did not run a vulnerability audit or certify dependency safety. [3,6,12]</p>
+<p>The About page calls the project early/pre-1.0 and MIT-licensed; structured data repeats MIT. The tracked tree has no LICENSE/COPYING file and package.json has no license field. That mismatch is a practical reuse blocker, not a claim that the author intended proprietary licensing. Font assets and dependencies also need their own applicable terms checked. No code extraction was made. [1,12]</p>
+<p>Public GitHub metadata retrieved 2026-11-22 reports creation 2026-11-04, last repository push 2026-11-21, 13 stars and 2 forks. Default-branch HEAD is the November 13 UTC merge named above; a later repository push is not evidence that main advanced. Releases and tags endpoints were empty. The one open item was PR #11, not a bug issue. These are time-bound metadata, not quality signals. [10,13]</p>
+<p>No tracked automated test suite or GitHub Actions workflow was found. Scripts include typecheck and a build-time export smoke check, but neither was run. Documentation includes design notes, while the root README omits standalone deployment detail and points outside this tree. MCP interoperability, parameter edge cases, SSR/build success, frame performance and assistive-technology behavior remain unverified.</p>
+<h4>Evidence and Verification Limits</h4><p>All source citations below refer to the exact reviewed SHA. Public GitHub REST metadata was fetched without account-dependent access. Canonical URL normalization removed the supplied .git suffix; no existing canonical review was found in the public library/index. This is static inspection, not a penetration test, complete backend audit or assurance of the deployed service.</p>
+<p>1. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/README.md">README</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/features/about/about-page.tsx">About implementation</a>.<br>2. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/features/states/index.ts">State catalog</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/features/states/groups.ts">groups</a>.<br>3. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/package.json">Package scripts</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/.env.example">environment example</a>.<br>4. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/features/playground/use-param-state.ts">Parameter state</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/shared/lib/params.ts">coercion</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/routes/components.%24slug.tsx">component route</a>.<br>5. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/registry/lib/loader-canvas.tsx">LoaderCanvas</a>.<br>6. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/scripts/registry/build.ts">Registry build</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/scripts/registry/inline.ts">inliner</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/scripts/registry/vite-plugin.ts">Vite plugin</a>.<br>7. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/features/ai/mcp.ts">MCP implementation</a>.<br>8. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/shared/lib/api.ts">API client</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/features/announcements/announcement-bar.tsx">banner</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/features/seo/seo.ts">SEO</a>.<br>9. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/server.ts">Worker and install telemetry</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/wrangler.jsonc">Worker configuration</a>.<br>10. <a href="https://github.com/lokidotdev/oxyn-frontend/pull/11">Open PR #11</a>, <a href="https://api.github.com/repos/lokidotdev/oxyn-frontend/issues?state=open">open-item metadata</a> (mutable; retrieved 2026-11-22).<br>11. <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/routes/__root.tsx">Root/analytics</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/shared/ui/site-header.tsx">star-count fetch</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/shared/lib/theme.ts">theme</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/src/shared/lib/site.ts">site origin</a>.<br>12. <a href="https://github.com/lokidotdev/oxyn-frontend/tree/692ce83bfb0b3db89b1de5182eea1c77bd70362d">Tracked tree</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/pnpm-workspace.yaml">workspace build permissions</a>, <a href="https://github.com/lokidotdev/oxyn-frontend/blob/692ce83bfb0b3db89b1de5182eea1c77bd70362d/pnpm-lock.yaml">lockfile</a>.<br>13. <a href="https://api.github.com/repos/lokidotdev/oxyn-frontend">Repository metadata</a>, <a href="https://api.github.com/repos/lokidotdev/oxyn-frontend/releases">releases</a>, <a href="https://api.github.com/repos/lokidotdev/oxyn-frontend/tags">tags</a> (mutable; retrieved 2026-11-22).</p>
+<hr>
+<p><strong>Attribution:</strong> lokidotdev/oxyn-frontend; MIT claimed, explicit repository license text not found. Independent analysis; no source-code extraction.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td><p>Alternative</p></td><td><p>Prefer it when</p></td><td><p>Tradeoff versus Oxyn</p></td></tr>
+<tr><td><p><a href="https://github.com/davidhu2000/react-spinners">react-spinners</a></p></td><td><p>You need conventional React loading indicators</p></td><td><p>Less agent-state-specific visual vocabulary; simpler conventional spinner focus</p></td></tr>
+<tr><td><p><a href="https://ui.shadcn.com/docs/components/spinner">shadcn/ui Spinner</a></p></td><td><p>You already use shadcn and need one clear loading affordance</p></td><td><p>Does not provide Oxyn's rich scene/morphing catalog</p></td></tr>
+<tr><td><p><a href="https://github.com/motiondivision/motion">Motion</a></p></td><td><p>You need a general React animation toolkit</p></td><td><p>More implementation work for agent-state semantics; broader animation control</p></td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The supplied deployment targets Cloudflare Workers with static asset binding and /r/* routed through the Worker. It is not just a folder of static HTML. Keep component-only consumption separate from hosting the catalog: installed components are designed around React without the site's server stack. [6,9,12]</p>
+<p>Before hosting: resolve licensing; review dependencies; configure the content API and optional server token; disable unwanted analytics; decide whether install telemetry is needed; add bounded MCP validation and operational controls. REGISTRY_HOMEPAGE configures generated registry metadata, but SITE_URL is separately hardcoded to the upstream origin and used for canonical/docs/MCP URLs—changing one environment variable does not fully rebrand a deployment. The browser playground substitutes its current origin for install commands, while discovery helpers use the constant. No account, deployment or integration was created. [3,7,11]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the shared animation lifecycle and single-file registry generator. Clarify missing explicit license terms before reuse; backend guarantees, MCP interoperability and runtime performance remain unverified.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/lokidotdev/oxyn-frontend">lokidotdev/oxyn-frontend</a> · MIT claimed; license text missing</span>
+    <span><a href="oxyn-frontend.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
