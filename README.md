@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [locals.md](reviews/locals.md) [page](reviews/locals.html) | [Generated-Computers/Locals](https://github.com/Generated-Computers/Locals) | Apache-2.0; model/third-party terms | ⚠️ Interesting | Apple-silicon batched agent inference; write-only confinement, persistent prompts and qualified speed claims. Static review. |
 | [osiris.md](reviews/osiris.md) [page](reviews/osiris.html) | [simplifaisoul/osiris](https://github.com/simplifaisoul/osiris) | MIT; component/data terms | ⚠️ Interesting | OSINT map and BYOK forecasts; public API boundaries, telemetry, ephemeral runs and unverified calibration. Static review. |
 | [cover-your-ais.md](reviews/cover-your-ais.md) [page](reviews/cover-your-ais.html) | [jdpru/cover-your-ais](https://github.com/jdpru/cover-your-ais) | No license specified | 📚 Study | One agent-safety audit prompt; useful blast-radius checklist, prose-only gates, sensitive inspection scope and uncited efficacy claim. Static review. |
 | [wland.md](reviews/wland.md) [page](reviews/wland.html) | [pithings/wland](https://github.com/pithings/wland) | MPL-2.0 + MIT; component terms | ⚠️ Interesting | Browser/headless Wayland compositor; unauthenticated takeover, Chromium sandbox disabling and disposable-session caveats. Static review. |

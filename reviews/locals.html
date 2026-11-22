@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Locals — Review</title>
+<meta name="description" content="Apple-silicon inference for concurrent agents—not a confidential execution sandbox.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / locals</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Generated-Computers/Locals · reviewed 2026-11-22</div>
+    <h1>Locals</h1>
+    <p class="one-liner">Apple-silicon inference for concurrent agents—not a confidential execution sandbox.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; separate model and third-party terms</span>
+      <span class="chip">Python · MLX · Metal</span>
+      <span class="chip"><a href="https://github.com/Generated-Computers/Locals">Generated-Computers/Locals ↗</a></span>
+      <a class="chip" href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/README.md">Source: 40be249</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">548</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">43</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real batching, qualified speedups</h3><p>Author measurements show 3.1× aggregate throughput at eight requests on one M2 Pro workload, but nearly parity at one request. Not an independently reproduced universal speedup.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Write confinement is not confidentiality</h3><p>The macOS profile restricts writes but broadly permits reads and networking; subprocesses inherit environment. Local inference does not make untrusted projects or generated commands safe.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery and tests have boundaries</h3><p>Prompt states persist unencrypted. Write-back can occur without a check and is not a multi-file transaction; public fast-suite success does not validate model performance.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Python ≥3.11, MLX/mlx-lm, custom Metal</td></tr><tr><td>API</td><td>OpenAI, Anthropic and Ollama dialects; loopback default, no user auth</td></tr><tr><td>State</td><td>RAM prefixes; safetensors and token JSON on disk</td></tr><tr><td>Reviewed SHA</td><td>40be24966d08938c6236cb146f9691930264141d</td></tr><tr><td>Release</td><td>Metadata 0.2.2; reviewed main differs from v0.2.2; 0.2.3 unreleased</td></tr><tr><td>Verification</td><td>Static review only; no installs, models, execution or hardware tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Generated Computers, with Arip Asadulaev named in package metadata and NOTICE, builds Locals for developers running several coding assistants against one model on their own Mac. The default server listens on loopback port 8321. Existing clients can use compatible API dialects; <code>locals code</code> configures/launches OpenCode, while <code>locals run</code> implements its own plan/parallel-candidate/check/repair workflow. <code>locals solve</code> instead races OpenCode sessions. These commands have different execution boundaries. [S1–S4]</p>
+<p>The README connects the project to Asadulaev’s paper, “Breaking the Space Barrier and its Application to Language Model Inference.” This review verifies implementation mechanisms, not the paper’s mathematical novelty or proof. New model support, including Flint, LFM3, Qwenputer and Inkling, expands the source considerably; those model-specific quality and speed claims were not validated here. [S1, S3]</p>
+<h4>Batched agent inference rather than universal acceleration</h4>
+<p>The author’s M2 Pro 16 GB/Qwen3.5-4B table reports 271 versus 87 aggregate tokens/s at eight concurrent requests (3.1×), but 64 versus 61 at one request. Measurement notes distinguish in-process fixed-length decoding from HTTP benchmarks and disclose warmups, concurrency, software versions and shorter-than-default InferenceX runs. These are useful reproduction details, not independent validation. Aggregate throughput is not per-agent speed, latency, task success or a promise for other chips, quantizations and workloads. Prompt-heavy workloads and untuned formats gain less. [S1, S5]</p>
+<h4>Structured output with real constraints—and limits</h4>
+<p>Grammar compilation, token masking and forced spans support valid JSON/tool-call formatting; token budgets reserve room for valid endings. These are implementation-backed features, not proof that every arbitrary schema or model response works. <code>Runtime</code> explicitly refuses cyclic recursive schemas for the server, and grammar patterns can be unsupported. Well-typed tool arguments can still request harmful or incorrect actions: syntax constraints are not permission checks or semantic correctness. [S6]</p>
+<h4>Parallel candidates selected by checks</h4>
+<p>The harness plans parts, runs multiple candidates in copied projects, selects combinations and repairs failures. File ownership and protected tests reduce accidental interference. A passing project check is a useful selection oracle but only as good as its coverage. Importantly, <code>Run._finish</code> also writes back when <strong>no check exists</strong>, after preserving overwritten originals; the README’s “project changed only when tests pass” is therefore too absolute. [S1, S7]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>A request enters <code>server.py</code>, which checks headers/body, renders messages, chooses model-native output constraints and looks for cached prefixes. <code>service.py</code> schedules jobs onto <code>hybrid_batch.py</code>; mixed prefill interleaves new prompt work with running decode rows. <code>runtime.py</code>, fused layers and Metal kernels perform local computation. Finished states return to caches. The harness talks to this server as a client; ordinary inference does not itself execute arbitrary client tool calls, although the separate agent commands do execute programs, and optional Qwenputer has its own internal computation tools. [S2–S4, S6, S7]</p>
+<h4>Authentication, browser access and exposure</h4>
+<ul><li>The inference listener defaults to <code>127.0.0.1</code>. API-key strings in client examples are placeholders, <strong>not enforced user authentication</strong> in the inspected request gate. Host/Origin checks are useful browser/DNS-rebinding defenses, not identity or tenant isolation. Native local processes can send requests without an Origin. [S1, S2]</li><li><code>_origin_ok</code> permits loopback origins and specified desktop-app schemes; <code>LOCALS_ORIGINS</code> can extend it or allow all. <code>_host_ok</code> permits loopback/local/private names and addresses, is bypassed for non-loopback bindings, and has its own wildcard override. Broadening the bind or putting it behind a proxy requires a separate authenticated/TLS boundary; do not infer safety from CORS. [S2]</li><li>The handler has request-size limits (64 MiB), bounded body reads, chunk/decompression checks, and constrained template switches. These reduce obvious abuse but do not establish comprehensive denial-of-service resistance. [S2]</li></ul>
+<h4>Execution, credentials and privacy</h4>
+<p>The main <code>run</code>/<code>solve</code> shell helper conditionally uses macOS <code>sandbox-exec</code>. Its profile starts with <strong>allow default</strong>, then denies writes outside the attempt and allowed temporary/cache/package-manager directories. Reads, network access and inherited environment remain broadly available. A malicious project, test or model-generated command may therefore read accessible secrets and transmit them despite being unable to overwrite the original project. Confinement is skipped when <code>sandbox-exec</code> is unavailable or <code>LOCALS_NO_SANDBOX</code> is nonempty. [S8]</p>
+<p>At this SHA, <code>run_check</code> does pass <code>confine=cwd</code>: the agent documentation’s statements that checks are never confined are stale. Conversely, the legacy <code>locals-agents</code> Python runner calls <code>run_shell</code> without confinement; Python <code>-I</code> is import/environment isolation, not an OS security sandbox. Keep these entry points distinct. <code>locals code</code> runs OpenCode directly in the real project. Headless OpenCode permission handling can auto-approve requests (with explicit external-directory/doom-loop refusals); this is not equivalent to human review of every operation. [S8, S9]</p>
+<p>“Nothing leaves your computer” is defensible only as a narrowed claim about the local inference path. Installation fetches packages/installers, missing models come from Hugging Face, optional agents have their own behavior, and executed commands retain network capability. Gated models may use Hugging Face credentials (<code>HF_TOKEN</code> or cached login); shell subprocesses inherit environment rather than receiving a minimal secret-free environment. No hosted inference fee or mandatory cloud inference backend was found in the reviewed core, but that does not prove a network-silent deployment. No traffic capture was performed. [S8–S10]</p>
+<h4>Persistence and recovery</h4>
+<p>Prompt persistence defaults on with a 4 GiB limit. <code>DiskPromptCache</code> writes safetensors and token-ID JSON using temporary files, file flushes and renames; model/dtype/weight fingerprints separate incompatible states, old entries are pruned and failed loads discarded. The directory is mode 0700 and main snapshot files 0600. Those are access controls, <strong>not encryption</strong>: token IDs can reveal prompt text, and Inkling conversation checkpoints can retain more than system prompts. Debug request dumps additionally contain full requests. Disabling future caching does not erase existing data. [S2, S11]</p>
+<p>CLI state includes background-process PID/log/config data; stale PID validation checks process identity before treating it as a server. Harness failures preserve candidate output; write-back checks for concurrent project edits and symlinks, stages temporary files, then renames. Its own comment acknowledges a crash between renames can leave a partial multi-file update: this is not a transactional repository rollback or a demonstrated durable resume system. Successful tests do not undo external side effects of agent commands. [S7, S9, S11]</p>
+<h4>Maturity, Tests and Supply Chain</h4>
+<p>Public metadata observed 2026-11-22: 548 stars, 43 forks, 7 open issue/PR items, last pushed 2026-11-22 04:51:30 UTC. Popularity and push timestamps are not quality evidence. The package labels itself Beta. There are 75 <code>test_*.py</code> files including end-to-end tests; the test README still says 39, another documentation-drift signal. [S12]</p>
+<p>The public <a href="https://github.com/Generated-Computers/Locals/actions/runs/44977285031">tests workflow run for the reviewed SHA</a> reported success. The workflow uses macOS 15 with Python 3.11–3.14, installs a tokenizer, runs <code>not model</code> tests and builds/imports the wheel. Full model tests require cached weights; end-to-end tests are opt-in. Missing model/tokenizer fixtures can skip tests, so this result is not proof of benchmark parity or all integrations. No tests were executed for this review. [S12]</p>
+<p>An <code>uv.lock</code> exists, but the convenience installer installs the latest package with <code>uv tool install --force</code>, not an immutable locked environment. It may first execute uv’s fetched installer and modify shell PATH. OpenCode installation asks interactively, pins a requested version, but executes a fetched installer script. Several dependency ranges have no upper bound; CI actions are referenced by version tags rather than immutable SHAs. Release configuration gates builds on tests and uses PyPI trusted publishing, a positive credential-management design—not a verification of the published wheel’s provenance or equivalence to this main SHA. Review and pin the full artifact/dependency/model chain before adoption. [S9, S10, S12]</p>
+<h4>Evidence and Limitations</h4>
+<p>All source links below pin the reviewed SHA; public API metadata is a point-in-time observation. Static findings identify design boundaries, not demonstrated exploits. No benchmark, third-party model quality claim, mathematical proof, sandbox bypass, complete dependency audit, or all-client compatibility claim was independently validated.</p>
+<ul><li><strong>S1 — Overview and license:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/README.md">README.md</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/LICENSE">LICENSE</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/NOTICE">NOTICE</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>.</li><li><strong>S2 — HTTP boundaries:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/server.py">locals/server.py</a>.</li><li><strong>S3 — Package map:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/README.md">locals/README.md</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/pyproject.toml">pyproject.toml</a>.</li><li><strong>S4 — Scheduling:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/service.py">locals/service.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/hybrid_batch.py">locals/hybrid_batch.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/mixed.py">locals/mixed.py</a>.</li><li><strong>S5 — Measurements:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/docs/measurements/README.md">docs/measurements/README.md</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/docs/benchmarks/README.md">docs/benchmarks/README.md</a>.</li><li><strong>S6 — Constraints:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/runtime.py">locals/runtime.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/grammar.py">locals/grammar.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/budget.py">locals/budget.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/forced.py">locals/forced.py</a>.</li><li><strong>S7 — Orchestration:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/harness.py">locals/harness.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/plan.py">locals/plan.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/docs/agents/README.md">docs/agents/README.md</a>.</li><li><strong>S8 — Execution:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/solve.py">locals/solve.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/agents.py">locals/agents.py</a>.</li><li><strong>S9 — CLI:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/app.py">locals/app.py</a>.</li><li><strong>S10 — Installation:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/install.sh">install.sh</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/pyproject.toml">pyproject.toml</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/uv.lock">uv.lock</a>.</li><li><strong>S11 — Persistence:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/hybrid_batch.py">locals/hybrid_batch.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/locals/service.py">locals/service.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/CHANGELOG.md">CHANGELOG.md</a>.</li><li><strong>S12 — Tests and releases:</strong> <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/tests/README.md">tests/README.md</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/tests/conftest.py">tests/conftest.py</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/.github/workflows/tests.yml">.github/workflows/tests.yml</a>, <a href="https://github.com/Generated-Computers/Locals/blob/40be24966d08938c6236cb146f9691930264141d/.github/workflows/release.yml">.github/workflows/release.yml</a>.</li></ul>
+<p><strong>Public metadata:</strong> <a href="https://api.github.com/repos/Generated-Computers/Locals">repository</a>, <a href="https://api.github.com/repos/Generated-Computers/Locals/tags">tags</a>, <a href="https://api.github.com/repos/Generated-Computers/Locals/releases">releases</a>.</p>
+
+<p><strong>Attribution:</strong> Generated Computers / Arip Asadulaev, Apache-2.0 with applicable third-party notices. Analysis only; no implementation code or model weights redistributed.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>mlx-lm</td><td>Upstream runtime baseline; fewer Locals-specific layers.</td></tr><tr><td>llama.cpp</td><td>Cross-platform/GGUF instead of Apple-silicon/MLX focus.</td></tr><tr><td>Ollama</td><td>Model/client ecosystem; API compatibility does not imply shared model files.</td></tr><tr><td>oMLX</td><td>Alternative Apple-local cache/serving design; Locals credits its cold-tier idea.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a local Mac application/server, not a ready hardened hosted service. The documented target is Apple silicon M1+ and macOS 14+; 16 GB is recommended, with smaller models for 8 GB. Default weights are roughly 2.8 GB; bigger models and conversion paths can require tens of gigabytes and substantially more working memory/disk. GPU memory, electricity, disk writes and idle kernel tuning are real costs. There is no required software subscription in the reviewed source, but external agents/providers and model terms can introduce separate costs or restrictions. [S1, S9, S10]</p>
+<p>For a future authorized evaluation, prefer a pinned version/model, trusted project content, a disposable OS/account boundary without secrets, controlled egress and explicit checks before write-back. Keep loopback binding and avoid wildcard Origin/Host overrides. Inspect retained prompts, logs and failed-run copies under a deliberate retention policy. No installation, adoption or configuration change was performed here.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantive batching, kernels, constrained output and prompt caching. Evaluate on a trusted single-user Mac: write confinement does not prevent secret reads or egress, and author speed claims remain unreplicated.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Generated-Computers/Locals">Generated-Computers/Locals</a> · Apache-2.0; separate model and third-party terms</span>
+    <span><a href="locals.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
