@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WinRust — Review</title>
+<meta name="description" content="A native Rust Windows shell and utility suite with persistent system-level authority.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / winrust</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Lemxy/WinRust · reviewed 2026-11-22</div>
+    <h1>WinRust</h1>
+    <p class="one-liner">A native Rust Windows shell and utility suite with persistent system-level authority.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT OR Apache-2.0</span>
+      <span class="chip">Rust · Win32 · PowerShell</span>
+      <span class="chip"><a href="https://github.com/Lemxy/WinRust">Lemxy/WinRust ↗</a></span>
+      <span class="chip">v0.5.5 · static review</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,143</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">65</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>More than a cosmetic launcher</h3><p>Selected components change Windows Search, Task Manager routing, folder verbs and Explorer recovery. Elevated and SYSTEM scheduled tasks persist after installation.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Signed-update code is ahead of delivery</h3><p>Manifest verification and SHA-256 checks exist, but v0.5.5 ships only WinRust.exe. Its release notes confirm that the automatic updater has no signed assets to fetch.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery and privacy need validation</h3><p>Purge cannot be undone; some uninstall and file-swap failures are best-effort. Raw NTFS search returns indexed paths without an observed per-result permission check. Performance claims are not independent benchmarks.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Operations</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology / boundary</td></tr>
+<tr><td>Installer</td><td>Rust plugin table; GUI and CLI call shared install/uninstall functions</td></tr>
+<tr><td>Desktop</td><td>Win32/GDI/GDI+, COM shell integration; topbar, rust-explorer, rs-shell and reshell</td></tr>
+<tr><td>Search</td><td>Raw NTFS MFT scan, USN journal maintenance, saved snapshots, named-pipe queries</td></tr>
+<tr><td>Shared code</td><td>winrust-common: registry parsing, change journals, styling, translations, MFT helpers</td></tr>
+<tr><td>Updates</td><td>System curl.exe over HTTPS; Ed25519 manifest signature; SHA-256 file hashes</td></tr>
+<tr><td>Archives</td><td>Custom ZIP/deflate engine; sevenz-rust2 for 7z; independent zip crate in tests</td></tr>
+<tr><td>Build</td><td>MSVC Windows toolchain, embed-resource, Cargo lockfiles; separate rust-search/chrome-rs projects</td></tr>
+<tr><td>Authorization</td><td>Windows accounts, UAC, task principals, filesystem ACLs and pipe security; no web login/service API</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Lemxy packages a taskbar, tabbed file manager/desktop, NTFS filename search, Task Manager, settings UI, disk cleaner/map and photo viewer into one elevated installer. These are separate native programs, coordinated by installation functions and shared UI/Windows helpers. The browser experiment chrome-rs exists but is not an installable suite component. [1][2]</p>
+<p>This is materially more invasive than adding a launcher: selected components disable Windows Search, redirect taskmgr.exe via Image File Execution Options (IFEO), replace folder-opening verbs and can terminate Explorer's shell while disabling its automatic restart. rust-explorer is initially unselected; debloat and irreversible purge are opt-in Extras in the actual v0.5.5 UI. The README's “command line only” description of these Extras is stale. [1][3]</p>
+<h4>Native composition, with a sizeable unsafe/OS boundary</h4>
+<p>The installer embeds programs listed in payload.txt through build.rs. Most crates share one workspace/lockfile; rust-search and chrome-rs stay separate because they need unwinding rather than the workspace release panic-abort profile. This keeps distribution simple, not isolation strong: native processes use Windows privileges, registry state and command execution directly. Rust does not make the unsafe Win32/COM boundary or destructive operations automatically safe. [2]</p>
+<p>File copying and archiving run on worker threads with progress notifications. ZIP has path checks and interoperability test code against another implementation. These are positive engineering signals, not a completed audit of malicious archives, resource exhaustion or Windows filesystem edge cases. [4]</p>
+<h4>Performance claims are narrower than the headline</h4>
+<p>The README advertises large speed/memory improvements, but also discloses that measurements were one-off on one machine. Indexed filename search is compared with fresh directory traversal, not Windows Search; shell memory includes a still-running Explorer; copy/ZIP results used warm caches and single runs. These measure different workloads and do not demonstrate universal “64–99% faster” Windows behavior. No benchmarks were reproduced here. [1]</p>
+<h4>Signed updates exist in code, not in the latest release delivery</h4>
+<p>The updater validates an Ed25519 signature before parsing the manifest, restricts executable names, checks SHA-256, maps names to known destinations and rejects versions older than its saved installed-version file. Staging under Program Files is a sensible defense against ordinary-user replacement when ACLs are intact. [5]</p>
+<p>However, the public v0.5.5 release contains <strong>only WinRust.exe</strong>: no manifest.txt, manifest.sig or per-component executables. Its release notes explicitly acknowledge that automatic updates have nothing to fetch. The README's operational auto-update description is therefore ahead of the published release. An enabled SYSTEM task can still attempt the checks; it does not make this release auto-updatable. Manual installer replacement remains the documented route. [6]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><strong>Source:</strong> 8db0b2f656ee41d6ae389cea78810a26cd8462f6 (v0.5.5). Metadata observed 2026-11-22 UTC.</p><h4>Privilege is persistent, not just an install-time prompt</h4>
+<p>The manifest requires administrator rights. The installer identifies the interactive session user's SID, including when UAC uses another administrator account, and redirects per-user registry/task/profile operations accordingly; installation stops if identification fails. Uninstall instead falls back with a warning, which may clean the elevated account rather than the intended user's state in a broken session. [7]</p>
+<p>Search installs one SYSTEM boot task per fixed NTFS drive. The updater runs as SYSTEM at boot and daily. topbar and Task Manager register interactive tasks with Highest run level; reshell and the shell overlay use Limited. Ordinary app launching is intended to go through Explorer to shed elevation, but that routing should not be assumed correct in every shell-replaced session. A public pending fix specifically addresses Explorer-based launching. This is a mixed-privilege desktop, not a sandbox. [3][7][8]</p>
+<h4>Search access restricts clients, not each returned filename</h4>
+<p>Search's explicit pipe descriptor grants access to SYSTEM, Administrators and the selected user SID; first-instance creation helps prevent pipe squatting. But the SYSTEM index scans raw NTFS, and query/render return paths without an observed per-result impersonation/access check. Thus the allowed user can potentially learn names/paths from otherwise inaccessible locations; this is metadata exposure, not proof of file-content access or code execution. Multi-user privacy deserves validation before adoption. The synchronous single-instance pipe also has no observed per-client read timeout, leaving a potential availability problem from an allowed client. No exploit was attempted. [8]</p>
+<h4>Credentials and egress</h4>
+<p>No project account, API key or hosted backend is needed for core shell/search use. That does <strong>not</strong> mean wholly offline: update/version checks contact GitHub release URLs and follow download redirects; optional updater consolidation invokes winget; network settings intentionally configure Wi-Fi/VPN/proxy and interact with Windows services. No general telemetry uploader was identified in the reviewed core paths; this is not a full network audit of every component, and the non-installable browser is outside that conclusion. [5][9]</p>
+<p>Wi-Fi credentials are passed through Windows WLAN profile APIs. XML text is escaped and selected UTF-16 buffers are wiped, but intermediate Rust strings are not demonstrated to be comprehensively zeroized. The PEAP profile leaves ServerNames empty, supplies no explicit trusted-root restriction and disables user prompts for server validation; the source describes relying on system trusted roots. This is not a certificate-validation-off finding, but it lacks organization-specific authentication-server binding. Prefer organization-managed WLAN profiles for enterprise credentials; Windows policy/default interactions were not tested. VPN uses previously saved Windows credentials. [9]</p>
+<p>Local state includes ProgramData style/language settings and installation logs, per-user run/settings history, search snapshots in the SYSTEM profile and protected rollback records. Those may expose paths or operational details locally; removing the program is not proven to erase all user preferences/history. No secrets were requested or used for source acquisition.</p>
+<h4>Supply chain and trust roots</h4>
+<p>Cargo lockfiles and explicit dependencies improve dependency visibility; they do not prove reproducibility or vulnerability freedom. The checked build workflow uses moving action tags (checkout@v4, rust-cache@v2, upload-artifact@v4), not immutable commit pins. No dependency advisory scan or binary/source reproducibility comparison was performed. [2][10]</p>
+<p>The updater's embedded public key authenticates future signed manifests, not the initial installer. The README says the EXE lacks Authenticode signing; that binary property was not independently checked. The release API reports a SHA-256 digest, but a digest from the same release channel is not independent publisher authentication. A release script supports signing from an owner-held private key, and also an OnlyInstaller mode consistent with the current delivery gap. [1][6][10]</p>
+<p>Manual/local payload handling has a separate trust boundary: a payload directory next to the launcher overrides embedded programs without the network manifest verifier. The code deliberately limits its development fallback path, but an elevated installer in a user-writable download directory still trusts that neighboring payload. Keep installer location and all payload inputs within the same trusted provenance; signed remote updates do not authenticate arbitrary local overrides. [7]</p>
+<p>Public metadata on 2026-11-22: repository created 2026-11-17, last push 2026-11-22, approximately 1,143 stars and 65 forks; GitHub reported 47 open issues including pull requests. These are a fast-moving interest snapshot, not a quality score. v0.5.5 was published at 2026-11-22T12:55:56Z and its tag resolves to the reviewed SHA. [6][12]</p>
+<p>The exact source SHA has a successful public Windows build workflow, <a href="https://github.com/Lemxy/WinRust/actions/runs/45024797484">run 45024797484</a>. The workflow builds all payloads and runs workspace and separate rust-search tests. Test source includes manifest tampering/name checks, update swaps, install selection, registry snapshot recovery, watchdog state transitions and ZIP interop/path validation. This is upstream CI evidence, not tests run by this review; it does not establish real install/uninstall, UAC, crash, multi-monitor or Windows policy compatibility. [4][5][10][11]</p>
+<p>Open reports include <a href="https://github.com/Lemxy/WinRust/issues/111">a black second screen</a>, <a href="https://github.com/Lemxy/WinRust/issues/110">Windows Hello PIN reset trouble</a> and <a href="https://github.com/Lemxy/WinRust/issues/109">Settings opening trouble</a>. These are user reports, not independently confirmed defects. <a href="https://github.com/Lemxy/WinRust/pull/114">PR 114</a> concerns normal-user process launching and is not part of the reviewed release.</p>
+<p><strong>Limits:</strong> Static targeted inspection, not exhaustive security review. No Windows environment, runtime access-control validation, credential tests, archive fuzzing, power-loss tests, installation, network captures, source tests or benchmarks. Only review-artifact markup/provenance checks were performed locally. No executable release assets were downloaded. Dependencies and alternatives were not installed or newly benchmarked.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <p>Prefer narrower tools if the goal is one capability rather than replacing a desktop:</p>
+<table><tbody><tr><td>Need</td><td>Alternative</td><td>Tradeoff versus WinRust</td></tr><tr><td>Filename search</td><td><a href="https://www.voidtools.com/">Everything</a></td><td>Focused NTFS search; still requires attention to index/service privileges, but does not require replacing the shell</td></tr><tr><td>Process inspection</td><td><a href="https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer">Process Explorer</a> or <a href="https://github.com/winsiderss/systeminformer">System Informer</a></td><td>Dedicated diagnostics rather than a combined desktop/debloat suite</td></tr><tr><td>Disk map</td><td><a href="https://github.com/windirstat/windirstat">WinDirStat</a></td><td>Focused storage analysis with less shell integration</td></tr><tr><td>Windows productivity</td><td><a href="https://github.com/microsoft/PowerToys">PowerToys</a></td><td>Additive utilities while keeping Explorer; not a full substitute shell</td></tr><tr><td>Minimal operational risk</td><td>Built-in Explorer, Search and Task Manager</td><td>Fewer novel recovery/authentication boundaries; less aesthetic control</td></tr></tbody></table><p>These are scope comparisons, not fresh audits or speed rankings. WinRust's attractive differentiator is a cohesive small native suite; its cost is combining many sensitive Windows responsibilities into a five-day-old public project.</p>
+<h4>Evidence</h4>
+<p>All source links below are pinned to the reviewed revision; API/release/issue observations are dated snapshots.</p>
+<p>1. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/README.md">README: purpose, installation, benchmarks and warnings</a>.</p>
+<p>2. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/Cargo.toml">Workspace/dependencies</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/build.rs">payload build</a>.</p>
+<p>3. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/ui.rs">Installer UI</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/install/explorer.rs">Explorer changes and uninstall</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/install/tools.rs">tools/purge</a>.</p>
+<p>4. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/plugins/rust-explorer/src/jobs.rs">File jobs</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/plugins/rust-explorer/src/zipx.rs">ZIP engine/tests</a>.</p>
+<p>5. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/update/mod.rs">Updater</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/update/manifest.rs">manifest</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/update/swap.rs">swap</a>.</p>
+<p>6. <a href="https://github.com/Lemxy/WinRust/releases/tag/v0.5.5">v0.5.5 release and updater caveat</a>, <a href="https://api.github.com/repos/Lemxy/WinRust/releases/454448034">public release metadata</a>.</p>
+<p>7. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/install/mod.rs">Shared install and payload trust</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/install/session.rs">session identity</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/install/journal.rs">journal</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/install/topbar.rs">topbar</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/src/install/taskmgr.rs">Task Manager</a>.</p>
+<p>8. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/plugins/rust-search/src/main.rs">Search scan, query, pipe ACLs and scheduled tasks</a>.</p>
+<p>9. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/plugins/rust-settings/src/wifi.rs">Wi-Fi credentials and PEAP profile</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/plugins/rust-settings/src/ext.rs">VPN/proxy</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/plugins/debloat/src/main.rs">optional tuning</a>.</p>
+<p>10. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/.github/workflows/build.yml">Build workflow</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/scripts/release.ps1">release script</a>.</p>
+<p>11. <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/ReShell/src/watchdog.rs">ReShell watchdog</a>, <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/plugins/rs-shell/src/main.rs">shell fallback</a>.</p>
+<p>12. <a href="https://api.github.com/repos/Lemxy/WinRust">Repository metadata</a>, <a href="https://api.github.com/repos/Lemxy/WinRust/git/ref/tags/v0.5.5">tag resolution</a>.</p>
+<hr>
+<p><strong>Attribution:</strong> Lemxy and WinRust contributors; <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/LICENSE-MIT">MIT</a> OR <a href="https://github.com/Lemxy/WinRust/blob/8db0b2f656ee41d6ae389cea78810a26cd8462f6/LICENSE-APACHE">Apache-2.0</a>. Analysis only; no source components extracted.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is not a self-hosted server. Building expects Windows x64/MSVC and compiles embedded payloads first. The review did not run the installer or reproduce build instructions.</p>
+<table><tbody><tr><td>Component</td><td>Persistent/system effects</td></tr><tr><td>Search</td><td>SYSTEM boot tasks, NTFS snapshots, Windows Search disablement, SearchHost IFEO block, launcher logon task/Run fallback</td></tr><tr><td>Task Manager</td><td>taskmgr.exe IFEO redirection, elevation task, shared cleaner and debloat executable</td></tr><tr><td>topbar</td><td>Elevated logon task/Run fallback, hidden stock taskbar, reshell startup, marked blocks in PowerShell profiles</td></tr><tr><td>rust-explorer</td><td>Folder/drive verbs, Limited overlay startup, AutoRestartShell change, optional shell termination; fresh installs adjust five services and svchost grouping threshold</td></tr><tr><td>Settings/photo/tools</td><td>Installed binaries/shortcuts, photo Open-with registrations; optional night-light Run entry</td></tr><tr><td>Optional tuning</td><td>Service/policy changes; optional Defender exclusions, NTFS settings, hosts entries and updater scheduling</td></tr><tr><td>purge</td><td>App removal for all users/provisioned image and telemetry-task deletion; no undo</td></tr><tr><td>Auto-update</td><td>Persistent SYSTEM boot/daily task and installer copy while any plugin remains installed</td></tr></tbody></table><p>Journaling records original registry/service values before mutations and retains a journal when undo fails. New failed component installs attempt their uninstall routine; already-installed updates are not globally rolled back. Components can succeed independently, leaving a partial install. Restore-point creation is only a warning on failure, not an installation prerequisite. [3][7]</p>
+<p>Recovery has two layers: reshell watches for a disappeared topbar with a hidden stock tray and retries at most three times; rs-shell has its own Explorer fallback. Neither makes a hung or partially broken desktop impossible. The README's manual escape route is Ctrl+Alt+Del, Task Manager, then explorer.exe and Remove all, but Task Manager itself may have been redirected, so recovery needs real VM testing rather than faith in instructions. [1][11]</p>
+<p><strong>“Every change is reversible” is false as a blanket statement.</strong> purge uninstall removes its executable, not the deleted apps/tasks. Moreover rust-explorer uninstall treats failed folder-verb import as a soft warning and subsequently attempts to delete its directory containing the backup; some cleanup errors elsewhere are ignored. The updater stages files before renaming, but old-to-aside then new-to-destination is two operations: a power cut between them can leave the expected path absent. Its multi-target rollback ignores restoration errors, and component updates are not a whole-release transaction. These are static recovery limitations, not reproduced failures. [3][5][7]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Promising native desktop engineering, not a daily-driver recommendation. SYSTEM tasks, incomplete release-update delivery and recovery limitations outweigh the small-binary appeal. Static review only; upstream Windows CI passed, but no installation or source tests were run here.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Lemxy/WinRust">Lemxy/WinRust</a> · MIT OR Apache-2.0</span>
+    <span><a href="winrust.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
