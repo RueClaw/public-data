@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wland — Review</title>
+<meta name="description" content="Wayland apps composited in a browser or headless WASM engine, with a native Linux relay.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / wland</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">pithings/wland · reviewed 2026-11-22</div>
+    <h1>wland</h1>
+    <p class="one-liner">Wayland apps composited in a browser or headless WASM engine, with a native Linux relay.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MPL-2.0 + MIT by component</span>
+      <span class="chip">Zig · WASM · TypeScript · Linux</span>
+      <span class="chip"><a href="https://github.com/pithings/wland">pithings/wland ↗</a></span>
+      <span class="chip"><a href="wland.md">Full review and pinned evidence</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">47</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">4</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>The browser is the compositor</h3><p>Native apps remain on Linux; the relay keeps file descriptors and forwards protocol/pixel data. The DOM-free engine and headless API are useful for embedding and GUI tests.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Desktop access is not authenticated</h3><p>Loopback and Origin checks are useful defaults, not user authentication. Non-browser clients may omit Origin; protect the whole service, not just /ws. Chromium launch helpers add --no-sandbox even outside Docker.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Reconnect means a fresh desktop</h3><p>Reload, disconnect or another tab taking over closes app connections. Docker relaunches configured apps; it does not recover unsaved work. Tests exist, but none were executed in this review.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Zig 0.16 / WASM / STREAM</td></tr><tr><td>Relay</td><td>Linux Unix sockets, file descriptors, WebSocket or byte stream</td></tr><tr><td>UI</td><td>TypeScript engine/view/input/wm; optional React demo</td></tr><tr><td>Revision</td><td>12e0e1de7d0b540b93611dfbcf603d3f792e8bd5</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p><br>Unmodified Linux Wayland clients connect to a new Wayland Unix socket. The native <code>wlandr</code> relay retains file descriptors and transports protocol messages, clipboard pipes and pixel updates to the JavaScript/WASM engine. The browser is the compositor, not simply a video viewer. It draws individual surfaces, routes input and manages windows. X11 applications optionally use xwayland-satellite.</p>
+<p>The SDK separates engine, view, input and window manager. A headless API offers typing, clicking and screenshots without a DOM, making this relevant to fixture-driven GUI testing and automation. This does not sandbox the applications being controlled. The static web demo is different again: its sample apps, relay and shared-memory model can all run in the tab; that is not evidence that arbitrary native Linux programs run in a browser without a Linux execution environment. [E1–E4]</p>
+
+<h4>Key Features</h4><h4>Real protocol, reusable composition</h4>
+<p>The engine handles protocol state without a DOM; browser presentation and input sit above it. STREAM is shared between native and WASM sides rather than separately reinvented. Handle-backed presentation avoids shipping pixels when the embedding environment can supply access to shared memory. That requires a trusted integration providing buffer open/read/close capabilities, not arbitrary browser filesystem access. [E2–E4]</p>
+<h4>Useful testing surface, bounded compatibility</h4>
+<p>There are fixtures for drawing, input, clipboard and files; Node tests cover the engine, stream links, handles, server lifecycle and headless behavior. This is materially more than a screenshot-only demo. README limits include Chromium-only testing, US key layout, unsupported viewport cropping, no host-page drag-and-drop, experimental GPU readback and incomplete X11/window-decoration behavior. The approximately 65 kB gzipped and up-to-120-FPS figures are author claims, not reproduced measurements. [E1, E9]</p>
+
+<h4>Maturity and Evidence</h4><p><br>Public GitHub metadata at retrieval reported 47 stars, 4 forks, zero open issues, repository creation on 2026-07-07 and last push on 2026-11-21. These are a dated discovery snapshot, not evidence of security or a long operating history. The releases endpoint showed v0.1.0-261121-6b1a8a2. The Actions listing returned one successful Release run at 6b1a8a2da49d35252a4cbf47f32f0c7c1e522ed0, not at this review's HEAD. [E12]</p>
+<p>The current release workflow runs npm test (native Zig tests, smoke script, TypeScript checks, Node tests). Its triggers are release tags/manual invocation, not an every-PR gate. The image workflow is manual and smoke-tests HTTP/page/WASM availability, not full GUI security. Source tests demonstrate intended coverage; none were run here, and the observed earlier successful workflow does not prove the current revision passes. No fuzzing campaign, independent audit, cross-browser matrix or sustained deployment evidence was established. [E9, E10, E12]</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p><br>App → Unix socket/FD passing → native relay → STREAM → WASM engine → view/input/window manager.</p>
+<p>The relay owns the kernel-facing boundary: shared-memory files, clipboard pipes, socket lifecycle and optional GPU resources. The engine owns session/compositor state. WebSocket writes are serialized; takeover shuts down a stalled connection without waiting indefinitely for its write lock. One attached engine owns the session; new connections replace it. [E2, E5, E6]</p>
+<p>There are sensible local correctness mechanisms: socket-name locks, checks before replacing a live socket, normal/signal cleanup, and tests for hostile STREAM lengths. Byte-stream record framing caps records at 256 MiB. These do not establish a hostile-client security boundary. The WebSocket reader independently accumulates fragmented payloads in an expanding array without an explicit aggregate message-size cap, and HTTP accepts spawn detached threads without an evident connection quota in that loop. Treat resource exhaustion as a static concern, not a demonstrated exploit. Default native builds use ReleaseFast, while WASM uses ReleaseSmall; these are not the safety-checking Debug configuration. [E5–E7, E9]</p>
+
+<h4>Security, Permissions and Execution Boundaries</h4><p><br>- <strong>Desktop access is authority.</strong> HTTP defaults to loopback, but there is no login, token, user separation or built-in TLS. A caller reaching the relay can take over the desktop, observe content and inject input. A terminal/file manager makes that equivalent in practice to powerful actions under the app user's permissions—not a restricted viewing session. Docker listens on all container interfaces; the README's basic published-port example exposes it on all host interfaces. [E1, E5, E8]<br>- <strong>Origin checks are not authentication.</strong> The native server compares the authority portion of Origin with Host; absent Origin is allowed for non-browser clients. This blocks an ordinary unrelated browser origin, but does not authenticate arbitrary clients, and the README explicitly excludes DNS rebinding and other local users. Upgrade handling is not explicitly restricted to the /ws pathname, so protecting only that path at a reverse proxy is insufficient: protect the entire service and WebSocket upgrades. [E5]<br>- <strong>Native apps keep native privileges.</strong> Node helpers inherit most of the parent environment and launch executables with spawn; they establish display variables and optionally dbus-run-session, not namespaces, seccomp or a per-app permission gate. They may inherit credentials and an existing session bus. A private, verified runtime directory matters; startServer falls back to a fixed temporary-directory name and mkdir does not validate an existing directory's ownership. [E3]<br>- <strong>Chromium sandbox disabling extends beyond Docker.</strong> runApp appends --no-sandbox to Chromium/Chrome command names, and the shell launcher does likewise. Docker also configures this flag and suppresses the warning. Its non-root UID 1000 is good but is not a replacement for Chromium's internal sandbox. Avoid sensitive profiles, host mounts and untrusted browsing in this configuration. [E3, E8]<br>- <strong>Development includes a command runner.</strong> Vite's /__wlandr/run accepts a whitespace-split command and calls runApp. It checks matching Origin/Host and loopback by default; WLANDR_RUN_REMOTE=1 relaxes the peer restriction. The launcher list is convenience UI, not an allowlist. This is development-only, not the packaged production HTTP API, but exposing it grants substantial execution authority. [E4]<br>- <strong>Keep web roots curated.</strong> Static serving rejects paths containing '..' and limits each file read to 64 MiB, but uses filesystem reads rather than a realpath/symlink confinement check. A configured web root must contain only intended public assets, including its symlink targets. [E5]</p>
+
+<h4>Credentials, Privacy and Egress</h4><p><br>No application account or API key is required by the core. The reviewed SDK loads its WASM asset and opens the configured relay link; no telemetry or model-provider integration was found in those paths. This is a scoped source observation, not a packet capture or a guarantee about dependencies or hosted infrastructure. Pixels, key events and clipboard transfers cross that link; plain HTTP/WS provides no transport confidentiality. Apps can independently access files, profiles, credentials and networks permitted by their environment. [E1–E4]</p>
+<p>The web demo persists theme/source preferences in localStorage and has an explicit code-copy action using the browser clipboard. Internal Wayland clipboard support should not be confused with unrestricted permission to read the user's system clipboard. The public demo was not opened. Package/build/image acquisition involves npm, GitHub/GHCR, Debian and Zig distribution infrastructure; runtime egress of arbitrary apps is not constrained by wland. [E4, E8, E10]</p>
+
+<h4>Persistence and Recovery</h4><p><br>Reload, link loss or takeover destroys compositor state and closes app connections; most apps exit. Reconnecting creates a fresh engine rather than restoring the previous desktop. Docker watches the relay's detach log and restarts configured apps after a disconnect, including apps previously closed by the user. That is relaunch, not recovery of unsaved documents. App-owned disk state can persist according to the containing filesystem, but the demo's --rm lifecycle has no durable-volume arrangement. [E1, E6, E8]</p>
+<p>Socket claims recover stale files under locking and avoid knowingly stealing a live compositor socket. startRelay creates a private temporary runtime directory and cleans it up on close/exit. The shipped native binary is unpacked into a content-named cache through write-and-rename, with a private temporary fallback. Existing cached executables are reused without rehashing their contents; this protects against partial writes/version confusion, not compromise by an actor already able to modify the user's cache. [E3, E7]</p>
+
+<h4>Supply Chain and License</h4><p><br>The root package has no declared runtime npm dependencies; build dependencies include obuild and TypeScript, while the demo has its own React/Vite stack and lockfiles. A committed WASM binary enables demo builds without Zig; this review did not reproduce it or compare it with source-generated bytes. Builds execute the repository's build hooks and native toolchain. [E10]</p>
+<p>Release workflow actions are commit-pinned, dependencies use a frozen pnpm lockfile, and the workflow configures OIDC trusted npm publishing with provenance. Those are positives, not independent verification of npm attestations. Docker verifies the downloaded Zig archive with architecture-specific checksums, but base images use mutable tags, apt packages are unpinned, and pnpm is selected by major version. Release/image outputs were not downloaded or audited. [E8, E10]</p>
+<p>The license split is by file/component: MPL-2.0 governs marked Zig sources and corresponding binaries, while other code is MIT and protocol XML retains upstream terms. Distributing modified MPL-covered files or binaries carries covered-source availability and notice obligations; MIT permits broad reuse with notices. This is not permission to relicense the whole project as MIT. No source components were extracted. [E11]</p>
+
+<h4>Evidence and Verification Limits</h4><p><br>All source links below are pinned to the reviewed commit. Review was static and selective, not a complete memory-safety audit. No source tests, binary reproducibility checks, GUI tests, exploit attempts or live probes were executed. Public GitHub metadata was retrieved unauthenticated on 2026-11-22 UTC; mutable metadata can change.</p>
+<p>- <strong>E1:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/README.md">README.md</a><br>- <strong>E2:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/core/src/compositor.zig">core/src/compositor.zig</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/core/src/stream.zig">core/src/stream.zig</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/protocol/STREAM.md">protocol/STREAM.md</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/lib/engine.ts">lib/engine.ts</a><br>- <strong>E3:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/lib/index.ts">lib/index.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/lib/headless.ts">lib/headless.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/tools/wland-run">tools/wland-run</a><br>- <strong>E4:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/web/vite-wlandr.ts">web/vite-wlandr.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/web/src/session/sources.ts">web/src/session/sources.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/web/src/session/session.ts">web/src/session/session.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/web/src/App.tsx">web/src/App.tsx</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/web/src/apps/code.ts">web/src/apps/code.ts</a><br>- <strong>E5:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/server/src/server.zig">server/src/server.zig</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/server/src/ws_link.zig">server/src/ws_link.zig</a><br>- <strong>E6:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/server/src/relay.zig">server/src/relay.zig</a><br>- <strong>E7:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/server/src/socket.zig">server/src/socket.zig</a><br>- <strong>E8:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/docker/Dockerfile">docker/Dockerfile</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/docker/entrypoint.sh">docker/entrypoint.sh</a><br>- <strong>E9:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/test/engine.test.ts">test/engine.test.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/test/server.test.ts">test/server.test.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/test/fixture/main.zig">test/fixture/main.zig</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/build.zig">build.zig</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/core/src/stream.zig">core/src/stream.zig</a><br>- <strong>E10:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/package.json">package.json</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/build.config.ts">build.config.ts</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/.github/workflows/release.yml">.github/workflows/release.yml</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/.github/workflows/image.yml">.github/workflows/image.yml</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/web/package.json">web/package.json</a><br>- <strong>E11:</strong> <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/LICENSE">LICENSE</a>; <a href="https://github.com/pithings/wland/blob/12e0e1de7d0b540b93611dfbcf603d3f792e8bd5/protocol/wayland.xml">protocol/wayland.xml</a><br>- <strong>E12:</strong> <a href="https://api.github.com/repos/pithings/wland">Repository metadata</a>, <a href="https://api.github.com/repos/pithings/wland/releases">releases</a>, <a href="https://api.github.com/repos/pithings/wland/actions/runs?per_page=3">Actions listing</a>, <a href="https://github.com/pithings/wland/actions/runs/44953104084">observed successful Release run</a>.</p>
+<hr>
+<p><strong>Attribution:</strong> pithings/wland, Pooya Parsa; MPL-2.0 and MIT by component, upstream protocol notices retained. Independent review; no upstream endorsement implied.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>waypipe</td><td>Native Wayland forwarding in an SSH workflow, not browser composition.</td></tr><tr><td>noVNC + VNC</td><td>Browser viewer; security and persistence depend on the VNC server/gateway.</td></tr><tr><td>Guacamole</td><td>Heavier remote-access gateway with authentication integration.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Self-Hosting Notes</h4><p><br>Do not adopt the all-interface demo command as a secure deployment recipe. For a separately authorized evaluation, use an isolated disposable Linux environment, loopback-only publication, no sensitive mounts/profiles/environment, and a private runtime directory. Remote use needs externally enforced authentication, encrypted transport and whole-service access control. Reconsider the Chromium flags before real browsing. Keep developer host launch endpoints off untrusted networks, and plan for session loss rather than promising reconnect continuity.</p>
+<p>Before promotion: reproduce builds and attestations, test the exact revision offline in isolation, add resource ceilings, validate proxy upgrade handling and DNS-rebinding defenses, establish a deliberate browser/application sandbox policy, and verify required app/browser behavior. No deployment was performed as part of this review.</p>
+
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A strong compositional SDK for controlled GUI experiments, not a hardened remote desktop service. No built-in authentication, disposable sessions and automatic Chromium sandbox disabling require an external isolation boundary. Static review only; no source tests or performance claims reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/pithings/wland">pithings/wland</a> · MPL-2.0 + MIT by component</span>
+    <span><a href="wland.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

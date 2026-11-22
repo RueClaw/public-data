@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [wland.md](reviews/wland.md) [page](reviews/wland.html) | [pithings/wland](https://github.com/pithings/wland) | MPL-2.0 + MIT; component terms | ⚠️ Interesting | Browser/headless Wayland compositor; unauthenticated takeover, Chromium sandbox disabling and disposable-session caveats. Static review. |
 | [ohm.md](reviews/ohm.md) [page](reviews/ohm.html) | [astral-experiments/ohm](https://github.com/astral-experiments/ohm) | MIT OR Apache-2.0; component notices | ⚠️ Interesting | Experimental Rust iteration toolchain; pinned releases and shared reuse, but unsound-cache tradeoffs, benchmark trust opt-ins and native execution boundaries. Static review. |
 | [inference-optimization-playbook.md](reviews/inference-optimization-playbook.md) [page](reviews/inference-optimization-playbook.html) | [alesha-pro/inference-optimization-playbook](https://github.com/alesha-pro/inference-optimization-playbook) | MIT | 📚 Study | MoE experiment notebook; strong quality gates, unreplicated speedups, speculation/profiler overclaims and simulator limits. Static review. |
 | [biscotti.md](reviews/biscotti.md) [page](reviews/biscotti.html) | [lucasgelfond/biscotti](https://github.com/lucasgelfond/biscotti) | MIT; component terms | 📚 Study | iMessage agent with disposable VMs; selective approvals, MCP token-origin, public artifact, trace privacy and recovery caveats. Static review. |
