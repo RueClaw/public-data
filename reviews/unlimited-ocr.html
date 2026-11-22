@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unlimited OCR Works — Review</title>
+<meta name="description" content="Long-document OCR research with sparse references, cross-page layout and bounded page-window decoding.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / unlimited-ocr</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">baidu/Unlimited-OCR · reviewed 2026-11-22</div>
+    <h1>Unlimited OCR Works</h1>
+    <p class="one-liner">Long-document OCR research with sparse references, cross-page layout and bounded page-window decoding.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code; MIT-declared model; dataset terms unverified</span>
+      <span class="chip">Python · PyTorch · custom SGLang · CUDA</span>
+      <span class="chip"><a href="https://github.com/baidu/Unlimited-OCR">baidu/Unlimited-OCR ↗</a></span>
+      <span class="chip"><a href="unlimited-ocr.md">Evidence and full review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">31,984</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">3,431</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>One request, not infinite global context</h3><p>SR-SWA selects sparse visual references. Overlapping page chunks bound resident KV; the authors acknowledge global heading-hierarchy limitations.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Strong reported scores; reproduction incomplete</h3><p>Authors report 84.59 MPDocBench and 77.06 MarathonDocBench overall. Dataset access failed; evaluation uses ground-truth token counts for mode selection. No inference was run.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Privacy and deployment are your responsibility</h3><p>Local Transformers is distinct from hosted services. The HTTP client sends complete page images; serving examples lack auth/TLS, outputs persist and generated HTML is not sanitized.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Implementation / boundary</td></tr>
+<tr><td>Visual backbone</td><td>DeepEncoder, inherited from DeepSeek OCR; model module imports SAM/CLIP builders and projector</td></tr>
+<tr><td>Decoder</td><td>Paper: 3B MoE, 500M active parameters/token; SR-SWA replaces earlier R-SWA</td></tr>
+<tr><td>Local API</td><td>Transformers AutoModel/AutoTokenizer with trust_remote_code; BF16 CUDA examples</td></tr>
+<tr><td>Serving</td><td>Bundled development SGLang wheel; OpenAI-compatible chat-completions HTTP API</td></tr>
+<tr><td>Batch client</td><td>requests + ThreadPoolExecutor; JSON usage/error logs and raw text files</td></tr>
+<tr><td>Reconstruction</td><td>Standard-library regex parsing, union-find grouping, HTML table merging</td></tr>
+<tr><td>Storage/auth</td><td>Filesystem outputs; no application database, auth layer or retention controller in the reviewed GitHub code</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Cross-page structure, not just character recognition</h4>
+<p>Raw output contains PAGE/BLOCK/FORK markers, labels, bounding boxes and heading levels. The converter joins cross/append text and table chains, merges repeated table headers, preserves page numbering across blanks and normalizes headings into a single-root tree. These are explicit benchmark-aligned transformations, not proof that the original document hierarchy was recognized correctly. Figure references are emitted as coordinate-based filenames; this converter does not create those image crops. [3]</p>
+<h4>Sparse references plus chunk continuity</h4>
+<p>The paper's Page Gate restricts visual candidates by page; Token Sieve selects a fixed budget of remote blocks alongside a local window. Overlapping chunks reuse boundary-page visual KV and a text tail, dropping inactive caches. This is useful for transcription but deliberately gives up full global context: the paper names heading hierarchy/global-document understanding and training-data diversity as limitations. [5 §§3,6]</p>
+<h4>Inspectable evaluation plumbing—with caveats</h4>
+<p>infer.py orders page images numerically, packs every page as base64, sends one document per request, records finish_reason/page markers/usage/time and saves raw results. It uses benchmark-specific length limits (131,072 and 786,432), a 30% fallback output allowance and one server-length refit. If token tables are available, it uses ground-truth text-token length to decide whether to fall back from tiled “gundam” to base mode. That is evaluation-time oracle information, not ordinary production input; compare a non-oracle deployment policy separately. Failures are logged and the batch continues, so process completion alone is not an all-documents success signal. PNG inputs are also labeled image/jpeg in this client. [2]</p>
+<p>The following are <strong>author-reported</strong>, not independently reproduced. Overall is an aggregate parsing score, not a percentage of correctly recognized characters. Edit distance is lower-is-better; CDM/TEDS/F1 are higher-is-better. [5 Tables 1–3]</p>
+<table><tbody><tr><td>Benchmark</td><td>Overall</td><td>Text edit</td><td>Cross-page text edit</td><td>Table TEDS</td><td>Cross-page table TEDS</td><td>Heading TEDS</td></tr><tr><td>MPDocBench</td><td>84.59</td><td>0.052</td><td>0.100</td><td>87.78</td><td>89.54</td><td>60.10</td></tr><tr><td>MarathonDocBench</td><td>77.06</td><td>0.104</td><td>0.123</td><td>74.81</td><td>71.11</td><td>48.20</td></tr></tbody></table>
+<p>MarathonDocBench is described as 100 documents, 103–300 pages each, with 205k annotated layout elements. Structures start from parser output and receive human refinement; transcriptions undergo VLM refinement with flagged disagreements adjudicated by humans. This is useful methodology disclosure, but it remains an author-created benchmark with machine-assisted labels. The public dataset URL returned HTTP 401 (page displayed 404); its API and raw card were also inaccessible without authentication. No dataset was obtained, and its license, splits, source-document rights and scoring artifacts could not be verified. [5 §3.1.2; 7]</p>
+<p>Single-page OmniDocBench v1.6 overall is 94.02; the same table reports TeleOCR 96.91 and OvisOCR2 96.47. Thus long-document leadership in the authors' comparison is not universal OCR leadership. Marathon heading TEDS 48.20 and figure F1 71.79 also caution against “perfect layout” interpretations. Formula CDM is 89.39 on MPDocBench and 87.93 on MarathonDocBench. [5]</p>
+<p>The model card says multilingual, but the inspected release/card/paper does not establish a per-language accuracy matrix or guaranteed language list. Handwriting, low-resolution scans, unusual scripts, rotated photos and domain-specific tables need separate evaluation. No blanket language/handwriting suitability is inferred from the multilingual tag. [4,5]</p>
+<p><strong>Reproducibility:</strong> public client and conversion rules help, but GitHub has no scoring harness, dataset snapshot, dependency lockfile, CI or tests in its complete reviewed tree. The model is separately versioned; README model loads are not revision-pinned. Ground-truth-based mode selection and postprocessing must accompany any score comparison. No independent accuracy, latency, memory or robustness measurement was made. [1–5,8]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>This is not a browser OCR application or a complete PDF-management product. The GitHub repository supplies a batch HTTP client and output postprocessor; the actual model implementation and weights live in a separate Hugging Face repository. Transformers runs locally; the recommended high-throughput path sends page images to an operator-run SGLang server. Baidu Cloud/TextMind and Hugging Face Spaces are separate hosted options, not evidence that local inference must upload documents. [1–4]</p>
+<p>“One-shot” describes the document-level request, not necessarily all pages resident in GPU memory simultaneously. The paper explicitly explains that sparse attention alone does not stop all-page visual KV memory growth; overlapping page chunks and cache eviction are needed. Nor does “unlimited” mean infinite context fidelity, constant whole-document runtime or absence of output/page limits. [1,5]</p>
+<p><strong>Code:</strong> GitHub LICENSE is MIT, copyright 2026 Baidu: retain copyright/permission notices when redistributing substantial code; no warranty. <strong>Model:</strong> the separate HF card declares MIT; that is separate evidence, not an inference from the code license. The model file listing has no standalone LICENSE, so preserve the declaration and investigate inherited component notices before redistribution. <strong>Datasets:</strong> MarathonDocBench was not publicly retrievable in this review; its terms and underlying-document redistribution rights remain unknown. The training corpus description is not a released, licensed training dataset. Model/code permission does not clear document copyright. [4–7]</p>
+<p>Transformers examples enable trust_remote_code=True; safetensors limits weight-format risk but does not sandbox imported Python or CUDA/Triton code. The model's imports fan out to several custom modules. SGLang is a repository-supplied development wheel, represented as an LFS pointer in the Git tree; it was not downloaded, unpacked or audited. The README pins some packages but not the whole dependency graph or model revision; no reproducible build/attestation for that wheel was established. Audit exact revisions and artifacts before installing. Pillow, PyTorch, Transformers, SGLang and PyMuPDF have their own terms; notably PyMuPDF's AGPL/commercial licensing needs separate deployment review rather than assuming MIT covers the stack. [1,4,6,8,11]</p>
+<p>Public GitHub metadata at review time: 31,984 stars, 3,431 forks, 97 open issues/PRs combined; created 2026-06-18, last push 2026-11-16. The API returned no GitHub releases; one tag, UnlimitedOCR1.0, points to 92ad94b53a51950fea0416aced42331dfb4dd59e. README announces version 2 on 2026-10-27 and TextMind availability on 2026-11-16. Popularity and issue count do not establish quality. Latest public issue samples were not a useful basis for a bug-rate assessment. No CI/tests were present in the inspected GitHub tree, and no tests were run here. [8–10]</p><h4>Provenance</h4><p>GitHub revision 37cf646758611a3b81f53863d1e91128a98d58b1; model revision cb16b920ec2249c4b280f3aa67942e00b5099122. Static review only; no model/dataset downloads, installs, inference or service tests.</p><p><a href="https://arxiv.org/html/2610.39308v1">Paper v1 and author-reported tables</a> · <a href="unlimited-ocr.md">Full citations and review limitations</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Better fit / tradeoff</td></tr>
+<tr><td>Unlimited OCR 2</td><td>Research into long-form cross-page transcription; specialized model/runtime and careful completeness checking required</td></tr>
+<tr><td>PaddleOCR / PaddleOCR-VL</td><td>Compare established OCR/document parsing pipelines and multilingual task coverage; do not assume equivalent cross-page semantics</td></tr>
+<tr><td>DeepSeek OCR 2</td><td>Closely related visual/decoder lineage and single-page baseline; does not make this implementation interchangeable</td></tr>
+<tr><td>Tesseract / OCRmyPDF</td><td>More conventional local text extraction/searchable-PDF workflows; not an equivalent end-to-end cross-page structural model</td></tr>
+<tr><td>MinerU</td><td>Compare practical structured-document pipelines; independently review current code/model licensing and operating requirements</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>README's tested Transformers configuration is Python 3.10 and an NVIDIA A800-80GB with specified torch/Transformers versions. This is a tested configuration claim, not a demonstrated minimum GPU requirement. The HF metadata lists 3,343,978,240 BF16 parameters: roughly 6.69 GB decimal (6.23 GiB) for those weights alone, excluding KV, activations, encoder tensors, allocator overhead and concurrency. “500M active” does not mean only 500M parameters need storage. CPU, Apple Silicon and consumer-GPU performance were not established. [1,4]</p>
+<p>Paper Table 4 reports peak <strong>KV cache</strong>, not total VRAM, dropping from 47.00 GB to 1.77 GB at batch 1, and throughput rising from 360 to 1,315 tokens/s at batch 16. Its 7.0×/5.6× abstract speedups concern per-step decoding versus full attention/R-SWA; the latency study uses gundam mode, batch 3 and fixed 1,024 generated tokens/page. These are different measurements, not a universal end-to-end speed guarantee. The text does not sufficiently tie Table 4 to a complete reproducible hardware/software measurement manifest. [5]</p>
+<p>README explicitly discusses OOM-prone allocations, shared-memory transport, prefill buckets, GPU headroom and smaller page windows hurting cross-page merging. The batch client still loads/base64-encodes all document pages into a payload; bounded server KV does not bound client RAM or transfer size. Base64 alone expands binary data by approximately one third. [1,2]</p>
+<p>There is no repository license fee, but GPU time, electricity, RAM/storage, serving engineering and dependency maintenance cost money. No hosted price, free quota or retention guarantee was verified; cloud use requires separate commercial/security review. Training is not a cheap reproduction path: the paper reports 25×8 H800 GPUs and 12 million training documents. [5]</p>
+<ul><li><strong>Local versus hosted:</strong> the inspected Transformers infer path opens local images and generates locally. Model acquisition is a separate Hugging Face network trust boundary. The batch client deliberately transmits full page images to its configured server; selecting a remote server is document egress. Hosted Spaces/TextMind are third-party processing paths with unverified retention, geographic processing, training-use and deletion terms. No upload was performed. [1,2,4]</li><li><strong>Not secure-by-default serving:</strong> README binds SGLang to all interfaces and shows no API-key/TLS configuration. infer.py constructs plain HTTP URLs, offers no auth-header option and does not correctly support a supplied HTTPS URL. It uses requests.post with default environment/proxy behavior; unlike the README's separate example, it does not set trust_env=False. Keep a prospective deployment private and add authenticated transport and quotas; no actual exposure was probed. [1,2]</li><li><strong>Retention is operator-owned:</strong> PDF example writes page images to a temporary directory without cleanup. infer.py persists raw text; the HF save_results path writes result.md, raw Markdown and annotated page JPEGs/crops. Neither reviewed path provides expiry or secure deletion. Terminal output and service/proxy logs can retain document content. Disabled serving caches are not a data-retention policy. [1,2,4]</li><li><strong>Output is untrusted:</strong> converter preserves raw text/HTML tables and attributes, fixing spans but not sanitizing markup or URLs. Rendering generated Markdown with raw HTML enabled can expose a downstream XSS/content-injection surface; no exploit was executed. Sanitize HTML, disable active content and treat OCR text as data—not agent instructions. [3]</li><li><strong>Hostile PDFs/images:</strong> native image/PDF decoding, large page counts, giant raster dimensions and long outputs need isolated workers, patched parsers, resource/page/pixel limits and cancellation. Reviewed examples supply no comprehensive upload validation or sandbox. Page-count/output guards are not document-safety controls. [1–4]</li><li><strong>Credentials:</strong> local examples need no hosted API key. That does not make an exposed server safe, nor prove cloud access needs no account. Do not give model-loading workers unrelated credentials. [1,2]</li></ul>
+<p>Before adoption: pin and audit the model/custom-code revision and wheel; resolve dependency licenses; isolate GPU workers; keep the API nonpublic behind authenticated encrypted transport; bound pages/pixels/output/time; sanitize rendered output and define image/text/log retention. Evaluate a licensed representative corpus without oracle token tables, checking missing pages, truncation, tables, reading order, heading trees, language variation and human correction effort. Require explicit success accounting instead of trusting batch exit status. This review intentionally provides no executed deployment or inference result.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>⚠️ Interesting — strong long-document research, not a turnkey private OCR service. Sparse reference attention plus bounded page-window decoding is a meaningful architectural contribution. The authors report compelling long-document scores, but the inaccessible benchmark release, custom serving wheel, unsanitized output and incomplete operational controls leave substantial validation work before production.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/baidu/Unlimited-OCR">baidu/Unlimited-OCR</a> · MIT code; MIT-declared model; dataset terms unverified</span>
+    <span><a href="unlimited-ocr.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
