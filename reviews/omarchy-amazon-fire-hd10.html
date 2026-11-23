@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omarchy on Fire HD 10 — Review</title>
+<meta name="description" content="Independent native Linux port for the 2021 Trona tablet—not a consumer-ready installer.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omarchy-amazon-fire-hd10</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Cesarus85/omarchy-amazon-fire-hd10 · reviewed 2026-11-23</div>
+    <h1>Omarchy on Fire HD 10</h1>
+    <p class="one-liner">Independent native Linux port for the 2021 Trona tablet—not a consumer-ready installer.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">GPL-2.0-only + component terms</span>
+      <span class="chip">ARM64 · Arch · Hyprland · Python/C</span>
+      <span class="chip"><a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10">Cesarus85/omarchy-amazon-fire-hd10 ↗</a></span>
+      <a class="chip" href="omarchy-amazon-fire-hd10.md">Full evidence review</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real native-port project, not official support</h3><p>Kernel patches, board DTS, native boot and tablet services substantiate the purpose. Physical functionality is author-reported on one 2021 32-GB Trona; other Fire generations and firmware are not interchangeable.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Guarded installation is still destructive</h3><p>Exact GPT validation, serial confirmation, readbacks and boot-last ordering are valuable. Android and internal data are erased; the protected-prefix backup cannot restore them, and interrupted writes may require expert recovery.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Locking does not encrypt the tablet</h3><p>PAM and Wayland session locking protect the UI, but unlocked recovery can read the unencrypted root. Optional USB SSH grants key-authenticated root access; privileged Docker builds also require host trust.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Installation &amp; recovery</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>a744f8eec8ddb6f85d942aa59f47dbef01d22d56</td></tr><tr><td>Release</td><td>v0.2.0-alpha.1 prerelease; reviewed main is newer</td></tr><tr><td>Kernel / desktop</td><td>6.18.56-trona-arch14 / Omarchy 4.5.0-3 / Hyprland 0.57.2-1</td></tr><tr><td>Implementation</td><td>C, Python, Bash, QML/Lua, systemd and pacman</td></tr><tr><td>Verification</td><td>Static review; exact-SHA public CI success; no local product tests or hardware access</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Purpose</h4>
+<p>The README explicitly describes Linux running directly on the tablet. That claim is supported structurally by a Linux patch/configuration, board DTS, external drivers, Android-format boot-image builder, native ext4 initramfs and systemd runtime—not inferred from its name. Physical functionality is still author-reported rather than independently reproduced here. The project explicitly disclaims official Amazon, Arch Linux ARM and Omarchy affiliation. [1][2]</p>
+<p>The reference device evolved from an Android-userdata loop image to native partition 18. The published boot contract targets the latter; it cannot boot the old loop-root layout. The clean installer is separate from that successful incremental bring-up. There is no universal public ready-to-flash root image. [1][3]</p>
+<h4>Compatibility</h4>
+<table><tbody><tr><td>Boundary</td><td>Supported claim / limitation</td></tr><tr><td>Device</td><td>Fire HD 10 (2021), 11th generation, Trona, MediaTek MT8183; 32-GB reference unit</td></tr><tr><td>Installer</td><td>Exact stock 21-partition geometry, already unlocked compatible boot chain, TWRP 3.7.0_9-0, root ADB, one connected device, battery at least 50%</td></tr><tr><td>Exclusions</td><td>Other generations, Fire HD 8/Max 11, 64-GB layouts, modified or already-native layouts; alternate camera sensors unverified</td></tr><tr><td>Firmware</td><td>Four original radio files must match repository SHA256 values; preserve the device's own calibration/identity. No complete supported Fire OS build-number matrix is supplied</td></tr><tr><td>Qualified software</td><td>Linux 6.18.56-trona-arch14; Omarchy/settings 4.5.0-3; Hyprland 0.57.2-1; Quickshell 0.3.2.r7.g2b4501a-1; libcamera family 0.7.2-4</td></tr><tr><td>Actual package manifest</td><td>platform/PKGBUILD says 2026.11.22-10; docs/updates.md still lists 2026.11.17-10—small but concrete documentation drift</td></tr></tbody></table>
+<p>The linked amonet-koboreru prerequisite is a separate high-privilege boot-chain exploit, not an installer feature. Its current README warns that newer Preloaders were patched around 2022 and that damage to boot-chain partitions can hard-brick a device. This review does <strong>not</strong> establish that a particular Fire OS version can safely be unlocked or downgraded. Treat eligibility as unresolved until independently checked against exact hardware/firmware, not as permission to follow a generic flashing recipe. [3][4][5]</p>
+<p>The author reports native boot, eight CPU cores, display/touch, Panfrost, rotation, Wi-Fi, a paired Bluetooth keyboard, speakers, cameras, SD mounting, s2idle and wake/lock on one reference tablet. Hardware documentation explicitly leaves deep firmware suspend, long-term battery/thermal behavior, charger coverage, Bluetooth audio, headphone jack and alternate sensors incomplete. Display scanout still depends on LK initialization; this is not a finished native DSI panel implementation. Experimental hardware video decode is disabled in normal builds and lacks long-run/standby qualification. [2][4]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Stack and architecture</h4>
+<table><tbody><tr><td>Layer</td><td>Implementation</td></tr><tr><td>Boot</td><td>Preserved Amazon/LK/recovery chain; Android header-v1 Image.gz + DTB + XZ initramfs</td></tr><tr><td>Kernel</td><td>Linux 6.18.56 patch set, arch14 configuration, 28-module inventory, MediaTek/Amazon-derived connectivity and board drivers</td></tr><tr><td>Graphics/media</td><td>SimpleDRM/boot framebuffer, Mesa Panfrost, Hyprland; libcamera software ISP for cameras</td></tr><tr><td>Desktop</td><td>Omarchy/Quickshell, patched wvkbd, QML session-lock keyboard, Lua/window and Python/shell helpers</td></tr><tr><td>Packaging</td><td>Device-rendered trona-platform pacman package, ALPM hooks, boot/integration integrity checks</td></tr><tr><td>Installer</td><td>Python standard library controller, ADB recovery transport, ARM64 Docker build/chroot, pure-Python GPT planner</td></tr></tbody></table>
+<p>Boot verifies root UUID and size, marks other partitions read-only, checks ext4 and switches to systemd; failure waits rather than opening an unauthenticated emergency shell. This is useful accident containment, not verified boot against a malicious root or physical attacker. [2][6]</p>
+<p>The installer separates prepare/build/verify/install. Preparation captures both GPTs and the original first 200 MiB, extracts firmware read-only with journal replay disabled, and creates a unique root UUID. The planner validates CRCs, exact partition names/types/bounds/capacity and preserves entries 1–17. Installation requires a serial-specific erase confirmation, rechecks the device, freezes recovery UI, refuses mounted/held storage, writes backup GPT before primary, verifies root readback, checks/resizes ext4, checks protected partitions and writes boot last. Atomic, fsynced stage records and explicit resume checks are strong design choices. They do not make a multi-stage flash atomic or power-loss-proof. [7]</p>
+<h4>Permissions, security and privacy</h4>
+<ul><li><strong>Local authentication:</strong> QML uses a real Wayland session lock and PAM, not a hard-coded PIN. PAM includes failure throttling; sudo requires the trona account password. Provisioning removes default alarm credentials and locks root's password. Serial console uses normal login, not autologin. The compositor/session runs as trona, with device-access groups; this is a privileged personal desktop, not a multi-tenant isolation design. [8]</li><li><strong>Remote maintenance:</strong> Optional supplied public key is installed for <strong>root</strong> SSH. The SSH drop-in specifies USB link-local IPv4/IPv6 listen addresses and disables password/keyboard-interactive authentication. Clean build enables sshd only when a key is supplied. Root-password locking does not disable key-based root access. Confirm effective sshd configuration after any changes; these source settings are not a live listener/firewall audit. [8]</li><li><strong>Physical boundary:</strong> Bootloader remains unlocked, TWRP remains accessible and root storage is <strong>not encrypted</strong>. Recovery can read or modify files regardless of the desktop password; hash guards are not an independent trust anchor. Do not use it for sensitive data on the assumption that the screen lock protects storage. [9]</li><li><strong>Proxy/egress:</strong> Native WLAN is normal networking. Optional rescue proxy explicitly opts in environment variables and relays loopback TCP to a configured USB link-local host; there is no proxy authentication or TLS added by the relay. The host is therefore a trust boundary. No project telemetry/upload endpoint was identified in the reviewed installer/access paths; this is not an audit of browsers, upstream packages or all vendored code. [8][9]</li><li><strong>Private build material:</strong> Preparation stores device identifiers, original protected partitions and calibration; bundles contain firmware and a password hash. The wizard uses a restrictive umask/private workspace, accepts only a public-key format and strips its comment, and passes the password to Docker stdin rather than an argv flag. Neither ignored files nor containers make these artifacts safe to publish. Protect the workspace, Docker storage and backups; never attach them wholesale to issues. No tablet credentials were supplied or used in this review. [7][9]</li><li><strong>Host privilege caveat:</strong> The build uses Docker <strong>--privileged</strong>, root chroots and pseudo-filesystem mounts. Absence of an explicit tablet mount does not turn privileged Docker into a security sandbox, especially on a native Linux daemon. Use a dedicated build VM/host if evaluating it later. Docker/build dependencies and all executed upstream code must be trusted. [7]</li></ul>
+<h4>Supply chain and license</h4>
+<p>Strengths: kernel/rootfs/keyring/firmware hashes are recorded, the Omarchy key fingerprint is checked, package signature verification remains enabled, sensitive desktop packages are exact-version gated, original component notices and upstream revisions are listed. Firmware is not bundled publicly. [11]</p>
+<p>Limits: Ubuntu container tags and apt package versions are not immutable snapshots; wvkbd is cloned by tag v0.16 rather than verified commit/hash; CI actions use major-version tags; remaining Arch packages roll. A checksum pin on an upstream “latest” rootfs stops drift but can also make a future build unavailable. Local manifests detect accidental changes, not malicious replacement of both files and manifests. These are not fully hermetic, reproducible current arch14 builds: documentation distinguishes arch12 bit-identical results from arch14's lack of independent clean-build reproduction. [11][12]</p>
+<p>The root GPLv2 text is not the entire licensing story. NOTICE marks new glue/documentation GPL-2.0-only, retains component-specific GPL/MIT and Apache-2.0 notices, and includes Omarchy/wvkbd/TECHO5 license files. Respect corresponding-source and notice obligations when distributing modifications; stock firmware has a separate redistribution question. This review extracts no implementation code or firmware. [13]</p>
+<h4>Maturity and verification</h4>
+<p>Public GitHub metadata retrieved 2026-11-23: created 2026-11-15; last push 2026-11-22; 0 stars, 0 forks, and no returned open/closed issues in the public issues query. These are age/activity signals, not safety evidence. Latest published release is <strong>v0.2.0-alpha.1</strong>, an experimental installer prerelease dated 2026-11-15; v0.1.0 is also marked prerelease. Reviewed main is newer than those releases. [14]</p>
+<p>The exact-SHA <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/actions/runs/45053187176">Source checks run</a> reports <strong>success</strong>. Workflow inspection shows source/profile/update/installer/rotation and UI policy tests, GTK dialog tests under Xvfb, a real WLAN function test and SCP proxy emulation. Installer tests use generated GPTs/mocks, not physical flashing. Author validation separately records 16 installer tests, an offline filesystem/package build, original kernel reproduction, and physical reference-device checks. These are useful evidence with different scopes—not independent clean-install acceptance. [12][15]</p>
+<p><strong>Review actions:</strong> read public documentation, installer/planner/build/provisioning code, boot/auth/network configuration, package manifest, workflow and selected tests/evidence; checked unauthenticated GitHub metadata/releases/CI. No repository code executed, no dependencies installed, no containers started, no live network/service probes, no tablet/desktop access, and no hardware compatibility or full kernel security audit. Source CI success is reported evidence, not a locally rerun test. Publication markup/diff/link checks are separate from product testing.</p>
+<h4>Evidence</h4>
+<p>All repository file links below are pinned to the reviewed SHA; external prerequisite and metadata links were retrieved 2026-11-23.</p>
+<p>[1] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/README.md">README.md</a></p>
+<p>[2] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/docs/architecture.md">docs/architecture.md</a></p>
+<p>[3] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/docs/installer.md">docs/installer.md</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/docs/install.md">docs/install.md</a></p>
+<p>[4] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/docs/hardware.md">docs/hardware.md</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/firmware/required.json">firmware/required.json</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/PKGBUILD">platform/PKGBUILD</a></p>
+<p>[5] <a href="https://github.com/R0rt1z2/amonet-koboreru#readme">amonet-koboreru prerequisite README</a></p>
+<p>[6] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/boot/init.template">boot/init.template</a></p>
+<p>[7] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/installer/trona-installer.py">installer/trona-installer.py</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/installer/layout.py">installer/layout.py</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/installer/build.sh">installer/build.sh</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/installer/provision.sh">installer/provision.sh</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/installer/finalize-root.py">installer/finalize-root.py</a></p>
+<p>[8] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/payload/etc/pam.d/omarchy-lock-password">platform/payload/etc/pam.d/omarchy-lock-password</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/payload/usr/share/trona-platform/lock/trona-login.qml">platform/payload/usr/share/trona-platform/lock/trona-login.qml</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/payload/etc/ssh/sshd_config.d/trona-usb.conf">platform/payload/etc/ssh/sshd_config.d/trona-usb.conf</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/payload/etc/sudoers.d/00-trona-admin">platform/payload/etc/sudoers.d/00-trona-admin</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/payload/usr/local/sbin/trona-usb-proxy-relay">platform/payload/usr/local/sbin/trona-usb-proxy-relay</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/payload/etc/profile.d/trona-usb-proxy.sh">platform/payload/etc/profile.d/trona-usb-proxy.sh</a></p>
+<p>[9] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/docs/security.md">docs/security.md</a></p>
+<p>[10] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/docs/updates.md">docs/updates.md</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/platform/trona-platform.install">platform/trona-platform.install</a></p>
+<p>[11] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/installer/sources.json">installer/sources.json</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/installer/Dockerfile">installer/Dockerfile</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/userspace/wvkbd/build.sh">userspace/wvkbd/build.sh</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/CREDITS.md">CREDITS.md</a></p>
+<p>[12] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/docs/validation.md">docs/validation.md</a></p>
+<p>[13] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/NOTICE">NOTICE</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/LICENSE">LICENSE</a></p>
+<p>[14] <a href="https://api.github.com/repos/Cesarus85/omarchy-amazon-fire-hd10">Public metadata</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/releases">releases</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/issues">issues</a></p>
+<p>[15] <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/.github/workflows/check.yml">.github/workflows/check.yml</a>, <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10/blob/a744f8eec8ddb6f85d942aa59f47dbef01d22d56/tests/test-installer.py">tests/test-installer.py</a></p>
+
+<p><strong>Attribution:</strong> Cesarus85/omarchy-amazon-fire-hd10; Stefan Maier and credited upstream contributors. GPL-2.0-only new glue/documentation; component-specific terms in NOTICE and LICENSES. Independent static analysis; no official affiliation implied.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Native port</td><td>Full Linux integration</td><td>Destructive, narrow and experimental</td></tr><tr><td>Keep Fire OS</td><td>No port migration</td><td>No native Arch desktop</td></tr><tr><td>Remote desktop</td><td>Avoids repartitioning</td><td>Network and remote-auth dependence</td></tr><tr><td>Android userspace</td><td>Potential lower-impact CLI access</td><td>Not native kernel support; compatibility unverified</td></tr><tr><td>Linux-capable hardware</td><td>Choose documented support</td><td>Additional hardware cost</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This section describes effects; it is not a flashing guide. The host needs Python 3.10+, Git, ADB and an ARM64-capable Docker engine, internet and at least 25 GiB free in both relevant storage locations. Builds download packages/sources, create a Docker image, named volume/container and private local artifacts; the volume persists even after successful container cleanup. Failed builds retain diagnostic state. There is no host service installation in the inspected wizard; installing prerequisites is a separate administrative action. [3][7]</p>
+<p>The final tablet install deliberately erases Android system/vendor/cache/userdata and replaces partitions 18–21 with about 28.93 GiB native Linux storage, plus a new boot image in p16. The protected-area capture is <strong>not</strong> an Android/user-data backup. An adopted/encrypted SD card can become unreadable after Android keys are lost even though the SD card is not written. Preserving recovery reduces risk; an interrupted GPT or boot write can still leave an unbootable device requiring expert repair. External unlocking carries separate hard-brick risk. [3][5][7]</p>
+<p>Persistence includes a native rootfs, platform files, system services for desktop/boot guard/radios/battery/power/USB networking, user services for rotation/keyboard/window fit/SD helper, PAM/SSH/sudoers settings and pacman hooks. Qualified package pins and patch restoration deliberately constrain rolling upgrades. The guard blocks generic kernel/bootloader payloads and ordinary removal of trona-platform. This is ongoing maintenance commitment, not a removable desktop theme. Pinned versions also require timely security qualification. [10]</p>
+<p>No complete one-click uninstall, stock-Android restoration or automatic transaction rollback is supplied. Resume accepts only known saved old/new GPT and boot states, restarts the root write from zero, and refuses completed installs or unknown/torn boot states. Restoring the old GPT cannot recover overwritten Android data. Recovery requires the same private workspace, functioning recovery access and appropriate independently preserved originals; a factory reset is not an undo button. Host cleanup should target only the recorded container/volume and chosen private files, not global Docker pruning. [3][7][10]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Substantial kernel and tablet integration, with careful destructive-write checks. Clean installation lacks second-device physical acceptance; unlocked recovery and unencrypted storage make this unsuitable for sensitive daily-use data.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Cesarus85/omarchy-amazon-fire-hd10">Cesarus85/omarchy-amazon-fire-hd10</a> · GPL-2.0-only + component terms</span>
+    <span><a href="omarchy-amazon-fire-hd10.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

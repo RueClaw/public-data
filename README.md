@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [omarchy-amazon-fire-hd10.md](reviews/omarchy-amazon-fire-hd10.md) [page](reviews/omarchy-amazon-fire-hd10.html) | [Cesarus85/omarchy-amazon-fire-hd10](https://github.com/Cesarus85/omarchy-amazon-fire-hd10) | GPL-2.0-only; component terms | 📚 Study | Native Trona Linux port; destructive experimental installer, narrow firmware/recovery prerequisites and unencrypted storage. Static review. |
 | [unlimited-ocr.md](reviews/unlimited-ocr.md) [page](reviews/unlimited-ocr.html) | [baidu/Unlimited-OCR](https://github.com/baidu/Unlimited-OCR) | MIT code; model/data terms | ⚠️ Interesting | Long-document OCR research; sparse references, qualified benchmarks, custom-runtime and document-privacy caveats. Static review. |
 | [winrust.md](reviews/winrust.md) [page](reviews/winrust.html) | [Lemxy/WinRust](https://github.com/Lemxy/WinRust) | MIT OR Apache-2.0 | 📚 Study | Native Windows shell suite; SYSTEM persistence, incomplete signed-update delivery and recovery/privacy caveats. Static review. |
 | [hypr-computer.md](reviews/hypr-computer.md) [page](reviews/hypr-computer.html) | [malik-na/hypr-computer](https://github.com/malik-na/hypr-computer) | MIT; component terms | ⚠️ Interesting | Hyprland MCP desktop control; useful coordinate helpers, whole-session authority, capture privacy and persistent-install caveats. Seven offline assertions passed. |
