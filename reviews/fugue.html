@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fugue — Review</title>
+<meta name="description" content="Native node-based local and paired-host AI workflows for Omarchy, with a shared desktop/CLI engine.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / fugue</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">bmaltais/fugue · reviewed 2026-11-23</div>
+    <h1>Fugue</h1>
+    <p class="one-liner">Native node-based local and paired-host AI workflows for Omarchy, with a shared desktop/CLI engine.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code; separate model/dependency terms</span>
+      <span class="chip">C++17 · Qt Quick · stable-diffusion.cpp</span>
+      <span class="chip"><a href="https://github.com/bmaltais/fugue">bmaltais/fugue ↗</a></span>
+      <span class="chip"><a href="https://github.com/bmaltais/fugue/tree/6fdbb95f42b5f34b278e1b251c60b86b25014fc6">Reviewed source SHA</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real workflow engine, not a model</h3><p>Typed graph compilation, groups, caching and CPU/GPU scheduling are shared by the native GUI and headless CLI. Media-generation quality and performance were not verified.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Trust means code execution</h3><p>Packs run as the user and inherit the environment. Network/files/GPU declarations are not enforced; terminal confirmation does not prove a human is at the controls.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Release reliability remains unresolved</h3><p>v0.1.0-test3 has successful packaging but failing Test jobs on x86_64 and aarch64. Source pins and extensive test infrastructure do not substitute for passing tests.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Interface</td><td>Qt Quick/QML desktop and JSON-oriented headless CLI</td></tr><tr><td>Engine</td><td>C++17, typed DAG compiler, scheduler, registry and providers</td></tr><tr><td>Media</td><td>libvips, FFmpeg, libarchive, Qt multimedia</td></tr><tr><td>Inference</td><td>Patched stable-diffusion.cpp helper, Omarchy and HTTP/stdio modules</td></tr><tr><td>State</td><td>JSON/JSONL, file caches, locks and recovery snapshots</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Implemented capabilities, not benchmarks</h4><p>Graph editing, nested groups, masks/inpainting, image/text/media kernels, sharing and model downloads have code paths. Layered-image canvases have CLI support; the README says their window comes later. No image, audio, video, model or hardware behavior was exercised.</p><h4>Integrity and recovery</h4><p>Model downloads use SHA-256, partial files and retries. Share-package imports reject unsafe paths and links and cap expanded data. Autosaves, atomic queue files, stale-process cleanup and content-addressed results help recovery, but do not promise exactly-once execution or resume arbitrary in-flight inference.</p><h4>Evidence and exact revision</h4><p>Reviewed 6fdbb95f42b5f34b278e1b251c60b86b25014fc6, also tag v0.1.0-test3. Public API metadata and selected source paths were inspected on 2026-11-23 UTC. 173 test_*.cpp files are infrastructure evidence, not passing test cases.</p><p><a href="https://github.com/bmaltais/fugue/actions/runs/45102853059">Failing Test run</a> · <a href="https://github.com/bmaltais/fugue/actions/runs/45102853068">Successful Package run</a> · <a href="fugue.md">Full findings and pinned evidence map</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Document → graph → scheduler → provider/kernel → cache</h4><p>The compiler flattens groups and validates typed links, cycles and versions. Scheduling shares CPU slots and GPU/provider lanes, prefers resident models, and handles branch errors and cancellation. The helper is a separate process, not a privilege boundary.</p><h4>Execution and credentials</h4><p>Trusted packs and provider start commands execute as the user. Built-in/local packs are always trusted; other trust is keyed by ID/version. Pack confirmation checks terminal presence, not human identity. Provider keys are stored as owner-only JSON rather than an encrypted vault.</p><h4>Remote and privacy boundaries</h4><p>The helper requires a bearer key and restricts key-file permissions, while clients block credential-carrying redirects. HTTP has no built-in TLS here: use a trusted encrypted network, not public exposure. Remote prompts/media leave the machine; extensions and setup programs can make further network calls.</p><h4>Persistence is not encrypted private mode</h4><p>FUGUE_HOME redirects cooperative application/cache/temp writes and projects can separate state. It preserves desktop access and does not sandbox arbitrary code. Prompts, images, paths, run graphs and recovery data can persist. Private-mode research is not proof of shipped vault or sandbox guarantees.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>ComfyUI</td><td>Established Python graph/node ecosystem</td><td>Fugue: native Qt/Omarchy integration, different extensions</td></tr><tr><td>InvokeAI</td><td>Image-focused creative application</td><td>Fugue: extensible headless graph engine; layered-image UI developing</td></tr><tr><td>stable-diffusion.cpp</td><td>Inference toolkit</td><td>Fugue: orchestration, editing and caching around a patched helper</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Local application, not SaaS</h4><p>Arch/Omarchy x86_64/aarch64 packaging, Vulkan and optional CUDA. No mandatory subscription was found; hardware, VRAM, storage, electricity and bandwidth remain costs, and custom providers may charge. No installation was performed.</p><h4>Supply chain and licensing</h4><p>Helper archives have commit and SHA-256 pins. Packages are unsigned; release checksums are not publisher signatures. CI uses moving action tags/base packages, and its ARM rootfs bootstrap uses HTTP plus MD5. Submodule contents and dependencies were not fully audited.</p><p>Application LICENSE is MIT despite GitHub’s “Other” classifier. Model weights and data remain separately licensed; the catalog includes noncommercial model terms. Verify each model card and input/output right before use.</p><h4>Adoption gate</h4><p>Require green tests at your chosen revision, review executable extensions, isolate non-sensitive trials and constrain helper network reachability. No runtime performance, exploit, paired-host or crash-recovery guarantee was established.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantive C++/Qt workflow architecture, but not yet a deployment recommendation. The exact reviewed prerelease fails Test CI on both architectures; extensions are unsandboxed and release packages unsigned. Static review only: no builds, inference or live security tests.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/bmaltais/fugue">bmaltais/fugue</a> · MIT code; separate model/dependency terms</span>
+    <span><a href="fugue.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
