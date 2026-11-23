@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Diagram — Review</title>
+<meta name="description" content="Measured architecture diagrams with layout diagnostics, JSON/Mermaid inputs and a local MCP interface.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / open-diagram</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">lukendeasy/open-diagram · reviewed 2026-11-23</div>
+    <h1>Open Diagram</h1>
+    <p class="one-liner">Measured architecture diagrams with layout diagnostics, JSON/Mermaid inputs and a local MCP interface.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT · Inter: OFL 1.1 · icons: provider terms</span>
+      <span class="chip">Python · fontTools · SVG · optional MCP</span>
+      <span class="chip"><a href="https://github.com/lukendeasy/open-diagram">lukendeasy/open-diagram ↗</a></span>
+      <a class="chip" href="open-diagram.md">Full cited review</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">109</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">11</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Layout feedback is the differentiator</h3><p>Font metrics size blocks before placement; named reports catch overlaps, crossing lines and label problems. SVG outlines preserve appearance, while describe() preserves meaning for an agent.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>JSON-only is not a security boundary</h3><p>Theme values flow into unescaped SVG attributes, then into browser-rendered HTML for PNG. This static injection finding was not exploit-tested. CLI Python input explicitly executes code, including check mode.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Outputs need ownership and provenance</h3><p>MCP filenames are sanitized but writes overwrite and follow existing symlinks. Draw saves pictures, not the input source; failed layout checks can still leave files. Keep source history and use a dedicated output directory.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Core</td><td>Python 3.9+, fontTools, bundled Inter</td></tr><tr><td>PNG</td><td>Chrome/Chromium/Edge; optional Pillow</td></tr><tr><td>MCP</td><td>Python 3.10+, mcp &gt;=2.3,&lt;3; stdio</td></tr><tr><td>Storage</td><td>Source files and SVG/PNG, no database</td></tr><tr><td>Revision</td><td>e2f9e788778968ab28f8f35a6396554f644be553</td></tr><tr><td>Release</td><td>v0.4.0; main is newer</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Measure, place, check</h4><p>Panels, tiles, groups, cards, rings and status-aware connections form dense maps. Geometry checks are heuristics, not semantic correctness or perfect-layout guarantees.</p><h4>Import and export</h4><p>Mermaid flowchart import is a subset; styling/click directives are ignored. Python offers local icon embedding. JSON/MCP excludes icon paths. Outputs are SVG and optional PNG, not an editable workspace database.</p><p>Evidence: <a href="https://github.com/lukendeasy/open-diagram/blob/e2f9e788778968ab28f8f35a6396554f644be553/src/open_diagram/diagram.py">diagram engine</a> · <a href="https://github.com/lukendeasy/open-diagram/blob/e2f9e788778968ab28f8f35a6396554f644be553/src/open_diagram/mermaid.py">Mermaid parser</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>CLI or MCP → JSON/Mermaid parser → measured blocks and Diagram → layout report and SVG → optional headless-browser PNG. No built-in model, account or paid API is required.</p><h4>Trust and privacy</h4><p>MCP sends descriptions and optionally image bytes to the calling AI application, which may use cloud providers. Agent charges and privacy terms are outside the library. Theme values are not strictly validated or escaped at serialization; output-name filtering does not protect against preexisting symlinks.</p><h4>Recovery and limits</h4><p>Source text has a 200,000-character MCP cap, but dimensions and compute are not comprehensively bounded. Save writes before reporting layout failure. PNG success checks can accept a stale output. MCP picture=false suppresses image return, not PNG generation.</p><h4>Verification</h4><p>Static review only: no install, tests, browser or exploit execution. Upstream test and diagrams CI succeeded at this SHA; Python 3.9 is not in the 3.10/3.14 test matrix. Release v0.4.0 was published 2026-11-19. Metrics are the retrieval snapshot, not quality guarantees.</p><p>Evidence: <a href="https://github.com/lukendeasy/open-diagram/blob/e2f9e788778968ab28f8f35a6396554f644be553/src/open_diagram/spec.py">theme input</a> · <a href="https://github.com/lukendeasy/open-diagram/blob/e2f9e788778968ab28f8f35a6396554f644be553/src/open_diagram/svg.py">SVG serializer</a> · <a href="https://github.com/lukendeasy/open-diagram/blob/e2f9e788778968ab28f8f35a6396554f644be553/src/open_diagram/mcp_server.py">MCP authority</a> · <a href="https://github.com/lukendeasy/open-diagram/blob/e2f9e788778968ab28f8f35a6396554f644be553/src/open_diagram/render.py">PNG renderer</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Open Diagram</td><td>Measured multi-section panels and check/fix feedback</td></tr><tr><td>Mermaid</td><td>Prefer native syntax and existing Markdown integrations</td></tr><tr><td>Mingrammer Diagrams</td><td>Prefer Python provider nodes and Graphviz layouts</td></tr><tr><td>Evidence</td><td>Public documentation comparison; no benchmark or alternative audit</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Local tool, not a hosted service. Pin the environment, retain input/status/icon files under version control, and use a dedicated restrictive output directory. Treat Python as code; use trusted specs until SVG serialization is hardened. Restrict browser network access and inspect generated pictures.</p><p>MIT code requires preserving notices; Inter is OFL 1.1 and cloud icons retain provider terms. No deployment was performed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful for trusted local documentation and agent check/fix loops. Harden SVG serialization and output isolation before accepting untrusted specifications; local MCP does not make a connected cloud AI private.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/lukendeasy/open-diagram">lukendeasy/open-diagram</a> · MIT · Inter: OFL 1.1 · icons: provider terms</span>
+    <span><a href="open-diagram.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

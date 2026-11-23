@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [open-diagram.md](reviews/open-diagram.md) [page](reviews/open-diagram.html) | [lukendeasy/open-diagram](https://github.com/lukendeasy/open-diagram) | MIT; OFL font; icon terms | ⚠️ Interesting | Measured architecture diagrams and MCP; SVG injection, output isolation and recovery caveats. Static review. |
 | [fugue.md](reviews/fugue.md) [page](reviews/fugue.html) | [bmaltais/fugue](https://github.com/bmaltais/fugue) | MIT code; model/dependency terms | ⚠️ Interesting | Native Qt AI workflow graphs; unsandboxed packs, unsigned prerelease and failing Test CI. Static review. |
 | [omarchy-amazon-fire-hd10.md](reviews/omarchy-amazon-fire-hd10.md) [page](reviews/omarchy-amazon-fire-hd10.html) | [Cesarus85/omarchy-amazon-fire-hd10](https://github.com/Cesarus85/omarchy-amazon-fire-hd10) | GPL-2.0-only; component terms | 📚 Study | Native Trona Linux port; destructive experimental installer, narrow firmware/recovery prerequisites and unencrypted storage. Static review. |
 | [unlimited-ocr.md](reviews/unlimited-ocr.md) [page](reviews/unlimited-ocr.html) | [baidu/Unlimited-OCR](https://github.com/baidu/Unlimited-OCR) | MIT code; model/data terms | ⚠️ Interesting | Long-document OCR research; sparse references, qualified benchmarks, custom-runtime and document-privacy caveats. Static review. |
