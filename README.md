@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [deslop-please.md](reviews/deslop-please.md) [page](reviews/deslop-please.html) | [deterministic-machines/deslop-please](https://github.com/deterministic-machines/deslop-please) | MIT | ⚠️ Interesting | Rust architectural linter with wrapper-aware checks; young heuristics, cache and baseline caveats. Static review. |
 | [patch-audio.md](reviews/patch-audio.md) [page](reviews/patch-audio.html) | [novuon/patch-audio](https://github.com/novuon/patch-audio) | MIT source; binary/model terms | ⚠️ Interesting | Native Omarchy audio suite; disabled public AI planner, recovery engineering and extension/licensing caveats. Static review. |
 | [tuff.md](reviews/tuff.md) [page](reviews/tuff.html) | [usetuff/tuff](https://github.com/usetuff/tuff) | AGPL-3.0-only | ⚠️ Interesting | Team tasks, docs and chat with scoped MCP agents; conditional backups and young release history warrant a pilot. |
 | [open-diagram.md](reviews/open-diagram.md) [page](reviews/open-diagram.html) | [lukendeasy/open-diagram](https://github.com/lukendeasy/open-diagram) | MIT; OFL font; icon terms | ⚠️ Interesting | Measured architecture diagrams and MCP; SVG injection, output isolation and recovery caveats. Static review. |

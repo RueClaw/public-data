@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deslop Please — Review</title>
+<meta name="description" content="A Rust architecture linter that follows semantic references, not an AI cleaner.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / deslop-please</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">deterministic-machines/deslop-please · reviewed 2026-11-24</div>
+    <h1>Deslop Please</h1>
+    <p class="one-liner">A Rust architecture linter that follows semantic references, not an AI cleaner.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Rust · Cargo · rust-analyzer SCIP</span>
+      <span class="chip"><a href="https://github.com/deterministic-machines/deslop-please">deterministic-machines/deslop-please ↗</a></span>
+      <a class="chip" href="https://github.com/RueClaw/public-data/blob/main/reviews/deslop-please.md">Full review &amp; pinned evidence</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">187</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">5</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Six implemented structural checks</h3><p>Cycles, tangles, field leaks, shallow modules, wide directories and long files. No AI inference, automatic rewriting or claim to prove correctness.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Useful evidence, not validated quality metrics</h3><p>75 unit-test and 12 integration-test annotations; upstream CI succeeds at v0.1.3. Wrapper/refactor variants are valuable, but no local tests or precision/recall benchmarks were run.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local does not mean sandboxed</h3><p>Cargo and rust-analyzer inherit user authority. Cache invalidation omits some configuration inputs, writes are not atomic, and debt baselines suppress keys rather than all worsening metrics.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>CLI</td><td>Rust 2024; serde_json</td></tr><tr><td>Index</td><td>Cargo metadata + rust-analyzer SCIP</td></tr><tr><td>State</td><td>Local index cache + plain-text allowlist</td></tr><tr><td>Revision</td><td>4239b74ce75ded0955306cdbb933f7ff834d723e (v0.1.3)</td></tr><tr><td>Verification</td><td>Static review; anonymous metadata; no source execution</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Six actual lints, not just the four illustrated in the README</p>
+<p>- module-cycle: cycles in module-use relationships.
+- tangle: strongly connected “things” (types with their members, free functions/constants), flagged across modules or when more than seven members occupy one module.
+- field-leak: outside code manipulating fields of a struct that actually guards some state; plain value reads and simple data bags are deliberately treated differently.
+- shallow-module: eligible modules/crates showing more than seven working functions, with an overlong interface list and no more hidden than shown functions. Trait implementations and trivial wrappers are excluded from the working-function count.
+- wide-directory / long-file: more than 15 Rust-bearing directory members, or more than 2,000 lines; blank/comment lines count. Layout checks include test code even though semantic graph checks exclude identified tests. [4–7]</p>
+<p>Resists some metric gaming</p>
+<p>Methods belong to the type's home even if an impl is moved elsewhere. Wrapper/forwarder/accessor analysis follows through superficial getters and relay functions. Fixture variants explicitly exercise re-exports, moved impl blocks, padded modules, getters, copies, borrowed reads and real structural fixes. This is stronger evidence than a screenshot, but only for the tested cases. Source analysis uses a custom tokenizer and named-container/type rules rather than a complete independent Rust type checker. Macro-heavy, generated and unusual target configurations need separate evaluation. [3,6,8]</p>
+<p>Incremental adoption with a caveat</p>
+<p>Exit status is 0 for success, 1 for reported debt, 2 for operational/argument errors. --update-allow writes current keys and returns success; --allow suppresses known keys and notes fixed entries. A shrinking cycle/tangle stays allowed. This is a useful ratchet for new keys, not a guarantee that all worsening debt fails: a previously allowed long-file or field-leak key can worsen while retaining its identity. Baseline changes need code review rather than automatic regeneration in CI. [2,9]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p>The pipeline is Cargo metadata → cached rust-analyzer SCIP → custom protobuf/symbol reader → source-augmented Model → Graph → lint diagnostics → terminal renderer. Graph construction unifies methods/fields with their owner types, resolves wrappers and computes strongly connected components. BTree collections and sorted diagnostic keys support stable reporting. No JSON/SARIF output, feature-selection flags, target-selection flag or auto-fix is exposed by the current CLI. [2–8]</p>
+<p>A small dependency surface is attractive, but substantial parsing and language interpretation are maintained locally. The model expects indexed files to begin with their module definition and reads files named by the index relative to the workspace root; that is a trusted-index assumption, not validation of hostile SCIP input. Disabling build scripts reduces side effects and may also limit understanding of build-generated code. [3,8]</p><h4>Security, Execution Authority and Privacy</h4><p>Not a sandbox. The binary launches cargo and rust-analyzer by PATH, inheriting user environment and permissions. It supplies fixed arguments through Command rather than assembling a shell command, and explicitly disables rust-analyzer Cargo build scripts. That does not certify arbitrary hostile workspaces, toolchain binaries, Cargo configuration, dependency resolution or macro behavior as harmless. No process timeout or resource cap is implemented around these subprocesses. Use a restricted checkout/container without credentials for untrusted projects; do not assume “linter” means read-only or no execution. [2,3]</p>
+<p>Writes are real. Index generation creates a workspace-specific hashed directory under Cargo's target directory and writes ra-config.json, index.scip and index.stamp. --update-allow creates parent directories and directly overwrites its supplied path. No application-level path confinement or symlink defense is apparent for those outputs. There is no network listener/auth/CORS surface to configure. [3,9]</p>
+<p>No native prompt-injection or LLM egress path was found. There is no model call or prompt interpreter in the inspected CLI. If an external coding agent consumes diagnostics or follows the README's AGENTS.md suggestion, source names, paths and repository instructions remain untrusted data; the agent's permissions and provider policies—not this linter—control subsequent edits and data disclosure. Diagnostics, allowlists and SCIP indexes contain project structure/names and should not be uploaded indiscriminately. Cargo/rust-analyzer may require dependency/toolchain network access; no enforced offline flag is supplied. “No built-in LLM” is not proof of zero subprocess network traffic. [1–3,9]</p><h4>Persistence and Recovery</h4><p>Cache stamps include the rust-analyzer version output, fixed indexing configuration and hashes of discovered Rust files, Cargo manifests and Cargo.lock. A stale/missing stamp or missing index causes regeneration. The previous stamp is removed before indexing and a new stamp is written only after successful indexing: a useful failure-recovery measure. [3]</p>
+<p>However, source discovery skips hidden paths and symlinks; the stamp does not capture .cargo/config.toml, arbitrary environment changes or every generated/include input. Configuration changes can therefore leave a stale index, and symlinked sources merit testing. Cache writes are not atomic and have no interprocess lock; simultaneous runs can race. A corrupt existing index with a matching stamp is read and fails parsing rather than automatically retried. Recovery is to invalidate the affected generated cache and rerun, with no other run active. Allowlist replacement is also non-atomic, so version-control it. These are code-derived risks, not failures reproduced during this review. [3,9]</p><h4>Licensing and Supply Chain</h4><p>The actual LICENSE is MIT, copyright 2026 Deterministic Machines, Inc.; code redistribution requires preserving its copyright/permission notice and disclaimer. This review extracts no upstream code. Dependency and toolchain licenses remain their own obligations. [12]</p>
+<p>Cargo.lock and flake.lock improve reproducibility; CI builds use --locked. The README's plain cargo install command is not a full pinned-environment recipe. External rust-analyzer is a major semantic dependency despite only one direct Rust crate. The release workflow gates builds on CI, publishes crates.io before GitHub, and offers Linux x86_64/ARM64 musl and Apple ARM64 archives plus SHA-256 files. Checksums detect corruption but are not independent signatures; no artifact attestation/signing step was identified. GitHub Actions are version-tag referenced rather than commit-SHA pinned. The build/test job has read permissions; a separate badge publisher gets contents:write, and release jobs use registry/release credentials. Those are maintainer publishing privileges, not credentials required by ordinary users. [11–13]</p><h4>Verification Limits</h4><p>This is a static implementation review, not an exploit audit or runtime acceptance test. No source/dependency installation, fixture execution, binary download/execution, provider call or private account access occurred. Upstream CI status, release assets and issue state were observed anonymously and may change. Release checksums/signatures, crates.io contents, full historical evolution, false-positive rates, hostile-workspace behavior and cross-platform operation were not independently verified. The recommended next gate is a secret-free sandbox evaluation against representative known-good and intentionally bad Rust projects.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Deslop Please</td><td>Opinionated architectural diagnostics; young fixed policy</td></tr><tr><td>Rust Clippy</td><td>Complementary correctness/style/performance lints</td></tr><tr><td>cargo-modules / human review</td><td>Dependency exploration and contextual judgment; no head-to-head benchmark</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no service to self-host. Pilot locally on a trusted Rust workspace with compatible Cargo/rust-analyzer available; reproduce the project's Rust 1.99.0 toolchain before comparing diagnostics. Establish a reviewed baseline, keep it in Git and initially report findings without blocking merges. Pin versions in CI; evaluate target, macros, generated code and test-only modules on representative projects before tightening enforcement. The Nix shell is declared for x86_64-linux; released binaries cover the three targets above. No subscription, paid API or model inference cost is built in; costs are developer attention, dependency/toolchain storage and indexing CPU/memory. Actual runtime/resource cost was not benchmarked. [1–3,11,13]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot as an architectural review aid, not a universal quality gate. Wrapper-aware analysis and refactoring fixtures are promising; young heuristics, fixed thresholds and cache limitations still need human judgment.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/deterministic-machines/deslop-please">deterministic-machines/deslop-please</a> · MIT</span>
+    <span><a href="deslop-please.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
