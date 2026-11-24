@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>squid5090 — Review</title>
+<meta name="description" content="A specialized Zig + Blackwell inference engine: substantial engineering, narrower evidence than the headline.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / squid5090</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">tensorfish/squid5090 · reviewed 2026-11-24</div>
+    <h1>squid5090</h1>
+    <p class="one-liner">A specialized Zig + Blackwell inference engine: substantial engineering, narrower evidence than the headline.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">No project-wide license; model/component terms separate</span>
+      <span class="chip">Zig · CUDA · sm_120a</span>
+      <span class="chip"><a href="https://github.com/tensorfish/squid5090">tensorfish/squid5090 ↗</a></span>
+      <span class="chip"><a href="squid5090.md">Full cited review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">84</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">12</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>1M capacity is not 1M retrieval proof</h3><p>longctx zeroes KV and benchmarks simulated positions. Its B=4 throughput assumes 2.5 accepted tokens per step; a real million-token three-needle soak is explicitly unfinished.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Fast paths have numerical tradeoffs</h3><p>NVFP4 weights and Q4 KV need quality validation beyond speculative token parity. Top-p/top-k use histogram cutoffs, not exact sorted filtering; B=1 and batched accumulation can tie-break differently.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Keep the server off untrusted networks</h3><p>Default all-interface binding, optional authentication and blocking single-client I/O need hardening. Oversized API keys have a static fail-open edge; the sample system service omits an unprivileged user.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Host</td><td>Zig tokenizer, mmap safetensors, fixed buffers</td></tr><tr><td>Compute</td><td>Five CUDA units, CUDA Graphs, cuBLAS</td></tr><tr><td>Model</td><td>Fixed Inkling-2-Mini text path, DSpark, NVFP4/FP8/Q4</td></tr><tr><td>Service</td><td>Sequential HTTP/SSE; volatile prefix cache</td></tr><tr><td>Research</td><td>Optional Python/PyTorch/Optuna; mostly unlocked dependencies</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Specialization that matters</h4><p>48 logical visits over 24 physical layers, eight global attention visits, local rings, adaptive 2/4/8 target verification and prompt-lookup drafting. Source claims 589.5 tok/s code, 771.6 copy/RAG and 332.5 chat: different workloads, not a universal speed.</p><p><a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/LEARNINGS.md">Engineering claims and limitations</a> · <a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/src/engine.zig#L1789-L1875">Synthetic-position benchmark</a></p><h4>Sampling and quality</h4><p>256 bins across 20 nats approximate top-p/top-k; entire cutoff bins can include extra tokens. Greedy consistency inside one quantized engine is not reference-model fidelity. No tracked CI or comprehensive automated numerical test suite was found.</p><p><a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/cuda/kernels_gemv.cu#L1234-L1306">Sampler evidence</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Reviewed source: 3140b6507740081827e189cda65a345bcb076885. Source commit 2026-11-24T04:46:02Z; review date UTC. Anonymous public access verified. No releases returned; stars/forks are a retrieval snapshot.</p><p>main loads local tensors; weights plans and converts weights; engine owns KV, prefill, decode and graphs. Runtime and weight arenas reduce allocation churn. Above 512K context, non-exact mode automatically uses pinned host embeddings: zero expert spill is not zero host memory.</p><p>Four host prefix checkpoints and a side-request shield improve repeated-prompt latency, but carry no per-tenant isolation. KV/request/RNG state is volatile; service restart reloads the model rather than resuming a response.</p><p><a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/src/main.zig">CLI and embedding selection</a> · <a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/src/weights.zig">Weight memory</a> · <a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/src/engine.zig">Cache architecture</a></p><h4>Permissions and terms</h4><p>NOTICE attributes Apache-2.0/MIT upstream work, but no project-wide license grant was found. The model card at 7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 labels Apache-2.0 and links a separate acceptable-use policy. Optional refusal-reduction ablation changes behavior and requires separate quality and terms review.</p><p><a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/NOTICE">Attribution, not a complete license</a> · <a href="https://huggingface.co/thinkingmachines/Inkling-2-Mini/blob/7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6/README.md">Model card</a> · <a href="https://thinkingmachines.ai/model-acceptable-use-policy/">Model AUP</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>squid5090</td><td>Narrow single-user RTX 5090 text optimization; study first</td></tr><tr><td>llama.cpp / Ollama</td><td>Evaluate portability and GGUF workflows; no speed comparison verified</td></tr><tr><td>vLLM / SGLang</td><td>Evaluate multi-request scheduling and serving infrastructure</td></tr><tr><td>Transformers</td><td>Useful reference for model, tokenizer and multimodal fidelity</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Author requirements: Linux x86_64, sm_120a Blackwell, CUDA 13+, driver 580+, Zig 0.17.1+. Claimed ≥16 GiB free VRAM for small context or ≥23.5 GiB for 1M, plus host memory and about 20 GB weights. Toolchain compatibility and memory were not independently tested.</p><p>Do not use the sample unit unchanged: it binds all interfaces, leaves authentication optional, omits User= and enables optional ablation. Use unprivileged loopback-only serving behind authenticated TLS, request deadlines and rate limits. Synchronous recv occurs before authentication.</p><p>Static auth finding: formatting Bearer plus a key longer than 249 bytes into a 256-byte buffer falls back to an empty expected string, matching an absent header. Fail closed and validate key length. No exploit was executed.</p><p>Pin source/model/dependencies; test reference logits, tokenizer, quantization quality, genuine long inputs, disconnects and restart behavior. No source execution, deployment, GPU evaluation or downloads were performed.</p><p><a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/src/server.zig#L360-L510">HTTP and authentication evidence</a> · <a href="https://github.com/tensorfish/squid5090/blob/3140b6507740081827e189cda65a345bcb076885/deploy/squid5090.service">Deployment unit</a></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the specialized kernels and speculation design, not as a ready-to-deploy server. Author-reported throughput, synthetic million-token scaling, approximate sampling, unsafe serving defaults and an unspecified project license need resolution. Static review only; no builds, model downloads, inference or benchmarks run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/tensorfish/squid5090">tensorfish/squid5090</a> · No project-wide license; model/component terms separate</span>
+    <span><a href="squid5090.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
