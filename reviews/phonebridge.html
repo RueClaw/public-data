@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhoneBridge — Review</title>
+<meta name="description" content="Linux-to-iPhone Bluetooth texting: careful send gates, experimental interoperability.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / phonebridge</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">CodeFu72/phonebridge · reviewed 2026-11-24</div>
+    <h1>PhoneBridge</h1>
+    <p class="one-liner">Linux-to-iPhone Bluetooth texting: careful send gates, experimental interoperability.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code · SIL OFL fonts</span>
+      <span class="chip">Python · GTK 4 · BlueZ MAP</span>
+      <span class="chip"><a href="https://github.com/CodeFu72/phonebridge">CodeFu72/phonebridge ↗</a></span>
+      <span class="chip"><a href="phonebridge.md">Full cited review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Review before sending; acceptance is not delivery</h3><p>One recipient, a 2,000-byte limit and one outstanding send. Missing receipts become uncertain, never an automatic retry.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Bluetooth-first is not entirely offline</h3><p>Previews fetch HTTP(S) pages and thumbnails only on click. Redirects and image URLs lack private-address checks; avoid previews on untrusted texts.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Small alpha, incomplete archive recipe</h3><p>No public releases/tags or workflow runs were found. Packaging omits four required modules and bundled fonts; many live acceptance checks remain pending.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Desktop</td><td>Python 3.11+ in practice; GTK 4/PyGObject</td></tr><tr><td>Transport</td><td>dbus-python, BlueZ/bluez-obex MAP</td></tr><tr><td>State</td><td>Session texts; owner-only JSON metadata</td></tr><tr><td>Authority</td><td>Normal desktop user process, not a sandbox</td></tr><tr><td>Revision</td><td>52d80947ed0e6265f5fb8505fc45fb63c564d8fb</td></tr><tr><td>Verification</td><td>Static inspection only; no application tests or device access</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Deliberately bounded read and send paths</h4>
+<p>The bridge polls the inbox approximately every four seconds, requesting up to 100 previews with 255-character subjects. Selecting a conversation queues full-body downloads with attachments disabled; failed downloads remain visibly marked previews. The parser has a 2 MiB input limit. Size checking occurs on advertised transfer size and the resulting file, so this is not a demonstrated streaming disk quota against a peer that misreports size. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/bridge.py">S2</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/history.py">S7</a></p>
+<p>The composer supports one validated telephone number or email recipient and a 2,000 UTF-8-byte text limit. It rejects control characters and structural bMessage delimiter lines. A modal review captures the exact address and draft; a state gate permits one outstanding submission. Push options disable retries, terminal transfer receipts are preserved, and disappearance of a transfer object alone never establishes success. Uncertain results require acknowledgement rather than automatic resend. These protections are implemented application logic, not an OS-enforced permission boundary. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/bridge.py">S2</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/send_test.py">S8</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/model.py">S9</a></p>
+<h4>Desktop convenience without full message synchronization</h4>
+<p>Implemented features include favorites, local aliases, emoji insertion, recency ordering, generic optional notifications, an unread tray badge, and confirmed local thread clearing. Read/unread counts do not modify the phone's Read flag. Outgoing history consists of sends during this app session; there is no persistent chat database, complete phone-sent history, group reply, media transfer, reaction or calling implementation in the desktop client. Group-origin messages target the visible sender only. The attachment probe is a separate experimental diagnostic, not media support. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/README.md">S1</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/app.py">S5</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/model.py">S9</a></p>
+<h4>On-demand previews are a real egress boundary</h4>
+<p>Message text is escaped for Pango links. Preview explicitly fetches a page and potentially its declared thumbnail; the initial tooltip names the first host. Downloads have timeouts and byte limits, with no preview disk cache in this implementation. This avoids automatic link fetching on receipt, but does not mean the whole application is offline. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/app.py">S5</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/model.py">S9</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/linkpreview.py#L16-L99">S10</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>app.py is the large GTK coordinator (1,247 lines at this revision); bridge.py owns Bluetooth session lifecycle and serializes discover/connect/poll/body/send commands. send_test.py is both a terminal diagnostic and a runtime transport/validation dependency, which makes packaging correctness particularly important. model.py handles message presentation, settings and SendGate; history.py parses plain/MIME text. Setup and access advertisement are separate entry points. tray.py, presentation.py, alerts.py and theme.py isolate desktop integration. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/bridge.py">S2</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/app.py">S5</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/send_test.py">S8</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/model.py">S9</a></p>
+<p>This is a useful separation of slow transport from UI work, but not a sandbox. The regular desktop user grants the process access to session/system D-Bus as allowed by host policy, local files, the network, desktop notifications and the compositor. There is no separate scoped application credential or per-recipient OS consent. A compromised app has normal user-process authority; send confirmation protects against ordinary UI mistakes, not malicious code running as that user.</p><h4>Security, privacy and authority</h4><h4>Pairing and permission setup</h4>
+<p>The wizard temporarily registers a KeyboardDisplay default BlueZ agent, asks the user to compare the six-digit code, rejects unrelated authorization/service requests once a device is selected, and asks before allowing a service. New pairing makes the adapter discoverable/pairable, with a 180-second discoverability timer. The permission helper advertises ANCS solicitation for at most 90 seconds. The phone must grant Show Message Notifications; a successful capability probe only opens/introspects MAP and lists folders, not messages or a test send. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/connect_phone.py">S3</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/request_access.py">S4</a></p>
+<p>Ordinary exit uses cleanup to unregister agents/advertisements and restore saved adapter settings. Forced termination cannot guarantee cleanup; Pairable may need manual restoration. Explicitly enabling adapter power persists. The prior default agent cannot be recovered through this implementation, so unregistering is not restoration of the former selection. The bond and iPhone permission also outlive the app. Installation itself does not pair devices or enable services. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/connect_phone.py">S3</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/request_access.py">S4</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/scripts/install.py">S11</a></p>
+<h4>Finding: Preview can reach local-network destinations</h4>
+<p><strong>Moderate, click-dependent concern:</strong> linkpreview.py restricts schemes to HTTP(S), including redirects, but does not reject private, loopback, link-local or metadata addresses, resolve/filter DNS results, or enforce a same-origin thumbnail policy. A sender-controlled page can therefore redirect the preview or declare an image at a host reachable by the desktop, after the user clicks Preview. The dot-in-host link heuristic is not an address-range security check. Remote sites also learn the client IP and requested URL; thumbnail hosts receive additional requests. This is a local-network request/privacy exposure, not proof of credential theft or arbitrary code execution. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/linkpreview.py#L16-L99">S10</a></p>
+<p>Recommendation: disable/avoid previews for untrusted messages until all request hops and thumbnails have public-address checks, credentials-in-URL rejection, DNS/rebinding-aware enforcement and explicit cross-origin disclosure. The HTTP size caps limit downloaded bytes, not necessarily decoded image dimensions or aggregate in-memory cache size. No exploit was run.</p>
+<h4>Storage and retention</h4>
+<p>Message bodies and send receipts remain in process memory except temporary bMessage files. Sends use a 0700 temporary directory and 0600 file; downloads use a private temporary directory and chmod the received file. Normal context-manager cleanup removes files, but a crash/forced kill can leave them; this is not encrypted storage, secure erasure or proof against swap/core dumps. The phone, carrier/service and recipients retain their normal copies. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/bridge.py">S2</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/send_test.py">S8</a></p>
+<p>Favorites retain recipient addresses/names; aliases and preferences are JSON. Atomic replacement and owner-only directory/temp-file modes are positive controls. cleared.json stores unsalted hashes of contact/message identities: these are persistent metadata, not anonymization or encryption, and low-entropy addresses can be guessed. There is no retention TTL. Removing deletion markers allows old phone inbox entries to reappear; deletion is local suppression, not phone deletion. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/model.py">S9</a></p>
+<p>Notifications are disabled by default and generic when enabled; audio receives a bundled sound path, not message text. Diagnostic terminal tools can print private messages and should not have logs shared indiscriminately. No analytics or network listener was found in the reviewed runtime, but preview networking is the important exception to the no-cloud-relay story. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/README.md">S1</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/send_test.py">S8</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/alerts.py">S12</a></p><h4>Supply chain and maturity</h4><ul><li>Public metadata at retrieval: <strong>2 stars, 0 forks, 0 open issues</strong>, last push <strong>2026-11-24T02:32:50Z</strong>. The reviewed commit timestamp is <strong>2026-11-24T02:32:43Z</strong>. Popularity and issue count do not establish quality. <a href="https://api.github.com/repos/CodeFu72/phonebridge">M1</a></li><li>Commit subject and package constant call this <strong>0.1.0-alpha.1</strong>, but the public release API returned an empty list and anonymous tag enumeration found no tags. It is an untagged source snapshot, not a verified published release artifact. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/scripts/package.py#L7-L22">S13</a> <a href="https://api.github.com/repos/CodeFu72/phonebridge/releases">M2</a></li><li>No tracked GitHub Actions workflows were present; the public runs API returned zero runs. Thirteen unittest files cover send safety, mocked Bluetooth/setup, local state, links, history and tray/placement behavior. They were inspected, <strong>not executed</strong>. Mocked tests cannot establish iOS compatibility or actual delivery. <a href="https://github.com/CodeFu72/phonebridge/tree/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/tests">S14</a> <a href="https://api.github.com/repos/CodeFu72/phonebridge/actions/runs">M3</a></li><li><strong>Concrete packaging defect:</strong> scripts/package.py's explicit top-level allowlist omits composer.py, synthwave.py, linkpreview.py and theme.py, which the desktop/installer now require. Its nonrecursive assets scan also excludes assets/fonts and their notices. The source archive generated by that recipe would be incomplete; this follows from literal file lists, without executing the packager. Use of an allowlist is a good privacy pattern, but it needs an import/manifest completeness test. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/app.py">S5</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/scripts/install.py">S11</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/scripts/package.py#L7-L22">S13</a></li><li>README/release/testing documents lag one another: the README still says no public repository exists, and the acceptance plan says exact device/iOS is unconfirmed although README names a tested version. Many full-body, tray, first-pairing and keyboard checks remain explicitly pending. Treat the single-setup working claim as author report. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/README.md">S1</a> <a href="https://github.com/CodeFu72/phonebridge/tree/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/tests">S14</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/docs/TESTING.md">S15</a></li><li>MIT permits reuse of original code with copyright/license notice preservation; font OFL terms and dependency licenses remain separate. No source was extracted into this review. No signed release, provenance attestation, dependency audit or reproducible-build evidence was established. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/LICENSE">S16</a></li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Aspect</td><td>PhoneBridge</td><td>BlueFerry / iphonebridge</td></tr><tr><td>Scope</td><td>Small GTK, session texts, one recipient</td><td>BlueFerry documents more clients, encrypted history and cautious groups</td></tr><tr><td>Recommendation</td><td>Narrow experimental workflow</td><td>Investigate BlueFerry first; iphonebridge is archived</td></tr><tr><td>Evidence</td><td>Static review</td><td>Alternative README claims, not independently tested</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no server to self-host. The per-user installer copies modules/assets/docs, writes two launchers and a desktop entry/icon, and optionally merges an existing parseable Omarchy menu after backing it up. It leaves comment-bearing JSONC unchanged. It does not register login startup or a background service, but a tray-enabled running app continues receiving when its window is hidden. Quit is distinct from closing X and waits for the worker; pending sends block quitting until a result. No automatic reconnect is implemented. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/app.py">S5</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/scripts/install.py">S11</a></p>
+<p>The installer is not transactional, does not remove obsolete modules during upgrades and provides no rollback/uninstaller command. Manual uninstall must cover launchers, the application folder, desktop entry, icon and whichever menu group was actually used: the README's kirk.phonebridge example does not cover the installer's apps.phonebridge/default or custom-group choices. Local JSON settings and menu backups are separate retained data. Uninstalling app files does not revoke Bluetooth pairing or phone permissions; revoke those separately if retiring access. <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/README.md">S1</a> <a href="https://github.com/CodeFu72/phonebridge/blob/52d80947ed0e6265f5fb8505fc45fb63c564d8fb/scripts/install.py">S11</a></p>
+<p>Before adopting: test a clean pairing and recovery on the intended phone/adapter, compare long received texts privately, check both accepted and uncertain send outcomes against the phone, verify tray shutdown, and test clean install/upgrade/uninstall. These are recommendations, not tests performed for this review.</p><h4>Verification limits</h4><p>Anonymous acquisition and canonical-source search found no prior review for this repository/scope, so this is a new review. Static inspection covered the principal runtime modules, setup/permission helpers, installer/package recipe, license/font notices, test sources and acceptance documentation. No application unit tests, compilation/imports, package builds, installs, live network-preview probes, phone access or desktop acceptance tests were performed. No private source or user data was used. Hardware behavior, delivery, forced-kill cleanup and third-party safety remain unverified.</p>
+<p>Review artifacts were checked for matching provenance/verdict/index links, complete trusted-template substitution, unchanged template JavaScript/CSS except its verdict token, safe markup/link structure, and task-only public content. These publication checks do not raise the application's maturity rating.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>A narrow GTK client with exact-send review and no automatic resend. Preview networking can reach local destinations, the archive recipe omits required modules, and hardware acceptance remains limited. Static review only; evaluate BlueFerry first for broader functionality.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/CodeFu72/phonebridge">CodeFu72/phonebridge</a> · MIT code · SIL OFL fonts</span>
+    <span><a href="phonebridge.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
