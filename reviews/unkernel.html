@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unkernel — Review</title>
+<meta name="description" content="A wasm-compiled Linux kernel with emulated arm64 programs, for Node and browsers.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / unkernel</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">pithings/unkernel · reviewed 2026-11-25</div>
+    <h1>Unkernel</h1>
+    <p class="one-liner">A wasm-compiled Linux kernel with emulated arm64 programs, for Node and browsers.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">GPL/MIT, component-specific</span>
+      <span class="chip">Linux · Zig · WebAssembly · TypeScript</span>
+      <span class="chip"><a href="https://github.com/pithings/unkernel">pithings/unkernel ↗</a></span>
+      <span class="chip"><a href="unkernel.md">Full evidence and limitations</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,716</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">83</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A real architectural distinction</h3><p>Linux runs as compiled wasm; only arm64 user programs are emulated. Linux-managed page tables are walked in software, not hardware virtualization.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Integration is not isolation</h3><p>Guest preview pages share the desktop origin. The CLI enables host-socket networking by default, and host mounts are writable unless restricted; the SDK network default is off.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery is carefully designed</h3><p>Read-only images, ext4 overlays, strict IndexedDB transactions and snapshot compatibility checks are promising. Safe mode preserves broken overlays; browser storage and snapshots still need backups.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Kernel</td><td>Linux 7.3.4 plus wasm patches</td></tr><tr><td>CPU</td><td>Zig arm64 interpreter / wasm JIT</td></tr><tr><td>Runtime</td><td>TypeScript, JSPI, shared-memory SMP</td></tr><tr><td>Desktop</td><td>React / Vite / Nitro</td></tr><tr><td>Storage</td><td>ext4 overlay / IndexedDB</td></tr><tr><td>Graphics</td><td>virgl / WebGL2; Vulkan bridge / WebGPU</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Linux semantics, emulated programs</h4><p>Kernel syscalls run as wasm; unmodified arm64 packages run through kwemu. <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/src/emu/kwemu.zig">Page-table implementation</a> and <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/js/core/kernel.ts">host runtime</a> substantiate the architecture, not universal compatibility.</p><h4>Persistence and recovery</h4><p><a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/guest/base/initramfs/init">Guest init</a> retains damaged overlays. <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/js/web/disk.ts">Disk transactions</a> save blocks and generations together; <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/js/core/snapshot.ts">snapshots</a> validate disks, devices and CPU count. Snapshots do not include disk copies.</p><h4>CI and claims</h4><p>A successful release run was observed at cec0a49f5d028867955dbc19769fe9e810dc9384, not the reviewed main revision. <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/.github/workflows/release.yml">Release CI</a> tests kernels and selected SDK paths, but is tag/manual-triggered, not a complete PR/browser gate. Timing claims were not reproduced.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Provenance</h4><p>Reviewed main: <code>96e4bd7ebb54b93ad5ec68feab4eda94b3073927</code>, 2026-11-25 UTC. Observed release: v0.2.0-261125-cec0a49. Anonymous acquisition; static inspection only. No installs, source execution, tests or live demo. Metrics are a dated snapshot.</p><h4>Host authority</h4><p><a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/web/src/preview.ts">Preview relay</a> explicitly permits trusted content only; <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/web/src/components/Preview.tsx#L165-L168">the iframe</a> has no sandbox and shares the desktop origin. Same-origin storage and parent objects are reachable. COOP/COEP are not user authentication.</p><p><a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/js/cli.ts#L442-L452">CLI networking</a> defaults to host sockets and loopback reachability. <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/js/node/nodefs.ts">Host mounts</a> document an intermediate-directory symlink race. Worker mode is not an independent security domain.</p><h4>Privacy and supply chain</h4><p>Browser TCP uses Wisp; mirrors and default Picsum wallpaper add egress. Disks and snapshots can retain secrets. <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/THIRD-PARTY.md">Component notices</a> distinguish MIT SDK/page from GPL kernel and renderer terms. Pinned inputs and OIDC publication help, but do not independently authenticate a compromised release manifest.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Goal</td><td>Unkernel</td><td>Alternative fit</td></tr><tr><td>Browser machine</td><td>Compiled kernel; emulated arm64</td><td>v86: whole x86 machine</td></tr><tr><td>Wasm applications</td><td>Native userland</td><td>WASIX: rebuild for wasm</td></tr><tr><td>iOS Linux userland</td><td>Browser/Node runtime</td><td>iSH: syscall-emulated userland</td></tr><tr><td>Hostile server workloads</td><td>Needs outer isolation</td><td>Firecracker: Linux/KVM microVMs</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Use a dedicated secure origin, trusted previews, pinned page/kernel/images, byte-range responses and COOP/COEP. Networking needs a suitable Wisp relay. The development server binds all interfaces; do not expose it as production tooling.</p><p>Start Node with guest networking disabled, no host mounts and disposable data. Add capabilities explicitly and use independent OS isolation/resource limits for hostile code. Export disk backups; restore requires matching machine state. See <a href="https://github.com/pithings/unkernel/blob/96e4bd7ebb54b93ad5ec68feab4eda94b3073927/web/vite.config.ts">hosting configuration</a>.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Compelling for trusted local labs and embedded development, not a ready-made hostile-code boundary. Same-origin previews, host-reachable Node networking and writable mounts need deliberate restrictions. Static review only; no runtime or performance claims independently reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/pithings/unkernel">pithings/unkernel</a> · GPL/MIT, component-specific</span>
+    <span><a href="unkernel.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
