@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [swipterm.md](reviews/swipterm.md) [page](reviews/swipterm.html) | [swipt-automation/Swipterm](https://github.com/swipt-automation/Swipterm) | GPL-3.0-or-later notice; naming restriction | ⚠️ Interesting | On-device iOS Linux and Ghostty terminal; broad guest/host authority, download integrity and recovery caveats. Static review. |
 | [uppies.md](reviews/uppies.md) [page](reviews/uppies.html) | [schmayterling/uppies](https://github.com/schmayterling/uppies) | MIT; icon notices | ⚠️ Interesting | Go uptime/status publisher; shared monitors and scoped APIs, with engine-health, alert durability and authority caveats. Static review. |
 | [marek-skills.md](reviews/marek-skills.md) [page](reviews/marek-skills.html) | [marekkirejczyk/skills](https://github.com/marekkirejczyk/skills) | MIT | ⚠️ Interesting | Seven evidence/refactoring/eval workflows; useful checklists, but execution authority, TTS costs, report privacy and gate semantics need controls. Static review. |
 | [sourceroll.md](reviews/sourceroll.md) [page](reviews/sourceroll.html) | [TechHutTV/sourceroll](https://github.com/TechHutTV/sourceroll) | MIT | ⚠️ Interesting | Separate-source Omarchy recorder; thoughtful recovery with timing, local-authority and settings/export caveats. Static review. |
