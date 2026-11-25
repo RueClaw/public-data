@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magnitude — Review</title>
+<meta name="description" content="Local inference across GPU, RAM and SSD, with existing-agent connections.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / magnitude</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">magnitudedev/magnitude · reviewed 2026-11-25</div>
+    <h1>Magnitude</h1>
+    <p class="one-liner">Local inference across GPU, RAM and SSD, with existing-agent connections.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 root; Rust metadata discrepancy</span>
+      <span class="chip">Rust · Seismic · TypeScript/Bun · Electron</span>
+      <span class="chip"><a href="https://github.com/magnitudedev/magnitude">magnitudedev/magnitude ↗</a></span>
+      <span class="chip">0.3.2 · static review</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">8,297</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">595</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A different engine now</h3><p>The current platform is Seismic-backed inference, not the older llama.cpp-centered coding-agent description. This refresh pins release 0.3.2 at ab3c35c474d8cfe55733903d3223c7b31c0a2e1e.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Real mechanisms, unverified speedups</h3><p>Source implements expert prefetch, tiered residency and hardware tuning. Vendor benchmarks and evaluation tooling do not prove a universal 2x Ollama advantage; no source tests or benchmarks were run.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Separate inference from authority</h3><p>Connected agents retain tool authority; the retained coding agent explicitly relies on the model to ask approval. Loopback defaults help, but network administration, plain HTTP, hosted routing and credential files require deliberate controls.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Technology and responsibility</td></tr><tr><td>Product clients</td><td>Bun/TypeScript CLI, React web client, Electron desktop</td></tr><tr><td>Application service</td><td>Effect-based ACN daemon, RPC, model/provider management, chat and inference proxy</td></tr><tr><td>Inference service</td><td>Rust inventory, hardware assessment, residency and worker supervision</td></tr><tr><td>Engine</td><td>Rust model families, batching, scheduling, token generation and logical state</td></tr><tr><td>Numerical execution</td><td>Seismic language/compiler/runtime and CPU, Metal, CUDA, Vulkan backends</td></tr><tr><td>Persistence</td><td>JSON configuration/credential records, model/cache files, SQLite chat events</td></tr><tr><td>Distribution</td><td>Bun/Cargo lockfiles, Changesets and multi-platform GitHub Actions</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>What It Is</h4><p>Magnitude discovers hardware, assesses supported GGUF models, manages downloads and residency, serves model APIs, and offers desktop/web/CLI controls. Its headline use case is running sparse mixture-of-experts models larger than GPU memory by placing experts in different memory tiers. The README also advertises concurrent agents, prefix caching and speculative decoding. These are inference capabilities, not evidence that any particular coding model is reliable. [1][2]</p>
+<p>Existing tools such as Codex, Claude Code, Pi, OpenCode, Hermes and OpenClaw can use the local service. The repository still contains a full coding-agent runtime, roles and shell/file tools; those must be assessed separately from an inference endpoint that returns tool calls for another application to execute. The API documentation explicitly assigns conversation history and tool execution to the caller. [4][5][6]</p><h4>Key Features</h4><h4>Tiered expert streaming, not magic extra memory</h4>
+<p>The executor has real streamed-expert machinery: an interest ledger orders and cancels reads, demand can accelerate a prefetch, completed reads land into tiers, and failed demand reads fail the affected rows. CPU/CUDA/Metal/Vulkan kernel trees and streaming tests exist. This supports the mechanism behind the README claim, not its universal throughput. Active working data still has to fit; SSD bandwidth, memory, context length and model sparsity matter. “Zero flash wear” describes read-only weight streaming, not every download, cache or log write the application performs. [1][8]</p>
+<h4>Hardware-specific tuning and reproducible evaluation scaffolding</h4>
+<p>The tuning contract ranks numerically eligible configurations over representative prefill/decode work, including 4k and 64k histories, and explicitly says unmeasured costs remain unknown. The evaluation tree contains reference, fixture, model-quality, memory and serving benchmark tooling, including Ollama comparison adapters. These are useful reproducibility assets, but scaffolding and test files are not successful result records. [9][10]</p>
+<h4>Existing-agent connections are configuration mutations</h4>
+<p>The Codex connector writes configuration and a model catalogue; its documentation explains that even hosted-model requests then pass through the Magnitude gateway. Connection transactions register rollback actions before mutation and report incomplete restoration. Remote browser Connections instead provides a setup prompt: it does not directly reconfigure the browser user's computer. Connecting is operationally meaningful, not simply displaying a URL. [5][11]</p>
+<h4>Compatible APIs and model lifecycle</h4>
+<p>Documented APIs include OpenAI Chat Completions, Responses and Anthropic Messages/token counting, with SSE streaming. Compatibility remains model-dependent. Model downloads track partial files and hashes; interrupted work can resume, while explicit user cancellation can discard partial data. Configuration can relocate model storage independently of application removal. [4][12][13]</p><h4>Performance and Evaluation Evidence</h4><p>The README says “over 2x faster than Ollama.” The anonymously accessible vendor benchmark page, retrieved 2026-11-25, lists 64k context and speculative decoding enabled, default engine settings and machine/disk descriptions. For example, it reports Qwen 3.8 Flash Next at 41 tokens/s on RTX 3090 plus 64 GB RAM/PCIe 4 SSD and 87 tokens/s on RTX 5090 plus 64 GB RAM/PCIe 5 SSD; these are vendor-reported numbers, not our measurements. [1][15]</p>
+<p>The retrieved page does not establish a pinned engine revision, full raw trials/variance, an equal-quality controlled baseline or a universal 2x gain. Its extracted content did not expose the linked Ollama comparison detail. No independent benchmark or coding-task success measurement was verified. Reproduce exact model/quantization, prompt length, prefill and decode latency, concurrency, warm/cold caches, drafter settings, memory and disk behavior before accepting the speed claim. Evaluation code improves auditability but cannot substitute for measured outcomes. [9][10][15]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p>guarded clients → ACN application service → Rust inference service → engine → Seismic → device backends</p>
+<p>ACN also routes optional hosted requests, manages persistent chat and coordinates provider/model selection. This is a broader trust boundary than a numerical engine library. A separate retained agent runtime can invoke shell and filesystem tools. Do not conflate a web administration UI with autonomous browsing: no claim of a currently supported general-purpose browser-use agent is established by this review. [2][4][6][14]</p><h4>Security, Authority, Privacy and Cost</h4><ul><li><strong>Inference is not execution permission.</strong> API tool calls are executed by the client; Codex or another connected agent retains its own approval/sandbox responsibilities. Magnitude is not an approval firewall for those tools. [4][5]</li><li><strong>Retained agent approval gap:</strong> the active interceptor evaluates role policy; leader rules reject selected shell/git/path operations then end in <code>allowAll()</code>. Safeguards can be disabled. The leader prompt explicitly states tools have no built-in approval system and the model is responsible for asking. These are application-level command/path checks and prompt guidance, not an OS sandbox or guaranteed confirmation before edits. Shell execution supports detached processes. Treat source files, skills and web content as prompt-injection surfaces whenever this agent is enabled. [6][16]</li><li><strong>Local-first, not multi-tenant:</strong> network defaults bind to loopback. Enabling network access without a specific valid bind uses all interfaces; an invalid bind falls back to all interfaces with a warning. Remote inference requires a key by default, but <code>requireApiKey: false</code> disables that requirement. Host-header checks, CORS handling, same-origin remote control, constant-time key comparison and login throttling exist. Browser sessions use HttpOnly/SameSite cookies and a 30-day idle lifetime. These are good controls, not proof of a completed penetration test. [14][17][18]</li><li><strong>Transport matters:</strong> documented network access is plain HTTP. Use a trusted private network, SSH tunnel or correctly configured TLS proxy; do not expose it publicly as-is. SSH-forwarded traffic is treated as local and can open the application without a Magnitude key, so tunnel access is administration authority. One shared API key is not per-user least-privilege authorization. [18]</li><li><strong>Egress is mode-dependent:</strong> local inference can avoid remote prompt processing after acquisition, but Hugging Face downloads, updates, configured hosted providers and hosted Codex/Claude routing require networking. Custom endpoints and an Exa search provider exist. Optional OTLP exports spans/logs when configured; ACN tracing is off without its enabling environment configuration. Rust telemetry includes credential redaction, which does not prove all sensitive content is removed. Inspect selected routes and diagnostics before using confidential inputs. [5][13][19]</li><li><strong>Credentials are local files, not a proven encrypted vault:</strong> provider auth and Hugging Face records use owner-only JSON writes and corruption checks. Protect those files, network configuration and backups; 0600 is not encryption at rest. No supplied or discovered real secrets were used in this review. [20]</li><li><strong>Cost:</strong> local inference avoids provider token billing, not hardware, electricity, SSD capacity or download costs. Hosted models may incur provider charges. Context caps and request token controls are not a dollar budget; no universal hard spend ceiling was established in the inspected routing paths. [4][13][19]</li></ul><h4>Persistence, Recovery and Export</h4><p>Configuration preserves unknown keys and implements corruption recovery. Download state distinguishes resumable interruptions from explicit cancellation, while connection setup has compensating rollback. Chat storage uses a versioned SQLite database with WAL handling and typed corruption/incompatibility errors; the agent has separate session persistence. These are real recovery mechanisms, not a verified crash-recovery guarantee. [11][12][13][21]</p>
+<p>The API caller remains responsible for its conversation history. No supported, complete cross-product conversation/configuration export-and-restore workflow was verified in the inspected docs and chat UI/service paths. Back up configuration, protected credential records, connection records and chat data with the service stopped or SQLite-aware backup tooling; treat derived caches separately from original data. Test restoration and disconnect behavior before adoption. [4][13][21]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best reason to choose it</td><td>Tradeoff versus Magnitude</td></tr><tr><td><a href="https://github.com/ollama/ollama">Ollama</a></td><td>Familiar local serving and model management</td><td>Compare exact workload; Magnitude's vendor speed claim is not universal evidence</td></tr><tr><td><a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a></td><td>Direct GGUF engine/server with explicit low-level controls</td><td>More manual integration; useful controlled baseline, not Magnitude's current engine</td></tr><tr><td><a href="https://github.com/vllm-project/vllm">vLLM</a></td><td>Server-oriented GPU throughput and concurrent serving</td><td>Different deployment/memory assumptions; benchmark against your serving objective</td></tr><tr><td><a href="https://github.com/ml-explore/mlx-lm">MLX LM</a></td><td>Apple-specific local language-model experimentation</td><td>Narrower hardware scope; not a substitute for the entire cross-platform management layer</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Self-Hosting Notes</h4><p>Prefer a disposable inference-only environment with no valuable repository, browser profile or provider credentials initially. Keep loopback defaults, pin the chosen release/model and verify distribution integrity; allow downloads deliberately. Decide separately whether to grant network administration, hosted-provider routing, connector config changes or built-in agent execution. The documented development toolchain includes Bun 1.4.2 and Rust 1.91.1, but native backend qualification is platform-specific. No installation recommendation here implies the installer was executed. [3][18][23]</p>
+<p>Acceptance gates: reproduce throughput/quality on your hardware; verify local-only egress; test authentication from another machine if enabled; inspect connection diffs and disconnect recovery; test chat/model interruption recovery; resolve Rust license metadata; and enforce tool approvals externally if enabling autonomous work.</p><h4>Licensing, Supply Chain and Maturity</h4><p>The root LICENSE is Apache-2.0 (notice retention, patent terms and change notices matter), but the Rust workspace declares <code>license = &quot;UNLICENSED&quot;</code> and engine/Seismic crates inherit it. That is inconsistent metadata, not a basis to silently declare the whole engine unlicensed or uniformly cleared: ask maintainers to reconcile it before redistribution. Numerical adaptations carry their own preserved third-party notices. Downloaded model licenses are separate from application licensing. [22]</p>
+<p>Bun and Cargo lockfiles, generated-protocol checking, targeted typechecks, integration tests and release candidate builds are positive signals. Release trust code checks Apple publisher identity; update manifests include digests/signing machinery. However, CI uses version-tagged third-party actions rather than all immutable SHAs, and installation/build includes native tools and trusted dependency scripts. Neither binary signatures nor all transitive licenses were independently audited. Do not execute the README's pipe-to-shell installer merely to inspect this project. [3][23]</p>
+<p>At retrieval, anonymous GitHub metadata reported 8,297 stars, 595 forks, 51 open issues/PRs combined and last push 2026-11-25T01:23:03Z. Latest release was 0.3.2 at that timestamp. The exact reviewed commit's check-runs API exposed a successful “version” check and skipped Mintlify Deployment—not a complete all-platform green test suite. Popularity, release availability and source test counts do not prove correctness. [24]</p><h4>Update Notes</h4><p>Checked 2026-11-25; replaces the 2026-08-18 review in place. That review recorded release 0.0.6 but no exact source SHA, so an exact historical code diff is unavailable from its provenance. The current README emphasizes inference infrastructure, and the Rust workspace now uses Seismic rather than the previous review's llama.cpp-backed description. Release is now 0.3.2; network browser administration, existing-agent connections, current security boundaries and measurable performance qualifications require a materially different assessment. Rating changes from ✅ Deploy candidate to ⚠️ Interesting. This is a documented review refresh, not proof that every feature was introduced since August. [1][2][3]</p><h4>Verification and Limits</h4><p>Canonical URL was normalized from the submitted .git URL. The existing README row and research repository index already pointed to this source, so the existing review slug is reused. Anonymous GitHub API and HTTPS Git acquisition verified public access. Exact release tag was resolved with Git, and all code citations below pin the reviewed SHA. Only review artifacts were generated; no source code, installers, dependencies, model weights, browser sessions or devices were run or accessed. Source tests and benchmarks were not run. No exhaustive security, license, model-quality or runtime compatibility audit is claimed.</p><h4>Sources</h4><p>[1] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/README.md">README</a>.<br>[2] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/README.md">Inference overview</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/docs/overview.md">architecture</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/Cargo.toml">workspace</a>.<br>[3] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/package.json">Root manifest</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/desktop/package.json">desktop manifest</a>.<br>[4] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/docs/api/endpoints.mdx">API endpoint contract</a>.<br>[5] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/docs/integrations/codex.mdx">Codex integration</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/harness-connections/src/connectors/codex.ts">connector implementation</a>.<br>[6] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/agent/src/execution/permission-gate.ts">Policy interceptor</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/agent/src/tools/shell.ts">shell tool</a>.<br>[7] <a href="https://github.com/magnitudedev/magnitude/tree/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages">Repository package tree</a>.<br>[8] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/engine/executor/src/experts/watcher/prefetch.rs">Expert prefetch implementation</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/engine/executor/src/operators/routed/streamed.rs">streamed execution</a>.<br>[9] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/docs/tuning.md">Native tuning contract</a>.<br>[10] <a href="https://github.com/magnitudedev/magnitude/tree/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/evaluation">Evaluation tree</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/evaluation/bench/tests/test_bench_ollama.py">benchmark adapter tests</a>.<br>[11] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/harness-connections/src/transaction.ts">Connection transactions</a>.<br>[12] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/service/models/src/download.rs">Download lifecycle</a>.<br>[13] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/docs/reference/configuration-file.mdx">Configuration and storage documentation</a>.<br>[14] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/acn/src/server.ts">ACN server and route guards</a>.<br>[15] <a href="https://magnitude.dev/benchmarks">Vendor benchmarks</a>, retrieved 2026-11-25; mutable external page, not pinned source evidence.<br>[16] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/roles/src/policy.ts">Active role policy</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/roles/src/roles/leader.ts">leader role</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/roles/src/prompts/leader.txt">approval prompt</a>.<br>[17] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/storage/src/config/network-access.ts">Network configuration and key checks</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/acn/src/remote-access.ts">remote browser access</a>.<br>[18] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/docs/api/network-access.mdx">Network access documentation</a>.<br>[19] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/acn/src/inference-gateway.ts">Inference gateway</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/acn/src/tracing.ts">ACN tracing</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/service/server/src/telemetry.rs">Rust telemetry</a>, <a href="https://github.com/magnitudedev/magnitude/tree/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/providers/src">provider sources</a>.<br>[20] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/storage/src/auth/storage.ts">Credential storage</a>.<br>[21] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/storage/src/chat/store-live.ts">SQLite chat storage</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/storage/src/config/storage.ts">config recovery</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/agent/src/persistence/chat-persistence-service.ts">agent persistence</a>.<br>[22] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/LICENSE">Root license</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/Cargo.toml">Rust metadata</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/engine/Cargo.toml">inherited engine license</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/inference/seismic-std/THIRD_PARTY.md">third-party numerical notice</a>.<br>[23] <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/.github/workflows/release-checks.yml">Release checks</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/.github/workflows/integrations.yml">integration workflow</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/release/src/trust.ts">Apple trust check</a>, <a href="https://github.com/magnitudedev/magnitude/blob/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/packages/release/src/hosted-update/manifest.ts">update manifest</a>.<br>[24] <a href="https://api.github.com/repos/magnitudedev/magnitude">Public repository metadata</a>, <a href="https://github.com/magnitudedev/magnitude/releases/tag/%40magnitudedev%2Fcli%400.3.2">release</a>, <a href="https://api.github.com/repos/magnitudedev/magnitude/commits/ab3c35c474d8cfe55733903d3223c7b31c0a2e1e/check-runs">commit checks</a>.</p>
+<p><strong>Attribution:</strong> magnitudedev/magnitude contributors; root Apache-2.0 license, with Rust metadata discrepancy and third-party/model terms as noted. Review text is independent analysis.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot the inference server, not an assumed safe autonomous agent. Tiered expert streaming and Seismic are substantial engineering, but vendor speed claims remain unverified, agent approvals are not enforced per action, and cloud/network modes change the privacy boundary.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/magnitudedev/magnitude">magnitudedev/magnitude</a> · Apache-2.0 root; Rust metadata discrepancy</span>
+    <span><a href="magnitude.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
