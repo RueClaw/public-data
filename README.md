@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [uppies.md](reviews/uppies.md) [page](reviews/uppies.html) | [schmayterling/uppies](https://github.com/schmayterling/uppies) | MIT; icon notices | ⚠️ Interesting | Go uptime/status publisher; shared monitors and scoped APIs, with engine-health, alert durability and authority caveats. Static review. |
 | [sourceroll.md](reviews/sourceroll.md) [page](reviews/sourceroll.html) | [TechHutTV/sourceroll](https://github.com/TechHutTV/sourceroll) | MIT | ⚠️ Interesting | Separate-source Omarchy recorder; thoughtful recovery with timing, local-authority and settings/export caveats. Static review. |
 | [unkernel.md](reviews/unkernel.md) [page](reviews/unkernel.html) | [pithings/unkernel](https://github.com/pithings/unkernel) | GPL/MIT; component-specific | ⚠️ Interesting | Wasm Linux kernel with arm64 emulation; strong recovery ideas, but preview, network and mount trust boundaries. Static review. |
 | [ephyra.md](reviews/ephyra.md) [page](reviews/ephyra.html) | [datadog-labs/ephyra](https://github.com/datadog-labs/ephyra) | MIT | ⚠️ Interesting | Agent-facing Rust property testing; explicit generator checks, replay and coverage, with host-authority, loopback and recovery caveats. Static review. |
