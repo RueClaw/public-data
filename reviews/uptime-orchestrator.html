@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uptime Orchestrator — Review</title>
+<meta name="description" content="Signed network recovery and root-level fleet administration for Raspberry Pi boards.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / uptime-orchestrator</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">uptime-lab/orchestrator · reviewed 2026-11-25</div>
+    <h1>Uptime Orchestrator</h1>
+    <p class="one-liner">Signed network recovery and root-level fleet administration for Raspberry Pi boards.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">FCL-1.0-ALv2 / Apache-2.0</span>
+      <span class="chip">Go · React · PostgreSQL · gRPC</span>
+      <span class="chip"><a href="https://github.com/uptime-lab/orchestrator">uptime-lab/orchestrator ↗</a></span>
+      <span class="chip">platform-v0.2.1 · 261d8516910a</span><span class="chip"><a href="https://github.com/uptime-lab/orchestrator/commit/261d8516910a036a21fa49525dcd39c8376bcd48">Exact reviewed revision</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">6</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Recovery beyond the system disk</h3><p>Signed RAM recovery can reinstall a wiped Pi without local PXE/TFTP. Image writes are destructive, not transactional A/B rollback; network and signing-key availability still matter.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Adoption means root trust</h3><p>The platform can run scripts, erase disks and change EEPROM. Literal reusable Tailscale utility keys remain viewer-readable; plaintext LAN mode and proxy TLS declarations need care.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Promising beta, not proven fleet resilience</h3><p>All five public CI jobs succeeded for the reviewed SHA. Only one backend is supported; device reconnection after server restore and schema-changing upgrades remain documented qualification gaps.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Control plane</td><td>Go 1.26 toolchain; Echo HTTP API, WebSocket updates, bidirectional gRPC</td></tr><tr><td>State</td><td>PostgreSQL via GORM/pgx; local or configured object storage for images/artifacts</td></tr><tr><td>Browser</td><td>React 19, TypeScript, Vite, TanStack Query/Router, xterm, React Flow</td></tr><tr><td>Device</td><td>Separate Go agent module; root systemd service; Linux command handlers</td></tr><tr><td>Boot/deployment</td><td>EEPROM signer, signed recovery image, Docker Compose and reverse proxy</td></tr><tr><td>Identity</td><td>Password/OIDC, passkeys/TOTP, JWT access tokens, session/step-up services and scoped authorization</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Uptime Lab combines adoption, per-device EEPROM preparation, signed HTTP network recovery, OS deployment and ongoing administration. The board initiates outbound gRPC; a local PXE/TFTP server and inbound connections to each board are unnecessary. Wired Ethernet, working DHCP/DNS and reachability of the chosen server still matter. Pi 4/5 and CM4/5 support is a project claim, not a hardware certification from this review. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/README.md">[1]</a></p>
+<p>The network-first bootloader fetches a signed RAM recovery image or falls back to its local drive when recovery is withheld or unreachable. That can repair a corrupted or empty drive, but cannot recover a dead board, failed network, unavailable server or lost signing identity. The recorded six-minute installs and 57/73-second recovery demonstrations are maintainer-reported examples, not independent benchmarks. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/README.md">[1]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/INSTALL.md">[2]</a></p><h4>Recovery and imaging are implemented, not just a diagram</h4>
+<p>The Linux command handler streams images, invalidates the target's bootability before writing, verifies the digest and checks agent package signatures before installation. This is deliberately destructive reimaging, <strong>not an A/B rollback transaction</strong>: a failed install may leave the old system unusable and require another recovery attempt. Holding boot metadata back is a safety measure against booting a partial image, not a backup. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/agent/pkg/application/handlers/command_handler_linux.go">[6]</a></p>
+<h4>Day-two management has real service boundaries</h4>
+<p>Access entries, scoped utilities, secrets, versioned files, images, node commands and workflow execution have distinct domain/service implementations. The workflow engine includes state settlement, timeouts and tests for redispatch/recovery; node deletion explicitly abandons active execution nodes rather than leaving capacity occupied forever. The agent exposes root terminal and OS/EEPROM/disk/file operations. Feature breadth is substantial, although only representative paths were traced. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/application/services/workflow_execution/engine.go">[7]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/application/services/workflow_execution/abandon.go">[8]</a></p>
+<h4>Security mechanisms are useful but do not reduce operator authority</h4>
+<p>JWT middleware pins HS256 and access-token type. Authorization resolves active membership and account/organizational-unit permissions rather than trusting role claims in the JWT. Separate services implement reauthentication, passkeys and two-factor checks. These are meaningful controls, not proof that every endpoint is free of authorization errors. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/infrastructure/http_server/middleware/authz.go">[9]</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The backend separates domain models, application services/ports and infrastructure adapters; PostgreSQL is durable state, while streams, terminal admission, several tickets/locks, workflow workers and quotas have process-local components. The supported shape is <strong>one backend replica</strong>. Adding replicas is not a supported availability upgrade: it can split device streams, duplicate workers and weaken admission/credential locking. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docker-compose.community.yml">[4]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/SECURITY-ACCEPTANCES.md">[10]</a></p>
+<p>The Go agent connects to the platform and dispatches privileged handlers. The service explicitly uses root and disables two common systemd restrictions; this is a fleet administration authority, not a sandbox. A separate EEPROM signer holds the installation's recovery-signing identity. Agent release keys are a different trust domain, embedded as verification keys, with detached signatures checked before package installation. Recovery-image production is in a separate repository and hosted deployment tooling is private; neither was reviewed here. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/SECURITY.md">[5]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/agent/pkg/application/handlers/command_handler_linux.go">[6]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/ARTIFACT-SIGNING.md">[11]</a></p><h4>Security, privacy and egress</h4><ul><li><strong>Authority:</strong> platform operators and anyone controlling its host/database/secrets can control adopted devices as root. Device adoption is a transfer of trust, including arbitrary scripts, disk erasure, filesystem writes and login configuration—not merely monitoring permission. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/SECURITY.md">[5]</a></li><li><strong>Transport:</strong> signed HTTP boot protects recovery authenticity, not confidentiality or availability. Serial-only boot paths disclose the recovery target state to someone knowing the serial. Leave the unauthenticated boot-request failsafe disabled on internet-exposed systems. Local-network mode permits plaintext web/device traffic; do not treat a LAN as inherently confidential. With externally terminated gRPC TLS, the server trusts the declaration that a proxy actually provides TLS. PROXY-protocol-off mode retains a global preauthentication cap but cannot enforce a meaningful per-source cap behind that proxy. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/README.md">[1]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/SECURITY-ACCEPTANCES.md">[10]</a></li><li><strong>Secrets:</strong> AES-256-GCM with random nonce and fallback keys supports encryption/rotation at rest. It is not protection from the host operator, and the input key is SHA-256-derived rather than password-hardened; use high-entropy generated key material. Image backups can contain entire device disks and their credentials. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/infrastructure/crypto/aes.go">[12]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/BACKUP-RESTORE.md">[13]</a></li><li><strong>Documented credential exposure:</strong> a literal reusable Tailscale utility key is readable by scoped node viewers. The documented workaround is a variable reference or short-lived/single-use key; the implementation refuses references flagged sensitive, so do not assume arbitrary sensitive-secret injection is supported. Reference-derived payloads have separate redaction handling. This known tradeoff matters in a mixed-trust account. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/SECURITY-ACCEPTANCES.md">[10]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/application/services/utility/param_refs.go">[14]</a></li><li><strong>Browser boundaries:</strong> CORS is configurable, with wildcard origins in the fallback branch; WebSocket origin policy is independently constructed. Bearer authentication means wildcard CORS alone is not evidence of an authentication bypass. Validate production origins and proxy settings rather than relying on the toggle name. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/infrastructure/http_server/server.go">[15]</a></li><li><strong>Data/egress:</strong> the control plane holds device identity, hardware/status reports, command history, users, secrets, files and images. Devices talk to the chosen platform; optional Tailscale/ZeroTier and software installation add vendor/package endpoints. Self-hosting still involves release/container/package retrieval, optional OIDC/SMTP/object storage and certificate issuance. SECURITY.md says there is no version check that phones home; that is a bounded project statement, not an independently measured absence of all telemetry. No packet capture or hosted privacy-policy audit was performed. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/README.md">[1]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/frontend/package.json">[3]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/SECURITY.md">[5]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/agent/pkg/application/handlers/utility_tailscale_linux.go">[16]</a></li></ul><h4>Verification and supply chain</h4><p>At retrieval GitHub reported 6 stars, 0 forks and 5 open issues (GitHub's aggregate includes pull requests), with last push 2026-11-25T11:10:13Z. These are a snapshot, not quality metrics. Latest published platform release was <strong>platform-v0.2.1</strong>, 2026-11-25T11:14:00Z; its annotated tag peels to the reviewed SHA. The commit timestamp is 2026-11-25T11:06:45Z. <a href="https://github.com/uptime-lab/orchestrator/releases/tag/platform-v0.2.1">[18]</a></p>
+<p>The source contains 709 Go test files at this revision, Go checksums and a frontend pnpm lockfile. CI defines build/vet/tests, PostgreSQL integration checks, frontend checks, signer and installer tests, with commit-pinned Actions. Jobs are gated by PUBLIC_CI_ENABLED; merely seeing workflow files would not establish execution. Here the public CI run for the reviewed SHA reported <strong>backend, agent, frontend, installer and EEPROM-signer jobs all successful</strong>. Publication guard and platform release workflows also reported success. This review did not rerun them or audit complete logs, and a successful build is not proof of hardware recovery. <a href="https://github.com/uptime-lab/orchestrator/actions/runs/45601396468">[19]</a></p>
+<p>Scheduled vulnerability scanning is configured but no security-scan conclusion is asserted here. Community Compose uses version tags for platform images and mutable PostgreSQL/Traefik tags; kiosk images are also tag-based. Lockfiles, detached package signatures and workflow pinning improve provenance, but do not make every consumed artifact immutable or independently reproducible. Release image digests, SBOM contents, signatures and hardware-token custody were not independently verified. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docker-compose.community.yml">[4]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/SECURITY-ACCEPTANCES.md">[10]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/ARTIFACT-SIGNING.md">[11]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/.github/workflows/security.yml">[20]</a></p>
+<p>The installer guide explicitly leaves bring-your-own proxy, SD provisioning, mail/OIDC, schema-changing upgrades and non-uid-1000 first users unexercised. Support is latest-release-only without backports; self-hosters receive no advance security notification before publication. Plan monitoring and upgrades accordingly. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/INSTALL.md">[2]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/SECURITY.md">[5]</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Ansible + SSH</td><td>Bootable Linux administration; no equivalent signed recovery chain.</td></tr><tr><td>Mender</td><td>OTA rollback design rather than recovery from a wiped disk.</td></tr><tr><td>Pi network boot</td><td>Less control-plane machinery, more manual fleet administration.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Pilot on expendable wired Pi hardware with a stable server name, one backend, production TLS and a tested proxy. The documented baseline is an x86-64/arm64 Debian/Ubuntu server with 4 GB RAM plus image storage; internet deployment needs ports 80/443/50051. Do not execute the convenience installer without reviewing its host-level effects. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/README.md">[1]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/INSTALL.md">[2]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docker-compose.community.yml">[4]</a></p>
+<p>Before production: test wiped-drive recovery, interrupted writes, server loss/restore with an actual device, upgrade rollback, credential revocation and offline decommissioning. Avoid literal reusable utility keys, pin artifact digests where feasible, escrow signing/encryption keys, and validate every enabled external integration. A limited pilot is justified; broad unattended deployment is not established by this static review.</p><h4>Persistence and rollback</h4><p>Back up the database <strong>and</strong> image/object storage <strong>and</strong> encryption/signing keys. Losing the EEPROM private key can require physical reflashing of each board; restoring encrypted database rows without the encryption key does not restore their contents. Keep keys separately escrowed and rehearse restoration. The backup guide reports empty-host restoration, but explicitly says device reconnection to a restored server and restoration during key rotation have not been exercised. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/BACKUP-RESTORE.md">[13]</a></p>
+<p>Schema-version guards refuse older software against a newer database. Roll back by restoring the pre-upgrade backup or roll forward; changing a container tag alone is not sufficient. Agent downgrades have an explicit override path, distinct from normal updates. The install guide says a schema-changing upgrade has not yet been exercised. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/INSTALL.md">[2]</a></p>
+<p>Node deletion, uninstalling the agent and changing EEPROM trust are different actions. Forced deletion can request credential removal, but it is best-effort; an offline board retains its local identity until acted upon. Uninstall does not undo the EEPROM configuration. Moving servers requires adoption and bootloader changes, not merely deleting a database row. Tombstones and boot-path state need deliberate cleanup. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/INSTALL.md">[2]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/application/services/workflow_execution/abandon.go">[8]</a></p>
+<p>Audit retention defaults to one year; ordinary command retention defaults to unlimited. The retention service runs hourly in bounded batches. Account/device deletion should not be equated with secure erasure of off-host backups, full-disk images, or external object storage. Establish an explicit retention/decommissioning policy. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/backend/pkg/webapp/application/services/retention/service.go">[17]</a></p><h4>Licensing and costs</h4><p>Agent, protocol and tools are Apache-2.0; most server/frontend/signer/docs content is FCL-1.0-ALv2, with detailed exceptions in LICENSE/REUSE.toml. FCL forbids competing commercial use and circumvention of protected device-entitlement functionality; each version gets Apache-2.0 rights on its second anniversary. Do not describe the entire current platform as unrestricted open source. Preserve notices, check component licensing, and respect separate trademarks. No code was extracted for reuse in this review. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/LICENSE">[21]</a></p>
+<p>Self-hosting is free for 25 devices per server across accounts; hosted free allowance is 10 devices per account. Larger installations need entitlement/subscription arrangements; the README says subscriptions are not yet on sale and gives no numeric paid price. Budget for server memory/disk, image bandwidth, backups, hardware and operational time. There is no LLM/API-token cost inherent to this application. The README says admitted devices continue working when entitlement expires, while new admission waits. <a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/README.md">[1]</a><a href="https://github.com/uptime-lab/orchestrator/blob/261d8516910a036a21fa49525dcd39c8376bcd48/docs/ENTITLEMENT.md">[22]</a></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Pilot before trusting a fleet. Signed recovery is useful and public CI passed, but beta qualification gaps, single-backend operation, root-equivalent authority and FCL licensing warrant caution. Static review only; no hardware or source tests run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/uptime-lab/orchestrator">uptime-lab/orchestrator</a> · FCL-1.0-ALv2 / Apache-2.0</span>
+    <span><a href="uptime-orchestrator.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
