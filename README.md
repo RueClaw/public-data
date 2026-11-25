@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [sourceroll.md](reviews/sourceroll.md) [page](reviews/sourceroll.html) | [TechHutTV/sourceroll](https://github.com/TechHutTV/sourceroll) | MIT | ⚠️ Interesting | Separate-source Omarchy recorder; thoughtful recovery with timing, local-authority and settings/export caveats. Static review. |
 | [unkernel.md](reviews/unkernel.md) [page](reviews/unkernel.html) | [pithings/unkernel](https://github.com/pithings/unkernel) | GPL/MIT; component-specific | ⚠️ Interesting | Wasm Linux kernel with arm64 emulation; strong recovery ideas, but preview, network and mount trust boundaries. Static review. |
 | [ephyra.md](reviews/ephyra.md) [page](reviews/ephyra.html) | [datadog-labs/ephyra](https://github.com/datadog-labs/ephyra) | MIT | ⚠️ Interesting | Agent-facing Rust property testing; explicit generator checks, replay and coverage, with host-authority, loopback and recovery caveats. Static review. |
 | [scinet.md](reviews/scinet.md) [page](reviews/scinet.html) | [lukasalthoff/scinet](https://github.com/lukasalthoff/scinet) | CC BY 4.0 | 📚 Study | Scientific-task dataset; synthetic time use and model-judged AI rankings, not an execution benchmark. Static review. |
