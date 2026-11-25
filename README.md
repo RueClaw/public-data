@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ephyra.md](reviews/ephyra.md) [page](reviews/ephyra.html) | [datadog-labs/ephyra](https://github.com/datadog-labs/ephyra) | MIT | ⚠️ Interesting | Agent-facing Rust property testing; explicit generator checks, replay and coverage, with host-authority, loopback and recovery caveats. Static review. |
 | [scinet.md](reviews/scinet.md) [page](reviews/scinet.html) | [lukasalthoff/scinet](https://github.com/lukasalthoff/scinet) | CC BY 4.0 | 📚 Study | Scientific-task dataset; synthetic time use and model-judged AI rankings, not an execution benchmark. Static review. |
 | [phonebridge.md](reviews/phonebridge.md) [page](reviews/phonebridge.html) | [CodeFu72/phonebridge](https://github.com/CodeFu72/phonebridge) | MIT; OFL fonts | ⚠️ Interesting | Experimental iPhone Bluetooth texting; careful send gates, preview-network exposure and incomplete archive packaging. Static review. |
 | [squid5090.md](reviews/squid5090.md) [page](reviews/squid5090.html) | [tensorfish/squid5090](https://github.com/tensorfish/squid5090) | No project-wide license; model/component terms | 📚 Study | Specialized Blackwell inference; synthetic 1M scaling, approximate sampling, serving/auth and licensing caveats. Static review. |

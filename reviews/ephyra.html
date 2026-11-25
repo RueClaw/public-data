@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ephyra — Review</title>
+<meta name="description" content="Agent-facing Rust property testing with explicit generators, replay and coverage feedback.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ephyra</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">datadog-labs/ephyra · reviewed 2026-11-25</div>
+    <h1>Ephyra</h1>
+    <p class="one-liner">Agent-facing Rust property testing with explicit generators, replay and coverage feedback.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Rust · Cargo · LLVM coverage</span>
+      <span class="chip"><a href="https://github.com/datadog-labs/ephyra">datadog-labs/ephyra ↗</a></span>
+      <span class="chip"><a href="https://github.com/datadog-labs/ephyra/tree/3983b2e339ac5f6b843bef62c7fa6a88eba75370">revision 3983b2e339ac</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">128</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Testing machinery, not a bundled agent</h3><p>Four crates implement properties, macros, local tooling and optional export. The external coding agent supplies generator rewrites; sampled checks are not formal proofs.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Useful replay, bounded guarantees</h3><p>Seed replay, shrinking and coverage make findings actionable. Preserve generator versions and explicit regression tests: Debug checks and append-only JSONL are not a version-independent transactional corpus.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Keep execution and data isolated</h3><p>Cargo and properties inherit host authority. Visualization has loopback-prefix Origin checks rather than authentication; optional Datadog and agent providers introduce egress and cost.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Tech</td></tr><tr><td>Core</td><td><code>ephyra</code>: generators, runner, shrinking, mutation, reports, regression replay</td></tr><tr><td>Syntax</td><td><code>ephyra-macros</code>: test/generator/shrinker attributes and Arbitrary derive</td></tr><tr><td>Local tooling</td><td><code>ephyra-cli</code>: syn source indexing, Cargo orchestration, std-library HTTP server and embedded HTML</td></tr><tr><td>Coverage</td><td>Optional in-process LLVM counters and mappings; instrumented builds required</td></tr><tr><td>Persistence</td><td>JSON/JSONL regressions, reports, observations and targets; HTML coverage pages, profraw files</td></tr><tr><td>Optional export</td><td><code>ephyra-datadog</code>: DogStatsD UDP metrics/events, sampled JSONL input logs, ureq dashboard API</td></tr><tr><td>Auth</td><td>No user authentication for local visualization; optional Datadog API/app keys for dashboard operations</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Datadog Systems Research positions Ephyra as generator-level hill climbing: an agent writes a valid generator, measures coverage, then rewrites it to reach new code. The actual repository separates that outer workflow from the runtime. <code>STARTUP.md</code> describes how an external coding agent should choose oracles, author tests, inspect coverage, triage and iterate; the four workspace crates implement the testing machinery, source discovery, visualization and optional Datadog export. No model-provider client or autonomous LLM optimization controller is present in the reviewed workspace. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/README.md">[1]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[2]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/Cargo.toml">[3]</a></p>
+<p>This distinction matters. A conventional Rust property test can run without an account, LLM or Datadog subscription. Testing a non-Rust database/compiler requires a Rust harness driving its API, process or connection. The agent may improve that harness, but a useful oracle still depends on the target specification and independent human reasoning. An agent-written generator and an agent-written predicate can agree while both being wrong. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[2]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/README.md">[4]</a></p><h4>Explicit, testable generators and shrinkers</h4>
+<p>Generators own their shrinking and mutation hooks. Support predicates check whether generated/shrunk/mutated values remain valid; shrink checks additionally test size reduction. <code>ephyra check</code> indexes marked generators and properties, runs generated check tests, and distinguishes clean (0), failed (1), and work-left (2) outcomes. These are practical quality gates, not mathematical verification: checks sample inputs using the supplied predicates. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/README.md">[4]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/check.rs">[7]</a></p>
+<h4>Search, shrinking and reproducibility</h4>
+<p>The runner supports random generation, scored targeted mutation and coverage-guided retention, plus multiple distinct failure signatures and shrinking. The runtime therefore also mutates promising inputs; the README’s contrast between generator rewriting and conventional fuzzing describes the external workflow, not an absence of mutation inside Ephyra. Coverage identifies missing regions; it does not establish semantic correctness or guarantee that a better coverage score finds more bugs. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/README.md">[1]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/src/runner/search.rs">[8]</a></p>
+<p>Failures carry seed/iteration replay points. Regression entries store the original and shrunk Debug renderings alongside provenance; replay regenerates the input and warns when its rendering changes. This is better than silently replaying a different case, but it is not a version-independent serialized corpus: the comparison uses report truncation limits and Debug equality is not a semantic identity check. Preserve the generator revision, lockfile and target version, and retain a concrete regression test for important bugs. <a href="https://github.com/datadog-labs/ephyra/tree/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/src">[9]</a></p>
+<h4>Feedback a coding agent can consume</h4>
+<p>JSON reports, observation files, explicit targets and coverage HTML are useful feedback artifacts. The local page can discover and rerun tests and append coverage targets. Coverage leases keep Ephyra runs from polluting each other, but unrelated test threads are not stopped; exact attribution needs single-threaded tests and correct instrumentation/filter settings. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/serve.rs">[5]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/src/coverage/counters.rs">[10]</a></p><ul><li><strong>Bug yield:</strong> the README reports 70+ SQLite bugs, 20 PostgreSQL bugs, 25 Lean bugs and additional findings in other systems. Case-study directories include reports, reproductions and some harnesses, but explicitly say several harnesses will follow. These are author-reported totals, not an independently audited comparative benchmark. No equal-budget comparison against Proptest/libFuzzer, controlled agent ablation, or complete cost accounting was established in this review. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/README.md">[1]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/case-studies/sqlparser/README.md">[11]</a></li><li><strong>External spot-check:</strong> upstream sqlparser issue <a href="https://github.com/apache/datafusion-sqlparser-rs/issues/2764">#2764</a> exists and describes the FLUSH TABLES statement-separation defect, target revisions and AI-assisted triage. At retrieval it remained open with zero comments. That corroborates public reporting outside this repository, not maintainer acceptance, an independently reproduced bug, or the aggregate yield. <a href="https://github.com/apache/datafusion-sqlparser-rs/issues/2764">[12]</a></li><li><strong>Build evidence:</strong> GitHub reports the named CI workflow successful for the exact reviewed SHA: <a href="https://github.com/datadog-labs/ephyra/actions/runs/43289663427">run 43289663427</a>. This is observed upstream CI, not a local test result or evidence all case studies work.</li><li><strong>Release/activity:</strong> manifests declare 0.0.1; the changelog dates its first crates.io release to 2026-10-29. The anonymous crates.io API returned HTTP 403, but the public sparse registry index independently showed <code>ephyra</code> 0.0.1, not yanked, MSRV 1.88. GitHub releases returned an empty list. Snapshot metadata: 128 stars, 1 fork, last push 2026-11-19; the two open items returned were dependency PRs. Stars and activity are not safety evidence. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/CHANGELOG.md">[13]</a><a href="https://index.crates.io/ep/hy/ephyra">[14]</a></li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The normal path is authored generator + property → macro-generated test or manual Run loop → seeded generation → property execution → retained score/coverage inputs → failure shrinking → report and regression artifacts. Separately, the CLI indexes Rust syntax and asks Cargo to build/run checks. Its visualization process reads artifacts, streams events and subprocess output, and reruns selected tests/examples. The external agent reads that feedback and edits source; that edit/approval loop is not an enforcement mechanism inside the library. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[2]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/serve.rs">[5]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/check.rs">[7]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/src/runner/search.rs">[8]</a></p><h4>Security, authority, privacy and costs</h4><p><strong>Execution is not sandboxed.</strong> Properties, generators, build scripts, proc macros and test binaries execute with the invoking user’s permissions. CLI discovery builds binaries and executes them with <code>--list</code>; that is not a harmless static operation. Commands use structured process arguments rather than a shell, but the child inherits the process environment with additional Ephyra settings. The server can also run examples. Use a secret-free disposable environment with limited filesystem/network access and no production database credentials. Agent permission gates must be supplied by the agent host. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/serve.rs">[5]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/check.rs">[7]</a></p>
+<p><strong>Loopback is the visualization trust boundary, not authentication.</strong> The server binds to 127.0.0.1, limits declared request bodies to 1 MiB, blocks basic grid-path traversal and rejects many cross-site POSTs. However, <code>same_origin</code> accepts a missing Origin or any Origin beginning with <code>http://127.0.0.1:</code> or <code>http://localhost:</code>; it does not compare the exact server origin/port. Request parsing does not enforce a Host allowlist. Local clients and pages on other accepted loopback ports are therefore not separated principals. There is no login/token/RBAC layer, and served grid HTML is read directly from the artifact directory. Do not expose it through a public proxy or open attacker-controlled artifact directories. This is a static boundary assessment, not a demonstrated remote exploit. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/serve.rs">[5]</a></p>
+<p><strong>Budgets are cooperative.</strong> Search stopping rules check elapsed time between work units. They do not preempt a hung generator/property, fence subprocess side effects or enforce LLM spend. Apply external process time/memory limits; the server documents that stopping its accept loop leaves an ongoing Cargo run to finish. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/serve.rs">[5]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/src/runner/search.rs">[8]</a></p>
+<p><strong>Egress is optional but consequential.</strong> The core needs no model service. Cargo may fetch dependencies, test targets may communicate externally, and an external coding agent may send source and failures to its provider. Installing the Datadog sink sends metrics/events to a configured UDP endpoint (default loopback DogStatsD); it is not enabled merely by using the core crate. Logs can include Debug-rendered inputs, and failures can include sensitive reports. The dashboard CLI uses API/app keys in headers to <code>https://api.{DD_SITE}</code>; even default print mode queries Datadog before printing JSON, while create/update write remotely. Treat endpoint environment variables as trusted configuration and scope keys to required read/dashboard permissions. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-datadog/README.md">[6]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-datadog/src/bin/ephyra-datadog.rs">[15]</a></p>
+<p><strong>Costs:</strong> MIT use has no software fee, but compilation, repeated execution, instrumentation and artifact storage cost resources. Agent inference is separately billed if a paid provider is chosen. Datadog ingestion/retention and custom metric cardinality depend on the account; per-run text-tag caps do not constitute a monetary cap. No dollar-per-bug or throughput claim was independently reproduced. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-datadog/README.md">[6]</a></p><h4>Persistence and recovery</h4><p>The file-based design is inspectable and portable: copy <code>.ephyra</code> reports, regressions, targets, observations and coverage pages alongside exact source/target revisions. JSONL and dashboard JSON avoid a mandatory hosted store. Regression loading silently skips malformed lines, and saving uses append with read-before-write deduplication, without a transaction, explicit fsync or process-wide file locking in that module. A damaged tail or concurrent writers can therefore weaken completeness; do not confuse replay files with a transactional crash-recovery database. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/serve.rs">[5]</a><a href="https://github.com/datadog-labs/ephyra/tree/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra/src">[9]</a></p>
+<p>Run output is held in memory and capped at 4,000 lines, dropping older chunks. Reports and artifacts survive separately, but no durable job queue/resume journal or full outer-agent checkpoint system was established. Stopping visualization does not cancel active Cargo work. Back up useful artifacts, manage retention explicitly and review generated input dumps before committing or exporting them. Deleting local artifacts does not delete any copies already sent to an agent provider or Datadog. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-cli/src/serve.rs">[5]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/crates/ephyra-datadog/README.md">[6]</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Aspect</td><td>Ephyra</td><td>Proptest</td><td>cargo-fuzz / libFuzzer</td></tr><tr><td>Best fit</td><td>Agent-authored structured generators with inspectable contracts and feedback</td><td>Conventional Rust property suites with composable generation/shrinking</td><td>Coverage-guided fuzz targets and sanitizer-oriented bug hunting</td></tr><tr><td>Distinctive approach</td><td>Explicit shrinker/mutator checks plus external generator-rewrite loop</td><td>Per-value generation and shrinking; established architecture</td><td>Native fuzzing engine mutates a corpus</td></tr><tr><td>Operational tradeoff</td><td>Young API; external agent/host supplies isolation and approvals</td><td>Less reason to migrate an already effective property suite</td><td>Nightly/LLVM sanitizer/C++ toolchain and supported Unix platform constraints</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a development toolkit, not a multi-tenant deployment service. Start with a pinned source/package and a disposable workspace, independently correct properties and ordinary non-coverage tests. For later coverage trials, instrument the intended target, set its coverage filter, serialize test execution and bound the whole OS process. Keep visualization on loopback, keep all artifacts trusted, disable optional export unless required, and inspect any provider/Datadog data policy before using proprietary fixtures. Validate replay after changing the generator and promote confirmed failures to explicit tests. No installation or trial was performed for this review.</p><h4>Maturity and supply chain</h4><p>MIT text is present with Datadog’s 2026 copyright and standard notice requirements. <code>LICENSE-3rdparty.csv</code> supplies dependency-license inventory; do not extend the root license to externally fetched database/compiler targets. No code was extracted by this review. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/LICENSE">[16]</a></p>
+<p>Positive signals include a Cargo.lock, SHA-pinned CI actions, weekly Cargo/Actions Dependabot configuration, a security reporting policy, unit/integration/snapshot tests, and CI jobs for formatting, Clippy, Linux/macOS/Windows tests, feature combinations, instrumented coverage, MSRV, documentation and packaged-consumer smoke testing. Publishing depends on those jobs. This is considerably stronger than a prompt-only demo. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/.github/workflows/ci.yml">[17]</a></p>
+<p>Caveats: Rust toolchain channels and semver dependency ranges can move; case studies are updated separately and excluded from the workspace; default workspace tests do not imply every optional integration/platform path is covered. Repository/package provenance and dependency advisories were not exhaustively audited, and no binary reproducibility or independent security audit was established. The authors explicitly call the code experimental. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/README.md">[1]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/Cargo.toml">[3]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/.github/workflows/ci.yml">[17]</a></p><h4>Verification</h4><p>Static review only; no builds, tests or live probes. Source revision: <code>3983b2e339ac5f6b843bef62c7fa6a88eba75370</code>. Reviewed 2026-11-25 UTC. Anonymous source and metadata checks; upstream CI success is not a local test result. See the full Markdown for all citations, comparison discussion and limitations.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>⚠️ <strong>Interesting — a credible agent-facing testing toolkit, not autonomous correctness assurance.</strong> Explicit generator contracts, replayable failures and coverage feedback make this worth a bounded trial on a disposable test workspace. The public implementation is substantial, but the library is experimental 0.0.1, “verification” is sampled testing rather than proof, and both the coding agent and Cargo retain ordinary host execution authority. Keep the local visualization server private and turn important findings into plain regression tests.
+</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/datadog-labs/ephyra">datadog-labs/ephyra</a> · MIT</span>
+    <span><a href="ephyra.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
