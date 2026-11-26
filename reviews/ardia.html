@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ardia — Review</title>
+<meta name="description" content="Native Chromium browsing with Arc-style organization, encrypted folder sync and powerful automation.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ardia</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">ardia-browser/ardia · reviewed 2026-11-26</div>
+    <h1>Ardia</h1>
+    <p class="one-liner">Native Chromium browsing with Arc-style organization, encrypted folder sync and powerful automation.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">GPL-3.0 app; Apache-2.0 own source</span>
+      <span class="chip">Chromium · TypeScript · Swift · Rust</span>
+      <span class="chip"><a href="https://github.com/ardia-browser/ardia">ardia-browser/ardia ↗</a></span>
+      <span class="chip">Static review · ceae550b7d87 · main, not release</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3,122</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">408</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real Chromium, not Electron</h3><p>Native browser integration, Chrome extensions and uBlock Origin are substantive. Live sandbox status, resource use and released binary signatures were not verified.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Privacy is not zero egress</h3><p>The inventory is unusually explicit: daily production telemetry has no Settings off switch, selected Google services remain, and Chromium Safe Browsing is disabled.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Separate helper isolation from owner authority</h3><p>Plugin main runs offline in a sandbox; network-enabled sidecars are broader and installed programs run unsandboxed. Every admitted control-socket client is currently owner-level.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>macOS UI</td><td>TypeScript, React Native macOS, Expo, Hermes; Swift/native shell</td></tr>
+<tr><td>Page engine</td><td>Patched Chromium/Helium/ungoogled-chromium; ArdiaCore C++/Objective-C++ integration</td></tr>
+<tr><td>Other desktop hosts</td><td>Dedicated Chromium/WebUI native hosts; not identical feature support</td></tr>
+<tr><td>Shared logic</td><td>TypeScript packages plus Rust core/FFI for crypto, import and update logic</td></tr>
+<tr><td>Persistence</td><td>Chromium profile databases plus versioned app documents; encrypted folder sync</td></tr>
+<tr><td>Extensibility</td><td>Chrome extensions; macOS JavaScriptCore plugin helpers, sidecars and external programs</td></tr>
+<tr><td>Build</td><td>Node &gt;=24, pnpm 12.21.0, Turbo; macOS Xcode 26+/CocoaPods</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p> The project's public positioning is Arc's sidebar and Dia's polish on Chromium. The tree backs that up with a native macOS shell, ArdiaCore hooks into Chromium, profile-scoped browser services, bundled uBlock Origin and Chrome extension support. It is not a new rendering engine, an Electron BrowserWindow wrapper or an inherently autonomous AI browser. AI features are described as plugins, not a mandatory core model service. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/README.md">README</a> and <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/plugins.md">docs/plugins.md</a> distinguish the product and extension model.</p>
+<p>The default public release endpoint returned <strong>v0.2.48</strong>, published <strong>2026-11-22T15:58:41Z</strong>. Its annotated tag resolves to <strong>6b1bcbaca49e766a3be05c6e7c52d57a69c0bd0d</strong> (tag object 886e074722ab1616f195d0d88f6e4516ef9a1c32). This review is of newer main, not a claim that every inspected feature shipped in that release. The repository metadata snapshot showed 3,122 stars, 408 forks, 1,155 open issues/PRs combined and last push 2026-11-26T20:49:18Z; none is a quality or safety score. Public anonymous HTTPS access was verified. <a href="https://github.com/ardia-browser/ardia/releases/tag/v0.2.48">Release</a>.</p>
+<h4>Native browser, real compatibility work</h4>
+<p>Profiles, split panes, sidebar tabs, DevTools, sleeping background tabs and import paths are concrete modules, not just screenshots. Chromium extensions and built-in uBlock Origin offer a meaningful compatibility advantage over a WebKit-only shell. DRM streaming can switch to WebKit, so security/privacy behavior is engine-dependent. README CPU, download-size and notarization claims were not independently reproduced. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/README.md">README.md</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/ardiacore/scripts/ubo.sh">packages/ardiacore/scripts/ubo.sh</a>.</p>
+<h4>Encrypted sync without an Ardia sync server</h4>
+<p>Sync writes sealed files to a user-selected folder; iCloud Drive is the default carrier, not the only one. The design uses a 24-word recovery phrase, HKDF-SHA256 derived keys, AES-256-GCM, authenticated file identity and padded records. The inspected Rust key code has distinct derivation labels, framing and zeroization. The carrier still sees file counts/timing/sizes; a stolen phrase, compromised binary or unlocked endpoint defeats this protection. Losing all devices and the recovery kit loses access; sync is not an independent backup. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/sync.md">docs/sync.md</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/core-rs/crates/ardia-sync-core/src/keys.rs">packages/core-rs/crates/ardia-sync-core/src/keys.rs</a>.</p>
+<h4>Stronger-than-average boundary documentation</h4>
+<p>The privacy inventory enumerates stacks, cookies, per-profile behavior, gates and off switches. Its test checks source citations and host literals, explicitly not runtime absence of traffic. Socket schemas, consent-generation checks and recovery tests make good engineering patterns; their presence must not be confused with a completed adversarial audit. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/privacy.md">docs/privacy.md</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/privacyEndpoints.test.mjs">apps/browser/src/privacyEndpoints.test.mjs</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/automation/controlSocket.ts">apps/browser/src/state/automation/controlSocket.ts</a>.</p>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p> ### Process isolation and browser sandbox</p>
+<p>The page engine is Chromium's multi-process architecture with custom browser/renderer hooks, rather than web pages running inside the React Native JS context. The main delegate derives from Chrome machinery and strips dangerous profile-opening switches, including remote debugging, certificate bypass, extension loading and web-security overrides. That is useful hardening, but this static review did not observe live renderer sandbox status or verify site-isolation behavior on each OS. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/engine/ardiacore/src/ardia/core/ac_main_delegate.cc">engine/ardiacore/src/ardia/core/ac_main_delegate.cc</a>.</p>
+<p>The Linux launcher normally refuses to start when neither user namespaces nor a suitable setuid helper is available. It does <strong>not</strong> silently fall back to an unsandboxed browser; an explicitly supplied <code>--no-sandbox</code> option is honored and labeled. Flatpak has a separate launch path. The Linux smoke harness checks renderer seccomp/namespaces and forbidden sandbox switches, but was not run here. Avoid using the manual bypass or weakening system namespace policy merely to make a package start. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/scripts/linux/ardia-launch">scripts/linux/ardia-launch</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/scripts/linux/smoke.mjs">scripts/linux/smoke.mjs</a>.</p>
+<h4>Agent and extension authority</h4>
+<p>The local control socket is available while the user enables CLI control. macOS has a native program-approval doorbell, with bundled/team-signed code admitted under its rules. <strong>Every admitted connection is currently owner-level</strong>: the implementation literally returns owner from connectionAccess; per-plugin socket credentials are documented as not built. Linux/Windows do not have the same doorbell parity. This is powerful browser automation, not a narrowly scoped agent capability token. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/control-socket.md">docs/control-socket.md</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/automation/controlSocket.ts">apps/browser/src/state/automation/controlSocket.ts</a>.</p>
+<p>Revocation guards check connection and consent generation across awaits, and partial apply results distinguish completed effects from unknown outcomes. However, the documented DevTools token can outlive a program's approval until control/server restart. The rollout still documents file-based token access; no claim of immediate revocation should be made. Socket password listings omit password values, but browser control can still act in authenticated pages. Silent upload/download arms, file-URL navigation and trusted-input methods materially increase the authority of an admitted automation client. Use separate accounts/profiles and explicit action approval outside the browser for consequential tasks.</p>
+<p>Ardia plugins are separate from Chrome extensions. On macOS, main JS runs in an offline JavaScriptCore helper under a deny-default Seatbelt profile. Host-mediated net.fetch checks declared hosts, resolves/vets addresses and uses its own TLS connection. <strong>Network-enabled sidecars are broader:</strong> the sandbox permits outbound IP and local binding/listening, not just the broker's hostname allowlist. <strong>Installed plugin programs are explicitly unsandboxed</strong>, run as the user and may fully control Ardia when control is enabled. Do not extend the helper's sandbox promise to everything a plugin distributes. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/shell/ios/PluginCore/PluginSandbox.swift">packages/shell/ios/PluginCore/PluginSandbox.swift</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/shell/ios/PluginHostFetch.swift">packages/shell/ios/PluginHostFetch.swift</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/plugins.md">docs/plugins.md</a>.</p>
+<p>Chrome extensions remain privileged browser code under Chromium's permission model; the full uBlock Origin component is not proof that arbitrary extensions are safe. Web Store installation still involves Google infrastructure and extension-update trust. No separate AI plugin repository or provider implementation was audited, so model selection, prompt retention and prompt-injection resistance remain out of scope.</p>
+<h4>Privacy, egress and credentials</h4>
+<p>“Google's pings are compiled out” needs qualification. The source disables many Google services and sets <strong>safe_browsing_mode=0</strong>, sacrificing Chromium URL-reputation protection. Google security-component downloads, Web Store/extension updates and selected search suggestions remain. Search suggestions can send typed text and, on some platforms, the selected engine's profile cookies; private-window exceptions are documented separately. WebKit fraudulent-site warnings are opt-in. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/engine/patches/build/gn_defines.sh">engine/patches/build/gn_defines.sh</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/privacy.md">docs/privacy.md</a>.</p>
+<p>There is also a daily anonymous opened-today event sent by production builds regardless of the crash/usage-sharing toggle, with no Settings off switch. The code records version, platform/channel and first/daily/weekly/monthly flags, with a per-event random identifier rather than a permanent device identifier in that daily body. Optional usage/crash reporting and user-submitted reports are different paths; feedback includes install/session IDs and selected attachments. An IP address remains visible to the receiving service even when the payload lacks a persistent ID. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/telemetry/daily.ts">apps/browser/src/state/telemetry/daily.ts</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/telemetry/transport.ts">apps/browser/src/state/telemetry/transport.ts</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/privacy.md">docs/privacy.md</a>.</p>
+<p>Optional Live Folders contact GitHub, Bitbucket, Notion, Google Drive or a chosen Confluence site using granted tokens. Custom omnibox providers receive suggestion traffic after approval; plugin network requests can leave directly and bypass an HTTP proxy. Encrypted sync does not make these paths local-only. No core always-on LLM egress was established in the inspected desktop paths; installing an AI plugin adds its own provider and data-policy review.</p>
+<p>Plugin secrets use per-plugin Keychain account namespaces and permission-gated secret methods rather than ordinary plugin settings JSON. They are still disclosed to the authorized plugin when requested. DevTools endpoint file loading checks owner/private-file properties, no-follow access, size and server identity. These are good containment mechanisms, not protection from malicious code already authorized as the user. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/plugins/secrets.ts">apps/browser/src/state/plugins/secrets.ts</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/plugins/channelData.ts">apps/browser/src/state/plugins/channelData.ts</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/shell/ios/ControlPeerCore/DevtoolsEndpoint.swift">packages/shell/ios/ControlPeerCore/DevtoolsEndpoint.swift</a>.</p>
+<h4>Persistence and recovery</h4>
+<p>Chromium retains profile browsing data; the app separately retains session/settings documents. Session parsing distinguishes absent, unreadable, malformed and newer-version data, keeps aside copies and gates writes instead of blindly treating errors as a fresh empty session. The macOS document store uses atomic replacement for saves. Tests cover migration replay, session safety and persistence timing. Atomic replacement is not a full backup or a proven power-loss recovery contract across every platform. Importing passwords and logins increases the value of that persistent state. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/session/sessionSafety.ts">apps/browser/src/state/session/sessionSafety.ts</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/src/state/session/sessionDocument.ts">apps/browser/src/state/session/sessionDocument.ts</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/shell/ios/DocumentStore.swift">packages/shell/ios/DocumentStore.swift</a>.</p>
+<h4>Update supply chain and licensing</h4>
+<p>The inspected engine build pins Chromium <strong>158.0.8127.36</strong> and Helium repositories to exact commits. Do not infer the built engine patch level from a newer engine release tag appearing in the repository's release feed. Prebuilt engine downloads are checked against repository-pinned SHA-256 entries; that proves agreement with the trusted manifest, not independent reproducibility. A compromised repository/manifest remains a supply-chain risk. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/engine/patches/build/helium-pins.ini">engine/patches/build/helium-pins.ini</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/ardiacore/scripts/fetch-engine.sh">packages/ardiacore/scripts/fetch-engine.sh</a>.</p>
+<p>The macOS app has a Sparkle feed and public Ed25519 key, and release scripts import signing material and support notarization. Those are stronger signals than an unsigned download URL; no downloaded DMG, notarization ticket, signature chain, rollback behavior or cross-platform updater was dynamically validated. Automatic update checks also gate a remotely fetched kill-switch document. Browser engine security patch cadence is a deployment criterion, not a cosmetic feature. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/apps/browser/macos/Ardia-macOS/Info.plist">apps/browser/macos/Ardia-macOS/Info.plist</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/.github/release/signing.sh">.github/release/signing.sh</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/docs/privacy.md">docs/privacy.md</a>.</p>
+<p>NOTICE explicitly separates GPL-3.0 distribution of the combined app/Helium engine from Apache-2.0 Ardia-owned source. Chromium, uBlock Origin, Sparkle and other assets retain their own licenses/notices; this is not an Apache-only browser distribution. NOTICE describes corresponding-source release archives, but their completeness was not audited. Retain attribution and review applicable copyleft/source obligations before redistributing a fork. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/NOTICE">NOTICE</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/LICENSE">LICENSE</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/LICENSE.Apache-2.0">LICENSE.Apache-2.0</a>.</p>
+<h4>Tests, CI and limitations</h4>
+<ul><li>Read public source, manifests, lockfile presence, native bridge/security files, sync/session code, tests and CI definitions. No source scripts or tests were executed.</li><li>Public GitHub Actions metadata for the exact reviewed SHA reported successful <strong>Checks</strong>, <strong>Conventions</strong> and <strong>iOS</strong> runs at retrieval; many administrative workflows were skipped. This is workflow status, not independent reproduction or proof every platform gate ran. <a href="https://github.com/ardia-browser/ardia/actions?query=head_sha%3Aceae550b7d871cac3cf78a64ead176a644708b8c">Exact-SHA runs</a>.</li><li>Checks defines typechecking, portable package/mac tests and browser tests; separate macOS, Linux, Windows, Rust and release workflows exist. Security-oriented fixtures include plugin sandbox escape cases, session recovery and Linux sandbox smoke checks. <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/.github/workflows/checks.yml">.github/workflows/checks.yml</a>; <a href="https://github.com/ardia-browser/ardia/blob/ceae550b7d871cac3cf78a64ead176a644708b8c/packages/shell/plugin-tests/PluginSandboxEscapeTests.swift">packages/shell/plugin-tests/PluginSandboxEscapeTests.swift</a>.</li><li>This is a targeted desktop review, not an exhaustive Chromium patch audit. Mobile implementations, separate plugins/CLI releases, all binaries, provider retention policies, live traffic, accessibility, resource consumption and crash recovery were not exercised. Documentation sometimes contains planned rollout stages; implementation was preferred where checked.</li></ul>
+<p></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Need</td><td>Ardia</td><td>Existing alternative</td></tr>
+<tr><td>Arc-like open-source desktop experience</td><td>Integrated profiles/sidebar/splits on Chromium</td><td>Zen/Firefox offers a different engine and extension ecosystem; compare compatibility before migrating</td></tr>
+<tr><td>Conservative browser maintenance baseline</td><td>Custom Chromium patch/build/release burden</td><td>Chrome/Chromium or Firefox provides a more established upstream baseline; privacy defaults differ</td></tr>
+<tr><td>De-Googled Chromium with uBlock Origin</td><td>Adds a large native UI/automation/plugin surface</td><td>Helium is the directly relevant upstream to compare when those extra surfaces are unnecessary</td></tr>
+<tr><td>Reproducible browser automation</td><td>Can control a real user's rich workspace</td><td>Playwright with disposable browser contexts is a better starting point for tests and isolated agent jobs, not a replacement for a personal browser UI</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p> This is a desktop browser, not a server to self-host. The documented macOS source build needs Xcode 26+, CocoaPods, Node 24 and pnpm 12, and may fetch the pinned prebuilt engine. Building Chromium itself is a substantially larger trust/resource commitment. Apple-Silicon macOS is the prominently advertised release; Linux has several packaging formats, while plugin and native-tool parity varies. Some passkey/saved-card functionality depends on the upstream signing team identity, so a fork is not automatically feature-equivalent.</p>
+<p>Recommended pilot: use an isolated data directory, do not import valuable credentials initially, leave automation/plugins off until needed, check actual engine/sandbox state and network traffic, and exercise restore/export before migration. If zero vendor telemetry or Chromium Safe Browsing is mandatory, the inspected defaults are not a fit. No installation was performed for this review. </p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Credible browser engineering, but not a blanket daily-driver or agent-safety recommendation. Daily telemetry has no Settings opt-out, Chromium Safe Browsing is disabled, and admitted automation and plugin programs can hold broad authority. Static review only; pilot without valuable logins.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/ardia-browser/ardia">ardia-browser/ardia</a> · GPL-3.0 app; Apache-2.0 own source</span>
+    <span><a href="ardia.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

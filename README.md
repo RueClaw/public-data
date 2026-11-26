@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ardia.md](reviews/ardia.md) [page](reviews/ardia.html) | [ardia-browser/ardia](https://github.com/ardia-browser/ardia) | GPL-3.0 app; Apache-2.0 source | ⚠️ Interesting | Native Chromium browser with encrypted sync; daily telemetry, disabled Safe Browsing and broad automation/plugin authority. Static review. |
 | [techartist-evolution.md](reviews/techartist-evolution.md) [page](reviews/techartist-evolution.html) | [Evolution — Techartist](https://iamtechartist.com/evolution/) | No license found | 📚 Study | Interactive biology atlas; useful guided models, synthetic finches, syllabus mismatch and offline/privacy caveats. Static review. |
 | [kividb.md](reviews/kividb.md) [page](reviews/kividb.html) | [kividbio/kividb](https://github.com/kividbio/kividb) | AGPL-3.0-only | ⚠️ Interesting | Multicore Redis-compatible search store; strong test materials, conditional AOF durability and migration caveats. Static review. |
 | [advnt-screen-parser.md](reviews/advnt-screen-parser.md) [page](reviews/advnt-screen-parser.html) | [arthuryeti/advnt-screen-parser](https://github.com/arthuryeti/advnt-screen-parser) | MIT code; AGPL-3.0 weights | ⚠️ Interesting | CPU iOS icon/OCR parser; promising specialist perception with unverified metrics, optional auth, and unpinned models. |
