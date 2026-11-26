@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Patch Audio — Review</title>
-<meta name="description" content="Native Omarchy mixing, DJ decks, recording and broadcast—not a generative audio model.">
+<meta name="description" content="Native Omarchy/Linux mixing, DJ decks, recording and broadcast—not a generative audio model.">
 <style>
   :root {
     --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
@@ -152,9 +152,9 @@
 <main>
 
   <section class="hero" id="overview">
-    <div class="kicker">novuon/patch-audio · reviewed 2026-11-23</div>
+    <div class="kicker">novuon/patch-audio · reviewed 2026-11-26</div>
     <h1>Patch Audio</h1>
-    <p class="one-liner">Native Omarchy mixing, DJ decks, recording and broadcast—not a generative audio model.</p>
+    <p class="one-liner">Native Omarchy/Linux mixing, DJ decks, recording and broadcast—not a generative audio model.</p>
     <div class="verdict-pill">⚠️ Interesting</div>
     <div class="chips">
       <span class="chip">MIT source; binary/model/component terms</span>
@@ -163,9 +163,21 @@
       <span class="chip"><a href="patch-audio.md">Full cited review</a></span>
     </div>
     <div class="stats">
-      <div class="stat"><div class="num">5</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">9</div><div class="lbl">Stars</div></div>
       <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
     </div>
+  </section>
+
+  <section id="update-notes">
+    <h2>Update Notes — 2026-11-26</h2>
+    <p>Updated from 2026-11-23 at 1d4913ae9d55b740366a260619e051115dfdf569 to e5f23d23384acfa1ec914e0245b47b935fa2872f (0.8.9). Same product: <a href="https://patchaudio.app/">website</a> and repository link to each other. Six commits, 55 changed files; verdict unchanged.</p>
+    <ul>
+      <li>Generic Linux and ARM64 support adds a Smithay nested Wayland desk, tray and Player-only MPRIS. Track metadata and local file URLs reach the session bus; the desk bridges host clipboard text.</li>
+      <li>The installer stops adding rtkit after upstream reported other audio apps being killed. Non-Arch installs can create realtime scheduling/locked-memory limits; relogin is required. Existing rtkit is not removed. Optional Auto Mix setup can bootstrap uv through a downloaded shell installer.</li>
+      <li>Unattended first installs require explicit profile/module choices. Startup meters initialize to silence. Uninstall removes generic desktop additions but leaves realtime policy and the documented Tailscale Serve route; restoration was not tested.</li>
+      <li>Website Auto Mix pricing is $69/year or $8.99 for one non-renewing week. The public planner remains disabled; the paid implementation was not inspected. License/notices, remote auth and library/recording/stem persistence code are unchanged.</li>
+    </ul>
+    <p>Source and binary releases list v0.8.9, with same-day replacement assets for Omarchy 4 detection. Static only: no install, source execution, tests, devices, models/media or paid calls. <a href="patch-audio.md">Full cited delta and retrieval provenance</a>.</p>
   </section>
 
   <section id="key-points">
@@ -192,22 +204,22 @@
 
     <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
       <table><tbody>
-        <tr><td>UI</td><td>Slint 1.18 / Rust 2024 / Hyprland</td></tr><tr><td>Audio</td><td>PipeWire, C FFI, reference/SSE2/AVX2 DSP</td></tr><tr><td>Storage</td><td>SQLite WAL, JSON state, WAV/RF64</td></tr><tr><td>Extensions</td><td>VST3 host; Python/PyTorch/Demucs</td></tr><tr><td>Revision</td><td>1d4913ae9d55b740366a260619e051115dfdf569</td></tr><tr><td>Release</td><td>v0.8.7 tag: e67dbe42e6a127b9d6c50e5bb19dca1dd7009345</td></tr><tr><td>Verification</td><td>2026-11-23 UTC; static only; no build, tests, devices, models or inference</td></tr>
+        <tr><td>UI</td><td>Slint 1.18 / Rust 2024 / Hyprland</td></tr><tr><td>Audio</td><td>PipeWire, C FFI, reference/SSE2/AVX2 DSP</td></tr><tr><td>Storage</td><td>SQLite WAL, JSON state, WAV/RF64</td></tr><tr><td>Extensions</td><td>VST3 host; Python/PyTorch/Demucs</td></tr><tr><td>Revision</td><td>e5f23d23384acfa1ec914e0245b47b935fa2872f</td></tr><tr><td>Release</td><td>v0.8.9 tag: 0d015e89505b2cd82d511499ba8ec89fb80a5f32</td></tr><tr><td>Verification</td><td>2026-11-26 UTC; static delta review only; no build, tests, devices, models or inference</td></tr>
       </tbody></table>
     </div>
     <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
-      <h4>System sound, not a foundation model</h4><p>Mixing, routing, decks, meters and broadcast share a native desktop environment. <a href="https://github.com/novuon/patch-audio/blob/1d4913ae9d55b740366a260619e051115dfdf569/crates/patch-engine/src/lib.rs">Engine code</a> supports this architecture; <a href="https://github.com/novuon/patch-audio/blob/1d4913ae9d55b740366a260619e051115dfdf569/crates/patch-ai/src/lib.rs">public AI code</a> disables the planner.</p><h4>Recovery</h4><p><a href="https://github.com/novuon/patch-audio/blob/1d4913ae9d55b740366a260619e051115dfdf569/crates/patch-record/src/wav.rs">WAV/RF64 recording</a> uses exclusive creation and periodic synchronization. Stem jobs persist and caches support pinning; no restoration was exercised.</p><h4>Audio evidence</h4><p><a href="https://github.com/novuon/patch-audio/blob/1d4913ae9d55b740366a260619e051115dfdf569/docs/bench.md">Author benchmarks</a> disclose a non-real-time harness and older baseline. The 93.5% tempo result uses weak BPM tags. Stem benchmarking measures reconstruction, not SDR or blind listening. No result was reproduced.</p>
+      <h4>System sound, not a foundation model</h4><p>Mixing, routing, decks, meters and broadcast share a native desktop environment. <a href="https://github.com/novuon/patch-audio/blob/e5f23d23384acfa1ec914e0245b47b935fa2872f/crates/patch-engine/src/lib.rs">Engine code</a> supports this architecture; <a href="https://github.com/novuon/patch-audio/blob/e5f23d23384acfa1ec914e0245b47b935fa2872f/crates/patch-ai/src/lib.rs">public AI code</a> disables the planner.</p><h4>Recovery</h4><p><a href="https://github.com/novuon/patch-audio/blob/e5f23d23384acfa1ec914e0245b47b935fa2872f/crates/patch-record/src/wav.rs">WAV/RF64 recording</a> uses exclusive creation and periodic synchronization. Stem jobs persist and caches support pinning; no restoration was exercised.</p><h4>Audio evidence</h4><p><a href="https://github.com/novuon/patch-audio/blob/e5f23d23384acfa1ec914e0245b47b935fa2872f/docs/bench.md">Author benchmarks</a> disclose a non-real-time harness and older baseline. The 93.5% tempo result uses weak BPM tags. Stem benchmarking measures reconstruction, not SDR or blind listening. No result was reproduced.</p>
     </div>
     <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
-      <h4>Engine and insert host</h4><p><a href="https://github.com/novuon/patch-audio/blob/1d4913ae9d55b740366a260619e051115dfdf569/crates/patch-plugin/src/chain.rs">Supervised plugins</a> use shared memory, one-block latency, dry fallback and restart. Process separation is not privilege isolation.</p><h4>Auth and privacy</h4><p>Remote APIs require pairing; control also requires opt-in, token and matching Origin. Tailscale access checks account identity. Broadcast sends selected audio/visuals externally; FFmpeg URL arguments expose stream credentials to process inspection. Library metadata, histories, recordings and caches persist.</p><h4>Execution and supply chain</h4><p>Python adapters run with user authority. The optional MSST adapter loads configured repository code and uses torch.load with weights_only=False. Signed manifests and payload hashes are positive controls, not proof of safety. No .github/workflows directory was present; tests exist but were not run.</p><h4>Rights</h4><p><a href="https://github.com/novuon/patch-audio/blob/1d4913ae9d55b740366a260619e051115dfdf569/NOTICE.md">Third-party notices</a> distinguish GPL-linked normal builds from public kits using Signalsmith and Slint royalty-free application terms. Optional AGPL engines, model/checkpoint terms and music/data rights are separate; the complete model/data rights chain was not established.</p><p>Full citations, persistence/export analysis and limitations: <a href="patch-audio.md">Markdown review</a>.</p>
+      <h4>Engine and insert host</h4><p><a href="https://github.com/novuon/patch-audio/blob/e5f23d23384acfa1ec914e0245b47b935fa2872f/crates/patch-plugin/src/chain.rs">Supervised plugins</a> use shared memory, one-block latency, dry fallback and restart. Process separation is not privilege isolation.</p><h4>Auth and privacy</h4><p>Remote APIs require pairing; control also requires opt-in, token and matching Origin. Tailscale access checks account identity. Broadcast sends selected audio/visuals externally; FFmpeg URL arguments expose stream credentials to process inspection. Library metadata, histories, recordings and caches persist.</p><h4>Execution and supply chain</h4><p>Python adapters run with user authority. The optional MSST adapter loads configured repository code and uses torch.load with weights_only=False. Signed manifests and payload hashes are positive controls, not proof of safety. No .github/workflows directory was present; tests exist but were not run.</p><h4>Rights</h4><p><a href="https://github.com/novuon/patch-audio/blob/e5f23d23384acfa1ec914e0245b47b935fa2872f/NOTICE.md">Third-party notices</a> distinguish GPL-linked normal builds from public kits using Signalsmith and Slint royalty-free application terms. Optional AGPL engines, model/checkpoint terms and music/data rights are separate; the complete model/data rights chain was not established.</p><p>Full citations, persistence/export analysis and limitations: <a href="patch-audio.md">Markdown review</a>.</p>
     </div>
     <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
       <table><tbody>
-        <tr><td>System audio</td><td>Integrated Omarchy environment</td><td>EasyEffects: focused PipeWire processing</td></tr><tr><td>DJ</td><td>Decks/library; public AI planner absent</td><td>Mixxx: dedicated DJ/controller ecosystem</td></tr><tr><td>Production</td><td>Recorder/player</td><td>Ardour: multitrack DAW</td></tr>
+        <tr><td>System audio</td><td>Integrated Omarchy/Linux environment</td><td>EasyEffects: focused PipeWire processing</td></tr><tr><td>DJ</td><td>Decks/library; public AI planner absent</td><td>Mixxx: dedicated DJ/controller ecosystem</td></tr><tr><td>Production</td><td>Recorder/player</td><td>Ardour: multitrack DAW</td></tr>
       </tbody></table>
     </div>
     <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
-      <p>Requires x86-64 Omarchy, Arch dependencies and Hyprland 0.56+. The installer can use sudo for packages, realtime membership and controller rules, and configure optional remote services. Inspect it before execution.</p><p>Back up library/session state and original media, keep a fallback audio route, and enable only needed modules. Closing windows does not stop detached recording or broadcasting. No installation, source execution, model/audio download, private-data access or inference was performed.</p>
+      <p>Now supports generic PipeWire Linux desktops and ARM64 as well as Omarchy; platform claims were not runtime-tested. Omarchy retains its Hyprland 0.56+ requirement. The installer can use sudo for packages, realtime membership and controller rules, and configure optional remote services. Inspect it before execution.</p><p>Back up library/session state and original media, keep a fallback audio route, and enable only needed modules. Closing windows does not stop detached recording or broadcasting. No installation, source execution, model/audio download, private-data access or inference was performed.</p>
     </div>
   </section>
 
