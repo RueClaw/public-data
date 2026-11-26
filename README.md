@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [modal-gpu-glossary.md](reviews/modal-gpu-glossary.md) [page](reviews/modal-gpu-glossary.html) | [Modal GPU Glossary](https://modal.com/gpu-glossary/readme) | CC BY 4.0 content | 📚 Good reference | Cross-layer CUDA glossary; six-page sample finds useful target coverage but cache, scheduling and syntax caveats. |
 | [music-harness.md](reviews/music-harness.md) [page](reviews/music-harness.html) | [enisn/music-harness](https://github.com/enisn/music-harness) | MIT code; declared CC0 assets | ⚠️ Interesting | Local acoustic sample renderer; arbitrary Python scores, weak QC gates and qualified asset provenance. Static review. |
 | [osprey.md](reviews/osprey.md) [page](reviews/osprey.html) | [Nimblesite/osprey](https://github.com/Nimblesite/osprey) | MIT core; component/data terms | ⚠️ Interesting | Effect-oriented LLVM language; sandbox environment gap, evolving correctness and non-atomic package recovery. Static review. |
 | [ardia.md](reviews/ardia.md) [page](reviews/ardia.html) | [ardia-browser/ardia](https://github.com/ardia-browser/ardia) | GPL-3.0 app; Apache-2.0 source | ⚠️ Interesting | Native Chromium browser with encrypted sync; daily telemetry, disabled Safe Browsing and broad automation/plugin authority. Static review. |
