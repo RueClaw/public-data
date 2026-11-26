@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Omarchy Spaces — Review</title>
+<meta name="description" content="Project-oriented Hyprland workspaces, agent status and selective restoration for Omarchy.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omarchy-spaces</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">t4t5/omarchy-spaces · reviewed 2026-11-26</div>
+    <h1>Omarchy Spaces</h1>
+    <p class="one-liner">Project-oriented Hyprland workspaces, agent status and selective restoration for Omarchy.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code · Apache-2.0 sounds</span>
+      <span class="chip">Rust · QML · Hyprland Lua</span>
+      <span class="chip"><a href="https://github.com/t4t5/omarchy-spaces">t4t5/omarchy-spaces ↗</a></span>
+      <span class="chip"><a href="omarchy-spaces.md">Full cited review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">3</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>One snapshot, two views</h3><p>A shared Rust watcher feeds sidebar and tabs. Lua coordinates monitors; spaces are ordinary workspaces, not security isolation.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Restoration has privacy consequences</h3><p>State holds folders, conversation IDs and URLs. Malformed restore config falls back to enabled defaults; disabling capture does not erase old snapshots.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery is not exact rollback</h3><p>Atomic snapshots, locks and backups are strengths. Removal deletes history and recreates bar placement, not exact configuration. Real desktop behavior was not tested.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>f0e148075cd816e5047f237b7a705772deb606c3 / v0.1.0</td></tr><tr><td>CLI</td><td>Rust, Clap, Serde, TOML</td></tr><tr><td>UI</td><td>Qt Quick, Quickshell, Lua</td></tr><tr><td>Verification</td><td>Static only; upstream CI/Release successful; no local tests</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Project tabs without another window manager</h4>
+<p>Lua supplies slot-based focus/move helpers, cross-monitor following, monitor reconciliation and empty-tab handling. Home navigation delegates to Omarchy defaults. It wraps workspace reconciliation and conditionally adds a blur layer rule: meaningful compositor integration, not a passive widget. [S2]</p>
+<h4>One authoritative UI snapshot</h4>
+<p>One space watch emits complete newline-delimited JSON snapshots for sidebar and tabs. Hyprland events drive immediate refresh; active terminal processes are sampled five times per second and other shells/layouts roughly every two seconds. QML restarts failed watchers with capped backoff and attempts matching managed binary updates once per version. This avoids independently drifting views; performance/reconnect behavior were not measured. [S3]</p>
+<h4>Claude status, not universal agent integration</h4>
+<p>Only Claude Code has a status/resume adapter here. It reads process notes, checks PID/start identity where available, accepts UUID-shaped resume IDs and ignores noninteractive sessions. Other programs appear by name without equivalent status semantics. Open PRs for other adapters/direct-exec recognition are proposals, not shipped support. [S4, M3]</p>
+<h4>Selective restoration</h4>
+<p>Restore recreates terminal folders, supported layouts, Claude conversations and Chromium/Chrome/Brave/Edge windows. It excludes arbitrary terminal jobs, scrollback, arbitrary apps, Firefox/Zen, incognito and custom browser data directories. Tabs reload without history, groups or pins; dwindle has the strongest split restoration. App autostart can duplicate windows; browser-native continuation is detected to reduce duplication. [S5, S6]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Rust queries/dispatches to Hyprland; QML views snapshots; Lua owns hotkeys/hooks. Adapters isolate application parsing from common live/session models. Terminal inspection reads process trees, foreground groups, directories and selected environment information. Shared-process windows are matched heuristically by creation order. Browser session files are located via open file descriptors and matched by title/order, not a stable extension API. These integrations carry compatibility limits. [S2–S7]</p>
+<h4>Desktop authority and input boundaries</h4>
+<p>The enabled plugin executes programs/scripts, reads same-user process/application state, focuses/moves/closes windows, launches apps and reloads Hyprland. Scripts provide neither a root step nor a sandbox. Bar replacement is prompted; enabling also admits service startup and future managed binary updates. [S2, S8]</p>
+<p>Positive controls include shell quoting, browser-family allowlisting, URL filtering against option-like input, UUID-only resume IDs and local Unix IPC rather than a network command listener. Browser restore still accepts http, https, file, chrome and about URLs. It is not a safe untrusted-session importer or destination filter. Treat imported sessions as operational input despite not being arbitrary shell scripts. [S4, S6, S7]</p>
+<h4>Privacy and egress</h4>
+<p>No dedicated telemetry uploader/network client was found in reviewed application paths. This does not mean no egress: install/update downloads GitHub archives/checksums; restore launches browsers loading saved URLs and Claude processes that may contact configured services. Private/authenticated sites can reopen in existing profiles. [S4, S6, S8]</p>
+<p>Snapshots contain terminal paths, conversation IDs and URLs, potentially including query-string secrets. Session files are created with mode 0600, flushed and atomically renamed; a 48-entry history remains. This is local persistence, not encryption or protection against same-user processes. Generic space metadata uses a separate atomic writer without an explicit private mode, so names/folders also depend on directory permissions and umask. [S5, S9]</p>
+<p>**Concrete opt-out caveat:** restore calls Config::load_or_default(). Unreadable/malformed TOML warns and defaults auto, agents and browsers to true. A broken config intended to disable restoration can reopen saved pages/agents. The watcher handles unavailable browser configuration more cautiously; this is not a claim every config error immediately collects URLs. Fail-closed opt-outs would be safer. Also, auto = false is not a recording opt-out, and browsers = false does not erase old snapshots. [S10, S3, S5]</p>
+<h4>Persistence and recovery</h4>
+<p>Sessions have locks, fsync plus rename, previous-session state, periodic backups (at most one per 15 minutes), and a ten-second deletion grace period intended to avoid saving a shutting-down desktop as empty. Invalid/newer state is moved aside rather than overwritten. Restore locks/progress tracking reduce duplicates; missing folders fall back to existing ancestors. Strong design signals, not proof across every crash/power-loss point. [S5, S9]</p><p>On 2026-11-26 metadata showed 3 stars, 1 fork and 5 open items, all returned as PRs. Last push was 2026-11-25; the sole returned release was v0.1.0, published that day, with tag resolving to the reviewed SHA. These indicate an early project, not safety. An open PR addresses missing workspace IDs on Hyprland 0.57+; reviewed structs still require IDs. This is a compatibility warning, not a reproduced failure. [M1–M3, S7]</p>
+<p>CI defines formatting, Clippy with warnings denied, locked Rust tests, Node helper tests, Lua syntax/key tests and a no-symlinks check. The substantial CLI suite uses fake Hyprland Unix sockets/stub apps, covering restore, monitors, concurrency and install/removal. A live stress script exists but was not run. GitHub reported successful CI and Release runs for this SHA; tests were not independently executed here. [S11, M4]</p>
+<p>Cargo.lock and locked builds constrain Rust resolution. Release builds both architectures after CI and packages code/sound licenses. Installer SHA-256 is downloaded beside the archive: corruption detection, not independent publisher authentication. No signature/attestation verification appears in the installer. Actions use mutable version tags; Rust tracks stable rather than a fixed toolchain. No vulnerability audit or binary reproducibility verification was performed. [S8, S11]</p>
+<p>MIT covers code; Herdr sounds are Apache-2.0 and embedded, reflected in Cargo’s MIT AND Apache-2.0 declaration. Packaging includes both licenses. Preserve applicable attribution/notices. No code/media components were extracted. [S12]</p><p><a href="omarchy-spaces.md#evidence">Revision-pinned evidence and full verification limits</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Native workspaces</td><td>Less integration, no cross-app project restore</td></tr><tr><td>tmux</td><td>Terminal persistence, not GUI reconstruction</td></tr><tr><td>Browser-native restore</td><td>Browser-owned state, no unified hierarchy</td></tr><tr><td>Herdr</td><td>Attention inspiration; not assumed a drop-in replacement</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is desktop integration, not a self-hosted service. Documentation requires Omarchy 4.5+, shell/plugin tools and compatible Lua-era Hyprland. Installer dependencies include Bash, curl, jq, tar, sha256sum and standard utilities. Releases support x86_64/aarch64 Linux. No install was performed. [S1, S8]</p>
+<p>Setup links the Hyprland helper into user config, reloads Hyprland, saves an uninstall script in state and installs a missing space binary in the user-local bin directory. Hotkeys require a separate manual bindings.lua addition guarded by module availability. Confirmed bar replacement disables menu/workspaces widgets. Updates replace only a binary matching its installation hash; binary replacement uses rename. [S8]</p>
+<p>Removal is **not byte-for-byte rollback**. Its hook attempts to return named-space windows to numbered workspaces, restore replaced widgets, remove its owned symlink/hash-matching binary and delete the whole Spaces state directory, including session history. User config/binding text remain. Bar restoration recreates default placement, not an exact saved layout. Disabling differs from removal and primarily restores bar widgets; it does not undo all key/config integration. [S8]</p>
+<p>Before trial, independently back up bar config, bindings, preexisting helpers and Spaces state. Preserve snapshots before removal; record matched plugin/binary versions. Scripts provide no automatic binary-version rollback, config transaction or verified rollback receipt. Test restore, hotplug, shell restart and removal on a disposable compatible desktop before daily reliance. [S8, S9]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Thoughtful project tabs and recovery, but desktop authority, sensitive snapshots, fail-open restore configuration and early compatibility limits warrant a backed-up trial rather than default deployment.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/t4t5/omarchy-spaces">t4t5/omarchy-spaces</a> · MIT code · Apache-2.0 sounds</span>
+    <span><a href="omarchy-spaces.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

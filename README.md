@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [omarchy-spaces.md](reviews/omarchy-spaces.md) [page](reviews/omarchy-spaces.html) | [t4t5/omarchy-spaces](https://github.com/t4t5/omarchy-spaces) | MIT; Apache-2.0 sounds | ⚠️ Interesting | Project workspaces and selective restore; desktop authority, snapshot privacy and rollback caveats. Static review. |
 | [swipterm.md](reviews/swipterm.md) [page](reviews/swipterm.html) | [swipt-automation/Swipterm](https://github.com/swipt-automation/Swipterm) | GPL-3.0-or-later notice; naming restriction | ⚠️ Interesting | On-device iOS Linux and Ghostty terminal; broad guest/host authority, download integrity and recovery caveats. Static review. |
 | [uptime-orchestrator.md](reviews/uptime-orchestrator.md) [page](reviews/uptime-orchestrator.html) | [uptime-lab/orchestrator](https://github.com/uptime-lab/orchestrator) | FCL-1.0-ALv2 / Apache-2.0 | ⚠️ Interesting | Signed Pi network recovery and root-level fleet management; beta, single backend, careful key custody |
 | [uppies.md](reviews/uppies.md) [page](reviews/uppies.html) | [schmayterling/uppies](https://github.com/schmayterling/uppies) | MIT; icon notices | ⚠️ Interesting | Go uptime/status publisher; shared monitors and scoped APIs, with engine-health, alert durability and authority caveats. Static review. |
