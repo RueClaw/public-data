@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [music-harness.md](reviews/music-harness.md) [page](reviews/music-harness.html) | [enisn/music-harness](https://github.com/enisn/music-harness) | MIT code; declared CC0 assets | ⚠️ Interesting | Local acoustic sample renderer; arbitrary Python scores, weak QC gates and qualified asset provenance. Static review. |
 | [osprey.md](reviews/osprey.md) [page](reviews/osprey.html) | [Nimblesite/osprey](https://github.com/Nimblesite/osprey) | MIT core; component/data terms | ⚠️ Interesting | Effect-oriented LLVM language; sandbox environment gap, evolving correctness and non-atomic package recovery. Static review. |
 | [ardia.md](reviews/ardia.md) [page](reviews/ardia.html) | [ardia-browser/ardia](https://github.com/ardia-browser/ardia) | GPL-3.0 app; Apache-2.0 source | ⚠️ Interesting | Native Chromium browser with encrypted sync; daily telemetry, disabled Safe Browsing and broad automation/plugin authority. Static review. |
 | [techartist-evolution.md](reviews/techartist-evolution.md) [page](reviews/techartist-evolution.html) | [Evolution — Techartist](https://iamtechartist.com/evolution/) | No license found | 📚 Study | Interactive biology atlas; useful guided models, synthetic finches, syllabus mismatch and offline/privacy caveats. Static review. |
