@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [techartist-evolution.md](reviews/techartist-evolution.md) [page](reviews/techartist-evolution.html) | [Evolution — Techartist](https://iamtechartist.com/evolution/) | No license found | 📚 Study | Interactive biology atlas; useful guided models, synthetic finches, syllabus mismatch and offline/privacy caveats. Static review. |
 | [kividb.md](reviews/kividb.md) [page](reviews/kividb.html) | [kividbio/kividb](https://github.com/kividbio/kividb) | AGPL-3.0-only | ⚠️ Interesting | Multicore Redis-compatible search store; strong test materials, conditional AOF durability and migration caveats. Static review. |
 | [advnt-screen-parser.md](reviews/advnt-screen-parser.md) [page](reviews/advnt-screen-parser.html) | [arthuryeti/advnt-screen-parser](https://github.com/arthuryeti/advnt-screen-parser) | MIT code; AGPL-3.0 weights | ⚠️ Interesting | CPU iOS icon/OCR parser; promising specialist perception with unverified metrics, optional auth, and unpinned models. |
 | [fairy-cursor.md](reviews/fairy-cursor.md) [page](reviews/fairy-cursor.html) | [Rrrima/fairy-cursor](https://github.com/Rrrima/fairy-cursor) | MIT; OFL fonts | ⚠️ Interesting | Native macOS capture companion; thoughtful paste policies, screenshot-loss recovery risks and broad desktop authority. Static review. |
