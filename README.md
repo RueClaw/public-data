@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ragflow.md](reviews/ragflow.md) [page](reviews/ragflow.html) | [infiniflow/ragflow](https://github.com/infiniflow/ragflow) | Apache-2.0 code; model/dependency terms | ⚠️ Interesting | Go-centered ingestion, retrieval and agents; citation, tenant, execution, privacy and recovery boundaries. Static review. |
 | [posts-design-mcp.md](reviews/posts-design-mcp.md) [page](reviews/posts-design-mcp.html) | [posts-design/mcp](https://github.com/posts-design/mcp) | MIT; separate asset/service terms | ⚠️ Interesting | Hosted design-reference MCP and local media kit; collection sharing, retained queries and automatic audio-upload boundaries. Static review. |
 | [inspora.md](reviews/inspora.md) [page](reviews/inspora.html) | [Inspora](https://www.inspora.design/) | Original asset rights apply | ⚠️ Interesting | Public design-reference archive; working search, credited sources, unverified export and qualified analytics retention. |
 | [smartimposter.md](reviews/smartimposter.md) [page](reviews/smartimposter.html) | [SamG-Coder/SmartImposter](https://github.com/SamG-Coder/SmartImposter) | MIT code; asset/data/SDK terms | 📚 Study | Rust/Vulkan forest and Earth renderer; ray-traced impostors, asset barriers and qualified performance/recovery. Static review. |

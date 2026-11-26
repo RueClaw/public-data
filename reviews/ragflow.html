@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAGFlow — Review</title>
+<meta name="description" content="Document ingestion, retrieval and agents: substantial engineering, explicit trust boundaries.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ragflow</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">infiniflow/ragflow · reviewed 2026-11-26</div>
+    <h1>RAGFlow</h1>
+    <p class="one-liner">Document ingestion, retrieval and agents: substantial engineering, explicit trust boundaries.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 code; model/dependency terms separate</span>
+      <span class="chip">Go · React · SQL · pluggable retrieval</span>
+      <span class="chip"><a href="https://github.com/infiniflow/ragflow">infiniflow/ragflow ↗</a></span>
+      <span class="chip"><a href="ragflow.md">Pinned evidence and full review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">94,770</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">11,417</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Citations are traceability, not proof</h3><p>The fallback attaches passages by sentence/chunk embedding similarity. Existing model markers are normalized, but neither process establishes semantic entailment.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Execution and privacy need boundaries</h3><p>Local code runs with host process privileges. Connector encryption is opt-in; provider keys, query logs and external model payloads need separate protection.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>A credible system, with unverified outcomes</h3><p>Resource-based authorization, bounded retrieval and cleanup retries are substantive. Benchmark claims, full tenant isolation and disaster recovery were not independently established.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Backend</td><td>Go 1.27.4 declared; Gin, GORM, native DeepDoc</td></tr><tr><td>UI</td><td>React / TypeScript / Vite</td></tr><tr><td>State</td><td>SQL metadata, document engine, object storage, Kvrocks/NATS</td></tr><tr><td>Revision</td><td>625a53ad4c4ecb66abe32b4c0745564eaddeec94</td></tr><tr><td>Release observed</td><td>v1.0.0, 2026-11-06; main snapshot reviewed, not release image</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>1. Ingestion is a real pipeline, not just upload-and-embed</h4>
+<p>Parser dispatch carries configured parser families and output metadata across component boundaries. <code></code> strips table-structure tags, applies model-window trimming, checks vector counts and merges title/content embeddings. Importantly, its documented parity is limited to text embedding: edited chunk text does not recreate custom question/summary fields from an ingestion configuration. Operators should test re-edit/reparse consistency rather than assuming all derived indexes update identically. The idempotency key includes task, pipeline/component versions and an input fingerprint, a useful design signal but not by itself proof of exactly-once ingestion. [E4]</p>
+<h4>2. Retrieval has explicit bounded contracts</h4>
+<p>The shared retrieval service handles hybrid search, reranking, thresholds, pagination and readable-document filtering. It caps rerank candidates at 1,024, KNN top-k at 2,048 and KNN candidates at 10,000; a configured reranker supports only the first page. Score tests exercise token-field effects and backend-specific scoring behavior. These are substantive correctness mechanisms, not evidence that every engine produces interchangeable relevance scores. The <code></code> flag and identity-dependent filtering make correct upstream authorization essential. [E5]</p>
+<h4>3. Citations improve traceability, not entailment</h4>
+<p>The chat pipeline repairs malformed citation markers, extracts bounded source indices, and avoids double-tagging existing model citations. When citations are missing and embeddings are available, <code></code> compares answer-sentence vectors with chunk vectors, descends a similarity threshold from 0.63 toward 0.3 and attaches up to four chunks. An embedding error returns the answer without inserted citations. A semantically similar passage can contradict a sentence or omit its decisive detail; this fallback does not establish that the sentence is true. Citation coverage and source support need independent evaluation, especially for numbers, negations and multi-part claims. [E6]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The bounded path inspected is: parser dispatch → embedding/chunk representation → shared retrieval and permission policy → chat citation decoration. Agent tools and selectable execution providers extend this with retrieval, remote HTTP/SQL/MCP and code execution. SQL metadata, document indexes and object storage are separate state domains; the UI is not the authorization boundary. [E2, E4–E9]</p>
+<h4>Tenant authorization: promising policy, incomplete endpoint assurance</h4>
+<p><code></code> resolves access/API tokens and installs user/tenant identity in request context. The community policy rejects missing identities, loads persisted ownership and membership facts, derives scope from the actual resource rather than a caller-selected active tenant, and checks dependencies for both the user and the entry owner. Tests cover these cases. Community <code></code> explicitly has no role-based feature restrictions: resource authorization should not be confused with enterprise-style feature RBAC. [E7]</p>
+<p>Public, beta-authenticated and ordinary authenticated route groups exist separately, including webhooks, sharing and preview surfaces. This review did not trace every endpoint, background task, share token, connector or enterprise build. No cross-tenant exploit was demonstrated; equally, the inspected policy cannot certify complete tenant isolation. Require a two-tenant negative test matrix covering search, downloads, previews, agent dependencies, shares and deletion before shared deployment. CORS and reverse-proxy behavior were not comprehensively audited.</p>
+<h4>Agent execution: the word sandbox is not a guarantee</h4>
+<p>The local provider uses <code></code> on the host with the Go process privileges and explicitly states that it is not sandboxed. Time, memory and output limits do not turn that into a security boundary. The optional self-managed manager configuration is privileged and mounts the Docker socket; it binds the host listener to loopback and defaults unauthenticated access off, but the actual separately built image and host isolation still require verification. Do not expose local execution to untrusted users or assume a prompt can reliably keep tools safe. [E8]</p>
+<p>HTTP tool helpers contain useful SSRF defenses: HTTP(S) scheme restriction, rejection of non-public addresses, all-answer DNS checks and a pinned-IP transport design. <code></code> relaxes the private-host restriction. These safeguards are not a universal guarantee for all providers, MCP servers, redirects or connectors; network egress policy remains necessary. Prompt injection from retrieved documents can influence an agent even when URL validation works correctly. [E9]</p>
+<h4>Secrets, provider egress and privacy</h4>
+<p>The model instance entity has an <code></code> string column, and the inspected creation path writes the supplied key into that entity without an application-encryption step. Separately, connector credential encryption uses AES-GCM only when <code></code> is configured; an unset key leaves credentials unchanged. Protect database backups and keep the connector encryption key recoverable separately. This is a distinction between credential classes, not a claim that every secret uses the same storage mechanism. [E10]</p>
+<p>Provider discovery accepts an API key in a query parameter, creating a URL/access-log handling concern. The retrieval service logs question text at INFO, so operational logs are part of the data-retention boundary. Embeddings can send document text, rerankers send query/candidate text, and chat/vision/hosted code providers receive their configured payloads. Self-hosting the UI does not imply offline processing or zero provider retention. Establish destination allowlists, provider terms, log redaction/retention and least-privilege credentials; audit telemetry and connector-specific flows separately. [E5, E10]</p><h4>Tests, benchmarks and licensing</h4><p>There are meaningful unit/integration test sources for citation formats, retrieval scoring, tenant policy, SSRF and cleanup failure cases. The <code></code> workflow describes self-hosted CI and SDK testing against Elasticsearch/Infinity; PR runs depend on labels/conditions. Its actual trigger is <code></code>, despite an adjacent stale comment about <code></code>. Workflow configuration is not a passing-run receipt; current CI status and coverage were not established. [E12]</p>
+<p>The checked benchmark metrics measure first-token/total latency, percentiles, request throughput, successful throughput and failure rate. That helps operational evaluation but does not establish semantic retrieval quality or citation entailment. The agent-native-database document reports 85% BrowseComp-Plus, 91% FRAMES and a 38% average query-token reduction in the authors’ runs. These remain upstream claims: this review did not verify full run traces, exact benchmark/model settings, statistical uncertainty or independent replication. In particular, “largely solved the accuracy problem” is not justified for arbitrary enterprise documents by these reported scores. [E3, E13]</p>
+<p>A useful acceptance suite would include difficult scanned tables, stale/replaced documents, multilingual queries, denied tenant access, malicious document instructions, citation contradictions and provider outages. Measure recall and answer support alongside cost, latency and cleanup/restore behavior on the actual deployment configuration.</p>
+<h4>Licensing and Supply Chain</h4>
+<p>The root Apache-2.0 license permits commercial reuse with its notice, attribution and modification obligations and patent terms; it does not grant blanket rights to bundled models or third-party services. The tree has Go/Python/frontend dependency manifests and lock data, native bindings, optional database engines and container dependencies. The base image imports DeepDoc/model/tokenizer assets from a dependency image tagged <code></code>, and optional runtime images also use mutable tags. A source SHA therefore does not uniquely identify all deployed bytes. [E2, E14]</p>
+<p>No transitive SBOM/license audit, vulnerability scan, native-library audit or model-card review was performed. Confirm every selected model’s redistribution/commercial-use terms and every container component’s license before redistribution. Enterprise hooks visible in community source are not evidence that enterprise functionality or commercial terms are included.</p><p>Evidence IDs refer to the pinned source inventory in the full Markdown review. Selective static inspection only; no runtime, model, deployment or recovery experiments.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Need</th><th>RAGFlow</th><th>Alternative tradeoff</th></tr><tr><td>Integrated platform</td><td>Ingestion, retrieval, agents, UI</td><td>Dify: application/workflow focus; assess license separately</td></tr><tr><td>Custom pipeline</td><td>Broad built-in surface</td><td>Haystack / LlamaIndex: greater control, more assembly</td></tr><tr><td>Storage only</td><td>Full system footprint</td><td>Qdrant / pgvector: narrower retrieval substrate</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>The README recommends starting at 4 CPU cores, 16 GB RAM and 50 GB disk, with additional capacity for models and concurrent parsing. Treat this as a starting recommendation, not a tested sizing result. Compose publishes web/API/admin and several backing-service ports without loopback binding, includes example database/object-store passwords and disables Elasticsearch HTTP/transport TLS in the illustrated stack. The explicit warning to change passwords is welcome but not enforcement. Pin release images/digests, close unnecessary host ports, restrict admin ingress, terminate TLS and verify registration/authentication policy before importing sensitive data. [E1, E8]</p>
+<h4>Persistence, backup, deletion and recovery</h4>
+<p>Named volumes cover SQL, object storage, indexes and queue/cache services. Back up these stores consistently with configuration, model identity and encryption material; a metadata-only dump cannot reconstruct original documents or guarantee equivalent embeddings. Do not confuse a volume surviving container recreation with a tested disaster-recovery plan. [E8]</p>
+<p><code></code> settles ingestion work, removes engine data and updates metadata/version records, while intentionally keeping the file/blob. <code></code> survives caller cancellation and retries up to three times within a 30-second cleanup context. These are useful cleanup mechanisms, but the inspected operations span stores rather than one global transaction. A deletion request, file unlink, index purge and backup expiry are different events. Define and test reconciliation for failed cleanup, worker interruption and partial restore; verify erasure of previews, compiled artifacts, logs and retained backups according to policy. No crash recovery, backup restoration, migration rollback or deletion-completeness experiment was run. [E11]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Worth a controlled document-heavy evaluation, not an unqualified production deployment. Citation similarity does not prove factual support; local code execution is unsandboxed, and secrets, egress and recovery need deliberate operational controls. Static review only; tests and deployments were not run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/infiniflow/ragflow">infiniflow/ragflow</a> · Apache-2.0 code; model/dependency terms separate</span>
+    <span><a href="ragflow.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
