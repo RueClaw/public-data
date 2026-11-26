@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [mood-recognition.md](reviews/mood-recognition.md) [page](reviews/mood-recognition.html) | [Mood recognition](https://libraries.dev/mood-recognition) | Model License v1.6 | ⚠️ Interesting | Local interaction-friction beta, not validated internal-mood inference; gated kit and retained baseline |
 | [ragflow.md](reviews/ragflow.md) [page](reviews/ragflow.html) | [infiniflow/ragflow](https://github.com/infiniflow/ragflow) | Apache-2.0 code; model/dependency terms | ⚠️ Interesting | Go-centered ingestion, retrieval and agents; citation, tenant, execution, privacy and recovery boundaries. Static review. |
 | [posts-design-mcp.md](reviews/posts-design-mcp.md) [page](reviews/posts-design-mcp.html) | [posts-design/mcp](https://github.com/posts-design/mcp) | MIT; separate asset/service terms | ⚠️ Interesting | Hosted design-reference MCP and local media kit; collection sharing, retained queries and automatic audio-upload boundaries. Static review. |
 | [inspora.md](reviews/inspora.md) [page](reviews/inspora.html) | [Inspora](https://www.inspora.design/) | Original asset rights apply | ⚠️ Interesting | Public design-reference archive; working search, credited sources, unverified export and qualified analytics retention. |
