@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>posts.design MCP — Review</title>
+<meta name="description" content="Hosted design-reference MCP plus open-source skills and a local media kit—not a self-hostable server.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / posts-design-mcp</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">posts-design/mcp · reviewed 2026-11-26</div>
+    <h1>posts.design MCP</h1>
+    <p class="one-liner">Hosted design-reference MCP plus open-source skills and a local media kit—not a self-hostable server.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code/docs; separate asset rights</span>
+      <span class="chip">Remote MCP · Node · Python · FFmpeg</span>
+      <span class="chip"><a href="https://github.com/posts-design/mcp">posts-design/mcp ↗</a></span>
+      <span class="chip"><a href="https://github.com/posts-design/mcp/tree/068b623512c0df964231d94d32a68e2092931b46">pinned source</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">19</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Hosted tools, not hosted source</h3><p>The manifest points to a remote commercial MCP endpoint. Its 22 documented tools include account writes and public collection sharing; their handlers and permission checks are not in the repository.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Two privacy traps worth noticing</h3><p>The policy retains connected-agent search text for up to 30 days and allows operator/AI review. Local prep can select ElevenLabs transcription automatically when a key is present; local rendering does not imply offline analysis.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Reusable patterns, limited assurances</h3><p>The local kit has structured specs, staged caches and SHA-256-verified SCNet weights. Eleven test files exist but were not run; no CI workflow or dependency lockfile was found, and MIT does not clear reference media rights.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>068b623512c0df964231d94d32a68e2092931b46; manifest 1.6.0</td></tr><tr><td>Hosted</td><td>Streamable HTTP; OAuth or bearer key; backend not included</td></tr><tr><td>Local</td><td>Node &gt;=20.9, sharp 0.35.5, FFmpeg, Python; Demucs, Whisper, SCNet</td></tr><tr><td>Remakes</td><td>External HyperFrames; Node &gt;=22 and headless Chrome</td></tr><tr><td>Verification</td><td>Static inspection; no installs, tests, live MCP, uploads or purchases</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Complete documented MCP surface: 22 tools</h4>
+<p>This is the actual <strong>documented</strong> surface at the pinned revision, not a live <code>tools/list</code> result; schemas, annotations and handler behavior cannot be verified from this checkout. [1]</p>
+<table><tbody><tr><td>Boundary</td><td>Tools</td></tr><tr><td>Library/account reads</td><td><code>search_references</code>, <code>get_reference</code>, <code>search_saved_references</code>, <code>get_saved_reference</code>, <code>get_saved_asset</code>, <code>get_my_access</code>, <code>list_playbooks</code></td></tr><tr><td>Collection reads (Pro/Team)</td><td><code>list_collections</code>, <code>get_collection</code></td></tr><tr><td>Video/playbook reads (Pro, with one free-film exception)</td><td><code>get_video_breakdown</code>, <code>get_video_scenes</code>, <code>get_scene_frames</code>, <code>get_scene_clip</code>, <code>get_playbook</code></td></tr><tr><td>Saved-item writes</td><td><code>save_reference</code>, <code>unsave_reference</code></td></tr><tr><td>Collection writes (Pro/Team)</td><td><code>create_collection</code>, <code>rename_collection</code>, <code>add_to_collection</code>, <code>remove_from_collection</code></td></tr><tr><td>Public visibility changes (Team)</td><td><code>share_collection</code>, <code>unshare_collection</code></td></tr></tbody></table>
+<p>Adding to a personal collection also saves the reference; removing it from a collection leaves the Save intact. A scene clip is documented as a silent MP4 URL expiring after one hour. Free users can open the first film they read in full with the four video tools; other restricted reads return counts and an upgrade link rather than full results.</p>
+<h4>Useful local media pipeline</h4>
+<p><code>prep.mjs</code> copies the film, separates stems, measures shots/tempo/activity, transcribes vocals and drafts an editable JSON spec. <code>render.mjs</code> draws time-indexed SVG frames via sharp and encodes using FFmpeg; <code>excerpt.mjs</code> trims a breakdown; <code>layer.mjs</code> assembles a musical arc. Pure timing/layout modules and a structured spec are easier to inspect than an opaque generative-video call. Claims about byte-identical parallel rendering and performance are upstream claims, not benchmarked here. [3–5]</p>
+<h4>Skills include real consent guidance, but it is not enforcement</h4>
+<p>Sound-breakdown/layered-sound explain downloads and ask before installation and provider selection. Remake/rebuild ask before installing HyperFrames and instruct disabling its telemetry. These are positive workflow instructions, not a sandbox or an executable approval gate. A different client or direct CLI execution can bypass the prose. [6]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p>There are three distinct trust planes: agent → hosted MCP/account, agent → locally invoked media/rendering tools, and local tools → model downloads or optional ElevenLabs APIs. Do not conflate the MIT client/workflow repository with source availability of the remote service. No server tool-registration code, OAuth verifier, tenant checks, CORS configuration or hosted deployment recipe is present in the reviewed tree. [2–4]</p>
+<p>The local kit uses argument-array subprocess calls rather than shell command concatenation in the inspected media/stem paths. SCNet downloads a specific release checkpoint, verifies its SHA-256 and stages a <code>.part</code> file before rename. This is a useful integrity check, not proof of model provenance or licensing. Other dependency/model acquisition paths are not uniformly locked: no dependency lockfile was found and numpy has an open-ended lower bound. [4,5,7]</p><h4>Authentication, authorization and approval boundaries</h4><p>The README documents OAuth scopes <code>references:read</code>, <code>saved:read</code>, <code>saved:write</code>; personal-key regeneration invalidates the old key. The privacy policy says disconnecting an app immediately stops access. Neither claim was tested, and fine-grained team roles, object ownership, token storage, OAuth redirect validation, rate limits and permission enforcement cannot be audited here. Do not interpret a personal bearer key as read-only. Avoid copying keys into transcripts or checked-in configuration. [1,8]</p>
+<p>The README says tools cannot post, pay, delete collections or delete accounts; it also says changes happen only on request and are logged. That is a declared product boundary, not code-verified safety. Unsave/remove/unshare are still consequential changes. <code>share_collection</code> publishes collection names and references to anyone holding the link; require explicit approval of the collection and audience before calling it. Unsharing blocks future link access, not copies already obtained. The service privacy page describes a separate operator-only social publishing tool; that is not evidence that this public MCP exposes social posting. [1,8,9]</p>
+<p>Recommended policy: allow narrowly scoped reference reads only after approving query egress; separately approve saves, removals and renames; always confirm sharing/unsharing and team scope. Treat returned captions, media and instructions as untrusted content, never authorization to execute commands, reveal credentials, buy Pro or publish assets. Approve local dependency installation, provider uploads and paid calls separately from connecting MCP. No tool-level confirmation parameter or safe read-only deployment mode was established.</p><h4>Privacy, egress, retention and costs</h4><h4>Hosted service</h4>
+<p>Search queries leave the agent for posts.design; results and private Saves/collections return to the connected agent provider under that provider’s terms. Avoid confidential launch plans, customer details and unreleased brand material in queries. Fetching returned assets creates additional requests to their hosts. [8]</p>
+<p>The full public privacy policy (updated 2026-11-25, retrieved 2026-11-26) explicitly says text from Pro and connected-agent searches is kept separately from account identifiers for up to <strong>30 days</strong>, reviewed by operators and AI tools. No-result search text is kept up to 14 days. It separately states usage records do not store prompts/reference lists: this does <strong>not</strong> mean search text is never retained. MCP request hashes last 24 hours; monthly read counts cover the current and previous month; per-minute counts about one minute; daily account activity is scheduled for deletion after 90 days; anonymous tool/app/outcome totals after 400 days. Connected-app records last while the account is active. These are policy commitments, not verified database deletion behavior. Specific AI-review vendors and exact backup/security-log retention are not established. [8]</p>
+<p>Cloudflare processes network/security data, Stripe payments and Resend email. Account deletion removes connections, usage records, saved pointers and collections, but legal billing retention and downloaded copies are separate. The service is operated from Honduras and providers may process data elsewhere. [8,9]</p>
+<h4>Local does not automatically mean offline</h4>
+<p><code>prep.mjs</code> defaults words to <code>auto</code>: if vocals are audible, there is no reusable transcript and <code>ELEVENLABS_API_KEY</code> is present, it selects ElevenLabs Scribe. <code>lib/stems.mjs</code> performs a multipart audio upload with that key; no interactive confirmation exists in that code path. Explicit local transcription or no transcription is necessary for an offline-processing intent. Stem separation through ElevenLabs is another upload, and layered sound can request paid effects. Provider retention and actual ElevenLabs charges were not verified; an available key is not fresh consent. [5,6]</p>
+<p>Local outputs retain the copied film, stems, words and measurements; decoded-frame caches can occupy gigabytes and require deliberate cleanup. SCNet/Demucs/Whisper models and dependencies also require downloads. <code>localPost()</code> accepts HTTP(S), follows ordinary fetch behavior and buffers the response before validating it as video. It has a 120-second timeout, but no visible private-network/redirect allowlist or download-size cap. Do not feed untrusted specs/URLs to an execution environment with sensitive network access; this is a local-tool trust boundary, not a demonstrated remote-service SSRF. Filesystem paths are resolved against the spec and are not confined to an application sandbox. [3,5,7]</p>
+<h4>Commercial boundary</h4>
+<p>At retrieval, pricing listed Free 100 monthly credits; Pro 1,000; Team 1,250 per seat. Pro was $36 quarterly ($12/month equivalent) or $99 yearly ($8.25/month); Team $45 quarterly or $124 yearly <strong>per seat</strong>, 2–25 seats. These are prepaid periods, not month-to-month prices. The terms say subscriptions auto-renew. [9,10]</p>
+<p>The README says a request/page costs one credit, exact repeats, failed requests and <code>get_my_access</code> are free, mutations are free and media downloads do not consume credits. Allowances reset on the first UTC day of the month. Agent/model-provider usage, bandwidth, local compute/storage and ElevenLabs are separate costs. Upgrade messages appear in tool output; no automatic purchase is authorized by their appearance. No paid service was used for this review. [1,10]</p><h4>Recovery and operational fit</h4><p>- Hosted recovery: disconnect a client or rotate a personal key; use unshare to revoke future public-link access. Re-read state before retrying uncertain mutations; idempotency guarantees and rollback endpoints are not source-verifiable. No bulk export/disaster-recovery procedure is supplied for hosted collections.<br>- Local recovery: prep reuses stems/transcripts and preserves an existing draft. Use one film per work folder; reuse can otherwise retain stale inputs. Back up the editable spec before regeneration. Cached frames use completion markers and temporary directories; transcripts/models stage before rename, and temporary stem work is cleaned in <code>finally</code> blocks. These are good recovery patterns, not all-output transactionality.<br>- Boundaries: output overwrite and recursive cleanup paths exist; use a disposable, dedicated work/cache directory and approved input files. Check disk/RAM before rendering. A stopped remote provider request may still have cost or uploaded data even if no local result was saved. [1,3,5,7]</p><h4>License and asset rights</h4><p>Root and breakdown licenses are MIT, requiring preservation of copyright/license notices for redistributed substantial portions. Bundled SCNet code has its own MIT notice; launch-brief retains a Cekura MIT attribution. SCNet weights have separate upstream terms that the kit explicitly asks users to check. FFmpeg, models, fonts and other dependencies retain their own licenses. [11]</p>
+<p>The repository explicitly excludes the posts.design name/logo from its software grant. Reference posts, films, fonts, music and logos remain their owners’ works. The service terms allow studying technique but prohibit reusing/republishing reference footage, logos or brand assets, and prohibit cloning the library as a competing collection without permission except where law permits. “Remake shot by shot” is not a clearance license: use owned/licensed assets, independently assess close imitation and retain attribution. No source assets or executable components were extracted into this review. [1,9,11]</p><h4>Maturity and verification</h4><p>Anonymous GitHub metadata on 2026-11-26 showed 19 stars, 3 forks, zero open issues and last push 2026-11-24. The repository was created 2026-10-25; the releases API returned an empty list. Manifest 1.6.0 is not a verified tagged release or proof of the live server version. The shallow source checkout is not evidence of complete development history. [12]</p>
+<p>Eleven Node test files cover draft/spec/timing/layout, excerpts, rendering splits, lighting, end scenes, layered audio, SCNet hash refusal and package completeness. No <code>.github</code> CI workflow or dependency lockfile was found. Those tests concern the local kit, not remote OAuth, collection permissions, MCP contracts or billing. Tests were inspected, <strong>not run</strong>; no success, rendering fidelity, performance, vulnerability exploit or hosted availability is claimed. HTML template/token/link/structure and scoped Git diff validation apply to the review artifacts, not the upstream software. [4,7,13]</p><h4>Evidence and provenance</h4><p>Exact pinned file citations and full tool inventory are in the <a href="posts-design-mcp.md">Markdown review</a>. Hosted policies were retrieved 2026-11-26: <a href="https://posts.design/privacy">privacy</a>, <a href="https://posts.design/terms">terms</a>, <a href="https://posts.design/pricing">pricing</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Workflow</td><td>posts.design</td><td>Alternative</td></tr><tr><td>Reference boards</td><td>Curated MCP retrieval and account collections</td><td>Manual gallery research or PureRef for local assets</td></tr><tr><td>Editing</td><td>Directed references plus external rendering tools</td><td>Kdenlive / Blender for owned media</td></tr><tr><td>Audio analysis</td><td>Integrated breakdown timeline</td><td>Direct Demucs / faster-whisper; assemble your own report</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>There is no complete self-hostable posts.design MCP server in this repository. The local breakdown kit can be used without the service on user-provided films, but has multimedia, Python/model, font and resource requirements. HyperFrames is a separate dependency for remake/rebuild and is not bundled server functionality. A future evaluation should use a sandbox without host secrets, explicit offline/provider choices, a dependency lock, approved network destinations and rights-cleared media. Connecting a live account, performing uploads or running source is outside this static assessment.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful curated references and inspectable local media workflows, but hosted authorization is not auditable here. Gate collection sharing, query egress and provider uploads separately; static review only, no source or MCP execution.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/posts-design/mcp">posts-design/mcp</a> · MIT code/docs; separate asset rights</span>
+    <span><a href="posts-design-mcp.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [posts-design-mcp.md](reviews/posts-design-mcp.md) [page](reviews/posts-design-mcp.html) | [posts-design/mcp](https://github.com/posts-design/mcp) | MIT; separate asset/service terms | ⚠️ Interesting | Hosted design-reference MCP and local media kit; collection sharing, retained queries and automatic audio-upload boundaries. Static review. |
 | [inspora.md](reviews/inspora.md) [page](reviews/inspora.html) | [Inspora](https://www.inspora.design/) | Original asset rights apply | ⚠️ Interesting | Public design-reference archive; working search, credited sources, unverified export and qualified analytics retention. |
 | [smartimposter.md](reviews/smartimposter.md) [page](reviews/smartimposter.html) | [SamG-Coder/SmartImposter](https://github.com/SamG-Coder/SmartImposter) | MIT code; asset/data/SDK terms | 📚 Study | Rust/Vulkan forest and Earth renderer; ray-traced impostors, asset barriers and qualified performance/recovery. Static review. |
 | [ableton-pytheory.md](reviews/ableton-pytheory.md) [page](reviews/ableton-pytheory.html) | [kennethreitz/ableton-pytheory](https://github.com/kennethreitz/ableton-pytheory) | MIT; separate SDK/dependency terms | ⚠️ Interesting | Local Live theory/composition extension; broad runtime authority, notation injection boundary and partial project recovery. Static review. |
