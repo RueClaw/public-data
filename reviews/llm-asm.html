@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>llm.asm — Review</title>
+<meta name="description" content="Three assembly systems projects: Linux Qwen3 inference, a bootable LLM kernel and a tiny Transformer trainer.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / llm-asm</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">alesha-pro/llm.asm · reviewed 2026-11-26</div>
+    <h1>llm.asm</h1>
+    <p class="one-liner">Three assembly systems projects: Linux Qwen3 inference, a bootable LLM kernel and a tiny Transformer trainer.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT code · Apache-2.0 model</span>
+      <span class="chip">NASM · x86-64 · AVX2/FMA/F16C</span>
+      <span class="chip"><a href="https://github.com/alesha-pro/llm.asm">alesha-pro/llm.asm ↗</a></span>
+      <span class="chip"><a href="https://github.com/RueClaw/public-data/blob/main/reviews/inference-optimization-playbook.md">Related public review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,361</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">195</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A shared core worth studying</h3><p>Linux and bare-metal inference reuse numerical kernels and custom Q8 layouts. Tiny binaries exclude model weights, KV cache and development tooling.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Speed claims need tighter controls</h3><p>The author reports 18–36% decode gains on one EPYC workload. No benchmark was run for this review; the inference reference script prints mismatches without enforcing a failing parity gate.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Not hardened or crash-resumable</h3><p>Model offsets and shapes lack comprehensive validation. Training checkpoints save weights, not full optimizer/RNG state, and overwrite destinations non-atomically.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Build</td><td>NASM and GNU binutils</td></tr>
+<tr><td>Runtime</td><td>Linux syscalls or Multiboot kernel</td></tr>
+<tr><td>Offline tools</td><td>Python/NumPy; optional torch/transformers and QEMU</td></tr>
+<tr><td>Scope</td><td>Static review of 48feccbfd57cb669440f31ff64958d95bb8b848e</td></tr>
+<tr><td>Verification</td><td>No builds, numerical tests or benchmarks executed</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>1. A genuinely shared numerical core</h4>
+<p>The Makefile builds the same math, matmul, tokenizer and transformer files for Linux and bare-metal targets using BARE_METAL. That reduces implementation drift and makes cross-environment parity meaningful. The boot edition replaces allocation, I/O and worker coordination; it is not a Linux program hidden inside an image. Its portability is nevertheless constrained by x86 instructions, firmware, memory maps and supported devices. VM demonstrations are not proof of broad physical-hardware compatibility. [S3, S5, S6]</p>
+<h4>2. Layout-aware Q8 decode</h4>
+<p>The exporter stores each matrix row as signed int8 weights followed by block scales and aligns sections/rows to 64 bytes. Version 2 uses FP16 scales; version 1 retains FP32 scales. FAST_Q8=1 quantizes activations once per matmul and uses AVX2 integer multiply-add instructions plus scale conversion; FAST_Q8=0 keeps FP32 activations. Fused QKV and gate/up layouts reduce barriers, and head-major KV storage supports parallel grouped-query attention. This is a coherent bandwidth/dispatch design, not evidence that assembly is inherently faster than C++. [S6, S7, S11]</p>
+<h4>3. Small-model training with numerical references</h4>
+<p>The trainer includes a register-blocked 6×16 SGEMM, analytical backward kernels, gradient clipping, AdamW and a live terminal visualization. Its PyTorch harness checks gradients, optimization trajectory and cross-thread agreement. The documented 21-tensor comparison is for a small two-layer verification model; it is not exhaustive validation of every CLI shape or all training runs. [S4, S13]</p><h4>Performance and correctness</h4><table><tbody><tr><td>Claim / evidence</td><td>Assessment</td></tr><tr><td>FAST_Q8=1 decode 18–36% above llama.cpp Q8_0 across 1–40 threads</td><td>Author's EPYC 7642, 34-token prompt, 64-token generation, three-run comparison. At 40 threads the table reports 125.86 tok/s mean and 126.81 peak; do not present the peak as the mean. No independent reproduction here.</td></tr><tr><td>64/64 greedy tokens and cosine 0.9996517 vs PyTorch FP32</td><td>Useful single-prompt regression evidence, not broad task-quality equivalence. The same table reports maximum logit difference 0.603448; quantized activations are not numerically identical to FP32.</td></tr><tr><td>OS matches Linux on five prompts and SMP configurations</td><td>Tests shared-engine consistency across environments, not an independent correctness oracle for that engine. Screenshots prove much less than reproducible logs.</td></tr><tr><td>Trainer gradients / ten-step AdamW trajectory</td><td>Real threshold-based harness exists and returns failure when its gates fail. Documented results remain author reports; public issue reports add corroboration, not our replication.</td></tr><tr><td>make check / check-all</td><td>Inspect binary size/type/sections/dynamic dependencies and line counts. These targets do not invoke the numerical Python suites.</td></tr><tr><td>verify_ref.py inference parity</td><td>Computes and prints token/logit comparisons, but mismatch does not trigger an explicit failing exit status. A successful process exit alone is not a numerical pass.</td></tr></tbody></table>
+<p>Sources: [S1–S5, S12–S14]. test_math.py contains explicit error assertions for math and v1/v2 matmul cases; verify_train_ref.py and verify_os.py aggregate gates and exit nonzero on failure. Those are stronger automated gates than verify_ref.py's printed diagnostics. No CI workflow was found to run them automatically. Python assertions also depend on not disabling assertions.</p>
+<p>The comparison does not freeze a llama.cpp SHA, full command/configuration, immutable GGUF provenance, or a table-producing paired benchmark script. Issue #8 asks for those details and points out differing OS table values. The README acknowledges that llama.cpp uses batched prefill while llm.asm uses token-wise GEMV: decode advantage cannot be generalized to time-to-first-token, long prompts, throughput under concurrency or overall service latency. An attribution of the OS advantage specifically to huge pages needs an ablation with comparable Linux page settings; multiple environment changes are bundled. [S1–S3, P2]</p>
+<p>Open reports #9/#10 describe default-thread oversubscription and roughly 20× degradation under competing CPU work on a 16-thread desktop. These are unreplicated reporter measurements. The hardcoded default and spin-wait source make the concern operationally credible, without establishing a universal ratio. Reports #11/#13 describe invalid training shapes and stale trainer size/TUI numbers; the checked documentation itself disagrees on trainer size (32,752 versus 32,944 bytes). [S1, S4, S8–S10, P2]</p>
+<p>Before using the speed claims, pin both engines, model/tokenizer conversions, CPU affinity and thread counts; measure cold/warm load, prefill, decode, context depth, concurrent interference and tail latency. Preserve per-run records and enforce numerical gates across multilingual, long-context, sampled and multi-turn workloads. This echoes the public <a href="inference-optimization-playbook.md">Inference Optimization Playbook review</a>: adopt its quality-before-speed discipline, not unqualified transfer of results from one rig. That notebook covers a different, largely GPU/MoE problem; it does not independently validate this implementation.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Phase 1 enters at _start, parses CLI arguments, mmaps the exported model, allocates KV and scratch storage, initializes a clone/futex pool, encodes a prompt, and performs token-by-token prefill followed by sampled or greedy decode. Qwen3 uses 28 layers, 16 query heads / 8 KV heads, per-head QK normalization and tied embedding/output weights. The BPE merge table is generated offline and looked up through an open-addressed hash table at runtime. [S2, S6–S9]</p>
+<p>The Linux worker pool statically partitions rows and isolates completion words on cache lines. Idle workers eventually sleep on futex, but the main thread waits for active workers in an unbounded pause loop. Default inference thread count is a literal 32, not a discovered affinity-aware CPU count. This favors a quiet matched machine and can penalize oversubscribed or shared systems. Source inspection confirms that mechanism; the size of the slowdown comes from public issue reports, not measurements made here. [S8, S9, P2]</p>
+<p>The bare-metal path transitions from Multiboot into long mode, uses a physical-memory arena, starts AP cores and exposes console chat. It is an experimental single-purpose kernel, not an isolated multiuser OS. The trainer has separate model layout/SGEMM/backprop code and shares selected syscall/math helpers. Clear module boundaries and extensive comments help auditability, but manually maintained offsets and assembly arithmetic increase the cost of checking every shape, length and failure path.</p><h4>Security and privacy</h4><p><strong>Trust model files as executable-risk inputs, not harmless data.</strong> model_init checks magic/version, but reads the header without first enforcing a minimum file length and resolves offsets/dimensions into mapped memory without comprehensive file-bound checks. Allocation arithmetic and kernel shape assumptions are not comprehensively checked. The activation-quantization buffer has a fixed Q8_MAX_K limit while the loader accepts dimensions from the file. Malformed/truncated files can therefore cause faults or unsafe memory accesses; no exploit was attempted or proven. The checkpoint loader does perform minimum-size and parameter-size checks, but initializes layout using file-supplied dimensions before completing size validation. [S6, S7, S10]</p>
+<p>Trainer gpt_init_layout divides dimension by head count without checking the remainder at that point. The surrounding argument path lacks a comprehensive shape-validation gate; this agrees with issue #11's report. Treat documented SIMD dimensions as prerequisites, not enforced guarantees. Do not expose model upload, arbitrary CLI flags, or checkpoint loading to untrusted clients. [S10, P2]</p>
+<p>The inspected application paths are local file/console programs, with no inference network endpoint or credential-management layer. Auth/CORS are therefore not applicable to the present CLI; proposed HTTP/serial relay PRs are not functionality shipped in the reviewed commit. The verification tooling launches binaries/QEMU and uses control sockets, which is a separate development-tool boundary. Adding a relay requires authentication, limits, isolation and output handling rather than assuming a tiny kernel provides them. [S8, S14, P2]</p>
+<p>Local execution avoids a required remote inference service, but is not a complete privacy guarantee. Prompts can appear in process arguments, stdout/stderr, terminal scrollback, serial consoles and verification logs. Debug dumps include training batches and weights; checkpoints may retain information from sensitive training data. Raw token bytes are written to the terminal without a general terminal-control sanitization layer. Use a disposable least-privilege environment, trusted pinned model files, restricted logs and explicit output-file permissions. sys_openat_wr creates/truncates output files with mode 0644 subject to umask; select private directories/umask for sensitive artifacts. [S9, S10, S15]</p><h4>Recovery</h4><ul><li>Chat retains KV state in RAM and resets the logical position when context fills; /clear is a conversation reset, not persistence or secure memory erasure. A reset discards history rather than summarizing or paging it. Restart loses the session. [S8]</li><li>Append-only chat retains empty think blocks/reasoning from previous turns. The code confirms retention; issue #12 reports a difference from official Qwen3 history formatting. That is a template-compatibility concern, not demonstrated universal quality loss. [S9, P2]</li><li>Training checkpoints contain architecture metadata, vocabulary and weights. They do <strong>not</strong> serialize Adam moments or RNG state; load does not restore the saved step into the training loop, which starts at zero. “Resume” is a weight warm-start, not exact optimizer/scheduler recovery. [S10]</li><li>Checkpoint save truncates the destination and writes directly, with no temporary-file atomic rename or fsync transaction. An interrupted save can destroy the previous checkpoint. Keep versioned backups; implement atomic saves and full-state round-trip tests before relying on long runs. [S10, S15]</li><li>Worker completion has no active-job timeout/recovery protocol. A stalled worker can stall inference; the bare-metal environment has fewer containment layers than a Linux process. Plan external timeout/restart controls for experiments. [S8]</li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Use case</td><td>Recommended direction</td></tr>
+<tr><td>Practical local serving</td><td>Prefer llama.cpp unless a measured requirement justifies the specialized runtime.</td></tr>
+<tr><td>Training study</td><td>llm.c is a more approachable C/CUDA alternative; llm.asm teaches instruction-level implementation.</td></tr>
+<tr><td>Related public review</td><td>Inference Optimization Playbook: quality-before-speed discipline, not validation of this engine.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>No hosted service or paid API is required. Plan a compatible x86-64 CPU, NASM/binutils, Linux for phases 1/3, and an offline model conversion step. The checked exporter uses NumPy and a local safetensors/tokenizer/config input rather than requiring PyTorch at inference runtime. Optional parity testing adds torch/transformers; bare-metal experiments add QEMU/KVM and GRUB/ISO tooling. These tool dependencies are not version-locked. [S2–S5, S11–S14]</p>
+<p>Start in an isolated VM/process environment with known-good files. Select thread count explicitly and leave headroom on shared CPUs; do not blindly accept 32 workers. Pin source, weights and converter together, retain the original export and use separate checkpoints for each save. Run the explicit numerical harnesses, inspect inference comparison output or add failing thresholds, and test malformed inputs and interrupted saves before widening use. Do not boot experimental kernels on an important host simply because a VM screenshot exists.</p>
+<p>The Qwen model card and actual LICENSE were retrieved anonymously. At model revision c1899de289a04d12100db370d81485cdf75e47ca, the weight license is Apache-2.0, not this repository's MIT license. Redistribution of converted weights needs the applicable license/notice handling and identification of changes; code licensing does not replace model or dataset obligations. TinyShakespeare corpus provenance/redistribution terms were not independently audited in this review. No upstream code or model weights were extracted into this publication. [S16, P3]</p><h4>Provenance and limits</h4><p>Public metadata on 2026-11-26 reported creation 2026-11-25 07:28:51 UTC, last push 2026-11-25 15:42:44 UTC, 1,361 stars, 195 forks and 14 open issue/PR items (eight issues, six PRs in the returned list). Releases returned an empty list. Rapid visibility is not a maturity or safety signal; a shallow checkout does not establish a long maintenance record. Unmerged PRs requesting other models, ARM or relays were not treated as supported features. [P1, P2]</p>
+<p>Static checks verified the described source paths, loader/checkpoint behaviors, benchmark qualification gaps and harness exit semantics. No assembly build, runtime smoke test, fuzzing, numerical test, performance test, GPU job or model download was performed. External issue results remain attributed reports. The review is not a complete instruction-by-instruction audit, hardware certification or proof of exploitability. Publication artifact checks cover markup, provenance, template integrity and diff hygiene—not upstream runtime correctness.</p><h4>Evidence</h4><p>All S-links pin the reviewed source revision. Public APIs/issues and alternative documentation are observations retrieved 2026-11-26.</p>
+<ul><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/README.md">S1 — README.md</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/01-qwen3-inference/README.md">S2 — 01-qwen3-inference/README.md</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/02-baremetal-os/README.md">S3 — 02-baremetal-os/README.md</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/03-minigpt-train/README.md">S4 — 03-minigpt-train/README.md</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/Makefile">S5 — Makefile</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/shared/transformer.asm">S6 — shared/transformer.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/shared/matmul.asm">S7 — shared/matmul.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/shared/threads.asm">S8 — shared/threads.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/shared/tokenizer.asm">S9 — shared/tokenizer.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/03-minigpt-train/main.asm">S10 — 03-minigpt-train/main.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/scripts/export_weights.py">S11 — scripts/export_weights.py</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/scripts/verify_ref.py">S12 — scripts/verify_ref.py</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/scripts/verify_train_ref.py">S13 — scripts/verify_train_ref.py</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/scripts/verify_os.py">S14 — scripts/verify_os.py</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/shared/syscalls.asm">S15 — shared/syscalls.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/LICENSE">S16 — LICENSE</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/01-qwen3-inference/main.asm">Additional source — 01-qwen3-inference/main.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/03-minigpt-train/model.asm">Additional source — 03-minigpt-train/model.asm</a></li><li><a href="https://github.com/alesha-pro/llm.asm/blob/48feccbfd57cb669440f31ff64958d95bb8b848e/scripts/test_math.py">Additional source — scripts/test_math.py</a></li><li><a href="https://api.github.com/repos/alesha-pro/llm.asm">P1 — GitHub metadata</a>, <a href="https://api.github.com/repos/alesha-pro/llm.asm/releases">releases</a>.</li><li>P2 — Public reports: <a href="https://github.com/alesha-pro/llm.asm/issues/8">#8</a>, <a href="https://github.com/alesha-pro/llm.asm/issues/9">#9</a>, <a href="https://github.com/alesha-pro/llm.asm/issues/10">#10</a>, <a href="https://github.com/alesha-pro/llm.asm/issues/11">#11</a>, <a href="https://github.com/alesha-pro/llm.asm/issues/12">#12</a>, <a href="https://github.com/alesha-pro/llm.asm/issues/13">#13</a>.</li><li><a href="https://huggingface.co/Qwen/Qwen3-0.6B/blob/c1899de289a04d12100db370d81485cdf75e47ca/README.md">P3 — Qwen3-0.6B model card</a>, <a href="https://huggingface.co/Qwen/Qwen3-0.6B/blob/c1899de289a04d12100db370d81485cdf75e47ca/LICENSE">Apache-2.0 LICENSE</a>.</li><li><a href="https://github.com/ggml-org/llama.cpp">P4 — llama.cpp</a>, <a href="https://github.com/karpathy/llm.c">P5 — llm.c</a>.</li></ul>
+<hr>
+<p><strong>Attribution:</strong> Alexey Fateev (alesha-pro), llm.asm, MIT. Qwen model attribution and terms are separate. This is independent public-source analysis; reported performance is not a reviewer measurement.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Strong instruction-level learning material, not a production serving replacement. Benchmark claims are narrow and unreplicated; loader validation, contention and checkpoint recovery require work.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/alesha-pro/llm.asm">alesha-pro/llm.asm</a> · MIT code · Apache-2.0 model</span>
+    <span><a href="llm-asm.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
