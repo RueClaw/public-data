@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [browser-tabs-as-a-container-runtime.md](reviews/browser-tabs-as-a-container-runtime.md) [page](reviews/browser-tabs-as-a-container-runtime.html) | [Browser tabs as a container runtime](https://fzakaria.com/2026/11/25/browser-tabs-as-a-container-runtime) | N/A | ⚠️ Interesting | Browser-hosted Linux via tabc: credible integration, but host bridges, ephemeral roots and 11–36× reported slowdowns. Static article review. |
 | [omarchy-spaces.md](reviews/omarchy-spaces.md) [page](reviews/omarchy-spaces.html) | [t4t5/omarchy-spaces](https://github.com/t4t5/omarchy-spaces) | MIT; Apache-2.0 sounds | ⚠️ Interesting | Project workspaces and selective restore; desktop authority, snapshot privacy and rollback caveats. Static review. |
 | [swipterm.md](reviews/swipterm.md) [page](reviews/swipterm.html) | [swipt-automation/Swipterm](https://github.com/swipt-automation/Swipterm) | GPL-3.0-or-later notice; naming restriction | ⚠️ Interesting | On-device iOS Linux and Ghostty terminal; broad guest/host authority, download integrity and recovery caveats. Static review. |
 | [uptime-orchestrator.md](reviews/uptime-orchestrator.md) [page](reviews/uptime-orchestrator.html) | [uptime-lab/orchestrator](https://github.com/uptime-lab/orchestrator) | FCL-1.0-ALv2 / Apache-2.0 | ⚠️ Interesting | Signed Pi network recovery and root-level fleet management; beta, single backend, careful key custody |
