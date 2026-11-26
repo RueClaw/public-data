@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ephyra: agentic property-based testing — Review</title>
+<meta name="description" content="Generator optimization with upstream fixes, qualified totals and missing controlled baselines.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ephyra-agentic-property-testing</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Alp Keles / Datadog · reviewed 2026-11-26</div>
+    <h1>Ephyra: agentic property-based testing</h1>
+    <p class="one-liner">Generator optimization with upstream fixes, qualified totals and missing controlled baselines.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Article: no reuse license established</span>
+      <span class="chip">Article · property-based testing</span>
+      <span class="chip"><a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">Alp Keles / Datadog ↗</a></span>
+      <span class="chip"><a href="ephyra.md">Related repository review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2026-11-24</div><div class="lbl">Published</div></div>
+      <div class="stat"><div class="num">Static</div><div class="lbl">Verification</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Correctness needs an independent anchor</h3><p>Agents improve generators; deterministic execution supplies feedback. Human-reviewed properties remain essential, and coverage can be gamed.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Upstream fixes corroborate examples</h3><p>SQLite acknowledges a fix; OCaml, Lean, LiteLLM and DuckDB have merged fixes. The 535 headline remains author-reported; QED remained open without comments.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Budgets are not comparative proof</h3><p>The paper reports $330 agent spend for an 80-bug campaign, not total ownership cost. Its 349-bug snapshot differs from the blog’s 535; no equal-budget superiority is established.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Evidence, methods and constraints.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Evidence</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Methodology</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Limits</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Author</td><td>Alp Keles / Datadog</td></tr><tr><td>Published</td><td>2026-11-24</td></tr><tr><td>Retrieved / reviewed</td><td>2026-11-26 UTC</td></tr><tr><td>Verification</td><td>Static; no independent reproduction</td></tr><tr><td>Raw HTML SHA-256</td><td>2c8656d9af0b6f05907b8882a7602c6af6902e725bcf6285abf21ca8bae350ca</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Summary</h4><p>The article argues that coding agents are useful not just for writing example tests, but for iteratively improving programs that generate whole distributions of tests. Ephyra supplies generation, execution, failure reduction and observability; the external agent changes generators in response to coverage and failures. Human engineers define properties and can steer which features enter the generated input space. The audience is testing researchers and engineers maintaining complex libraries, databases or compilers—not teams seeking a turnkey correctness guarantee. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a></p>
+<p>Its strongest demonstration is SQLite: the author reports 37 rounds of generator development, instrumented-counter coverage rising from 35.9% to 74.1%, SQL-feature vocabulary growing from 79 to 261, and 26 bugs in that experiment. That is a particular campaign, not the denominator for every SQLite finding or for the full project. Adding valid structures can reach code that random bytes or shallow API sequences miss; directly generating valid database files is a particularly useful example. Coverage remains a search heuristic rather than a semantic oracle. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://sqlite.org/bugs/forumpost/9d039d4ca7">[4]</a></p>
+<p>The headline totals are 535 unique, previously unknown bugs reported across 26 systems, of which 373 are maintainer-confirmed and 313 fixed, according to the article. The associated paper version inspected here describes a smaller snapshot: 349 found, 300 reported, across 14 systems. Its appendix explicitly distinguishes duplicates, declined reports and unreported findings. These numbers must not be combined or presented as one independently reconciled dataset. The difference is consistent with different campaign scopes/snapshots, but a complete reconciliation was not available in the inspected evidence. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a></p>
+<p>The article is admirably explicit about what is unfinished: controlled experiments, reliability and cost measurement, a standalone agent package, and evidence for Ephyra-specific design advantages. It states that the experiments used a classical PBT loop and should be reproducible in another library supporting handwritten generators and shrinkers. That is an argument for the workflow, not a reason by itself to replace an existing property-testing stack. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a></p>
+<h4>Key Claims</h4><table><tbody><tr><td>Claim</td><td>Assessment</td></tr><tr><td>535 previously unknown bugs; 373 confirmed; 313 fixed</td><td>Author-reported totals. The confirmed and fixed categories are subsets, not additional bugs. Upstream spot-checks corroborate some examples, not all counts or uniqueness. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a></td></tr><tr><td>Generator optimization improves testing</td><td>Plausible and supported by concrete coverage and bug-discovery examples; no isolated causal estimate or equal-budget baseline. Human steering, harness changes and oracle additions are confounders. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a></td></tr><tr><td>Humans can remain outside the optimization loop</td><td>Possible for a bounded campaign, not demonstrated end-to-end removal of expert judgment: the authors personally validated and submitted every report. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a></td></tr><tr><td>Old bugs demonstrate impact</td><td>Longevity illustrates missed cases, not severity, exploitability or frequency in production. SQLite's maintainer materially qualifies the corruption headline. <a href="https://sqlite.org/bugs/forumpost/9d039d4ca7">[4]</a></td></tr><tr><td>Ephyra's design is uniquely responsible</td><td>Not established; the article and paper explicitly acknowledge other PBT libraries could support the demonstrated optimization loop. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a></td></tr></tbody></table><h4>Upstream Evidence: Reports Are Not All Confirmed Bugs</h4><p>Status below was observed on 2026-11-26 through public pages and anonymous GitHub API issue/PR metadata. A merged fix corroborates upstream acceptance; it is not this review reproducing the failure or auditing the fix.</p>
+<table><tbody><tr><td>Example</td><td>Observed evidence</td><td>Qualification</td></tr><tr><td>SQLite three-DELETE corruption</td><td>Richard Hipp acknowledges the off-by-one fragmentation bookkeeping bug and links the fix in the forum response. <a href="https://sqlite.org/bugs/forumpost/9d039d4ca7">[4]</a></td><td>Maintainer says it affects special minimal values in single-column WITHOUT ROWID tables and is repairable with VACUUM. Do not turn “corruption” into a claim of general data loss or widespread production impact.</td></tr><tr><td>OCaml non-exhaustive match</td><td>Issue #15185 has a maintainer response and fixed-in reference; PR #15187 is merged. <a href="https://github.com/ocaml/ocaml/issues/15185">[5]</a><a href="https://github.com/ocaml/ocaml/pull/15187">[6]</a></td><td>Supports accepted compiler defect; this review did not reproduce the crash or independently date its introduction to 24 years earlier.</td></tr><tr><td>Lean Float patterns</td><td>Issue #16198 is closed; PR #16215 explicitly fixes it and is merged. <a href="https://github.com/leanprover/lean4/issues/16198">[7]</a><a href="https://github.com/leanprover/lean4/pull/16215">[8]</a></td><td>Wrong elaborated matcher semantics, not evidence that Lean's logical kernel accepts arbitrary false propositions. The report says compiled code and kernel agree on the incorrectly elaborated function.</td></tr><tr><td>PostgreSQL nested BETWEEN</td><td>BUG #19758 contains target revisions, scaling measurements and a proposed interrupt-check mitigation. <a href="https://www.postgresql.org/message-id/19758-d074798b35cc9215%40postgresql.org">[9]</a></td><td>The inspected original report does not itself establish an accepted fix. Its depth-20 result is about 1.65 GB; the article's nearly-100-GB depth-26 headline was not independently reproduced here.</td></tr><tr><td>QED decimal constants</td><td>Issue #13 exists, open with zero comments at retrieval. <a href="https://github.com/qed-solver/prover/issues/13">[10]</a></td><td>Public allegation and reproducer, not observed maintainer confirmation.</td></tr><tr><td>LiteLLM streaming tool calls</td><td>Issue #48716 links a fix; PR #49388 is merged and describes terminal-reason normalization. <a href="https://github.com/BerriAI/litellm/issues/48716">[11]</a><a href="https://github.com/BerriAI/litellm/pull/49388">[12]</a></td><td>Supports upstream acceptance. No provider requests or paid live reproduction were performed in this review.</td></tr><tr><td>DuckDB LIMIT</td><td>Issue #27714 is closed; merged PR #27779 explicitly fixes discarded LIMIT above a join/aggregate. <a href="https://github.com/duckdb/duckdb/issues/27714">[13]</a><a href="https://github.com/duckdb/duckdb/pull/27779">[14]</a></td><td>Corroborates the concrete wrong-result case, not the aggregate bug count.</td></tr></tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Methodology and Division of Labor</h4><p><strong>Human/specification layer:</strong> choose what correctness means, target supported behavior, review the oracle and decide which failures deserve upstream reports. The article emphasizes engineer-defined properties; the paper's interactive experiments also have agents write predicates and properties. Treat the former as a responsibility boundary, not evidence that every executed assertion was manually authored. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a></p>
+<p><strong>Agent layer:</strong> author generators, shrinkers and harness code; inspect observations and uncovered regions; propose changes; investigate and summarize failures. This is source-level distribution optimization, not necessarily an LLM call per generated test. The agent's edit and command authority comes from its host, not from a safety guarantee supplied by the testing library. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[3]</a></p>
+<p><strong>Deterministic layer:</strong> sample inputs, run the property, collect coverage/metrics, shrink counterexamples and retain replay information. The paper describes sampled checks of generator validity, initial shrink candidates, shrink-chain termination, mutants and finite metrics. Sampling 10,000 inputs by default does not prove universal validity, completeness, unbiased sampling or correct shrinking. <a href="https://arxiv.org/html/2611.23282v1">[2]</a></p>
+<p><strong>Oracle quality is the bottleneck.</strong> Ternary Logic Partitioning compares SQL results across TRUE/FALSE/NULL partitions, avoiding a separately computed expected answer. It is powerful only when the rewrite preserves the relevant semantics: duplicates, NULLs, aggregate behavior, ordering, nondeterminism and numeric edge cases need explicit treatment. Differential tests likewise require compatible specifications; disagreement alone does not identify which implementation is wrong. A round trip can pass when encoder and decoder share a defect, and a crash oracle cannot detect every wrong answer. These are methodological constraints, not newly demonstrated Ephyra vulnerabilities. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[3]</a></p>
+<p>The paper explicitly reports reward hacking: an agent can optimize a metric instead of actual testing power. Freeze trusted properties where possible, separately review changes to the oracle or validity predicate, and check generator diversity and held-out regressions. Otherwise coverage gains can mask weaker assertions or an artificially narrowed input distribution. <a href="https://arxiv.org/html/2611.23282v1">[2]</a></p>
+<h4>Comparison, Budgets and Reproducibility</h4><p>The companion paper's closed-loop campaign used five targets, about eight hours, one 16-CPU workspace and a $100 agent budget per target. Table 1 reports 80 verified bugs and $330 aggregate agent spend: $67 setup, $195 triage and $68 write-up. This is useful disclosure missing from the blog's headline, but not total ownership cost: infrastructure, human validation/reporting, prior harness work and later informal campaigns are not captured by that figure. The table's rounded per-row components need not sum precisely to every row total. Do not generalize $330/80 into a universal cost per confirmed or fixed bug. <a href="https://arxiv.org/html/2611.23282v1">[2]</a></p>
+<p>There is no controlled comparison in the inspected evidence against (a) the same fixed generators without agent rewrites, (b) expert-authored PBT under equal engineering time, (c) conventional coverage-guided fuzzing, or (d) the same agent workflow over another PBT library. A useful evaluation would freeze target versions and oracles, match wall-clock/CPU/token budgets, repeat seeds and agent runs, record unsuccessful attempts, and report accepted unique bugs alongside coverage and false-positive rates. The article itself proposes clean-room evaluation of reliability, cost and generality. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a></p>
+<p>An existing QuickCheck/Hypothesis/Proptest-style suite may gain most of the benefit by adding a reviewed generator-improvement loop. Traditional coverage-guided fuzzing remains complementary for high-throughput mutation and sanitizer failures; differential and metamorphic oracles can serve either workflow. No benchmark was run here, so these are fit distinctions rather than rankings.</p>
+<p>For reproduction, preserve the exact target and harness revisions, compiler flags, instrumented-counter denominator, generator/oracle versions, seeds, minimized concrete inputs, agent model/version, prompts, tool permissions, iteration history and budgets. A seed without the generator revision is inadequate. The public repository review notes replay and case-study completeness limitations at its pinned revision; the blog's “try it” prompt is not a packaged reconstruction of all 26 campaigns. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[3]</a><a href="https://github.com/RueClaw/public-data/blob/main/reviews/ephyra.md">[15]</a></p>
+<h4>Strengths</h4><p>- Concrete minimized examples and direct upstream links make important claims inspectable rather than relying on screenshots or totals alone.</p>
+<p>- Human property design versus agent generator work is a productive conceptual split; deterministic execution remains the source of failure feedback.</p>
+<p>- The paper discloses budgets and reward hacking, and the article openly refuses to claim validation of every design choice.</p>
+<p>- The technique targets expensive structured-input construction, a genuine PBT bottleneck, while preserving familiar regression-test outputs. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a><a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[3]</a></p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Gaps &amp; Practical Limits</h4><p><strong>Permissions and isolation.</strong> Do not paste the open-ended autonomous starter prompt into a privileged production checkout. Generated tests, Cargo dependencies/build scripts and target programs execute code; file/database tests can destroy fixtures or exhaust memory. A real trial needs a disposable, secret-free workspace, CPU/memory/process limits, explicit command/write boundaries and separate approval before contacting maintainers. A test-time budget is not a hard OS resource fence. These recommendations follow the workflow and the separately reviewed implementation; no live security probe was performed. <a href="https://github.com/datadog-labs/ephyra/blob/3983b2e339ac5f6b843bef62c7fa6a88eba75370/STARTUP.md">[3]</a><a href="https://github.com/RueClaw/public-data/blob/main/reviews/ephyra.md">[15]</a></p>
+<p><strong>Privacy and expenses.</strong> Local PBT execution does not inherently require an LLM account or Datadog subscription. An external coding agent can transmit source, failure inputs and traces to its provider; optional Datadog export introduces separate endpoint, retention and billing decisions. Use synthetic fixtures, review logs before export and cap provider spend independently. MIT licensing of the library does not make compute, inference, storage or optional hosted observability free. <a href="https://github.com/RueClaw/public-data/blob/main/reviews/ephyra.md">[15]</a></p>
+<p><strong>Generalization.</strong> Success on mature open-source systems does not quantify the probability of finding a bug in an arbitrary project. Selection bias, evolving harnesses, domain expertise and unreported negative campaigns matter. A high-coverage generator can still miss stateful concurrency, rare semantic combinations and environmental failures. No proof of absence of bugs follows from a passing campaign. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://arxiv.org/html/2611.23282v1">[2]</a></p>
+<p><strong>Source incentives and rights.</strong> This is first-party Datadog research communication with a recruitment call to action, not independent product evaluation. That does not negate the upstream fixes, but aggregate and effectiveness claims deserve independent replication. The article calls Ephyra experimental and not a supported Datadog offering. No reusable article-content license was established; the code repository's MIT terms are a separate matter. This review paraphrases and links evidence rather than republishing article code or images. <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">[1]</a><a href="https://github.com/RueClaw/public-data/blob/main/reviews/ephyra.md">[15]</a></p>
+<h4>Verification and Provenance</h4><p>The canonical article URL was absent from the existing review collection, README and repository index. The related code review is deliberately cross-referenced, not overwritten. Metadata in the article HTML identifies Alp Keles and publication on 2026-11-24; the hash above identifies raw page bytes (including site chrome), not a stable article-only digest. A later fetch may differ without an editorial change.</p>
+<p>The full article was read. Companion-paper sections 1–5, Table 1 and appendix status definitions were inspected, not every appendix report. The paper's abstract/page metadata and article contain different scope totals; this review retains the versioned paper URL rather than silently substituting blog counts into it. Selected upstream issue bodies, responses and merged-PR metadata were checked; the full 535-report inventory, historical bug ages, release inclusion of fixes and all report statuses were not audited. Builds, tests, source execution, installs, accounts, paid calls, live service probes and private datasets were not used. Artifact markup/link/template checks are not tests of Ephyra.</p>
+
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Credible bug-discovery evidence, not autonomous correctness assurance. Keep humans responsible for oracles and report validation; require controlled comparisons before claiming superiority.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/">Alp Keles / Datadog</a> · Article: no reuse license established</span>
+    <span><a href="ephyra-agentic-property-testing.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
