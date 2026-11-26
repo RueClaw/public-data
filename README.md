@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [smartimposter.md](reviews/smartimposter.md) [page](reviews/smartimposter.html) | [SamG-Coder/SmartImposter](https://github.com/SamG-Coder/SmartImposter) | MIT code; asset/data/SDK terms | 📚 Study | Rust/Vulkan forest and Earth renderer; ray-traced impostors, asset barriers and qualified performance/recovery. Static review. |
 | [ableton-pytheory.md](reviews/ableton-pytheory.md) [page](reviews/ableton-pytheory.html) | [kennethreitz/ableton-pytheory](https://github.com/kennethreitz/ableton-pytheory) | MIT; separate SDK/dependency terms | ⚠️ Interesting | Local Live theory/composition extension; broad runtime authority, notation injection boundary and partial project recovery. Static review. |
 | [modal-gpu-glossary.md](reviews/modal-gpu-glossary.md) [page](reviews/modal-gpu-glossary.html) | [Modal GPU Glossary](https://modal.com/gpu-glossary/readme) | CC BY 4.0 content | 📚 Good reference | Cross-layer CUDA glossary; six-page sample finds useful target coverage but cache, scheduling and syntax caveats. |
 | [music-harness.md](reviews/music-harness.md) [page](reviews/music-harness.html) | [enisn/music-harness](https://github.com/enisn/music-harness) | MIT code; declared CC0 assets | ⚠️ Interesting | Local acoustic sample renderer; arbitrary Python scores, weak QC gates and qualified asset provenance. Static review. |

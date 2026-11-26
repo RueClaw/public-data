@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartImposter — Review</title>
+<meta name="description" content="A Rust/Vulkan forest and Earth renderer built around ray-traced parallax impostors.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / smartimposter</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">SamG-Coder/SmartImposter · reviewed 2026-11-26</div>
+    <h1>SmartImposter</h1>
+    <p class="one-liner">A Rust/Vulkan forest and Earth renderer built around ray-traced parallax impostors.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT code; separate asset/data/SDK terms</span>
+      <span class="chip">Rust · Vulkan · GLSL · optional DLSS</span>
+      <span class="chip"><a href="https://github.com/SamG-Coder/SmartImposter">SamG-Coder/SmartImposter ↗</a></span>
+      <span class="chip"><a href="https://github.com/SamG-Coder/SmartImposter/tree/fe2ac7cca5a12531b0a6c3bfc36d68f5008fde3d">reviewed revision ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">172</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">22</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Real rendering research, not an impersonation tool</h3><p>Near plants use meshes; distant plants use bounding boxes and depth/material atlases marched in an intersection shader. Hardware traversal plus programmable shading makes the technique more than a flat billboard.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>The showcase is not bundled</h3><p>Quixel plants and NVIDIA components require their own acquisition and terms. The author recommends 16 GB VRAM for globe use; global data downloads can total hundreds of gigabytes.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Good engineering signals, limited proof</h3><p>There are 34 test annotations, three ignored, and detailed author benchmarks. No source tests were run, no GitHub Actions workflow was found, and cache validity is not cryptographic payload integrity.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Application</td><td>Rust 2021, winit, gilrs/hidapi</td></tr>
+<tr><td>Rendering</td><td>ash/Vulkan RT, GLSL, gpu-allocator, glam</td></tr>
+<tr><td>Reconstruction</td><td>Optional C++ NGX/DLSS; TAA fallback</td></tr>
+<tr><td>Preparation</td><td>Python converters; Unreal assets; optional Blender</td></tr>
+<tr><td>Storage</td><td>Local packs, Earth tiles and derived caches</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Scenes and approximation</h4><p>Generated forests, geographic sites, a 1:1 globe, walking and an F-16 demo share the renderer. Procedural tree placement and stand-in species are not surveyed ecology; flight effects are eye-tuned, without instruments or landing gear.</p><h4>Benchmarks need context</h4><p>The README reports 9.9 ms in a 1440p clearing on an RTX 5080 with DLSS Quality, internally rendering at 1708×960; DLAA is 18.6 ms. These are author measurements, not independently reproduced results or cross-vendor performance guarantees.</p><h4>Known visual limits</h4><p>No wind, repeating grass layouts, upper-hemisphere streaking, temporal LOD noise and incomplete collisions remain. Aircraft TAA smearing was explicitly not tried by the author.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Species packs → mesh BLAS/instances → GPU atlas baking and BC compression → per-frame LOD/TLAS → ray tracing → DLSS or TAA → display. Cropped atlases keep small base mips resident and stream full detail within a budget.</p><h4>Security and permissions</h4><p>Native filesystem/GPU/input access is not sandboxed. Custom asset counts and indices lack full semantic validation; use trusted assets and ordinary user permissions. Optional Sony HID input accesses supported controllers. Third-party SDK/driver network behavior was not audited.</p><h4>Recovery is bounded</h4><p>Atlas writes sync temporary files before rename and validate header/key/length, not a payload digest. Forest-cache checks are thinner. Downloads restart partial files, skip existing destinations, and convert DEMs before deleting original TIFFs; no end-to-end backup guarantee follows.</p><h4>Provenance and verification</h4><p>Static review of main at fe2ac7cca5a12531b0a6c3bfc36d68f5008fde3d (package 0.1.0); no releases/tags returned. No build, source execution, device access, asset downloads or benchmark runs. Metadata: 172 stars, 22 forks on 2026-11-26. Full evidence citations are in the Markdown review.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Goal</td><td>SmartImposter</td><td>Alternative scope</td></tr>
+<tr><td>RT foliage study</td><td>Direct Rust/GLSL technique</td><td>NVIDIA Vulkan samples: smaller demonstrations</td></tr>
+<tr><td>Production worlds</td><td>Custom integration required</td><td>Unreal: integrated editor, separate terms</td></tr>
+<tr><td>Geospatial viewing</td><td>Native procedural Earth</td><td>CesiumJS: browser/tiled geography</td></tr>
+<tr><td>General authoring</td><td>Purpose-built renderer</td><td>Godot: broader open engine/editor</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Local desktop software, not a server. Requires Rust, Vulkan SDK and hardware ray tracing; optional DLSS has Windows/MSVC-oriented SDK wiring. Missing plant assets prevent clone-only reproduction of the showcase.</p><p>No paid inference service was found. Costs include hardware, power, storage, bandwidth and any asset entitlements. The downloader contacts public AWS, Google storage and HydroSHEDS; requested tiles can disclose a selected region to providers. Source estimates: 543 GB GLO-30, 124 GB land cover, about 1.5 GB vectors; a bounded regional subset is preferable.</p><p>MIT covers repository code, not Quixel assets, NVIDIA components or dataset attribution requirements. Original provider terms must be checked independently. No paid option is required or recommended for evaluation.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the procedural impostors and compressed atlas residency, not a ready-made engine distribution. Missing licensed assets, Windows-oriented DLSS integration and unverified author benchmarks make deployment an engineering project.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/SamG-Coder/SmartImposter">SamG-Coder/SmartImposter</a> · MIT code; separate asset/data/SDK terms</span>
+    <span><a href="smartimposter.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
