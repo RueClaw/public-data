@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ableton PyTheory — Review</title>
+<meta name="description" content="Local music theory, composition and audio tools inside Ableton Live via Python and WebAssembly.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ableton-pytheory</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">kennethreitz/ableton-pytheory · reviewed 2026-11-26</div>
+    <h1>Ableton PyTheory</h1>
+    <p class="one-liner">Local music theory, composition and audio tools inside Ableton Live via Python and WebAssembly.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT extension; separate dependency and SDK terms</span>
+      <span class="chip">TypeScript · Python · Pyodide · Ableton SDK</span>
+      <span class="chip"><a href="https://github.com/kennethreitz/ableton-pytheory">kennethreitz/ableton-pytheory ↗</a></span>
+      <span class="chip"><a href="ableton-pytheory.md">Full evidence review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">29</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>More than a chord-label wrapper</h3><p>Analysis, voicing, groove, Euclidean rhythms, notation and audio commands are implemented. Key detection ignores duration/repetition, and onset clustering is not sustained-harmony tracking.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Offline does not mean sandboxed</h3><p>The fallback Node child requests broad filesystem and subprocess permissions. Clip titles flow into inline notation script data without HTML-safe script escaping; the DAW impact was not tested.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Protect the Set, and distinguish source from release</h3><p>Main/tag v0.5.0 uses PyTheory 0.59.0; the latest observed published release is v0.4.2. Whole-note replacement and multi-step track/import operations need backup and undo/reopen testing.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Host</td><td>Extensions SDK 1.0.0-beta.0 / API 1.0.0</td></tr><tr><td>Runtime</td><td>Node &gt;=24.14.1; Pyodide 314.0.0; NumPy/SciPy</td></tr><tr><td>UI</td><td>TypeScript dialogs; abcjs 6.6.3</td></tr><tr><td>Source</td><td>abfb9dd66462565308950bb1a7ed119049afcd71; tag v0.5.0</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Kenneth Reitz's extension registers actions for MIDI clips, empty clip slots, scenes, audio clips, samples and Simpler. Most computation happens in a bundled Python interpreter; TypeScript owns dialogs and Live mutations. This is neither a VST/AU nor a Max for Live device, and it is not an LLM or cloud service. There is no system-Python requirement at runtime. [E1–E4]</p>
+<p>The reviewed main commit is tagged <strong>v0.5.0</strong>, with package/manifest version 0.5.0 and PyTheory source requirement 0.59.0. The latest published GitHub Release observed was <strong>v0.4.2</strong>, published 2026-11-08, pointing to commit e37f96be4716a4982343752ca71f17aaacdb0909 and bundling PyTheory 0.58.0. Its downloadable .ablx is therefore not evidence that the new 0.5.0 features have shipped as a release asset. Main's commit date is 2026-11-26; the API reported 29 stars, 0 forks and 0 open issues, context rather than quality evidence. [E1, E8]</p>
+<p>### Useful composition operations, not just labels</p>
+<p>Key/scale suggestions, chord symbols and Roman numerals, harmonic functions, borrowed chords, secondary dominants, cadences and scale recommendations are implemented. Melody analysis and chord-continuation rankings sit alongside guitar-family fingerings. Generation includes Roman numerals and chord symbols, slash basses, voiced/rhythmic progressions, scales, ragas, drums, Euclidean rhythms, melodies, basslines and four-track song sketches. Transformations include harmonize, arpeggiate, strum, seeded humanize, scale conform, diatonic transpose, voice leading, chordify, inversion, retrograde, negative harmony and reharmonization. [E2, E3]</p>
+<p>### Musical inference has specific limits</p>
+<p>MIDI key detection discards repetition and duration by deduplicating pitch-class names before calling Key.detect. Its fitness ranking is not calibrated confidence. Chord detection groups onsets within <strong>0.125 beats</strong> of the cluster start, rather than maintaining a time-varying harmony from sustained notes; arpeggiated or heavily strummed material can fragment. Continuation statistics are counted from the built-in PROGRESSIONS dictionary, including cyclic last-to-first transitions, not a verified large recording corpus. [E3]</p>
+<p>Set-scale mapping can choose a containing scale or fall back to major/minor; it does not guarantee that an exotic Live scale survives unchanged. Raga-to-MIDI generation should not be mistaken for a complete model of raga performance or microtonal ornamentation. These are helpful composition heuristics, not authoritative musicological analysis. [E3, E6]</p>
+<p>### Audio and notation expand scope, with tradeoffs</p>
+<p>Audio commands call PyTheory's WAV pitch/chord/tempo analysis and transcription, including optional part splitting; this is not evidence of reliable full-mix stem separation. WAV clips are read by underlying file path, while non-WAV arrangement clips use pre-FX rendering. The direct-WAV path does not pass trim/warp boundaries, so analysis can describe the source file rather than exactly what the clip plays. Sample tuning reports the required transpose; it does not automatically retune the device. [E2, E3]</p>
+<p>Synth rendering and effect processing create new audio tracks and import WAV files. The extension monkey-patches a private SciPy STFT helper for WASM memory constraints, a version-sensitive maintenance point. Notation splits overlapping notes into at most eight voices and skips additional simultaneous voices; exported notation is not necessarily lossless. No audio accuracy, latency, long-file memory use or engraving fidelity was measured. [E2, E3]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The entry module initializes the SDK, eagerly starts the Python runtime, and binds commands to typed Live objects. Requests travel as JSON to a worker thread, or to a spawned Node child when worker construction is denied by the managed host. The worker loads staged Python sources and dispatches named analysis functions. Audio input is copied from a host path into a fixed virtual WAV path; rendered PCM returns as base64. Dialogs return JSON, and the extension applies results through Live's APIs. [E2–E5]</p>
+<p>The separation is understandable and useful, and pure scale helpers plus the standalone Pyodide test harness improve inspectability. It is still a sizeable monolithic adapter: roughly 3,000 lines of Python analysis and 3,100 lines across extension/dialog modules. The external PyTheory source version is checked by its version string, not a content hash; same-version modified sources can still be bundled. [E3–E7]</p>
+<p>### Authority, auth, network and privacy</p>
+<p>- <strong>No remote auth surface found:</strong> no HTTP server, CORS policy, user login, API key or telemetry call was found in the inspected extension source. Local host admission and trusted extension installation are the relevant authority boundary, not web authentication.<br>- <strong>Offline runtime is an intended packaging property, not proof of isolation:</strong> build.ts downloads missing NumPy/SciPy wheels from jsDelivr, and npm dependencies require acquisition. Runtime loads staged assets locally; complete packaged offline behavior was not tested. The build chooses wheel filenames from the Pyodide lock but does not itself compare downloaded bytes with a digest. [E4, E7]<br>- <strong>WASM is not the whole sandbox:</strong> child fallback inherits the host environment except NODE_OPTIONS and explicitly requests unrestricted filesystem read/write and child-process permission. Host-side code reads supplied audio paths. The TypeScript function union is not a runtime allowlist; the worker resolves function names through Python globals. These are internal IPC paths, not an observed remotely reachable exploit, but dependencies and webview messages must be trusted accordingly. [E4]<br>- <strong>Concrete notation injection concern:</strong> the clip name becomes a notation title; PyTheory 0.59.0 places that title directly in the ABC T: field. dialogs.ts embeds the resulting ABC using JSON.stringify inside an HTML script element. JSON quoting does not escape an HTML closing-script sequence, so a crafted title can terminate that element. Other displayed names generally use escapeHtml. This is a statically traced injection path, not a demonstrated DAW exploit; webview-to-host privilege escalation was not tested. Escape HTML-sensitive characters in script data or avoid executable inline interpolation, and treat imported Set names as untrusted. LilyPond title export also deserves escaping review before compiling untrusted notation. [E2, E3, E5, E9]<br>- <strong>Local traces remain:</strong> WAV/notation/HTML files are written to host temp/storage locations, audio is imported into the Set's project, and errors go to host logs. No comprehensive cleanup lifecycle was found. “Offline” does not mean ephemeral or safe to share without reviewing project files. [E2]</p>
+<p>### Project modification and recovery</p>
+<p>Several transformations replace a clip's complete notes array inside withinTransaction, providing a host undo grouping rather than a backup. Reharmonize deliberately redistributes new chords evenly across the note span with velocity 90; it does not preserve the original performance. Newly constructed note objects may omit original per-note expression/probability metadata. Humanize instead copies note objects, illustrating why preservation needs per-command checking. [E2, E3]</p>
+<p>Empty-slot checks reduce accidental overwrites, but track creation, clip creation, import and later note assignment are separate operations. Song-sketch or audio-import failure can leave partial tracks or imported files; no compensating rollback was found. A slow computation can also finish after the user has changed a clip, with no observed revision check before overwriting its notes. Duplicate the Set/clip, save a backup, inspect results, and test undo and reopening before using real sessions. [E2]</p>
+<p>The bridge has no production request timeout or cancellation. It rejects pending work on some crashes and clears its cache for restart, but worker exit is not handled like worker error, and zero-code/signaled child exits do not use the nonzero-exit crash path. Hung runtimes can therefore leave requests unresolved. This is a reliability finding, not a measured failure rate. [E4]</p>
+<p>The extension LICENSE is MIT, copyright 2026 Kenneth Reitz. PyTheory 0.59.0's own LICENSE is also MIT. The lockfile declares abcjs MIT and Pyodide MPL-2.0; the latter's covered-source obligations and bundled Python/NumPy/SciPy notices need separate distribution review. SDK/CLI entries say SEE LICENSE IN LICENSE.md, and the README says the SDK license forbids redistribution; the actual beta SDK license archive was unavailable and not inspected. The extension's MIT label does not relicense that SDK or all bundled runtime components. [E1, E7, E9]</p>
+<p>The build copies only PyTheory .py files, so its root LICENSE is not copied by that staging loop. Runtime-package notices, compiled bundles and final .ablx contents were not audited; do not assume the packaged artifact preserves every required notice. This review republishes analysis, not source or music assets. [E7]</p>
+<p>Code licensing also does not clear rights in imported samples, songs, rendered recordings, transcription or notation of copyrighted works. No blanket output-music clearance or independently audited provenance for every progression/preset/impulse response was established. Common musical patterns and generated notes are not automatically infringing, but any source recordings, compositions and third-party content retain applicable rights.</p>
+<p>The repository includes Python unittest regressions for spelling, symbol-to-MIDI conversion, scales, voicings, progressions, groove, Euclidean rhythms and melody/harmony behavior, plus TypeScript Set-key tests. tests/pyodide.mjs loads the staged interpreter and checks both worker and child transports. Its child smoke test starts plain Node without reproducing Live's managed permission flags, and no actual SDK host mutation/undo tests were found. [E6]</p>
+<p>No checked-in GitHub Actions workflows were present and the public Actions API returned zero runs. Earlier release notes explicitly document broken installed permission-model behavior in 0.1.0/0.1.1, a useful reason to distinguish dev tests from installed-host proof. No tests, builds, dependency installs, vulnerability scans or release binaries were executed. No DAW, devices, audio playback, paid calls or personal projects were accessed. Anonymous source/API retrieval and static inspection are the evidence here; correctness, audio quality and least-privilege behavior remain unverified. [E8]</p>
+<p>All repository file citations below are pinned to the reviewed commit; external metadata was retrieved anonymously on 2026-11-26 UTC.</p>
+<p>- <strong>E1:</strong> <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/README.md">README</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/LICENSE">LICENSE</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/manifest.json">manifest</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/CHANGELOG.md">changelog</a>.<br>- <strong>E2:</strong> <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/src/extension.ts">Live integration and mutation paths</a>, especially activate, wavForAudioClip, showNotation, generateSketch, fillClip and writeNotes.<br>- <strong>E3:</strong> <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/src/analysis.py">Musical implementation</a>, especially detect_key, _cluster_chords, _transitions, reharmonize, notation and audio functions.<br>- <strong>E4:</strong> <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/src/python.ts">Request bridge</a> and <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/src/python-worker.ts">Python worker</a>.<br>- <strong>E5:</strong> <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/src/dialogs.ts">Webview dialogs and notation interpolation</a>.<br>- <strong>E6:</strong> <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/tests/regression.py">Python regressions</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/tests/pyodide.mjs">transport harness</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/tests/keys.test.ts">key tests</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/src/keys.ts">scale mapping</a>.<br>- <strong>E7:</strong> <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/build.ts">Build staging</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/package.json">package manifest</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/package-lock.json">lockfile</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/blob/abfb9dd66462565308950bb1a7ed119049afcd71/pytheory-version.json">PyTheory pin</a>.<br>- <strong>E8:</strong> <a href="https://api.github.com/repos/kennethreitz/ableton-pytheory">Public repository metadata</a>, <a href="https://api.github.com/repos/kennethreitz/ableton-pytheory/tags">tags</a>, <a href="https://github.com/kennethreitz/ableton-pytheory/releases">releases</a>, <a href="https://api.github.com/repos/kennethreitz/ableton-pytheory/actions/runs">Actions</a>.<br>- <strong>E9:</strong> PyTheory v0.59.0 <a href="https://github.com/kennethreitz/pytheory/blob/v0.59.0/LICENSE">LICENSE</a>, <a href="https://github.com/kennethreitz/pytheory/blob/v0.59.0/pyproject.toml">package metadata</a>, <a href="https://github.com/kennethreitz/pytheory/blob/v0.59.0/pytheory/rhythm.py">ABC/LilyPond export</a>.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> Kenneth Reitz / kennethreitz/ableton-pytheory, MIT extension code; dependencies and music rights remain separate.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Native Live tools</td><td>Prefer for routine production with less third-party runtime surface.</td></tr><tr><td>PyTheory / music21 / Tonal</td><td>Standalone theory or research without this beta Live bridge; not equivalent drop-in extensions.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a local DAW extension, not a server to self-host. The README requires a Live build with Extensions support, described as the Live beta, plus separately obtained SDK/CLI archives from the beta portal. Development instructions and Makefile examples are macOS-oriented. No exact supported Live build, edition matrix or verified Windows/macOS compatibility matrix was established; “Live 12” in release instructions is not sufficient assurance for every retail installation. No Linux Live support is implied. [E1, E7]</p>
+<p>Builds need the private-distribution SDK tarballs and the matching PyTheory source checkout. They do not work from this repository alone. Use a supported Live license and documented SDK access; do not bypass the beta distribution or redistribute SDK archives. If evaluating later, first inspect the packaged asset and notices, use a clean test Set, disable unnecessary external connectivity, exercise worker/child transport and undo, and verify reopen/import behavior. No installation or permission changes were made in this review.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantial musical tooling, but trial only in disposable Sets. Beta integration, broad child-process permissions, a statically traced notation injection path and partial recovery need hardening. Static review only: no installation, DAW access or tests executed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/kennethreitz/ableton-pytheory">kennethreitz/ableton-pytheory</a> · MIT extension; separate dependency and SDK terms</span>
+    <span><a href="ableton-pytheory.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
