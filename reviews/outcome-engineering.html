@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Principles of Outcome Engineering — Visual guide</title>
+<meta name="description" content="An interactive walkthrough of Nader Dabit's Principles of Outcome Engineering: outcomes as the durable, self-proving unit of work.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #2a3346; --bg-inset: #1b2232;
+    --text: #f2f4f8; --text-dim: #c5cce0; --text-faint: #9aa3b8;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.14);
+    --deploy: #3fb96f; --interesting: #e0b04a; --study: #6ea2ee; --harvest: #b08ae0; --pass: #e06a6a;
+    --verdict: var(--study);
+    --c1: #7aa2ff; --c2: #3fb96f; --c3: #e0b04a; --c4: #b08ae0; --danger: #e06a6a;
+    --ok-bg: #143322; --ok-text: #c6f5d6; --ok-line: #2e8a55;
+    --bad-bg: #3a1518; --bad-text: #ffd0d0; --bad-line: #c45a5a;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  [data-theme="light"] {
+    --bg: #f4f6fb; --bg-raised: #ffffff; --bg-card: #ffffff; --line: #cfd6e4; --bg-inset: #e8ecf5;
+    --text: #141a26; --text-dim: #3a4458; --text-faint: #5a6578;
+    --accent: #2454c4; --accent-soft: rgba(36,84,196,.10);
+    --c1: #2454c4; --c2: #187a44; --c3: #9a6200; --c4: #6a3fb0; --danger: #b83434;
+    --deploy: #187a44; --interesting: #9a6200; --study: #2454c4; --harvest: #6a3fb0; --pass: #b83434;
+    --ok-bg: #e5f6ea; --ok-text: #14532d; --ok-line: #187a44;
+    --bad-bg: #fde8e8; --bad-text: #7f1d1d; --bad-line: #b83434;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  button, .choice, .seed, .dot, .theme-btn {
+    font: inherit; color: var(--text); appearance: none;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  [data-theme="light"] nav { background: rgba(244,246,251,.9); }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a, .theme-btn {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+    background: transparent; border: 1px solid transparent; cursor: pointer;
+  }
+  nav a:hover, .theme-btn:hover { color: var(--text); background: var(--bg-card); border-color: var(--line); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(32px, 6vw, 50px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; color: var(--text); }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 28px;
+    padding: 12px 18px; border-radius: 12px; font-weight: 650; font-size: 15px;
+    color: var(--text); background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    text-decoration: none; cursor: pointer;
+  }
+  .cta:hover { border-color: var(--accent); }
+
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; color: var(--text); }
+  h3 { color: var(--text); }
+  .section-sub { color: var(--text-dim); margin-bottom: 28px; }
+  strong { color: var(--text); }
+  code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); color: var(--text);
+  }
+
+  /* Walkthrough */
+  .walk { background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .progress { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; align-items: center; }
+  .dot {
+    width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--bg-raised); color: var(--text-dim); font-size: 11px; font-weight: 700;
+    cursor: pointer; display: grid; place-items: center;
+  }
+  .dot[aria-current="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .dot.done { border-color: color-mix(in srgb, var(--c2) 55%, var(--line)); }
+  .walk-step h3 { font-size: 22px; letter-spacing: -.015em; margin-bottom: 8px; }
+  .walk-step .lead { color: var(--text-dim); font-size: 16px; margin-bottom: 16px; }
+  .walk-step[hidden] { display: none; }
+  .js .walk-step[hidden] { display: none; }
+  html:not(.js) .walk-step { display: block; margin-bottom: 28px; }
+  html:not(.js) .walk-nav, html:not(.js) .progress { display: none; }
+  .walk-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; align-items: center; }
+  .walk-nav button {
+    cursor: pointer; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--bg-raised); color: var(--text); font-weight: 600;
+  }
+  .walk-nav button:hover:not(:disabled) { border-color: var(--accent); }
+  .walk-nav button:disabled { opacity: .4; cursor: not-allowed; }
+  .step-meta { font-family: var(--mono); font-size: 12px; color: var(--text-faint); }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 4px; }
+  @media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--bg-raised); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+  }
+  .card .lbl {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    margin-bottom: 6px; font-weight: 700;
+  }
+  .card.goal .lbl, .card.task .lbl { color: var(--c3); }
+  .card.outcome .lbl, .card.target .lbl { color: var(--c2); }
+  .card p { color: var(--text-dim); font-size: 15px; }
+  .tag {
+    display: inline-block; margin-top: 8px; font-family: var(--mono); font-size: 11px;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-dim);
+  }
+  .note { font-size: 13px; color: var(--text-faint); margin-top: 10px; }
+
+  .togglebar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .togglebar button {
+    cursor: pointer; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--bg-raised); color: var(--text-dim); font-size: 13px; font-weight: 600;
+  }
+  .togglebar button[aria-pressed="true"] {
+    color: var(--text); background: var(--accent-soft); border-color: var(--accent);
+  }
+
+  .diagram { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin: 4px 0 8px; }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  .diagram .caption { font-size: 12px; color: var(--text-faint); text-align: center; margin-top: 6px; }
+  .diagram text { font-family: var(--sans); }
+
+  /* Workshop */
+  .seeds { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .seed, .choice {
+    text-align: left; cursor: pointer; width: 100%;
+    background: var(--bg-raised); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+  }
+  .seed:hover, .choice:hover { border-color: var(--accent); }
+  .seed[aria-pressed="true"], .choice[aria-pressed="true"] {
+    background: var(--accent-soft); border-color: var(--accent);
+  }
+  .seed .who, .ex-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-faint); display: block; margin-bottom: 4px;
+  }
+  .qblock { margin: 16px 0; }
+  .qblock h3 { font-size: 16px; margin-bottom: 8px; }
+  .choices { display: flex; flex-direction: column; gap: 8px; }
+  .result {
+    margin-top: 20px; border-radius: 14px; padding: 18px; border: 1px solid var(--line);
+    background: var(--bg-raised);
+  }
+  .result h3 { font-size: 16px; margin-bottom: 8px; }
+  .result p, .result li { color: var(--text-dim); font-size: 15px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+  .check {
+    font-family: var(--mono); font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--text-dim);
+  }
+  .check.on { background: var(--ok-bg); color: var(--ok-text); border-color: var(--ok-line); }
+  .composed { background: var(--bg-inset); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 10px 0; color: var(--text); }
+
+  /* Quiz */
+  .quiz-q[hidden] { display: none; }
+  html:not(.js) .quiz-q { display: block; margin-bottom: 24px; }
+  html:not(.js) .quiz-nav { display: none; }
+  html:not(.js) .feedback { display: block !important; }
+  .q-prompt { font-size: 18px; font-weight: 650; margin-bottom: 14px; color: var(--text); }
+  .feedback { margin-top: 12px; padding: 12px 14px; border-radius: 10px; font-size: 14px; }
+  .feedback.ok { background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-line); }
+  .feedback.bad { background: var(--bad-bg); color: var(--bad-text); border: 1px solid var(--bad-line); }
+  .choice.correct { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok-text); }
+  .choice.wrong { border-color: var(--bad-line); background: var(--bad-bg); color: var(--bad-text); }
+  .scorebox {
+    margin-top: 16px; padding: 20px; border-radius: 14px; background: var(--bg-card); border: 1px solid var(--line);
+  }
+  .scorebox .num { font-size: 36px; font-weight: 750; color: var(--text); }
+
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p, .verdict-block li { color: var(--text-dim); }
+  .verdict-block ul { padding-left: 20px; margin-top: 10px; }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">public-data / outcome-engineering</span>
+  <a href="#walk">Walkthrough</a>
+  <a href="#workshop">Try it</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#about">About the essay</a>
+  <button class="theme-btn" type="button" id="themeBtn" aria-label="Switch between dark and light theme">Light mode</button>
+</nav>
+
+<main>
+  <header class="hero" id="top">
+    <p class="kicker">Visual guide · 26 Nov 2026</p>
+    <h1>Principles of Outcome Engineering</h1>
+    <p class="one-liner">You don’t hand a system a ticket to finish. You state what should remain true, how it will know, and what it may touch — then it keeps that true.</p>
+    <div class="verdict-pill">📚 Good reference — a vocabulary, not a method</div>
+    <div class="chips">
+      <span class="chip">Source: <a href="https://www.outcomeengineering.systems/">outcomeengineering.systems</a></span>
+      <span class="chip">Author: Nader Dabit</span>
+      <span class="chip">Repo: <a href="https://github.com/dabit3/outcome-engineering">dabit3/outcome-engineering</a></span>
+      <span class="chip">No license specified</span>
+    </div>
+    <a class="cta" href="#walk">Start the walkthrough →</a>
+  </header>
+
+  <section id="walk">
+    <h2>One principle at a time</h2>
+    <p class="section-sub">Eight ideas from the essay, plus a short open and close. Use the dots, the buttons, or the left and right arrow keys.</p>
+    <div class="walk">
+      <div class="progress" role="tablist" aria-label="Walkthrough steps" id="dots"></div>
+
+      <article class="walk-step" data-step="0">
+        <h3>A new unit of work</h3>
+        <p class="lead">The essay is not a product or a process. It is a claim about what we should ask of systems that can already run, check themselves, and keep going.</p>
+        <div class="pair">
+          <div class="card goal">
+            <div class="lbl">The old unit</div>
+            <p>A goal or a task. You start it, someone finishes it, and the work is over.</p>
+          </div>
+          <div class="card outcome">
+            <div class="lbl">The proposed unit</div>
+            <p>An outcome: a statement of what should remain true, kept by the system for as long as you depend on it.</p>
+          </div>
+        </div>
+        <p class="note">The essay says this is becoming possible because of “proactive, perpetual, self-verifying systems.”</p>
+      </article>
+
+      <article class="walk-step" data-step="1" hidden>
+        <h3>Outcome as the new unit of work</h3>
+        <p class="lead">“We as humans provide a statement of what should remain true at the end.”</p>
+        <div class="togglebar" role="group" aria-label="Goal or outcome">
+          <button type="button" data-pair="android" data-show="goal" aria-pressed="true">Goal</button>
+          <button type="button" data-pair="android" data-show="outcome" aria-pressed="false">Outcome</button>
+        </div>
+        <div class="pair" data-pair-view="android">
+          <div class="card goal" data-side="goal">
+            <div class="lbl">Goal</div>
+            <p>“Build this Android app”</p>
+          </div>
+          <div class="card outcome" data-side="outcome">
+            <div class="lbl">Outcome</div>
+            <p>“Build an Android version of our iOS app and keep it at parity forever”</p>
+          </div>
+        </div>
+        <p class="note">Both lines are from the essay. The goal ends when the app ships. The outcome stays true only if parity is kept.</p>
+        <div class="diagram" aria-hidden="true">
+          <svg viewBox="0 0 760 150" role="img" aria-label="A finish line versus a loop that stays true">
+            <rect x="20" y="30" width="330" height="90" rx="12" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="185" y="58" text-anchor="middle" fill="var(--c3)" font-size="12" font-weight="700">GOAL</text>
+            <text x="185" y="84" text-anchor="middle" fill="var(--text)" font-size="14">Start → build → ship</text>
+            <text x="185" y="104" text-anchor="middle" fill="var(--text-dim)" font-size="11">the work ends</text>
+            <rect x="410" y="30" width="330" height="90" rx="12" fill="var(--bg-inset)" stroke="var(--c2)" stroke-width="1.5"/>
+            <text x="575" y="58" text-anchor="middle" fill="var(--c2)" font-size="12" font-weight="700">OUTCOME</text>
+            <text x="575" y="84" text-anchor="middle" fill="var(--text)" font-size="14">ship, then keep it true</text>
+            <text x="575" y="104" text-anchor="middle" fill="var(--text-dim)" font-size="11">the work continues</text>
+          </svg>
+        </div>
+      </article>
+
+      <article class="walk-step" data-step="2" hidden>
+        <h3>Outcomes carry their own proof</h3>
+        <p class="lead">“A good outcome says how the system will know it is true.” Writing that definition, the essay says, “sets the ceiling on what the system can deliver” and is the important work people still do by hand.</p>
+        <div class="togglebar" role="group" aria-label="Task or measurable target">
+          <button type="button" data-pair="ticket" data-show="task" aria-pressed="true">Task</button>
+          <button type="button" data-pair="ticket" data-show="target" aria-pressed="false">Measurable target</button>
+        </div>
+        <div class="pair" data-pair-view="ticket">
+          <div class="card task" data-side="task">
+            <div class="lbl">Task</div>
+            <p>“Fix the bug from this support ticket”</p>
+          </div>
+          <div class="card target" data-side="target">
+            <div class="lbl">A target the system can measure itself against</div>
+            <p>“every support ticket caused by a bug ends in a shipped fix and a reply to the customer”</p>
+          </div>
+        </div>
+        <p class="note">Both lines are from the essay. The task closes one ticket. The target keeps being true for every later ticket of that kind.</p>
+      </article>
+
+      <article class="walk-step" data-step="3" hidden>
+        <h3>Machinery should be invisible</h3>
+        <p class="lead">You bring an outcome. The system should “manage / abstract away everything else.” Like compiled code: you can read what’s underneath, but you rarely need to.</p>
+        <div class="diagram">
+          <svg viewBox="0 0 760 220" role="img" aria-label="An outcome on top of faded machinery, like compiled code">
+            <rect x="180" y="16" width="400" height="58" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="380" y="40" text-anchor="middle" fill="var(--text)" font-size="15" font-weight="700">You bring an outcome</text>
+            <text x="380" y="58" text-anchor="middle" fill="var(--text-dim)" font-size="11">the part people still write by hand</text>
+            <rect x="40" y="100" width="680" height="100" rx="14" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="380" y="122" text-anchor="middle" fill="var(--text-faint)" font-size="11" font-weight="700">MACHINERY — named, then set aside</text>
+            <text x="110" y="150" text-anchor="middle" fill="var(--text-dim)" font-size="12">Skills</text>
+            <text x="200" y="150" text-anchor="middle" fill="var(--text-dim)" font-size="12">Loops</text>
+            <text x="290" y="150" text-anchor="middle" fill="var(--text-dim)" font-size="12">/goal</text>
+            <text x="400" y="150" text-anchor="middle" fill="var(--text-dim)" font-size="12">automations</text>
+            <text x="520" y="150" text-anchor="middle" fill="var(--text-dim)" font-size="12">verification</text>
+            <text x="640" y="150" text-anchor="middle" fill="var(--text-dim)" font-size="12">memory</text>
+            <text x="150" y="176" text-anchor="middle" fill="var(--text-dim)" font-size="12">context</text>
+            <text x="280" y="176" text-anchor="middle" fill="var(--text-dim)" font-size="12">plugins</text>
+            <text x="410" y="176" text-anchor="middle" fill="var(--text-dim)" font-size="12">connectors</text>
+            <text x="550" y="176" text-anchor="middle" fill="var(--text-dim)" font-size="12">subagents</text>
+          </svg>
+          <p class="caption">The essay lists these tools and says almost none of them should be our responsibility.</p>
+        </div>
+      </article>
+
+      <article class="walk-step" data-step="4" hidden>
+        <h3>Human attention is for decisions</h3>
+        <p class="lead">“People should step in only for judgment calls a human should make. The system should be smart enough to surface these and notify us when an answer is needed.”</p>
+        <div class="diagram">
+          <svg viewBox="0 0 760 180" role="img" aria-label="The system works continuously and pings a person only for a judgment call">
+            <rect x="40" y="30" width="400" height="120" rx="14" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="240" y="60" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="700">The system keeps working</text>
+            <text x="240" y="84" text-anchor="middle" fill="var(--text-dim)" font-size="12">watch · verify · maintain · improve</text>
+            <text x="240" y="118" text-anchor="middle" fill="var(--text-dim)" font-size="12">no ping when no decision is needed</text>
+            <rect x="480" y="30" width="240" height="120" rx="14" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="600" y="70" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="700">You</text>
+            <text x="600" y="98" text-anchor="middle" fill="var(--text-dim)" font-size="12">notified only for</text>
+            <text x="600" y="118" text-anchor="middle" fill="var(--text)" font-size="13">a judgment call</text>
+            <path d="M440 90 H480" stroke="var(--accent)" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+            <defs>
+              <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8" fill="var(--accent)"/>
+              </marker>
+            </defs>
+          </svg>
+          <p class="caption">Attention is scarce. The essay spends it only on decisions a person should make.</p>
+        </div>
+      </article>
+
+      <article class="walk-step" data-step="5" hidden>
+        <h3>“Done” is a state</h3>
+        <p class="lead">The system stays responsible “for as long as we depend on the outcome.” It watches for change, keeps the outcome true, and looks for ways to make it better “without requiring anyone to ask.”</p>
+        <div class="diagram">
+          <svg viewBox="0 0 760 200" role="img" aria-label="A cycle: ship, the world changes, the system keeps the outcome true and may improve it">
+            <rect x="20" y="70" width="130" height="60" rx="12" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="85" y="96" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">Shipped</text>
+            <text x="85" y="114" text-anchor="middle" fill="var(--text-dim)" font-size="11">not the end</text>
+            <rect x="200" y="70" width="150" height="60" rx="12" fill="var(--bg-inset)" stroke="var(--line)"/>
+            <text x="275" y="96" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">World changes</text>
+            <text x="275" y="114" text-anchor="middle" fill="var(--text-dim)" font-size="11">the system watches</text>
+            <rect x="400" y="70" width="150" height="60" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="475" y="96" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">Keep it true</text>
+            <text x="475" y="114" text-anchor="middle" fill="var(--text-dim)" font-size="11">proactively</text>
+            <rect x="600" y="70" width="140" height="60" rx="12" fill="var(--bg-inset)" stroke="var(--c2)" stroke-width="1.5"/>
+            <text x="670" y="96" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">Make it better</text>
+            <text x="670" y="114" text-anchor="middle" fill="var(--text-dim)" font-size="11">unasked</text>
+            <path d="M150 100 H200" stroke="var(--text-faint)" stroke-width="2" fill="none"/>
+            <path d="M350 100 H400" stroke="var(--text-faint)" stroke-width="2" fill="none"/>
+            <path d="M550 100 H600" stroke="var(--text-faint)" stroke-width="2" fill="none"/>
+            <path d="M670 70 C670 24 85 24 85 70" stroke="var(--c2)" stroke-width="1.5" fill="none" stroke-dasharray="4 4"/>
+            <text x="380" y="28" text-anchor="middle" fill="var(--text-dim)" font-size="11">still responsible</text>
+          </svg>
+          <p class="caption">“The outcome is the durable asset; the code beneath it can be rewritten as many times as it takes.”</p>
+        </div>
+      </article>
+
+      <article class="walk-step" data-step="6" hidden>
+        <h3>Ambition is unbound</h3>
+        <p class="lead">“The most challenging part of a big idea was never starting it, it was finishing it and maintaining it forever. Now that our systems can do both we can be more ambitious.”</p>
+        <div class="pair">
+          <div class="card goal">
+            <div class="lbl">What used to cap the idea</div>
+            <p>Not the blank page — the finishing, and then keeping it alive forever.</p>
+          </div>
+          <div class="card outcome">
+            <div class="lbl">What the essay unlocks</div>
+            <p>If a system can finish and maintain, the size of the idea is no longer limited by that old cost.</p>
+          </div>
+        </div>
+        <p class="note">This is an argument, not a measurement. The next principle is the safety rail that comes with it.</p>
+      </article>
+
+      <article class="walk-step" data-step="7" hidden>
+        <h3>Authority is bound</h3>
+        <p class="lead">“A system that works perpetually and proactively needs a clear limit on what it may touch. We state what the system is allowed to do alongside what we want, then we can leave it alone.”</p>
+        <div class="diagram">
+          <svg viewBox="0 0 760 170" role="img" aria-label="An outcome and an authority limit stated together">
+            <rect x="40" y="30" width="330" height="110" rx="14" fill="var(--bg-inset)" stroke="var(--c2)" stroke-width="1.5"/>
+            <text x="205" y="70" text-anchor="middle" fill="var(--c2)" font-size="12" font-weight="700">WHAT WE WANT</text>
+            <text x="205" y="98" text-anchor="middle" fill="var(--text)" font-size="14">the outcome, with its proof</text>
+            <rect x="390" y="30" width="330" height="110" rx="14" fill="var(--bg-inset)" stroke="var(--c3)" stroke-width="1.5"/>
+            <text x="555" y="70" text-anchor="middle" fill="var(--c3)" font-size="12" font-weight="700">WHAT IT MAY TOUCH</text>
+            <text x="555" y="98" text-anchor="middle" fill="var(--text)" font-size="14">a clear limit, stated with it</text>
+            <text x="380" y="20" text-anchor="middle" fill="var(--text-dim)" font-size="11">stated together, then left alone</text>
+          </svg>
+          <p class="caption">Ambition and authority arrive as a pair. A perpetual system without a limit cannot safely be left alone.</p>
+        </div>
+      </article>
+
+      <article class="walk-step" data-step="8" hidden>
+        <h3>Experimentation as a first principle</h3>
+        <p class="lead">“Every open question becomes something we can just test. A wrong guess is no longer an opportunity cost because the system can be wrong N times on the way to being right (and in parallel).”</p>
+        <div class="diagram">
+          <svg viewBox="0 0 760 190" role="img" aria-label="Several parallel attempts, some wrong, one right">
+            <text x="80" y="30" fill="var(--text)" font-size="13" font-weight="700">Open question</text>
+            <circle cx="80" cy="100" r="16" fill="var(--accent-soft)" stroke="var(--accent)"/>
+            <path d="M96 88 C200 40 280 40 360 70" stroke="var(--danger)" stroke-width="2" fill="none"/>
+            <path d="M96 100 H360" stroke="var(--c2)" stroke-width="2.5" fill="none"/>
+            <path d="M96 112 C200 160 280 160 360 130" stroke="var(--danger)" stroke-width="2" fill="none"/>
+            <text x="430" y="74" fill="var(--danger)" font-size="12" font-weight="700">wrong</text>
+            <text x="430" y="104" fill="var(--c2)" font-size="13" font-weight="700">right</text>
+            <text x="430" y="134" fill="var(--danger)" font-size="12" font-weight="700">wrong</text>
+            <text x="560" y="104" fill="var(--text-dim)" font-size="12">N tries, in parallel</text>
+          </svg>
+          <p class="caption">The essay treats failed tries as cheap if they can run together. It does not discuss cost or blast radius.</p>
+        </div>
+      </article>
+
+      <article class="walk-step" data-step="9" hidden>
+        <h3>Forget the machinery exists</h3>
+        <p class="lead">“Outcome engineering is where we fully give in to our imagination, embrace ambition, and forget that the underlying system and machinery exist.”</p>
+        <div class="card outcome">
+          <div class="lbl">The essay’s close</div>
+          <p>This way of building is “now becoming possible due to the emergence of proactive, perpetual, self-verifying systems.” The author writes that it is “already being embraced by some of the best engineers I know” and “will redefine software engineering going into 2027.”</p>
+        </div>
+        <p class="note">That last part is a prediction and an anecdote, not evidence. Next, try writing an outcome yourself, then check what you kept.</p>
+      </article>
+
+      <div class="walk-nav">
+        <button type="button" id="prevBtn">← Previous</button>
+        <span class="step-meta" id="stepMeta"></span>
+        <button type="button" id="nextBtn">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="workshop">
+    <h2>Try it: turn a request into an outcome</h2>
+    <p class="section-sub">Pick a starting request, then choose duration, proof, and a limit. The first two requests are from the essay. The third is an illustrative example, not from the site.</p>
+
+    <h3 class="q-prompt" style="font-size:16px;margin-bottom:10px">1. Starting request</h3>
+    <div class="seeds" id="seeds">
+      <button type="button" class="seed" data-seed="android" aria-pressed="true">
+        <span class="who">From the essay</span>
+        “Build this Android app”
+      </button>
+      <button type="button" class="seed" data-seed="ticket" aria-pressed="false">
+        <span class="who">From the essay</span>
+        “Fix the bug from this support ticket”
+      </button>
+      <button type="button" class="seed" data-seed="status" aria-pressed="false">
+        <span class="who">Example — not from the essay</span>
+        “Add a status page for the API”
+      </button>
+    </div>
+
+    <div class="qblock">
+      <h3>2. What should remain true?</h3>
+      <div class="choices" id="q-remain">
+        <button type="button" class="choice" data-key="remain" data-val="once" aria-pressed="false">Just finish this request once.</button>
+        <button type="button" class="choice" data-key="remain" data-val="stay" aria-pressed="false">State something that should remain true after it ships.</button>
+      </div>
+    </div>
+    <div class="qblock">
+      <h3>3. How will the system know it is true?</h3>
+      <div class="choices" id="q-proof">
+        <button type="button" class="choice" data-key="proof" data-val="see" aria-pressed="false">I’ll know it when I see it.</button>
+        <button type="button" class="choice" data-key="proof" data-val="measure" aria-pressed="false">Include a target the system can measure itself against.</button>
+      </div>
+    </div>
+    <div class="qblock">
+      <h3>4. What may it touch?</h3>
+      <div class="choices" id="q-auth">
+        <button type="button" class="choice" data-key="auth" data-val="open" aria-pressed="false">Don’t say. Hope it stays in bounds.</button>
+        <button type="button" class="choice" data-key="auth" data-val="bound" aria-pressed="false">State a clear limit alongside what we want, then leave it alone.</button>
+      </div>
+    </div>
+
+    <div class="result" id="workshopResult" hidden></div>
+  </section>
+
+  <section id="quiz">
+    <h2>Check yourself</h2>
+    <p class="section-sub">Five short questions. Answers are scored as soon as you pick one.</p>
+    <div class="walk">
+      <div class="quiz-q" data-q="0">
+        <p class="q-prompt">In the essay, which of these is an outcome?</p>
+        <div class="choices">
+          <button type="button" class="choice" data-correct="n">“Build this Android app”</button>
+          <button type="button" class="choice" data-correct="y">“Build an Android version of our iOS app and keep it at parity forever”</button>
+          <button type="button" class="choice" data-correct="n">“Ship the Android app this quarter” <span class="ex-label" style="display:inline;margin:0 0 0 6px">example, not from the essay</span></button>
+        </div>
+        <div class="feedback" hidden data-ok="The second line is the essay’s outcome: it states what should remain true (parity, forever). The first is its goal. A deadline to ship once is still a goal." data-bad="The essay’s outcome is the parity-forever statement. “Build this Android app” is the goal it contrasts, and a one-time ship date is still a goal."></div>
+      </div>
+      <div class="quiz-q" data-q="1" hidden>
+        <p class="q-prompt">A good outcome includes…</p>
+        <div class="choices">
+          <button type="button" class="choice" data-correct="n">A list of the skills, loops, and plugins to use</button>
+          <button type="button" class="choice" data-correct="y">How the system will know the outcome is true</button>
+          <button type="button" class="choice" data-correct="n">A promise that a person will check the work at the end</button>
+        </div>
+        <div class="feedback" hidden data-ok="“A good outcome says how the system will know it is true” — a target it can measure itself against. Machinery should stay in the background, and the proof is not “a human will look later.”" data-bad="The essay’s test is whether the outcome carries its own proof. Skills and plugins are machinery to abstract away. A human review at the end is not that proof."></div>
+      </div>
+      <div class="quiz-q" data-q="2" hidden>
+        <p class="q-prompt">When should a person step in?</p>
+        <div class="choices">
+          <button type="button" class="choice" data-correct="n">After every task completes</button>
+          <button type="button" class="choice" data-correct="y">Only for judgment calls a human should make</button>
+          <button type="button" class="choice" data-correct="n">Never. The system is fully autonomous.</button>
+        </div>
+        <div class="feedback" hidden data-ok="Attention is reserved for judgment calls. The system should surface those and notify you when an answer is needed — not disappear, and not interrupt after every step." data-bad="The essay does not remove people, and it does not want a check-in after every task. People step in for judgment calls, which the system should surface."></div>
+      </div>
+      <div class="quiz-q" data-q="3" hidden>
+        <p class="q-prompt">What is the durable asset?</p>
+        <div class="choices">
+          <button type="button" class="choice" data-correct="n">The code that was shipped</button>
+          <button type="button" class="choice" data-correct="y">The outcome — the code under it can be rewritten as many times as it takes</button>
+          <button type="button" class="choice" data-correct="n">The original ticket or prompt</button>
+        </div>
+        <div class="feedback" hidden data-ok="Directly from the essay: “The outcome is the durable asset; the code beneath it can be rewritten as many times as it takes.”" data-bad="The essay is explicit: the outcome is the durable asset, and the code can be rewritten as many times as it takes."></div>
+      </div>
+      <div class="quiz-q" data-q="4" hidden>
+        <p class="q-prompt">A system that works perpetually and proactively also needs…</p>
+        <div class="choices">
+          <button type="button" class="choice" data-correct="n">Unlimited access, so it can finish anything</button>
+          <button type="button" class="choice" data-correct="y">A clear limit on what it may touch, stated alongside what you want</button>
+          <button type="button" class="choice" data-correct="n">To ask permission before every file change</button>
+        </div>
+        <div class="feedback" hidden data-ok="Authority is bound: state the limit with the outcome, “then we can leave it alone.” Unlimited access is the hazard this principle is written to prevent. The essay does not require a prompt before every edit." data-bad="The paired principle is “Authority is bound.” You state what the system may do alongside what you want, then leave it alone — not unbounded access, and not a check-in on every file."></div>
+      </div>
+      <div class="walk-nav quiz-nav">
+        <button type="button" id="qPrev">← Previous</button>
+        <span class="step-meta" id="qMeta"></span>
+        <button type="button" id="qNext">Next →</button>
+      </div>
+      <div class="scorebox" id="scorebox" hidden></div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2>About this essay</h2>
+    <p class="section-sub">A short review of the source, after the walkthrough.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Good reference: a vocabulary, not a method</div>
+      <p>Nader Dabit’s page is eight principles and two contrasts, not a framework with steps, a product, or a case study. The useful move is to write what should remain true, how the system will know, and what it may touch. The 2027 prediction and the “best engineers I know” line are anecdotal. There is no license on the site or the linked repository.</p>
+      <ul>
+        <li>The homepage is a single page. The only linked document with the same text is <a href="https://github.com/dabit3/outcome-engineering" style="color:var(--accent)">dabit3/outcome-engineering</a> at commit 24b9d5a, 25 Nov 2026, 12:17 PM America/Phoenix (19:17 UTC).</li>
+        <li>No implementation or experiment was offered, so none was reproduced. This is a static reading.</li>
+        <li>Full write-up: <a href="outcome-engineering.md" style="color:var(--accent)">outcome-engineering.md</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div>Review of <a href="https://www.outcomeengineering.systems/">Principles of Outcome Engineering</a> by Nader Dabit. Quotes are short excerpts; other examples are labeled. No license specified — educational/personal use only. Design credit on the source site: inspired by <a href="https://paco.me/">paco.me</a>.</div>
+    <div><a href="https://github.com/RueClaw/public-data">RueClaw/public-data</a></div>
+  </footer>
+</main>
+
+<script>
+(function () {
+  document.documentElement.classList.add('js');
+
+  var themeBtn = document.getElementById('themeBtn');
+  var theme = localStorage.getItem('oe-theme');
+  if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'light';
+  function applyTheme(t) {
+    if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+    themeBtn.textContent = t === 'light' ? 'Dark mode' : 'Light mode';
+    localStorage.setItem('oe-theme', t || 'dark');
+  }
+  applyTheme(theme === 'light' ? 'light' : 'dark');
+  themeBtn.addEventListener('click', function () {
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  });
+
+  var steps = [].slice.call(document.querySelectorAll('.walk-step'));
+  var dots = document.getElementById('dots');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var stepMeta = document.getElementById('stepMeta');
+  var i = 0;
+  var labels = ['Open', '1', '2', '3', '4', '5', '6', '7', '8', 'Close'];
+  labels.forEach(function (lab, idx) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dot';
+    b.textContent = lab;
+    b.setAttribute('aria-label', 'Go to step ' + lab);
+    b.addEventListener('click', function () { show(idx); });
+    dots.appendChild(b);
+  });
+  function show(n) {
+    i = Math.max(0, Math.min(steps.length - 1, n));
+    steps.forEach(function (el, k) { el.hidden = k !== i; });
+    [].forEach.call(dots.children, function (d, k) {
+      d.setAttribute('aria-current', k === i ? 'true' : 'false');
+      d.classList.toggle('done', k < i);
+    });
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = false;
+    nextBtn.textContent = i === steps.length - 1 ? 'Try writing one →' : 'Next →';
+    stepMeta.textContent = (i + 1) + ' of ' + steps.length;
+  }
+  prevBtn.addEventListener('click', function () { show(i - 1); });
+  nextBtn.addEventListener('click', function () {
+    if (i === steps.length - 1) {
+      document.getElementById('workshop').scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    show(i + 1);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); if (i < steps.length - 1) show(i + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); show(i - 1); }
+  });
+  show(0);
+
+  function applyPair(name, side) {
+    document.querySelectorAll('.togglebar button[data-pair="' + name + '"]').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-show') === side ? 'true' : 'false');
+    });
+    var view = document.querySelector('[data-pair-view="' + name + '"]');
+    if (!view) return;
+    view.querySelectorAll('[data-side]').forEach(function (card) {
+      card.style.outline = card.getAttribute('data-side') === side ? '2px solid var(--accent)' : 'none';
+    });
+  }
+  document.querySelectorAll('.togglebar button').forEach(function (b) {
+    b.addEventListener('click', function () { applyPair(b.getAttribute('data-pair'), b.getAttribute('data-show')); });
+  });
+  applyPair('android', 'goal');
+  applyPair('ticket', 'task');
+
+  var workshop = { seed: 'android', remain: null, proof: null, auth: null };
+  var essayAnswers = {
+    android: {
+      stay: 'Build an Android version of our iOS app and keep it at parity forever',
+      measure: 'The essay does not give a separate numeric proof for this example. Parity-forever is the state that should remain true; you would still add a target the system can measure (for example, a labeled check that Android and iOS stay at feature parity).'
+    },
+    ticket: {
+      stay: 'every support ticket caused by a bug ends in a shipped fix and a reply to the customer',
+      measure: 'That same sentence is already “a target the system can measure itself against.”'
+    },
+    status: {
+      stay: 'The API has a public status page that stays accurate whenever service health changes.',
+      measure: 'Any incident visible to customers appears on the status page within an agreed time, and the page’s current state matches a health check the system can run.',
+      bound: 'The system may edit the status-page repository and its hosting config only. It may not change production API code or DNS.',
+      example: true
+    }
+  };
+
+  function pressGroup(selector, btn) {
+    document.querySelectorAll(selector).forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+  }
+  document.querySelectorAll('#seeds .seed').forEach(function (b) {
+    b.addEventListener('click', function () {
+      workshop.seed = b.getAttribute('data-seed');
+      pressGroup('#seeds .seed', b);
+      renderWorkshop();
+    });
+  });
+  document.querySelectorAll('#workshop .choice').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var key = b.getAttribute('data-key');
+      workshop[key] = b.getAttribute('data-val');
+      pressGroup('#workshop .choice[data-key="' + key + '"]', b);
+      renderWorkshop();
+    });
+  });
+
+  function renderWorkshop() {
+    var box = document.getElementById('workshopResult');
+    if (!workshop.remain || !workshop.proof || !workshop.auth) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    var a = essayAnswers[workshop.seed];
+    var stay = workshop.remain === 'stay';
+    var proof = workshop.proof === 'measure';
+    var bound = workshop.auth === 'bound';
+    var n = (stay ? 1 : 0) + (proof ? 1 : 0) + (bound ? 1 : 0);
+    var composed = '';
+    if (workshop.seed === 'android' && stay) composed = '“' + a.stay + '”';
+    else if (workshop.seed === 'ticket' && stay) composed = '“' + a.stay + '”';
+    else if (workshop.seed === 'status' && stay) {
+      composed = a.stay;
+      if (proof) composed += ' ' + a.measure;
+      if (bound) composed += ' ' + a.bound;
+    } else {
+      composed = 'This is still a one-time request. It does not yet say what should remain true.';
+    }
+    var essayNote = '';
+    if (workshop.seed !== 'status') {
+      essayNote = '<p><strong>The essay’s wording:</strong> “' + a.stay + '”' + (a.measure ? ' ' + a.measure : '') + '</p>';
+    } else {
+      essayNote = '<p class="note">The composed statement above is an illustrative example, not from the essay. It only applies the three tests the essay names.</p>';
+    }
+    var missing = [];
+    if (!stay) missing.push('It does not state what should remain true — so it is still a goal or task.');
+    if (!proof) missing.push('It does not say how the system will know the outcome is true.');
+    if (!bound) missing.push('It does not state a limit on what the system may touch, so it is hard to leave alone.');
+    box.innerHTML =
+      '<h3>' + (n === 3 ? 'This meets the essay’s three tests' : n === 0 ? 'This is still a task or goal' : 'Partway to an outcome') + '</h3>' +
+      '<div class="checks">' +
+        '<span class="check' + (stay ? ' on' : '') + '">' + (stay ? '✓' : '○') + ' remains true</span>' +
+        '<span class="check' + (proof ? ' on' : '') + '">' + (proof ? '✓' : '○') + ' carries proof</span>' +
+        '<span class="check' + (bound ? ' on' : '') + '">' + (bound ? '✓' : '○') + ' authority is bound</span>' +
+      '</div>' +
+      '<div class="composed">' + composed + '</div>' +
+      essayNote +
+      (missing.length ? '<ul>' + missing.map(function (m) { return '<li>' + m + '</li>'; }).join('') + '</ul>' : '<p>You stated what should remain true, how the system can know, and what it may touch — the human work the essay says still has to be done by hand.</p>');
+  }
+
+  var qs = [].slice.call(document.querySelectorAll('.quiz-q'));
+  var qi = 0;
+  var answers = new Array(qs.length);
+  var qPrev = document.getElementById('qPrev');
+  var qNext = document.getElementById('qNext');
+  var qMeta = document.getElementById('qMeta');
+  var scorebox = document.getElementById('scorebox');
+
+  function showQ(n) {
+    qi = Math.max(0, Math.min(qs.length - 1, n));
+    qs.forEach(function (el, k) { el.hidden = k !== qi; });
+    qPrev.disabled = qi === 0;
+    qNext.disabled = answers[qi] == null;
+    qNext.textContent = qi === qs.length - 1 ? 'See score' : 'Next →';
+    qMeta.textContent = (qi + 1) + ' of ' + qs.length;
+    if (answers.every(function (a) { return a != null; })) renderScore();
+  }
+  qs.forEach(function (q, idx) {
+    var fb = q.querySelector('.feedback');
+    q.querySelectorAll('.choice').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (answers[idx] != null) return;
+        var ok = btn.getAttribute('data-correct') === 'y';
+        answers[idx] = ok;
+        q.querySelectorAll('.choice').forEach(function (c) {
+          if (c.getAttribute('data-correct') === 'y') c.classList.add('correct');
+        });
+        if (!ok) btn.classList.add('wrong');
+        fb.hidden = false;
+        fb.className = 'feedback ' + (ok ? 'ok' : 'bad');
+        fb.textContent = ok ? fb.getAttribute('data-ok') : fb.getAttribute('data-bad');
+        qNext.disabled = false;
+        if (answers.every(function (a) { return a != null; })) renderScore();
+      });
+    });
+  });
+  function renderScore() {
+    var right = answers.filter(Boolean).length;
+    scorebox.hidden = false;
+    var line = right === 5 ? 'You have the vocabulary the essay is teaching.' :
+      right >= 3 ? 'Close. Revisit any miss in the walkthrough above.' :
+      'Skim the walkthrough once more, especially proof and authority.';
+    scorebox.innerHTML = '<div class="num">' + right + ' / 5</div><p>' + line + '</p>';
+  }
+  qPrev.addEventListener('click', function () { showQ(qi - 1); });
+  qNext.addEventListener('click', function () {
+    if (qi === qs.length - 1) {
+      renderScore();
+      scorebox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+    showQ(qi + 1);
+  });
+  showQ(0);
+
+  var links = document.querySelectorAll('nav a[href^="#"]');
+  function setActive() {
+    var ids = ['walk', 'workshop', 'quiz', 'about'];
+    var cur = ids[0];
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top < 120) cur = id;
+    });
+    links.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + cur); });
+  }
+  window.addEventListener('scroll', setActive, { passive: true });
+  setActive();
+})();
+</script>
+</body>
+</html>
