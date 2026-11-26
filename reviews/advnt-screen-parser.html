@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advnt Screen Parser — Review</title>
+<meta name="description" content="Local CPU perception for iOS social-app screenshots: icons, OCR, and heuristic element geometry.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / advnt-screen-parser</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">arthuryeti/advnt-screen-parser · reviewed 2026-11-26</div>
+    <h1>Advnt Screen Parser</h1>
+    <p class="one-liner">Local CPU perception for iOS social-app screenshots: icons, OCR, and heuristic element geometry.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT code / AGPL-3.0 weights</span>
+      <span class="chip">Python · ONNX CPU · RapidOCR · OpenCV</span>
+      <span class="chip"><a href="https://github.com/arthuryeti/advnt-screen-parser">arthuryeti/advnt-screen-parser ↗</a></span>
+      <span class="chip"><a href="https://huggingface.co/arthuryeti/advnt-screen-parser/tree/e1e3a667ea344d3bd10a59964aa43540b1b1bb94">Pinned model evidence ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">12</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>99 classes, not universal screen understanding</h3><p>Parallel OCR and a portrait YOLOv11m detector feed geometric recovery. Output is a flattened, capped element list; IDs are per-frame and the elements omit raw detector confidence.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Promising reported accuracy, uneven evidence</h3><p>The author reports 95.32% weighted AP@50, but X scores 87.71% and the evaluation records 45 false positives across 46 hard-negative frames. No inference or benchmarks were run for this static review.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local inference still needs operational boundaries</h3><p>Authentication is optional and absent by default; model downloads are unpinned. The MIT wrapper does not make the AGPL model weights permissive, and cached models alone do not prove offline operation.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Python 3.10+, NumPy, OpenCV, ONNX Runtime CPU</td></tr>
+<tr><td>OCR</td><td>RapidOCR PP-OCRv6-tiny, English</td></tr>
+<tr><td>Interfaces</td><td>Python, CLI, optional FastAPI/Uvicorn</td></tr>
+<tr><td>State</td><td>Model caches; optional CLI JSON/overlays; no database</td></tr>
+<tr><td>License</td><td>MIT wrapper; AGPL-3.0 weights</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Learned icons plus geometric recovery</h4><p>Class-aware NMS, per-class thresholds, dominant-app voting and recovery of low-confidence bottom-tab candidates target four social apps and iOS chrome. Geometry adds glyphs and three-column grids; these assumptions need testing against app redesigns.</p><h4>Accuracy and latency: author reports only</h4><p>Pinned model metadata lists 834 validation frames and 6,377 boxes; 92.73% macro AP@50 and 72.06% AP@50–95. Summary precision/recall (92.55%/95.00%) differ slightly from card figures (92.47%/94.93%). Threshold calibration uses validation data; an untouched final test set is not demonstrated.</p><p>The v5 summary lists 75.4 ms median and 78.7 ms p95 without CPU/thread/sample provenance. The older v3 release timing cannot be carried over. No model, dataset or device access was performed.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Source c689a1491c50c653ff042cdec58866be6216b872; model documentation e1e3a667ea344d3bd10a59964aa43540b1b1bb94. OpenCV decoding precedes parallel OCR and icon inference; separate locks serialize each engine. Geometric fusion returns at most 140 elements.</p><p>Both /v1/parse and /v1/ocr run the full parser. Missing API-token environment variables permit requests. A 5 MB byte check does not cap decoded pixels, and missing Content-Length permits whole-body buffering first. No rate limiter, bounded admission queue, TLS, or tenant isolation is implemented.</p><p>No screenshot upload was found in application inference code; this is not a measured egress guarantee. Model initialization is network-capable, and OCR initialization is not disabled by the icon auto_download flag. Outputs contain sensitive recognized text.</p><p>Nine test functions were inspected, not run; one integration test requires local weights. No checked-in GitHub Actions workflow was found. Training calibration references an absent services/ocr module path. Readiness can remain true with an unavailable explicitly configured local detector; no durable job recovery or cross-frame tracking exists.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Approach</td><td>Benefit</td><td>Tradeoff</td></tr>
+<tr><td>Accessibility/DOM</td><td>Native semantics and state</td><td>Prefer when available; needs platform access</td></tr>
+<tr><td>RapidOCR alone</td><td>Simpler text extraction</td><td>No learned icon semantics</td></tr>
+<tr><td>OmniParser</td><td>Broader screenshot understanding</td><td>Different models, compute, and licensing; not benchmarked here</td></tr>
+<tr><td>Vision-language model</td><td>Broader scene reasoning</td><td>Potential latency/privacy costs; coordinates still need validation</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Use a private single-user pilot, not the default exposed Docker port mapping. Pin source, dependencies, icon model plus matching metadata, and OCR files. Default acquisition follows moving model revisions; Docker does not consume uv.lock.</p><p>Set a token, restrict network access, enforce streaming/pixel/time/concurrency limits, and avoid retaining screen-derived data unnecessarily. Validate offline behavior under denied egress, semantic health, rollback, per-class negatives, and full-pipeline p95 on consented fixtures.</p><p>Code is MIT and credits Henry Yuan for tree heuristics. Weights are declared AGPL-3.0; notices still mention v3/YOLOv11s while the current model is v5/YOLOv11m. Clarify licensing for the intended deployment. Source tests, dependency vulnerabilities, model binaries, and production behavior were not verified.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful specialist perception, not an authoritative accessibility tree or safe public API out of the box. Pilot only after pinning models, enforcing authentication and resource limits, checking AGPL obligations, and independently measuring action accuracy.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/arthuryeti/advnt-screen-parser">arthuryeti/advnt-screen-parser</a> · MIT code / AGPL-3.0 weights</span>
+    <span><a href="advnt-screen-parser.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

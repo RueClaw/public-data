@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [advnt-screen-parser.md](reviews/advnt-screen-parser.md) [page](reviews/advnt-screen-parser.html) | [arthuryeti/advnt-screen-parser](https://github.com/arthuryeti/advnt-screen-parser) | MIT code; AGPL-3.0 weights | ⚠️ Interesting | CPU iOS icon/OCR parser; promising specialist perception with unverified metrics, optional auth, and unpinned models. |
 | [fairy-cursor.md](reviews/fairy-cursor.md) [page](reviews/fairy-cursor.html) | [Rrrima/fairy-cursor](https://github.com/Rrrima/fairy-cursor) | MIT; OFL fonts | ⚠️ Interesting | Native macOS capture companion; thoughtful paste policies, screenshot-loss recovery risks and broad desktop authority. Static review. |
 | [platos-key.md](reviews/platos-key.md) [page](reviews/platos-key.html) | [Plato’s Key](https://hazyresearch.stanford.edu/blog/2026-11-25-platos-key) | N/A | ⚠️ Interesting | Closed-form factual-key transfer; promising functional alignment, but no linked experiment release or demonstrated universal latent interface. Static article review. |
 | [ephyra-agentic-property-testing.md](reviews/ephyra-agentic-property-testing.md) [page](reviews/ephyra-agentic-property-testing.html) | [Ephyra: agentic property-based testing](https://www.datadoghq.com/blog/ai/agentic-property-based-testing-with-ephyra/) | N/A | ⚠️ Interesting | Generator optimization with upstream fixes; qualified bug totals, oracle risks and missing controlled baselines. Static article review. |
