@@ -32,6 +32,11 @@ done
 
 log() { printf '\033[1m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
+# When the root-owned helper is installed, use it so a timer can deploy
+# without a broad sudoers rule. Interactive use is unchanged if it is absent.
+if [ -x /usr/local/sbin/public-data-reviews-priv ]; then
+  sudo() { command sudo -n /usr/local/sbin/public-data-reviews-priv "$@"; }
+fi
 
 # Read bind address, port and public origin from the installed unit so this works on any host.
 unit_exec=$(systemctl show -p ExecStart --value "$SERVICE" 2>/dev/null || true)
@@ -105,7 +110,11 @@ backup="$BACKUP_DIR/srv-public-data-$ts.tgz"
 log "Backing up $TARGET to $backup"
 sudo mkdir -p "$BACKUP_DIR"
 sudo tar -czf "$backup" -C "$(dirname "$TARGET")" "$(basename "$TARGET")"
-ls -1t "$BACKUP_DIR"/srv-public-data-*.tgz 2>/dev/null | tail -n +$((KEEP_BACKUPS + 1)) | xargs -r sudo rm -f
+mapfile -t old_backups < <(ls -1t "$BACKUP_DIR"/srv-public-data-*.tgz 2>/dev/null | tail -n +$((KEEP_BACKUPS + 1)))
+if ((${#old_backups[@]})); then
+  # xargs cannot call the sudo shell function used when the helper is installed.
+  sudo rm -f "${old_backups[@]}"
+fi
 
 log "Syncing code to $TARGET"
 sudo "${RSYNC[@]}" "$REPO/" "$TARGET/"

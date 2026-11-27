@@ -1,0 +1,15 @@
+[Unit]
+Description=Check origin/main and deploy the Public Data reviews site when it changes
+Documentation=https://github.com/RueClaw/public-data
+
+[Timer]
+# Five minutes after the last check finishes (so a long deploy is not
+# immediately retriggered). One missed tick is caught up after a reboot.
+OnBootSec=2min
+OnUnitInactiveSec=5min
+AccuracySec=30s
+Persistent=true
+Unit=public-data-reviews-autodeploy.service
+
+[Install]
+WantedBy=timers.target

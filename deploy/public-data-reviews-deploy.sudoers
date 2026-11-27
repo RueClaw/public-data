@@ -1,0 +1,11 @@
+# Narrow NOPASSWD rule for Public Data reviews deploys.
+# The auto-deploy timer runs as zob and scripts/deploy-reviews.sh calls sudo.
+# After install, deploy-reviews.sh uses this helper instead of raw sudo.
+#
+# Install as /etc/sudoers.d/public-data-reviews-deploy (no dot in the
+# filename; sudoers.d skips names containing a dot).
+# Adjust the user if the checkout owner is not zob.
+
+Defaults:zob !requiretty
+
+zob ALL=(root) NOPASSWD: /usr/local/sbin/public-data-reviews-priv

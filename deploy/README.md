@@ -24,3 +24,61 @@ Set `request_body { max_size 16KB }` before authentication/WAF inside the site's
 The server uses a conservative HTML element/attribute allowlist, removes scripts, inline event handlers, forms, frames, SVG and external assets, drops hidden state, and expands tab sections. All guide responses include an HTTP CSP sandbox with no capabilities, script execution disabled, external resources blocked and no form submissions. The library iframe also has an empty sandbox. Direct links receive the same restrictions. Interactive JavaScript features are intentionally unavailable. Sanitization and isolation reduce browser capability; neither establishes that text, links or instructions are truthful or harmless.
 
 Static assets use an explicit allowlist. Deployment documentation is not an HTTP asset. Markdown paths cannot traverse out of their named collection. Run `uv run --no-project scripts/test_review_web.py` after changes.
+
+## Automatic deploys
+
+On the host that serves the site (nautilus), a systemd timer can keep
+`/srv/public-data` aligned with `origin/main` without opening an inbound
+webhook or running a GitHub Actions runner. Every five minutes
+`scripts/auto-deploy-check.sh` fetches `origin/main` and, only when that
+commit is a new fast-forward relative to the last successful deploy, runs
+`scripts/deploy-reviews.sh`. That script still runs the tests, rsyncs to
+`/srv/public-data`, restarts `public-data-reviews`, and rolls back if the
+health check fails. Checks with nothing new to deploy stay silent.
+
+The timer unit is `deploy/public-data-reviews-autodeploy.timer`. It runs as
+the checkout owner (`zob`) from `~/src/public-data`. A one-line sudoers
+rule lets that user run only the root-owned helper installed at
+`/usr/local/sbin/public-data-reviews-priv` (copied from
+`scripts/public-data-reviews-priv.sh`). Do not grant sudo on the copy in the
+clone: a push could replace it. If that helper is present,
+`deploy-reviews.sh` uses it automatically; otherwise it still calls `sudo`
+as before. The helper must be re-installed only when the helper or sudoers
+file itself changes.
+
+The clone's `origin` must be fetchable without an SSH agent; HTTPS is
+enough for this public repository. A dirty checkout, or a history that is
+not a fast-forward, fails the unit and deploys nothing. If the live site is
+already current, you can enable the timer immediately; its first tick
+deploys once to record the live SHA (and restarts the service).
+
+```bash
+cd ~/src/public-data
+git pull --ff-only origin main
+# If origin is an SSH URL: git remote set-url origin https://github.com/RueClaw/public-data.git
+
+sudo install -o root -g root -m 0755 \
+  scripts/public-data-reviews-priv.sh /usr/local/sbin/public-data-reviews-priv
+
+tmp=$(mktemp)
+cp deploy/public-data-reviews-deploy.sudoers "$tmp"
+sudo visudo -cf "$tmp"
+# sudoers.d skips filenames that contain a dot; install without one.
+sudo install -o root -g root -m 0440 "$tmp" /etc/sudoers.d/public-data-reviews-deploy
+rm -f "$tmp"
+
+sudo -n /usr/local/sbin/public-data-reviews-priv test -r /etc/public-data-reviews.env
+
+sudo install -o root -g root -m 0644 \
+  deploy/public-data-reviews-autodeploy.service \
+  /etc/systemd/system/public-data-reviews-autodeploy.service
+sudo install -o root -g root -m 0644 \
+  deploy/public-data-reviews-autodeploy.timer \
+  /etc/systemd/system/public-data-reviews-autodeploy.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now public-data-reviews-autodeploy.timer
+systemctl list-timers public-data-reviews-autodeploy.timer --no-pager
+```
+
+Logs: `journalctl -u public-data-reviews-autodeploy -f`. Disable with
+`sudo systemctl disable --now public-data-reviews-autodeploy.timer`.

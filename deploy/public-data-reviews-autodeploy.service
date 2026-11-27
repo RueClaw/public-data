@@ -1,0 +1,21 @@
+[Unit]
+Description=Public Data reviews auto-deploy (pull main if it changed)
+Documentation=https://github.com/RueClaw/public-data
+After=network-online.target public-data-reviews.service
+Wants=network-online.target
+# Do not use ProtectHome or ProtectSystem: this unit git-fetches in a
+# home checkout and calls sudo, and those sandboxes also apply to sudo children.
+
+[Service]
+Type=oneshot
+User=zob
+Group=zob
+WorkingDirectory=/home/zob/src/public-data
+ExecStart=/home/zob/src/public-data/scripts/auto-deploy-check.sh
+Nice=10
+# Tests, rsync, restart and a health-check retry can take several minutes.
+TimeoutStartSec=15min
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=GIT_TERMINAL_PROMPT=0
+# The lock file lives in /run/lock (sticky, world-writable) so a skipped
+# overlapping tick can write it; the checkout needs write access for git fetch.
