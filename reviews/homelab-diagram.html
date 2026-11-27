@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab Diagram — Review</title>
+<meta name="description" content="A hand-crafted Python and YAML homelab illustration, not an automatic network mapper.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / homelab-diagram</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Goblinmine/homelab-diagram · reviewed 2026-11-27</div>
+    <h1>Homelab Diagram</h1>
+    <p class="one-liner">A hand-crafted Python and YAML homelab illustration, not an automatic network mapper.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT code; separate asset rights</span>
+      <span class="chip">Python · YAML · SVG · librsvg</span>
+      <span class="chip"><a href="https://github.com/Goblinmine/homelab-diagram">Goblinmine/homelab-diagram ↗</a></span>
+      <a class="chip" href="https://github.com/Goblinmine/homelab-diagram/tree/a9a458ae1824f93b516007176b1f515685757375">Reviewed revision</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,918</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">164</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Illustration rather than discovery</h3><p>YAML supplies content while Python fixes cables and coordinates. No network scanner, server, database or general editor exists in reviewed main.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Redaction is deliberately narrow</h3><p>Domain and SSID substitutions do not remove topology, addresses, hostnames or exposed-service details. Tracked inventory can disclose more than the shared image.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Trusted inputs and explicit recovery</h3><p>Text escaping and safe YAML loading help, but SVG colors and icon paths lack validation. Output pairs can become stale after a failed conversion; no tests or CI were found.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Renderer</td><td>Python 3.11+, PyYAML, Pillow; absolute-coordinate SVG</td></tr><tr><td>Export</td><td>librsvg PNG, fontconfig and Fira fonts</td></tr><tr><td>State</td><td>Local files; no auth, database or web service</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Readable physical and logical topology</h4>
+<p>Port VLAN ticks distinguish tagged and untagged membership; trunk cables use a contrasting inner stroke, and link widths encode speeds. Folder-shaped physical device cards distinguish hardware from guests. These are useful design patterns, but the actual cable endpoints and several speed labels remain hardcoded: changing a YAML port target alone does not reroute the line. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L363-L568">build.py</a></p>
+<h4>Dense server and storage views</h4>
+<p>Hardware lists, grouped VM/container cards, multi-app containers, disks, pools and a media-flow explainer make one image unusually information-rich. Optional fields support guest kinds, cluster-node labels and multi-VLAN SSIDs. Some overflow assertions and text measurements help detect fit problems, but they are not automatic layout or general collision detection; Python optimization can disable assertions. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L638-L868">server and guest rendering</a></p>
+<h4>Two output modes, not a privacy guarantee</h4>
+<p>Default mode substitutes the configured domain in text, selects a redacted title and uses each SSID's redacted field. Unredacted mode uses separate filenames. Internal addresses, hostnames, inventory IDs, hardware/OS versions, exposed services, topology and watermark remain visible unless the user edits them. SSID replacement is specific to its rendering section, not a general text scrub. Inventory flags can disable redaction even without the unredacted CLI option. Review the entire SVG and PNG before sharing; never place credentials in inventory notes. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L30-L77">redaction setup</a>, <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L515-L529">SSID rendering</a>
+</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>
+The build script loads inventory at module top level, builds VLAN/color lookup maps, appends SVG strings into one list, computes the final canvas height, writes SVG and invokes librsvg. It is a script, not a reusable import-safe library: importing it also performs the build. The icon helper caches base64 bytes to avoid repeatedly reading each image. Text helpers apply domain substitution and HTML escaping. The final height follows the main server panel rather than computing a bounding box over every rendered element. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L16-L160">input/helpers</a>, <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L960-L977">export</a></p>
+<h4>Discovery and outbound access</h4>
+<p>The renderer has no application-level network client. Its subprocesses are font lookup and image conversion, using argument arrays rather than shell interpolation. The separate icon downloader contacts jsDelivr, then raw GitHub on failure, using a fixed mapping of names. It has a 20-second request timeout, bounded retries, modest delays and an aggregate failure exit; it does not implement Retry-After handling. It downloads from moving upstream paths without content digests, MIME/XML validation, download-size bounds or redirect restrictions. Once icons are present, no downloader is needed for ordinary builds. Dependency installation is another optional network step, not performed for this review. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/fetch_icons.py">fetch_icons.py</a></p>
+<h4>Rendering and input safety</h4>
+<p>PyYAML safe_load avoids arbitrary Python-object constructors, and text nodes go through html.escape with quotes enabled. Those are worthwhile protections, not a complete trust boundary. Inventory-derived VLAN colors are interpolated directly into SVG attributes without validation or escaping; crafted colors could break attribute boundaries or introduce markup in a directly opened SVG. Icon names are joined to the icon directory without checking containment, allowing traversal to other readable files with an SVG suffix; those bytes are embedded in the output. Base64 encoding is not SVG sanitization. Exploitability in a particular browser or librsvg version was not tested.</p>
+<p>There are no schema, numeric-range, input-size or rendering-time limits. Wrong keys/types can fail with exceptions; oversized inventories, images or values can consume resources or break geometry. PNG conversion has check=True but no timeout. Keep inputs and icons trusted, validate colors and paths before offering any upload workflow, and isolate rendering with no host secrets. Do not expose these scripts unchanged as a public service. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L121-L160">SVG primitives and icon loading</a></p>
+<h4>Persistence, export and recovery</h4>
+<p>The editable source of truth is YAML plus Python, not the exported picture. There is no round-trip SVG import, undo history, built-in backup or multi-user conflict handling. Output and downloaded logos are ignored by Git, but inventory is tracked: adding real infrastructure details to it can disclose them through repository history regardless of render redaction. Keep private inventory outside a public checkout and pass it with --inventory; also remember that outputs still go into the script's own out directory.</p>
+<p>Builds overwrite fixed filenames. SVG is written before PNG conversion; a failed conversion can leave a new SVG beside an old, missing or partial PNG, so file existence is not a success receipt. No atomic publish pair, manifest or freshness checksum exists. Icon fetching overwrites successful files while retaining other old files on failure, allowing mixed upstream versions. Recovery is a rerun after fixing inputs/dependencies, with independently backed-up sources and verified outputs. For reproducible snapshots, archive permitted icon bytes and system dependency versions as well as the Python lockfile. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/build.py#L969-L977">export</a>, <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/.gitignore">.gitignore</a>
+</p><h4>Revision and verification</h4><p>
+Anonymous metadata on 2026-11-27 reported 1,918 stars, 164 forks and five open issues/PRs combined; last push was 2026-11-14. The open listing contained four PRs and one issue. Interactive web UI and optional NetBox import appeared as open PRs, not features of this reviewed commit. These counts are snapshots, not quality evidence. The releases endpoint returned no releases and the tag listing was empty; 0.1.0 is the project manifest version, not a verified release tag. <a href="https://api.github.com/repos/Goblinmine/homelab-diagram">metadata</a>, <a href="https://github.com/Goblinmine/homelab-diagram/releases">releases</a>, <a href="https://github.com/Goblinmine/homelab-diagram/pulls">open work</a></p>
+<p>The tracked tree contains no test suite or CI workflow. Layout assertions, a sample image and the author's claimed fresh-clone render check are useful signals, but not independently reproduced tests. We inspected both scripts, the full inventory, README, authoring guidance, license, manifest and lockfile dependency entries; no source was executed and no new image was generated. Dependency vulnerability scanning, full history secret scanning and platform compatibility tests were not performed. No credential mechanism was found in the two scripts; this is not a certification that every asset or repository history is secret-free.</p>
+<p>MIT permits adapting the code and original glyphs with notices retained. Service logos are explicitly separate, fetched from dashboard-icons, and fonts are separately licensed; the project's MIT file does not grant blanket trademark or third-party asset rights. No upstream code or icons are redistributed in this review. <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/LICENSE">LICENSE</a>, <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/pyproject.toml">manifest</a>, <a href="https://github.com/Goblinmine/homelab-diagram/blob/a9a458ae1824f93b516007176b1f515685757375/uv.lock">lockfile</a>
+</p><p>Reviewed commit: a9a458ae1824f93b516007176b1f515685757375. No releases or tags observed. Static review; no source execution or live infrastructure access.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Visual editing</td><td>Code changes here; diagrams.net for interactive editing</td></tr><tr><td>Automatic layout</td><td>Graphviz or Diagrams for changing graphs</td></tr><tr><td>Inventory truth</td><td>NetBox for structured infrastructure modeling</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>
+There is no server to host. A local workstation needs Python, the declared dependencies, librsvg, fontconfig and Fira fonts. The README documents uv and plain-Python paths. The lockfile improves Python dependency repeatability but does not pin fonts, librsvg or downloaded icons; font fallback can alter layout. Use an unprivileged, isolated environment with trusted data, separate private inventories, pinned/reviewed assets and visual output inspection. Automated generation should publish only after both artifacts succeed and pass disclosure checks.
+</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Strong visual conventions, but topology and layout remain code edits. Default redaction is limited, inputs must be trusted, and SVG/PNG writes are not atomic. Static review only; no rendering or upstream tests run.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Goblinmine/homelab-diagram">Goblinmine/homelab-diagram</a> · MIT code; separate asset rights</span>
+    <span><a href="homelab-diagram.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
