@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [opengame.md](reviews/opengame.md) [page](reviews/opengame.html) | [nexu-io/opengame](https://github.com/nexu-io/opengame) | Apache-2.0; asset/service terms | ⚠️ Interesting | Agent-assisted browser-game studio; execution isolation, telemetry, asset rights and recovery caveats. Static review. |
 | [simoncirstoiu-ripple.md](reviews/simoncirstoiu-ripple.md) [page](reviews/simoncirstoiu-ripple.html) | [simoncirstoiu/Ripple](https://github.com/simoncirstoiu/Ripple) | PolyForm Noncommercial 1.0.0 | ⚠️ Interesting | Zigbee RSSI motion sensing; binary firmware, hardware limits, privacy and OTA recovery caveats. Static review. |
 | [ancientswede-huginn.md](reviews/ancientswede-huginn.md) [page](reviews/ancientswede-huginn.html) | [ancientswede/Huginn](https://github.com/ancientswede/Huginn) | AGPL-3.0-or-later; asset exceptions | ⚠️ Interesting | RavenTrap honeypot intelligence; constrained SSH pull, recovery safeguards, isolation and egress caveats. Static review. |
 | [mlightcad-cad-viewer.md](reviews/mlightcad-cad-viewer.md) [page](reviews/mlightcad-cad-viewer.html) | [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) | MIT core; optional GPL-3.0 DWG / proprietary terms | ⚠️ Interesting | Browser CAD and portable snapshots; parser licensing, remote assets, resource bounds and fidelity/recovery caveats. Static review. |

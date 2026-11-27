@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenGame — Review</title>
+<meta name="description" content="Local AI-assisted browser-game creation with editable templates, agent tools and verification.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / opengame</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">nexu-io/opengame · reviewed 2026-11-27</div>
+    <h1>OpenGame</h1>
+    <p class="one-liner">Local AI-assisted browser-game creation with editable templates, agent tools and verification.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; separate asset/service terms</span>
+      <span class="chip">TypeScript · React · MCP · Chromium</span>
+      <span class="chip"><a href="https://github.com/nexu-io/opengame">nexu-io/opengame ↗</a></span>
+      <span class="chip"><a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/docs/opengame-architecture.md">Revision f17151f3cc78</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">2,097</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">343</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A workbench, not an engine replacement</h3><p>Studio and MCP share editable files, with remixing, simulation, browser checks and ZIP export. Headline counts and AAA/monetization claims exceed independently verified evidence.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Separate execution authorities</h3><p>Preview origins and request filtering help. Node vm is not a security boundary; local coding agents retain their own filesystem, network and permission authority.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local does not mean offline or free</h3><p>Analytics default on. Providers, template downloads and hosting add network and cost boundaries; API keys use restricted JSON files and assets need rights checks.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Service</td><td>Node.js / TypeScript / MCP</td></tr><tr><td>UI</td><td>React / Vite / Tailwind / Zustand</td></tr><tr><td>Games</td><td>HTML/CSS/JS; optional deterministic logic; some Three.js</td></tr><tr><td>Storage</td><td>Workspace files, JSON metadata, versioned assets</td></tr><tr><td>Checks/media</td><td>Acorn, vm, Puppeteer, Hyperframes, FFmpeg</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Shared editable projects and remixing</h4>
+<p>Studio and an external MCP agent can manipulate the same game workspace. Remix creates an owned copy rather than editing the bundled template. Twelve game tools cover creation, inspection, writes, metadata, covers, validation, simulation, playtesting, trailers, readiness and local publication. Gallery status is not proof of playability. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/docs/opengame-architecture.md">E2</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/game-projects.ts">E4</a></p>
+<h4>Verification with observable artifacts</h4>
+<p>The game service includes deterministic rule simulation, scripted browser input, console/request error collection, assertions and screenshots. The browser harness uses fresh profiles/contexts and blocks page requests outside its temporary local origin (apart from data/blob URLs). This is materially better than declaring success because HTML exists; it still cannot establish fun, visual polish, platform approval or revenue. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/game-projects.ts">E4</a></p>
+<h4>Portable delivery, with separate publication meanings</h4>
+<p>ZIP export is implemented, including an offline serving helper and a 64 MiB export limit. Local publication registers a game in the local catalog; web sharing creates a hosted static snapshot, and later edits do not automatically change that snapshot. Platform packaging and store submission remain separate operations: the README explicitly lists several distribution/monetization features as roadmap items, despite its broad introductory claims. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/README.md">E1</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/docs/opengame-architecture.md">E2</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/game-projects.ts">E4</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/gateway/web-publish.ts">E12</a></p><h4>Verification limits and CI</h4><p>Static only: no installs, execution, accounts, model calls or gameplay. LFS media was not hydrated. Exact-SHA CI failed in transcript and video-review annotation regressions; source checks, Studio shards and runtime/rendering lanes passed. <a href="https://github.com/nexu-io/opengame/actions/runs/46036570106">CI run</a>.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Provenance</h4><p>Reviewed f17151f3cc7838ddbe13d9b94392e0f983fc341b on 2026-11-27 UTC. No GitHub releases or tags returned at review time. <a href="opengame.md">Full review and all pinned citations</a>.</p><p> The practical flow is <strong>Studio or MCP → shared GameProjects service → workspace files → browser preview/checks → export or hosting</strong>. Provider and asset services sit alongside it; the selected coding agent is another execution authority, not merely a text generator. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/docs/opengame-architecture.md">E2</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/package.json">E3</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/game-projects.ts">E4</a></p>
+<h4>Generated-code and execution isolation</h4>
+<ul><li><strong>Browser preview:</strong> a separate loopback server accepts GET requests only for a game-specific hashed localhost hostname and play path. Studio adds iframe sandbox flags; game responses add CSP. The isolated-origin path permits same-origin scripting within that distinct origin. The normal preview CSP permits inline/eval scripts, selected CDNs, assets and game connections; it is not a no-network sandbox. External gallery entries have a different iframe allowance. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/gateway/local-game-preview.ts">E5</a></li><li><strong>Server logic:</strong> GameRuntime parses source, rejects imports/require and nondeterministic APIs, removes Date/Math.random, disables string/Wasm code generation, uses JSON exchange and a 50 ms vm execution timeout. These are meaningful controls, but <strong>Node vm is not a security boundary</strong>. No per-game OS process or heap quota is established by this implementation; CPU timeouts do not prevent all memory exhaustion. Do not feed adversarial code to a privileged service. This is a design-risk assessment, not a demonstrated escape. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/game-projects.ts">E4</a>, <a href="https://nodejs.org/api/vm.html">E13</a></li><li><strong>Coding agents:</strong> adapters spawn local agent processes. Auto permission modes can add dangerous-skip-permissions flags. Browser isolation does not constrain the filesystem, network or credential access of those separate agent processes. Keep approval mode restrictive and use a disposable OS/container boundary for untrusted projects. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/gateway/super-agent-adapters.ts">E6</a></li></ul>
+<h4>Auth, secrets, network and privacy</h4>
+<p>The default service binds loopback; the supplied local Compose configuration publishes only to loopback and explicitly warns that Studio has no sign-in. Host checks and same-host Origin checks protect browser mutation paths, with explicit credentialed bridge/webhook exceptions. They are not user authentication against local programs. HTTP MCP has its own bearer-token machinery and mode-dependent authentication, which must not be mistaken for blanket Studio authorization. Do not expose the local configuration as a multi-user internet service. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/deploy/README.md">E7</a></p>
+<p>Provider API keys are persisted in JSON secret files using atomic writes, directory mode 0700 and file mode 0600—not demonstrated encryption at rest. Custom-provider origin changes require re-entering an existing key, a useful protection against accidentally forwarding it to a new endpoint. Backups of the application data directory can contain credentials; keep them private and separate from source exports. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/gateway/connections.ts">E8</a></p>
+<p>“Local” does not mean offline or private by default. Templates may hydrate through LFS or version-pinned hosted bundles; media prompts/references go to configured providers, web publication sends a bundle to hosting, and analytics are <strong>on by default</strong>, including local builds. Tracking documents a persistent opt-out and launch-time <code>DO_NOT_TRACK=1</code> / <code>OPENMOTION_TELEMETRY=0</code> controls. The receiver's retention/IP handling was not independently audited. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/tracking/README.md">E9</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/shared/hosted-game-templates.ts">E11</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/gateway/web-publish.ts">E12</a></p>
+<h4>Cost boundaries</h4>
+<p>Open-source code does not make coding-agent subscriptions, image/audio/video/3D generation or hosting free. The game handoff instructions actively prefer multimodal generation and describe subscription/top-up paths; spend-consent guidance is conditional on host/Studio settings. Treat that as workflow guidance, not a verified global spending cap. Configure explicit provider budgets and require approval before generation or publishing. No pricing or account entitlement was tested. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/shared/game-contract.ts#L316">media/spend handoff</a></p>
+<h4>Persistence, export and recovery</h4>
+<p>Owned games live under the chosen data directory. File writes reject unsafe paths/symlinks, constrain allowed text files and batch size, stage backups, write metadata last and attempt rollback; failed rollback preserves recovery backups. This is helpful exception recovery, <strong>not demonstrated power-loss durability or full version history</strong>. Mutations are serialized within the service instance; that alone does not prove cross-process transactional safety. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/game-projects.ts">E4</a></p>
+<p>Template hydration verifies length/SHA-256 and archive entries before atomic installation. These hashes protect integrity relative to the pinned index, not the trustworthiness of its publisher. Export/remix paths exclude local publish records. Keep separate backups of projects/assets and sensitive configuration, rehearse restoration and inspect every output bundle for private data and unresolved external resources. Deleting the Compose data volume deletes the projects/settings it contains. No restore drill or export round trip was run. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/game-projects.ts">E4</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/deploy/README.md">E7</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/shared/hosted-game-templates.ts">E11</a></p><p> The root LICENSE is Apache-2.0: reuse code with its notice/attribution obligations and applicable patent terms; it does not grant trademark rights or magically clear third-party content. Dependency licenses need their own inventory. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/LICENSE">E14</a></p>
+<p>Tidebreaker's DESIGN.md claims original generated art and no external runtime dependencies, but also explicitly says browser acceptance was unverified. Its description is pseudo-3D projected rendering, more modest than the README's Three.js framing. The sampled game has no design/assets.csv, despite the README describing that structured inventory broadly. Generated-asset statements and template availability are not a complete chain of rights for all 277 manifests. Before commercial redistribution, inventory art/audio/fonts/models and provider output terms per game; do not assume screenshots, community references or familiar IP are reusable. No source assets were copied into this review. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/README.md">E1</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/templates/games/tidebreaker/DESIGN.md">E10</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>OpenGame</td><td>Agent-assisted remix and media orchestration</td></tr><tr><td>Godot</td><td>Conventional engine/editor for deeper systems</td></tr><tr><td>GDevelop</td><td>Visual/event authoring</td></tr><tr><td>Phaser</td><td>Focused code-first web games</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p> Start with a disposable single-user environment, loopback binding, telemetry disabled if unwanted, a dedicated data directory outside the checkout and narrowly scoped provider credentials. Docker is a useful host boundary, not proof that different games inside it are mutually isolated. Back up the persistent volume without publishing its secret files. Confirm the selected agent's permission behavior, establish a spend budget, inspect generated code, then perform real-browser/mobile tests and export/restore checks before sharing. Do not upgrade a local setup into public hosting merely by changing its bind address. <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/gateway/super-agent-adapters.ts">E6</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/deploy/README.md">E7</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/gateway/connections.ts">E8</a>, <a href="https://github.com/nexu-io/opengame/blob/f17151f3cc7838ddbe13d9b94392e0f983fc341b/tracking/README.md">E9</a></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful local prototyping infrastructure, not a proven autonomous AAA engine. Browser isolation and rollback-aware writes are promising; Node vm and coding-agent permissions are not hostile-code containment. Verify licensing, spend, exports and gameplay before shipping.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/nexu-io/opengame">nexu-io/opengame</a> · Apache-2.0; separate asset/service terms</span>
+    <span><a href="opengame.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
