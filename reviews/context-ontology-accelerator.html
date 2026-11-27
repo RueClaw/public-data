@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context Ontology Accelerator — Review</title>
+<meta name="description" content="An AWS semantic context platform combining ontology induction, virtual queries and document GraphRAG.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / context-ontology-accelerator</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">aws/context-ontology-accelerator · reviewed 2026-11-27</div>
+    <h1>Context Ontology Accelerator</h1>
+    <p class="one-liner">An AWS semantic context platform combining ontology induction, virtual queries and document GraphRAG.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0; dependencies separately licensed</span>
+      <span class="chip">Python · TypeScript · OWL · AWS</span>
+      <span class="chip"><a href="https://github.com/aws/context-ontology-accelerator">aws/context-ontology-accelerator ↗</a></span>
+      <span class="chip"><a href="https://github.com/aws/context-ontology-accelerator/releases/tag/v0.3.11">Reviewed v0.3.11</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,334</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">167</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Acceptance is not certification</h3><p>Acceptance passes validate=False. SHACL needs supplied shapes; competency questions are not evaluated and unstructured entailment is a pass-through.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Real controls, explicit trust boundaries</h3><p>Namespace policy, secret-tag binding and an AST SQL firewall provide concrete defenses. The firewall does not filter rows; Serve relies on AgentCore to verify JWTs.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Budget and deletion matter</h3><p>Neptune and OpenSearch have standing costs. Conversation expiration is 30 days; dev teardown destroys graph data and delayed ENIs can require another cleanup run.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>5dd33d7eb21d9af3de8fe4f03558eca992a4104a · v0.3.11</td></tr><tr><td>Verification</td><td>Static; application tests not run</td></tr><tr><td>Layer</td><td>Tech</td></tr><tr><td>Contracts/UI</td><td>Smithy-generated clients/interfaces; React + Cloudscape</td></tr><tr><td>Services</td><td>Python/FastAPI; Lambda, ECS/Fargate, AgentCore</td></tr><tr><td>Semantics</td><td>RDFLib, owlready2/HermiT, pySHACL; Ontop/R2RML</td></tr><tr><td>Documents</td><td>GraphRAG Toolkit + LlamaIndex; Bedrock extraction/embeddings</td></tr><tr><td>State</td><td>Neptune Database/Analytics adapters; OpenSearch; S3; DynamoDB; AgentCore Memory</td></tr><tr><td>Policy</td><td>Cognito/external OIDC, namespace/platform RBAC, Cedar, SQL AST firewall</td></tr><tr><td>Build</td><td>CDK, Nx, uv/pnpm locks; Java/Gradle/Maven</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>COA provides context across relational sources and documents. Scanning discovers schemas and enriches metadata; modeling generates/reviews ontologies and mappings; serving combines metrics, structured retrieval and graph/vector context through REST, streaming playground and MCP. It is not merely a vector database wrapper or a general autonomous action executor. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/README.md">README</a></p>
+<p>Its useful separation is between semantic model (OWL/RDF classes, properties and relational mappings), lexical graph extracted from documents, and policy controlling source/SQL access. These are not interchangeable proofs: logical consistency does not prove a fact true, an SQL answer correct or an action safe.</p><h4>Schema grounding and virtual queries</h4>
+<p>Default table-to-ontology embeds schema terms, matches grounding vocabularies, emits classes/properties and records similarity confidence. That is not calibrated truth probability. RIGOR retrieves ontology context, generates Turtle with an LLM and has another LLM judge/refine it: assistance, not an independent oracle. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/inducer/strategies/table_to_ontology.py">Default strategy</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/inducer/strategies/rigor_ontology.py">RIGOR</a></p>
+<p>Accepted ontologies/R2RML feed Ontop queries over source data. Acceptance is asynchronous with retriable ingest/embedding/storage steps; VKG notification is non-fatal, so acceptance does not prove serving synchronization. The ontology README warns that only OpenSearch+Neptune writes the mapped-class marker needed for Tier-2 structured queries; Analytics-only falls back to Tier 3. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/proposals.py">Acceptance</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/README.md">Backend caveat</a></p>
+<h4>Extracted context is not ground truth</h4>
+<p>The document build task reads preprocessed S3 text/metadata, wraps LlamaIndex Documents and invokes GraphRAG Toolkit to populate Neptune and OpenSearch. It supports corpus-derived entity classes, preferred topics, propositions, chunk tuning and Bedrock batch inference. Defaults enable versioning and retain older versions. Extra extraction passes/retries add inference work, not evidence of fidelity. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/sources/src/coa_sources/documents/kg_build/graph_build.py">Implementation</a></p>
+<p>Unstructured ontology induction remains v0: entailment is a pass-through even when requested, normalizer state is not persisted across runs, datatype properties can be sparse, and the pipeline does not invoke the three-tier validator. These limits appear in warnings. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/inducer/unstructured/services/pipeline.py">Pipeline</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/README.md">Limits</a></p>
+<h4>Validation is narrower than certification</h4>
+<ul><li><strong>No mandatory semantic gate:</strong> proposal acceptance passes validate=False; ingest also defaults false. Separate validation endpoints exist, but a UI workflow is not an enforced publication policy. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/proposals.py#L1424">Accept call</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/catalog/ingest.py">Ingest</a></li><li><strong>HermiT sees a transformed graph:</strong> imports are stripped and unsupported/malformed XSD types substituted on a throwaway copy. Reasoner errors block the report, but success does not certify the original graph plus imported axioms. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/validation/validators/tier1.py">Tier 1</a></li><li><strong>SHACL needs supplied shapes:</strong> no shapes means no findings. OntoQA-style metrics score structure, not truth. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/validation/validators/tier1.py">Tier 1</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/validation/validators/tier2.py">Tier 2</a></li><li><strong>Competency questions are a stub:</strong> CQ_NOT_EVALUATED is informational. OoPS! is opt-in; service failures are informational and important/critical pitfalls are warnings. Overall passed means no errors among requested checks, not that all intended checks ran. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/validation/validators/tier3.py">Tier 3</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/validation/routers/validate.py">Aggregation</a></li></ul>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>Sources → discovery/preprocessing → enriched catalog + lexical graph → proposals → catalog/embeddings + S3 mappings → Ontop/VKG → Serve/MCP.</p>
+<p>Serve combines curated metrics, structured queries and graph/lexical retrieval under deadlines. The SQL firewall validates ASTs: SELECT-only shapes, dangerous/table-function restrictions, table allowlists and column denylists; parsing uncertainty is denied. <strong>Row-level filtering is explicitly not implemented here.</strong> Use database-native row security and least-privileged source credentials where row visibility matters. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/context-manager/src/coa_serve/tier2/sql_firewall.py">Firewall</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/context-manager/src/coa_serve/orchestrator.py">Orchestrator</a></p>
+<p>REST, streaming and MCP differ operationally. The guide documents roughly 28 seconds of application budget below API Gateway’s 29-second REST ceiling, while translation/full requests can have longer budgets. Increasing downstream timeouts cannot remove this ceiling. Source latency/accuracy observations were not reproduced. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/external-docs/content/deploying.md">Deployment constraints</a></p><h4>Identity, IAM and secrets</h4>
+<p>Namespace and platform-wide roles are distinct. Shared token authorization restricts algorithms to RS256 and supports issuer/audience checks; external OIDC audience needs explicit configuration review. Serve intentionally decodes JWTs without checking signatures because AgentCore verifies upstream. This is a deployment trust boundary, <strong>not itself a demonstrated bypass</strong>: do not expose that handler directly without equivalent verification. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/libs/common/src/coa_common/auth/token_authorizer.py">Token authorizer</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/context-manager/src/coa_serve/auth.py">Serve identity</a></p>
+<p>Secrets Manager references are checked at registration and scan time for in-account namespace-tag membership, failing closed on uncertainty. Shared-role IAM can check tag presence but not per-request membership: stronger isolation is application-enforced. Cross-account sources need separate trust/permissions. Prove these boundaries with negative tests before multi-tenant use. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/sources/src/coa_sources/database/secret_binding.py">Secret binding</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/external-docs/content/cross-account-sources.md">Cross-account guide</a></p>
+<p>Initial deployment asks for administrator-equivalent permissions. Runtime grants are often scoped, but wildcard-resource permissions remain where services require them. Notably the ontology task receives aws-marketplace:Subscribe, enabling account-wide first-use model subscription. Review entitlement/spend governance, not just inference permissions. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/infra/lib/stacks/services/ontology-stack.ts#L445">Ontology role</a></p>
+<h4>Network and provider egress</h4>
+<p>Neptune uses private subnets, IAM authentication and encryption; OpenSearch restricts its network policy to a VPC endpoint. This is <strong>not air-gapped</strong>: the new VPC has NAT, the authorizer permits all outbound traffic for external IdP JWKS, and connector/database connectivity has separate rules. Imported VPCs require operator-supplied connectivity. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/infra/lib/stacks/foundation/storage-stack.ts">Storage</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/infra/lib/stacks/foundation/network-stack.ts">Network</a></p>
+<p>Schemas/descriptions, documents, prompts and retrieved context enter configured Bedrock processing paths. Default geographic inference profiles can route across regions. Account/model availability needs independent checking; embedding model/dimension changes require migration. Provider retention/residency guarantees were not independently verified.</p>
+<p>OoPS! has no default public endpoint: unset means no request. Enabled means ontology labels/comments/literals are serialized and POSTed to the configured service. Approve egress or use a controlled instance. Guardrails add filtering, not prompt-injection proof; the guide warns of default Classic-tier language limitations. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/ontology-engine/src/coa_ontology/validation/validators/tier3.py">OoPS!</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/external-docs/content/deploying.md">Configuration</a></p>
+<h4>Retention and observability</h4>
+<p>AgentCore Memory stores conversation content with <strong>30-day expiration</strong>; DynamoDB session metadata has separate TTL. Staging/artifacts, older versions, graph/vector indexes, backups and logs have different lifecycles. One TTL or source deletion is not immediate erasure of all copies: inventory retention and test with synthetic canaries. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/infra/lib/stacks/services/serve-stack.ts#L403">Serve stack</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/packages/sources/src/coa_sources/documents/kg_build/graph_build.py">Document versions</a></p>
+<p>Connector-integrity detection requires an account CloudTrail trail the deployment does not create. The guide says alarm actions are unwired: an alarm object without delivery is not operational alerting. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/external-docs/content/deploying.md">Prerequisites</a></p><p>Static enumeration found 465 Python test files under package test trees and 53 TypeScript test.ts-suffix files under infra: file counts, not passing tests or coverage. Public PR CI declares lint, units and CDK synth with read-only permissions and pull_request rather than privileged target execution. It acknowledges Nx affected-graph gaps and uses a fuller merge-group suite; internal live-account integration is not ported. Inspected Actions use version tags rather than immutable SHAs. <strong>No CI success, vulnerability scan, integration coverage or benchmark was independently reproduced.</strong> <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/.github/workflows/pr.yml">Workflow</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/pyproject.toml">Configuration</a></p>
+<p>This is a read-only mirror, not accepting external PRs; public issues are a feedback path. Lockfiles/security constraints signal maintenance, not a clean bill of health. NOTICE lists owlready2 LGPL-3.0 and aiohttp 3.14.3, while the current Python constraint requires aiohttp at least 3.14.4: check inventories against built images rather than assuming synchronization. Apache-2.0 at the root does not erase dependency obligations. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/CONTRIBUTING.md">Contributing</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/LICENSE">License</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/NOTICE">NOTICE</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/pyproject.toml">Constraints</a></p>
+<p><strong>Review checks:</strong> anonymous repository/release identity, canonical deduplication, source-path citations, Markdown/HTML/index consistency, template CSS/JS preservation, markup/internal references, safe links, unresolved tokens, redaction and task-only diff. Application tests were deliberately not run because installations, source execution and cloud/live calls were out of scope. These are static findings, not exploit confirmations or performance claims.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Best fit</td><td>Tradeoff relative to COA</td></tr><tr><td><a href="https://github.com/ontop/ontop">Ontop</a></td><td>Virtual RDF/SPARQL over relational databases</td><td>Narrower existing engine; supply identity, ingestion and agent orchestration</td></tr><tr><td><a href="https://github.com/awslabs/graphrag-toolkit">AWS GraphRAG Toolkit</a></td><td>Document graph/vector retrieval</td><td>COA’s lexical building block without its full ontology/control plane</td></tr><tr><td><a href="https://github.com/RDFLib/rdflib">RDFLib</a> + <a href="https://github.com/RDFLib/pySHACL">pySHACL</a></td><td>Local RDF processing and explicit constraints</td><td>Smaller footprint, not an integrated multi-user platform</td></tr><tr><td>Limit</td><td colspan="2">Scope comparisons, not head-to-head tests or fresh audits.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is an AWS deployment, not a free local app. The documented path builds multi-architecture images and provisions 17 platform stacks plus a managed Databricks connector. It needs substantial toolchains, quotas, model access and region compatibility. The project recommends tagged releases and says only us-east-1 has been deployment-validated. No deployment was attempted. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/external-docs/content/deploying.md">Guide</a></p>
+<p><strong>Cost:</strong> Neptune defaults to one db.r8g.large; OpenSearch collection-group settings default to minimum 2 and maximum 96 OCU. The guide estimates about $200/month for Neptune and $700/month for the default OpenSearch floor in us-east-1. These are source estimates, not independently verified current prices or total cost. NAT/endpoints, per-namespace Fargate, AgentCore, model calls, Athena scans, logs/storage add more. OpenSearch scale-to-zero affects latency and does not make the whole platform zero-idle-cost. Set budgets, quotas and tested alerts. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/infra/lib/stacks/foundation/storage-stack.ts">Capacity</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/external-docs/content/deploying.md">Cost discussion</a></p>
+<p><strong>Deletion/recovery:</strong> Neptune has seven-day backups but DESTROY removal policy; deletion protection applies only to the exact prod environment. Dev teardown deletes data, force-deletes DataZone and cleans dynamic ECS/Cloud Map/connector resources. AgentCore ENIs can delay final cleanup up to eight hours; the script distinguishes deferred cleanup from failure. Plain CDK destroy is insufficient. An account-wide API Gateway logging role/setting can remain and affect other APIs. Backups are not a tested restore plan: export/snapshot and rehearse recovery before destruction, inspecting retained logs/buckets and external sources separately. <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/infra/lib/stacks/foundation/storage-stack.ts">Storage lifecycle</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/scripts/destroy.sh">Script</a> · <a href="https://github.com/aws/context-ontology-accelerator/blob/5dd33d7eb21d9af3de8fe4f03558eca992a4104a/external-docs/content/deploying.md#tearing-down">Teardown</a></p><p>1. Require an explicitly scoped successful validation report before publication; separately test extraction and answers on held-out domain questions.<br>2. Prove namespace, secret-tag, table/column and source-row authorization with negative tests; preserve upstream authentication boundaries.<br>3. Approve data destinations, model regions, retention and optional OoPS! egress. Start with synthetic data.<br>4. Price idle/loaded operation, wire alarms and rehearse teardown plus restore. Verify serving synchronization, not merely acceptance.</p>
+<hr>
+<p><strong>Attribution:</strong> AWS, <a href="https://github.com/aws/context-ontology-accelerator">aws/context-ontology-accelerator</a>, Apache-2.0. Independent static analysis; no source code redistributed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Substantial Scan → Model → Serve architecture, but not a turnkey correctness engine. Acceptance disables optional semantic validation; incomplete checks, provider egress and substantial AWS operations demand a governed pilot. Static review only; no application tests or cloud deployment.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/aws/context-ontology-accelerator">aws/context-ontology-accelerator</a> · Apache-2.0; dependencies separately licensed</span>
+    <span><a href="context-ontology-accelerator.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
