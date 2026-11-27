@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RavenTrap (formerly Huginn) — Review</title>
+<meta name="description" content="Attacker dossiers, session replay and firewall feeds for an isolated homelab honeypot.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / ancientswede-huginn</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">ancientswede/Huginn · reviewed 2026-11-27</div>
+    <h1>RavenTrap (formerly Huginn)</h1>
+    <p class="one-liner">Attacker dossiers, session replay and firewall feeds for an isolated homelab honeypot.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">AGPL-3.0-or-later · asset exceptions</span>
+      <span class="chip">Python stdlib · SQLite · OpenSSH</span>
+      <span class="chip"><a href="https://github.com/ancientswede/Huginn">ancientswede/Huginn ↗</a></span>
+      <span class="chip"><a href="https://github.com/ancientswede/Huginn/releases/tag/v1.0.0-rc5">v1.0.0-rc5 ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">44</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">1</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>RavenTrap, not the automation platform</h3><p>The repository still says Huginn, but v1.0.0-rc5 is branded RavenTrap. It integrates Cowrie, OpenCanary and other sensors into attacker histories, replay and campaign views.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Constrained SSH is not complete isolation</h3><p>The dashboard pulls through a root-side forced export command, which can also toggle IDS and logout behavior. Hardened parsing and privilege dropping help; network segmentation must still be enforced outside the honeypot.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Local-first does not mean offline</h3><p>IP and DNS enrichment disclose observations to outside providers. ENRICH=0 does not stop keyed MalwareBazaar calls in the collector, update checks or configured notifications; secrets and captured material also persist in local storage.</p></div></div>
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Application</td><td>9,603-line Python application with embedded HTML/CSS/JS</td></tr>
+<tr><td>Storage</td><td>SQLite WAL plus compressed replay files</td></tr>
+<tr><td>Collection</td><td>OpenSSH; forced export command on the sensor</td></tr>
+<tr><td>Auth</td><td>Shared password, scrypt, hashed session tokens; no RBAC</td></tr>
+<tr><td>Deployment</td><td>systemd/Debian or non-root Docker; separate sensor machine</td></tr>
+<tr><td>License</td><td>AGPL-3.0-or-later; MIT web rules and CC BY 4.0 map</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Attacker investigation</h4><p>Per-IP histories combine attempted credentials, commands, replay, file metadata and external lookups. Campaign shapes, bait interactions and static malware families are useful investigative leads, not validated attribution.</p><h4>Controlled feeds</h4><p>Tokenized text, nftables, ipset, MikroTik, CSV and C2 feeds include score/age filters, exclusions and a size cap. Manual blocks override never-block exclusions; compromised sensors can still fabricate evidence.</p><h4>Tests and release maturity</h4><p>733 test-method definitions were counted statically. Upstream Tests, Docker image and Release files runs for the exact SHA reported success; none were executed for this review. v1.0.0-rc5 remains a prerelease.</p><h4>Provenance</h4><p>Reviewed 2026-11-27 UTC at 9531ef03d5edec65a59e588642aed634b7d943c3, also the peeled v1.0.0-rc5 tag. Public owner: Ancientswede. Metadata snapshot: 44 stars, 1 fork, 0 open issues.</p><p><a href="https://github.com/ancientswede/Huginn/blob/9531ef03d5edec65a59e588642aed634b7d943c3/app.py">Pinned implementation</a> · <a href="https://github.com/ancientswede/Huginn/actions/runs/45230113789">Upstream test result</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Pull, parse, persist</h4><p>Collector, enrichment and backup threads share a SQLite-backed application alongside a bounded threaded HTTP server. Capped recent sensor exports are parsed and deduplicated; long outages or heavy traffic can exceed available history.</p><h4>Web and key boundaries</h4><p>The UI defaults to HTTP on all interfaces. Specify allowed hosts, private ingress, TLS termination and narrow trusted proxies. Scrypt, same-origin POST checks, strict cookies, escaping, CSP and connection limits are positive controls, not proof of exploit resistance. Docker automatically trusts the first scanned SSH host key; independently verify it.</p><h4>Privacy and egress</h4><p>IP enrichment, DNS lists, optional hash lookups, update checks and ntfy have separate disclosure paths. UI-saved provider keys are ordinary SQLite metadata. URL feed tokens, captured credentials, recordings, environment and backups need restricted handling.</p><h4>Recovery limits</h4><p>SQLite backup API, integrity checks, atomic replacement and exclusive restore locks are concrete strengths. Same-disk database backups do not include every recording, setting or SSH identity. Default history retention is 180 days; flags and backups outlive deleted events.</p><h4>Verification limits</h4><p>No source execution, installation, live probes, accounts or paid calls. No independent performance, isolation, classification-quality, restore or security audit was performed. See the full Markdown review for pinned evidence and deployment caveats.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Option</td><td>Fit</td><td>Tradeoff</td></tr>
+<tr><td>Cowrie alone</td><td>SSH/Telnet capture</td><td>Narrower stack; supply correlation and history UI</td></tr>
+<tr><td>OpenCanary alone</td><td>Decoy detection/alerts</td><td>Simpler scope; not integrated replay/intelligence</td></tr>
+<tr><td>T-Pot</td><td>Broader multi-honeypot platform</td><td>More operational machinery; assess resource needs</td></tr>
+<tr><td>huginn/huginn</td><td>General automation</td><td>Different product, not a security-tool substitute</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>Use a separate disposable sensor VM/VLAN and verify externally enforced LAN, gateway and IPv6 restrictions before forwarding ports. Keep the dashboard private and TLS-protected; inspect privileged installers and pin versions.</p><p>Treat feeds as observation-first. Define never-block networks, false-positive handling and firewall rollback. Disable unwanted integrations individually and enforce egress policy; ENRICH=0 is not a global offline switch.</p><p>Back up the database, recordings, configuration and SSH identity off-host, then rehearse recovery. The stdlib-only application still needs SSH, OS packages and external sensor dependency trees.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Thoughtful pull-based collection and recovery, but not a turnkey security boundary. Pilot only with external sensor isolation, private dashboard ingress and deliberate egress controls; treat blocklists and attribution as heuristics. Static review only, not an independent audit.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/ancientswede/Huginn">ancientswede/Huginn</a> · AGPL-3.0-or-later · asset exceptions</span>
+    <span><a href="ancientswede-huginn.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [ancientswede-huginn.md](reviews/ancientswede-huginn.md) [page](reviews/ancientswede-huginn.html) | [ancientswede/Huginn](https://github.com/ancientswede/Huginn) | AGPL-3.0-or-later; asset exceptions | ⚠️ Interesting | RavenTrap honeypot intelligence; constrained SSH pull, recovery safeguards, isolation and egress caveats. Static review. |
 | [mlightcad-cad-viewer.md](reviews/mlightcad-cad-viewer.md) [page](reviews/mlightcad-cad-viewer.html) | [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) | MIT core; optional GPL-3.0 DWG / proprietary terms | ⚠️ Interesting | Browser CAD and portable snapshots; parser licensing, remote assets, resource bounds and fidelity/recovery caveats. Static review. |
 | [blender-skills.md](reviews/blender-skills.md) [page](reviews/blender-skills.html) | [arjun988/blender-skills](https://github.com/arjun988/blender-skills) | MIT; separate asset/service terms | ⚠️ Interesting | 94 Blender agent skills; external Python execution, advisory QA and unverified render quality. Static review. |
 | [vphone-cli.md](reviews/vphone-cli.md) [page](reviews/vphone-cli.html) | [Lakr233/vphone-cli](https://github.com/Lakr233/vphone-cli) | MIT code; Apple/component terms | 📚 Study | Native Apple guest research stack; relaxed host security, guest-root automation and broad local artifact permissions. Static review. |
