@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kumo Engine — Review</title>
+<meta name="description" content="Disk-backed relational context generation and predictive graph ML, with a supported local API and prerelease Studio.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / kumo-engine</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">NVIDIA/kumo-engine · reviewed 2026-11-27</div>
+    <h1>Kumo Engine</h1>
+    <p class="one-liner">Disk-backed relational context generation and predictive graph ML, with a supported local API and prerelease Studio.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 + third-party terms</span>
+      <span class="chip">Python · Rust · PyTorch · Arrow</span>
+      <span class="chip"><a href="https://github.com/NVIDIA/kumo-engine">NVIDIA/kumo-engine ↗</a></span>
+      <span class="chip">Static review · no runtime tests</span><span class="chip"><a href="https://github.com/NVIDIA/kumo-engine/commit/f4a29e4492ce282da300f9e02f822d440e8171b2">revision f4a29e4492ce</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">307</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">46</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A sampler plus learning pipeline, not an LLM server</h3><p>DiskGraph resolves relationships at ingest and samples bounded temporal neighborhoods from local storage. Classification, regression, forecasting and recommendation are the intended tasks.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Benchmarks need their full context</h3><p>Separate cold/warm sampling from preparation and learning. Newer trials fix timestamp issues; named DuckDB comparisons include cases where DuckDB wins, and historical commerce reproduction lacks the original data and baseline.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Library and Studio have different trust boundaries</h3><p>Studio is prerelease and its internal-testing template disables authentication. Checkpoints use trusted deserialization; manifests, holdouts and prediction artifacts can contain sensitive data.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Local API</td><td>Python 3.11+, kumo.engine and shared kumo_core</td></tr><tr><td>Storage</td><td>Rust/PyO3 DiskGraph, memory maps, Arrow/Parquet</td></tr><tr><td>Learning</td><td>PyTorch/Lightning graph ML</td></tr><tr><td>Studio</td><td>FastAPI, React, Temporal, PostgreSQL; prerelease</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p><br>### Pay for relationship resolution once</p>
+<p>Ingest resolves keys to compact IDs, builds adjacency ordered by relation/time, and creates a reusable on-disk index. The documented sampler bounds fanout, searches around prediction time, orders large-batch reads and exploits OS page caching. DiskGraph is included as Rust source, not just an unexplained remote binary. This is a useful design for repeated temporal neighborhood retrieval on graphs larger than RAM—not free ingestion or a promise that arbitrary traversals stay cheap. [1][2][3]</p>
+<h4>Point-in-time context, with correctness obligations</h4>
+<p>Temporal sampling and query-generated labels reduce hand-built feature joins. They do not fix wrong source timestamps, late-arriving facts, entity leakage or an inappropriate evaluation split automatically. The benchmark's newer graph trial explicitly fixes timestamp issues in the older synthetic dataset. Validate available-at-time semantics, ties, missing keys and holdout design on the actual business task; bounded latest-neighbor context also changes which evidence the model sees. [1][4]</p>
+<h4>Models and lineage are portable, not harmless</h4>
+<p>MLOps documentation defines snapshots, training tables, model bundles, prediction manifests, asset hashes and lineage. Models may include holdout predictions; manifests can contain source locations, queries, tracking destinations and sampled skipped entity IDs. These are sensitive data products, not metadata safe for unrestricted publication. <code>record_sources=False</code> limits source provenance, but does not anonymize all artifacts. [9]</p>
+<p><br>## Benchmark Methodology and Correctness</p>
+<p><strong>These are source-reported measurements, not reproduced results.</strong> The live benchmark page contains several experiments with different revisions and datasets; combining their best numbers into one speedup would be misleading. [4–6]</p>
+<p>- <strong>October 21 context trial:</strong> 50B nodes, 175.5B edges, Engine <code>392c25ed</code> versus DuckDB 2.0.0 on the same i4i.32xlarge. Warm normalized times exclude preparation, seed mapping, initialization and training. The reported advantage over prepared DuckDB is 2.4–8.9×, not the older 10–48× range. Repeated seeds and cache warming matter. Identity checks covered only 300 seeds at each of two and three hops, not all timed seeds or four hops.<br>- <strong>Newer graph-database trial:</strong> Engine <code>86dc74de</code>, corrected timestamps, 50B nodes and 87.8B foreign-key edges; do not conflate its counting/schema description with the older edge total. Every reported cell checked 300 seeds hop-by-hop against source Parquet, accepting any equal-timestamp tie break. Named DuckDB versions, two machine sizes, cold/warm passes and preparation/storage costs are supplied; graph databases A/B remain unnamed, limiting independent comparison. Reported run variation is about 10%; this is not a confidence-interval study.<br>- <strong>No universal winner:</strong> at 1B on i4i, six-hop warm DuckDB is 3,544 seeds/s versus Kumo's 3,104. At 50B, two-hop Kumo is 227,955 warm but 13,314 cold. The 50B Kumo index uses 2,635.1 GiB versus prepared DuckDB's 1,236.2 GiB, and takes 60.7 versus 38.0 minutes to prepare. Cold conditions and preprocessing economics can dominate.<br>- <strong>Commerce model workflow:</strong> the archived October 10 build is <code>20261009+9a0321c</code>, not the reviewed HEAD or the reproduction harness revision. Snapshot + training-table generation + fit total 5.16 hours on a 192-vCPU, 1.5-TiB, eight-L40S host. Only 448,000 seed examples were trained, not all 50B records. The separate 5M-customer prediction takes 78.4 minutes inside prediction, 86.7 including setup, with four GPU scorers; neither number is full-population latency.<br>- <strong>Baseline fairness/reproducibility:</strong> 9.885 hours for DuckDB feature engineering plus XGBoost uses different model budgets and stage boundaries. Historical SQL, splits, parameters, binary and measured dataset are absent; the provided generator uses a placeholder profile. The Kumo 700-step test population is not the comparator's million-seed evaluation. Treat the approximately 1.9× instance-time ratio as a workflow observation, not matched-model speed or equal-quality proof.<br>- <strong>Citation-graph comparison:</strong> source reports matched-module PyG training/validation at 64m13s versus Kumo 41m14s, but test accuracy is 63.93% versus 63.26%. GraphStorm's faster distributed training uses more hardware; its different construction resources and separate storage examples do not establish a universal capacity limit.</p>
+<p>The supplied commerce runner records environment/configuration, stage outcomes, timing and OOM-related adjustments and refuses nonempty output directories. It also patches private trainer internals to control workers, so its compatibility is version-sensitive. No benchmark or prediction quality was independently verified here. [5][6]<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><br>The service pipeline exports connector data to Parquet/blob storage, ingests it with DiskGraph, compiles PQL into training/prediction tables, and feeds core runtime batches to training or scoring. REST follows router → service → DAO/driver → workflow/activity; Temporal coordinates long-running service jobs. The local SDK instead calls the shared core in process. [2]</p>
+<p>The reviewed revision introduces typed RuntimeBatch/RuntimeGraph/RuntimeFeatureBlock records with Arrow buffers retaining native ownership; Python consumers no longer need adapter-owned dictionary schemas. Typed SamplingOptions and shard/seed settings make the boundary clearer, but DiskGraph and Python packages must match: this is an actively evolving native/runtime contract, not a stable universal graph interchange API. [3][10]</p>
+<p><br>## Tests and Maturity</p>
+<p>Anonymous GitHub metadata on the review date reported 307 stars, 46 forks and 116 open issues/PRs combined; repository push time was 2026-11-27T17:13:52Z. The reviewed main commit is dated 2026-11-25T23:48:53Z. These indicate activity, not quality. Latest observed Engine release is <code>kumo-engine-v1.0.1</code> (2026-11-05), pointing to <code>663b10bdb1e15f26d58fd49ec4d3f796e6eb233a</code>; HEAD is not that release. The root README currently says contributions are not accepted. [1][18]</p>
+<p>The tree has Python/package tests, Rust sampling tests, UI and Helm checks, public connector workflows, GPU PR/wheel checks, platform smoke tests and lifecycle tests. Documented GPU checks cover eight small task types, finite/complete outputs, save/reload and repeated predictions within absolute tolerance 0.005; training metrics explicitly have no learning-quality threshold. Some tests need services, credentials, GPU runners or first-use Temporal downloads. Workflow definitions and test files were inspected, not current CI execution logs: no green-build, coverage or passing-test claim is made. [10][19]</p>
+<p><br>## Evidence and Verification</p>
+<p>Repository links below are pinned to the reviewed SHA; external documentation and release metadata are mutable observations retrieved 2026-11-27 UTC. Benchmark Markdown response SHA-256: <code>b689055eb7bb4d880fb9308055f8c2c5aacce273e1453e675ae5bfe47e9ac241</code>. Canonical source was anonymously accessible and no prior matching public review was found. Artifact checks cover links/provenance, public-only content, template integrity, markup and task-only diff; they are not runtime tests.</p>
+<p>1. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/README.md">README and support matrix</a><br>2. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/ARCHITECTURE.md">Architecture</a><br>3. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/packages/diskgraph/README.md">DiskGraph runtime API</a><br>4. <a href="https://docs.nvidia.com/sdgm/kumo-engine/resources/benchmarks">Published benchmark report</a><br>5. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/benchmark/commerce/README.md">Commerce protocol and limitations</a><br>6. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/benchmark/commerce/run_e2e.py">Runner and archived results</a><br>7. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/packages/kumo-core/src/kumo_core/train/checkpoint.py">Checkpoint loader</a><br>8. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/docker/compose/README.md">Compose deployment and persistence</a><br>9. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/packages/kumo-engine/docs/mlops.md">MLOps artifacts, provenance and trust</a><br>10. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/docs/development/testing.md">Testing contract and prerequisites</a><br>11. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/packages/kumo-engine/kumo/engine/trainer/trainer.py">Trainer implementation and bundle trust</a><br>12. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/rest/deps/authentication.py">Authentication/authorization implementation</a><br>13. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/rest/app.py">Main REST CORS configuration</a><br>14. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/rest/config/encryption.py">Credential encryption</a><br>15. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/tools/glove-6b-50d/README.md">GloVe licensing</a><br>16. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/docker/install_glove_files">Container GloVe installer</a><br>17. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/pyproject.toml">Dependency/workspace configuration</a><br>18. <a href="https://github.com/NVIDIA/kumo-engine/releases">Public releases</a><br>19. <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/.github/workflows/kumo-engine-pr.yml">Engine PR workflow</a></p>
+<p>Additional evidence: <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/rest/public/app.py">public API CORS</a>, <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/rest/config/authentication.py">authentication defaults</a>, <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/docker/compose/env.internal-testing.example">internal-testing configuration</a>, <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/benchmark/commerce/reference-results.json">archived commerce results</a>, <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/LICENSE">root license</a>, <a href="https://github.com/NVIDIA/kumo-engine/blob/f4a29e4492ce282da300f9e02f822d440e8171b2/THIRD-PARTY.txt">third-party notices</a>, <a href="https://api.github.com/repos/NVIDIA/kumo-engine">public repository metadata</a>.</p>
+<p>---</p>
+<p><strong>Attribution:</strong> NVIDIA/kumo-engine, NVIDIA Corporation &amp; Affiliates; Apache-2.0 with component-specific third-party notices. Independent review; no affiliation implied.<br></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>SQL/tabular</td><td>Kumo integrates context and learning</td><td>DuckDB + XGBoost: flexible features, cheaper preparation in cited trials</td></tr><tr><td>Custom GNN</td><td>Integrated disk-backed pipeline</td><td>PyG: model control; GraphStorm: distributed infrastructure</td></tr><tr><td>Pretrained</td><td>Task-specific training</td><td>Structured Data Models / Kumo-TS are separate products</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Hardware and Supported Scope</h4>
+<p>The root installation matrix specifies CPython ≥3.11; Linux x86-64/ARM64 with glibc ≥2.34; Apple silicon macOS ≥14; Windows x86-64 CPU, or WSL2 for NVIDIA GPUs. AES plus SSE2/NEON are CPU requirements. Small workloads can run on CPU; Apple GPU needs macOS ≥15, while macOS 14 should explicitly choose CPU. NVIDIA GPU and local NVMe are recommended for production. These are documented support claims, not tested compatibility; no AMD GPU support was established. [1]</p>
+<p>“Beyond memory” still needs substantial RAM, disk bandwidth and scratch capacity. The headline machines have roughly 1–1.5 TiB RAM and tens of TB local NVMe. Plan capacity for source exports, graph generations, intermediate tables, checkpoints and assets—not just the compressed input. Do not extrapolate those results to network disks or a laptop. [4][8]</p>
+<p><br>## Security, Privacy and Deployment Trust</p>
+<p>- <strong>Local library:</strong> runs with the caller's filesystem, process and connector permissions; no server auth barrier protects local Python execution. Use least-privilege data identities and isolate untrusted datasets/artifacts. Cloud connectors and optional MLflow/platform integrations intentionally contact configured destinations; local execution is not a blanket no-egress guarantee. Dependency and asset acquisition are additional network events. [1][9]<br>- <strong>Model deserialization:</strong> core checkpoint loading explicitly uses <code>weights_only=False</code>. Only load model bundles/checkpoints from trusted writers; checksums establish corruption detection, not authorship or sandboxing. Trainer documentation says deserialization occurs at predict. [7][11]<br>- <strong>Studio authentication:</strong> configuration defaults authentication on, supports direct OIDC/password paths and API-key authorization, and has permission/project/group machinery. However, the internal-testing Compose template explicitly sets <code>DISABLE_AUTH=true</code>; disabled principals receive read/write/admin permissions. Never expose this template to an untrusted network. Code presence is not a completed authorization audit. [8][12]<br>- <strong>CORS:</strong> the main app validates configured origins when credentials are enabled. The public API app uses wildcard origins with credentials disabled. This is not evidence of a cookie-authenticated wildcard flaw by itself; auth, reverse-proxy and origin settings still need integration testing. [13]<br>- <strong>Secrets:</strong> production credentials use Fernet with a deployment secret; non-production modes use a constant dev/test key. Correct production mode and protected, backed-up key custody are mandatory. Do not mistake encrypted development records for secure secret storage. MLflow explicit-credential calls temporarily change process environment; the docs warn against concurrent independent MLflow/Databricks calls on other threads. [9][14]<br>- <strong>Network perimeter:</strong> Compose's normal entry is nginx, with internal backend services. TLS, ingress restrictions, trusted proxy handling, OIDC configuration and least-privilege warehouse access are operator duties. Prepared-image access and source backend build prerequisites are not proven anonymous installation paths; README still calls public dependency setup unfinished. [8]<br>- <strong>Data retention:</strong> exported Parquet, snapshots, model holdouts, predictions, manifests, logs and registry copies need access control, encryption/storage policy and deletion planning. No regulatory compliance, complete telemetry absence, hostile-tenant isolation or penetration-test claim is made by this review. [2][9]</p>
+<p><br>## Downloads and Licensing</p>
+<p>The main engine trains task-specific models; it does not require downloading a Kumo foundation model. Optional text support supplies GloVe 6B 50-dimensional embeddings. Its wrapper is Apache-2.0 and vectors are PDDL-1.0; third-party code/licenses are separately listed. Preserve notices and check the selected dependency/asset terms rather than treating the whole tree as only Apache. [1][15]</p>
+<p>Distinguish the public text package from the legacy container asset installer: <code>docker/install_glove_files</code> uses signed AWS downloads against a bucket its source describes as private, skips already-present files, and moves a temporary download into place without a visible checksum check in that helper. This is an installation/provenance boundary, not evidence that the public Python library requires private AWS access. No bucket was probed. Model assets in the newer MLOps path are content-addressed and checked separately. [9][16]</p>
+<p>Dependency manifests/lockfiles, build tooling and wheels form a sizeable native/Python supply chain. The root uv configuration pins its version, supports specific Torch indexes and imposes a seven-day release delay with exceptions. These controls are useful, but do not prove every distributed wheel matches reviewed source. Pin a tested engine/native/CUDA combination and verify asset/image provenance before deployment. [17]</p>
+<p><br>## Persistence and Recovery</p>
+<p>Snapshots and model bundles are explicit reusable artifacts. Snapshot export uses generation directories and writes its manifest last; documented loads verify integrity and complete or leave no result. Assets have SHA-256 identities; prediction exports use <code>_SUCCESS</code> markers. Object-store replacement deletes then writes, so readers may temporarily see no committed output, and partial destinations can remain recorded in provenance. These contracts help recovery but are not a transaction spanning all external systems. [9]</p>
+<p>For Studio, preserve PostgreSQL/Temporal state, dataplane objects, graph storage and encryption secrets consistently. Compose down preserves data by default, while volume deletion removes Docker-managed state but not host-mounted data. A disk index/cache is not a backup strategy, and local NVMe loss must be anticipated. No restore, interrupted-write, failover or upgrade drill was run; require a tested restore plan and retention policy before production. [2][8][9]</p>
+<p><br>## Self-Hosting Notes</p>
+<p>Start with the local library and a small public or synthetic dataset, not Studio's auth-disabled template. Before production, gate adoption on: a compatible pinned runtime; real time-separated quality comparison against a SQL/tabular baseline; cold and warm end-to-end costs including indexing; capacity and crash/restore tests; trusted model writers; connector least privilege; reviewed data/lineage retention; and a verified TLS/authenticated service configuration if Studio is needed. No install commands were executed for this review.<br></p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong out-of-core sampling design, but workload-specific vendor benchmarks are not universal speed or quality proof. Evaluate the local library first; Studio deployment and trusted model loading require separate security and recovery work.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/NVIDIA/kumo-engine">NVIDIA/kumo-engine</a> · Apache-2.0 + third-party terms</span>
+    <span><a href="kumo-engine.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

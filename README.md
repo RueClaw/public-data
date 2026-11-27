@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [kumo-engine.md](reviews/kumo-engine.md) [page](reviews/kumo-engine.html) | [NVIDIA/kumo-engine](https://github.com/NVIDIA/kumo-engine) | Apache-2.0 + third-party | ⚠️ Interesting | Disk-backed relational graph ML; qualified benchmarks and prerelease Studio boundaries |
 | [agentdream.md](reviews/agentdream.md) [page](reviews/agentdream.html) | [mvplab-ai/agentdream](https://github.com/mvplab-ai/agentdream) | MIT | ⚠️ Interesting | Reviewable offline memory consolidation; synthetic cleanup gains, approval/privacy and recovery caveats. Static review. |
 | [jcorp-nomad.md](reviews/jcorp-nomad.md) [page](reviews/jcorp-nomad.html) | [Jstudner/jcorp-nomad](https://github.com/Jstudner/jcorp-nomad) | GPL-3.0-or-later; asset/component exceptions | ⚠️ Interesting | ESP32-S3 offline media/library hotspot; HTTP, guest writes, update trust and card recovery caveats. Static review. |
 | [omnivoice.md](reviews/omnivoice.md) [page](reviews/omnivoice.html) | [k2-fsa/OmniVoice](https://github.com/k2-fsa/OmniVoice) | Apache-2.0 code; CC-BY-NC weights; separate tokenizer terms | ⚠️ Interesting | Multilingual masked-token TTS; non-streaming API and material rights/privacy gates |
