@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [hex.md](reviews/hex.md) [page](reviews/hex.html) | [anomalyco/hex](https://github.com/anomalyco/hex) | MIT; models separate | ⚠️ Interesting | Local voice dictation with authenticated API and careful persistence; optional scripts/rewrites widen privacy boundaries. Static review. |
 | [kumo-engine.md](reviews/kumo-engine.md) [page](reviews/kumo-engine.html) | [NVIDIA/kumo-engine](https://github.com/NVIDIA/kumo-engine) | Apache-2.0 + third-party | ⚠️ Interesting | Disk-backed relational graph ML; qualified benchmarks and prerelease Studio boundaries |
 | [agentdream.md](reviews/agentdream.md) [page](reviews/agentdream.html) | [mvplab-ai/agentdream](https://github.com/mvplab-ai/agentdream) | MIT | ⚠️ Interesting | Reviewable offline memory consolidation; synthetic cleanup gains, approval/privacy and recovery caveats. Static review. |
 | [jcorp-nomad.md](reviews/jcorp-nomad.md) [page](reviews/jcorp-nomad.html) | [Jstudner/jcorp-nomad](https://github.com/Jstudner/jcorp-nomad) | GPL-3.0-or-later; asset/component exceptions | ⚠️ Interesting | ESP32-S3 offline media/library hotspot; HTTP, guest writes, update trust and card recovery caveats. Static review. |
