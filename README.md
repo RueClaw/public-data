@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [omnivoice.md](reviews/omnivoice.md) [page](reviews/omnivoice.html) | [k2-fsa/OmniVoice](https://github.com/k2-fsa/OmniVoice) | Apache-2.0 code; CC-BY-NC weights; separate tokenizer terms | ⚠️ Interesting | Multilingual masked-token TTS; non-streaming API and material rights/privacy gates |
 | [opengame.md](reviews/opengame.md) [page](reviews/opengame.html) | [nexu-io/opengame](https://github.com/nexu-io/opengame) | Apache-2.0; asset/service terms | ⚠️ Interesting | Agent-assisted browser-game studio; execution isolation, telemetry, asset rights and recovery caveats. Static review. |
 | [simoncirstoiu-ripple.md](reviews/simoncirstoiu-ripple.md) [page](reviews/simoncirstoiu-ripple.html) | [simoncirstoiu/Ripple](https://github.com/simoncirstoiu/Ripple) | PolyForm Noncommercial 1.0.0 | ⚠️ Interesting | Zigbee RSSI motion sensing; binary firmware, hardware limits, privacy and OTA recovery caveats. Static review. |
 | [ancientswede-huginn.md](reviews/ancientswede-huginn.md) [page](reviews/ancientswede-huginn.html) | [ancientswede/Huginn](https://github.com/ancientswede/Huginn) | AGPL-3.0-or-later; asset exceptions | ⚠️ Interesting | RavenTrap honeypot intelligence; constrained SSH pull, recovery safeguards, isolation and egress caveats. Static review. |

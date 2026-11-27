@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OmniVoice — Review</title>
+<meta name="description" content="646-language research TTS with masked audio-token generation—not a turnkey commercial streaming service.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / omnivoice</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">k2-fsa/OmniVoice · reviewed 2026-11-27</div>
+    <h1>OmniVoice</h1>
+    <p class="one-liner">646-language research TTS with masked audio-token generation—not a turnkey commercial streaming service.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0 code · CC-BY-NC weights · separate tokenizer terms</span>
+      <span class="chip">Python · PyTorch · Qwen3 · Higgs tokenizer</span>
+      <span class="chip"><a href="https://github.com/k2-fsa/OmniVoice">k2-fsa/OmniVoice ↗</a></span>
+      <a class="chip" href="https://huggingface.co/k2-fsa/OmniVoice/blob/3fc979d1cd72492cd679c5ac2611e0d7ac047ba1/README.md">Pinned model card</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">17,183</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">2,520</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Coverage is not equal quality</h3><p>Authors list 646 languages and 581k training hours, with highly uneven representation. Voice design training is Chinese/English only; this static review does not establish quality across the language list.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Batch speed is not streaming</h3><p>Author H100 benchmarks report RTF down to 0.0115 at batch eight with FlashInfer. The checked API returns complete audio arrays; chunking does not yield a streaming client interface, and no benchmark was reproduced.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Rights and privacy are adoption gates</h3><p>Apache code does not cover CC-BY-NC main weights or the Boson tokenizer terms. Saved voice prompts retain tokens and transcripts; the demo has no configured auth or deletion schedule.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Tech</td></tr>
+<tr><td>Speech generator</td><td>Qwen3-0.6B-derived Transformer; 8 audio codebooks; iterative masked-token prediction</td></tr>
+<tr><td>Audio</td><td>HiggsAudioV2TokenizerModel; 24 kHz output; soundfile/librosa/torchaudio/pydub</td></tr>
+<tr><td>Optional ASR</td><td>openai/whisper-large-v3-turbo through Transformers pipeline</td></tr>
+<tr><td>UI / interfaces</td><td>Gradio demo, Python API, single and multiprocessing batch CLIs</td></tr>
+<tr><td>Training</td><td>Accelerate, WebDataset, flex attention or SDPA; optional PEFT LoRA</td></tr>
+<tr><td>Acceleration</td><td>Optional NVIDIA FlashInfer kernels and CUDA graphs</td></tr>
+<tr><td>Storage / auth</td><td>Local files/checkpoints/cache; no application authentication configured in demo</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>OmniVoice, attributed to k2-fsa and the Xiaomi AI Lab Next-gen Kaldi team, generates 24 kHz speech from text with an optional reference recording/transcript or voice-attribute instructions. A 3–10 second reference is the authors' recommendation; omitting the transcript can invoke local Whisper. Saved voice prompts allow reuse without repeatedly encoding audio. These features require speaker authorization, not merely possession of a recording. [S1, S2]</p>
+<p>The repository documents <strong>646 languages and 581k training hours</strong>, not 646 independently established production-quality voices. The inventory ranges from 206,061.1 English hours to 0.04 Haitian hours and 0.02 Macedo-Romanian hours. Voice-design training is Chinese/English only; authors warn of instability elsewhere, unreliable short unprompted clips, and Tai-lo-only Hokkien input. Evaluation recipes cover FLEURS' 102 languages plus other smaller suites, not exhaustive human evaluation of all 646. [S1, S3]</p><h4>Broad coverage with important quality caveats</h4><p>Language IDs, voice attributes, pronunciation overrides, non-verbal tags and opt-in number normalization expose useful controls. The language table is a training-coverage disclosure, not evidence of equal intelligibility, prosody or speaker similarity. Require native-speaker review for the actual language, dialect, script, names and numbers before adopting it. UTMOS is predicted MOS, not a human listening panel; ASR WER/CER and embedding similarity have their own biases. [S1, S3]</p>
+<h4>Voice reuse is also sensitive-data persistence</h4><p>VoiceClonePrompt.save stores audio tokens, reference transcript and RMS in a torch file. Its loader explicitly uses weights_only=True and checks a format version—better than unrestricted pickle loading, but not proof that arbitrary files are safe or bounded. Tokens remain voice-conditioning data, not anonymization. No encryption, expiration, consent verification or revocation system was found in this path. [S2]</p>
+<h4>Fast batch synthesis is not streaming latency</h4><p>The headline RTF 0.025 is an author claim. The more specific README benchmark reports a single H100, fp16, 32 steps, Seed-TTS Chinese (2,020 samples, 3.3 hours): baseline batch-one RTF 0.0899; FlashInfer 0.0430; FlashInfer plus CUDA graph 0.0367; batch-eight FlashInfer 0.0115. The authors call outputs ASR-verified lossless; this review did not reproduce speed or perceptual equivalence. [S1]</p>
+<p>The batch timer wraps generate(), excludes model startup and subsequent file writes, and allocates batch time across samples; aggregate RTF is not request latency or end-to-end server throughput. No first-audio latency distribution is established. generate() returns completed arrays; long-text chunking accumulates results before decoding/returning, rather than yielding audio to a client. Internal chunking therefore does <strong>not</strong> establish a streaming API. [S2, S5]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>This is discrete diffusion-language-model-style iterative unmasking, not an autoregressive speech chatbot and not a conventional continuous waveform diffusion pipeline. The checked model config uses a 28-layer Qwen3 backbone with hidden size 1024. Audio embeddings from eight codebooks are combined with text embeddings; a projection predicts eight sets of 1,025 symbols (including a mask token). A duration estimate or requested duration sets the target frame count. [S2, S6]</p>
+<p>Inference begins with masked target tokens, runs conditional and unconditional batches for classifier-free guidance, and progressively selects tokens using confidence, codebook-layer penalties and a time schedule. The explicit attention mask covers the whole valid segment; the Qwen configuration's CausalLM label should not be mistaken for token-by-token autoregressive generation here. Defaults are 32 steps, guidance 2.0, chunk threshold 30 seconds and target chunk duration 15 seconds. Unprompted long-form generation uses its first chunk as the reference for later chunks. The tokenizer decodes tokens and optional silence/fade processing finishes audio. [S2]</p>
+<p>Training uses weighted codebook cross-entropy, packed flex attention or padded SDPA batches. Checkpoint helpers save Accelerate state and model/tokenizer artifacts; documentation distinguishes resume from pretrained initialization and offers LoRA fine-tuning. Those are useful research recovery primitives, not a durable inference job service. [S2, S7]</p><h4>Licenses and reuse</h4><ol><li><strong>Code:</strong> root LICENSE is Apache-2.0; preserve notices and applicable attribution when reusing it. [S10]</li><li><strong>Main weights:</strong> the exact Hub model card says pretrained weights are <strong>CC-BY-NC due to training-data constraints (e.g. Emilia)</strong>. It does not specify the CC version in that statement, and the listed model files lack a root standalone LICENSE. Obtain precise terms before redistribution; do not infer commercial permission from GitHub's Apache label. [S6]</li><li><strong>Tokenizer:</strong> the bundled audio_tokenizer/LICENSE is the Boson Higgs Audio 2 Community License, incorporating Meta Llama 3 terms. It includes notices/display obligations, naming provisions, restrictions on improving other large language models and an expanded-license requirement above 100,000 annual active users. This is a separate, consequential dependency, not an Apache codec. Applicability and incorporated terms need legal review. [S11]</li><li><strong>Data and voice rights:</strong> model documentation is not a complete per-record training-data rights or speaker-consent audit. Emilia is expressly cited as a noncommercial constraint; no blanket training-data reuse grant or clearance for a user's reference voice follows. Training your own checkpoint does not automatically resolve tokenizer or dataset terms. [S6, S7]</li></ol><h4>Verification and provenance</h4><p>Anonymous GitHub metadata reported 17,183 stars, 2,520 forks and 81 open issues (snapshot 2026-11-27; counts are not quality evidence). Latest listed release was <strong>0.2.1</strong>, published 2026-07-16, tag ref 5ba967c4d5b0f08244ae856b033eea583d1e4517. The reviewed November source is newer despite pyproject still identifying 0.2.1; pin a commit, not just this version label. [S4, S12]</p>
+<p>The tree contains tests/test_lora.py for adapter configuration, gradient behavior, save/resume and merging. The checked workflows are PyPI publication and stale-issue management: distribution metadata checking is not an inference-quality test gate. Ruff pre-commit configuration exists; no comprehensive continuous multilingual/audio/security suite was established. Tests, builds and benchmarks were <strong>not run</strong>. No listening tests, memory measurements, dependency vulnerability scan, host/network observation or service penetration test was performed. [S13]</p>
+<p>Static verification checked source identity, model/config/license metadata, control flow, public accessibility, canonical deduplication and artifact markup. The paper is linked as author background, not represented as an independently reproduced evaluation. A production decision still requires rights clearance, target-language listening evaluation, measured warm/cold first-audio latency and peak memory, malformed-input tests, and deployment-specific privacy/security validation.</p><p>Source: 4d5ed0f0621507e8aebd4560bde316549e85c553; Hub: 3fc979d1cd72492cd679c5ac2611e0d7ac047ba1. Static review only; no source execution or model/audio downloads.</p><p>All source retrievals were anonymous public HTTPS reads on 2026-11-27 UTC. Code citations are pinned to the reviewed source commit; model citations to the independently recorded Hub commit. No audio or model weights were acquired.</p>
+<ul><li><strong>S1:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/README.md">README, features, limitations and author benchmark</a>.</li><li><strong>S2:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/omnivoice/models/omnivoice.py">Core model, prompt serialization, resolver, generation and chunking</a>.</li><li><strong>S3:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/docs/languages.md">Language inventory</a>, <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/docs/evaluation.md">evaluation methodology</a>, <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/docs/tips.md">tips</a>.</li><li><strong>S4:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/pyproject.toml">Package manifest</a>.</li><li><strong>S5:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/omnivoice/cli/infer_batch.py">Batch inference and timing/write/error paths</a>.</li><li><strong>S6:</strong> <a href="https://huggingface.co/k2-fsa/OmniVoice/blob/3fc979d1cd72492cd679c5ac2611e0d7ac047ba1/README.md">Pinned model card</a>, <a href="https://huggingface.co/k2-fsa/OmniVoice/blob/3fc979d1cd72492cd679c5ac2611e0d7ac047ba1/config.json">config</a>, <a href="https://huggingface.co/api/models/k2-fsa/OmniVoice/tree/3fc979d1cd72492cd679c5ac2611e0d7ac047ba1?recursive=true">file/size/LFS metadata</a>, <a href="https://huggingface.co/api/models/k2-fsa/OmniVoice">model metadata</a>.</li><li><strong>S7:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/docs/training.md">Training docs</a>, <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/omnivoice/training/checkpoint.py">checkpoint helpers</a>.</li><li><strong>S8:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/omnivoice/cli/demo.py">Gradio demo and launch configuration</a>.</li><li><strong>S9:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/omnivoice/utils/audio.py">Audio loading and processing</a>.</li><li><strong>S10:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/LICENSE">Code LICENSE</a>.</li><li><strong>S11:</strong> <a href="https://huggingface.co/k2-fsa/OmniVoice/blob/3fc979d1cd72492cd679c5ac2611e0d7ac047ba1/audio_tokenizer/LICENSE">Bundled tokenizer LICENSE</a>.</li><li><strong>S12:</strong> <a href="https://github.com/k2-fsa/OmniVoice/releases/tag/0.2.1">Release 0.2.1</a>, <a href="https://api.github.com/repos/k2-fsa/OmniVoice">public repository metadata</a>.</li><li><strong>S13:</strong> <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/tests/test_lora.py">LoRA tests</a>, <a href="https://github.com/k2-fsa/OmniVoice/tree/4d5ed0f0621507e8aebd4560bde316549e85c553/.github/workflows">workflows</a>, <a href="https://github.com/k2-fsa/OmniVoice/blob/4d5ed0f0621507e8aebd4560bde316549e85c553/.pre-commit-config.yaml">pre-commit config</a>.</li><li><strong>S14:</strong> <a href="https://github.com/OHF-Voice/piper1-gpl">Piper public README</a>.</li><li><strong>S15:</strong> <a href="https://github.com/SWivid/F5-TTS">F5-TTS README and license distinction</a>.</li></ul>
+<hr>
+<p><strong>Attribution:</strong> k2-fsa/OmniVoice; Han Zhu and collaborators; code copyright notices credit Xiaomi Corp. Code Apache-2.0; model and tokenizer terms differ as detailed above. This review is independent analysis, not an endorsement or reproduced benchmark.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Aspect</td><td>OmniVoice</td><td>Piper (OHF-Voice/piper1-gpl)</td><td>F5-TTS</td></tr>
+<tr><td>Best starting use</td><td>Broad multilingual zero-shot research</td><td>Local fixed-voice speech engine</td><td>Reference-conditioned TTS research</td></tr>
+<tr><td>Why consider it</td><td>646-language inventory; voice design; reusable prompts</td><td>Fast local engine with espeak-ng phonemization and multiple interfaces</td><td>Alternative research implementation for reference-voice synthesis</td></tr>
+<tr><td>Rights caveat</td><td>Apache code ≠ CC-BY-NC weights; separate tokenizer terms</td><td>Check engine and each voice's licensing</td><td>MIT code; author README says pretrained weights CC-BY-NC due to Emilia</td></tr>
+<tr><td>Decision criterion</td><td>Validate target language and non-streaming latency</td><td>Prefer when a suitable licensed stock voice meets the need</td><td>Not an automatic commercial-license escape hatch</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <ul><li><strong>Size is not a VRAM guarantee:</strong> Hub metadata lists 612,577,280 F32 parameters for the main model. Main safetensors is 2,450,344,112 bytes; bundled tokenizer weights are another 805,665,628 bytes (~3.26 GB combined downloads, before optional ASR). Main parameters alone would occupy approximately 1.23 GB at fp16, excluding tokenizer, activations, CFG duplication, runtime and ASR. No reliable minimum-VRAM matrix or CPU latency guarantee was established. [S6]</li><li><strong>Hardware paths:</strong> README documents CUDA, MPS and Intel XPU, with author-reported tests on 4 GB Arc A310 and 16 GB Arc Pro B50. That is not a universal 4 GB guarantee. The tokenizer is explicitly placed on CPU for MPS; optional ASR adds substantial memory and can be assigned another device. FlashInfer results require compatible NVIDIA/CUDA hardware. Training flex attention requires PyTorch ≥2.5 and a compatible GPU; SDPA is the fallback. [S1, S2, S7]</li><li><strong>Offline is a prepared deployment:</strong> the model resolver calls snapshot_download on a repo ID, without passing a pinned revision. If bundled tokenizer files are missing, it resolves bosonai/higgs-audio-v2-tokenizer separately; missing reference text may lazily resolve Whisper. Stage exact audited snapshots and dependencies, then use local paths and test denied network access. Do not assume passing revision downstream pins this custom resolver's earlier download. [S2]</li><li><strong>Integrity:</strong> the checked Hub snapshot is 3fc979d1cd72492cd679c5ac2611e0d7ac047ba1. Metadata advertises safetensors LFS hashes: main 730839316de585f4c8298ec0e1712efc10fb19c6fa4e36eb741cb8d51ebcf6aa; tokenizer fe7c5e8785e0a05833e1bfc3e002ec7f55af21e306b2e7154a448c1f54ccfb0d. These are published integrity references, <strong>not hashes verified against downloaded weights</strong>. No signed model attestation was established. Safetensors reduces pickle risk, not parser/dependency or provenance risk. The documented third-party mirror changes the supply-chain trust boundary. [S1, S6]</li></ul><h4>Security, privacy and recovery</h4><p><strong>Local versus hosted:</strong> the inspected synthesis path performs local model inference rather than sending reference audio to a commercial TTS API. Model downloads still contact Hub infrastructure; optional libraries/UI and deployment settings were not network-audited. Hosted Spaces and Colab necessarily transfer data into third-party infrastructure. Their retention, logging, deletion and training-use policies were not verified; do not present them as equivalent to an offline local run. [S1, S2]</p>
+<p><strong>Retention and consent:</strong> Gradio receives reference files, output files can be cached by its runtime, and CLI output plus explicitly saved prompts persists on disk. The demo does not configure an application deletion schedule; DEBUG logging can include text, reference transcripts and chunked text. A deployment needs explicit consent scope, access control, encrypted storage where appropriate, bounded retention and deletion covering uploads, prompts, generated audio, logs and backups. The README's misuse prohibition is a policy statement, not technical consent enforcement or a speaker-ownership check. No watermarking or impersonation detection was established in the inspected generation path. [S1, S2, S8]</p>
+<p><strong>Exposure and inputs:</strong> demo defaults to 0.0.0.0, offers an optional public sharing link and launches without auth settings. Do not expose it directly: bind privately and add authentication, TLS, request/queue quotas and resource caps. Empty text and missing clone references are checked, but UI sliders are not a complete server trust boundary. The inspected application does not impose a comprehensive upload-byte/text-length/output-duration policy; long references with a supplied transcript are warned about rather than necessarily trimmed. Audio parsing crosses soundfile/librosa and potentially codec dependencies. [S2, S8, S9]</p>
+<p><strong>Trusted batch manifests only:</strong> batch output uses os.path.join(res_dir, save_name + '.wav') from the supplied sample ID without a containment check at the write site. Absolute/traversal IDs can direct writes outside the output directory; duplicate IDs can overwrite results. This is a static local-manifest finding, not a demonstrated remote exploit. Sanitize IDs, constrain reference paths and run with least filesystem privilege before wrapping this CLI in an upload service. [S5]</p>
+<p><strong>Failure handling:</strong> demo catches generation exceptions and returns their type/message, but prompt creation occurs before that try block. Internal details may reach clients and failures are not uniformly handled. Batch workers log per-future failures and continue; fatal paths kill the process group. No durable retry queue, per-item transactional output/manifest, resumable generation or guarantee of a failing exit for partial failure was established. Isolate the batch process group, inspect expected outputs, and implement job accounting rather than accepting a final “Done!” as completeness. [S5, S8]</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong multilingual research potential, but pretrained weights are noncommercial and the bundled tokenizer has separate community-license terms. Language quality, first-audio latency and memory were not reproduced; the demo needs authentication and operational hardening.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/k2-fsa/OmniVoice">k2-fsa/OmniVoice</a> · Apache-2.0 code · CC-BY-NC weights · separate tokenizer terms</span>
+    <span><a href="omnivoice.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
