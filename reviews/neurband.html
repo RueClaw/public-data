@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>neurband — Review</title>
+<meta name="description" content="DIY eight-channel sEMG wristband and offline analysis: substantial engineering, still awaiting hardware validation.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / neurband</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">jlcjak/neurband · reviewed 2026-11-27</div>
+    <h1>neurband</h1>
+    <p class="one-liner">DIY eight-channel sEMG wristband and offline analysis: substantial engineering, still awaiting hardware validation.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">No project-wide license found</span>
+      <span class="chip">C / Zephyr · Python / NumPy · custom sEMG hardware</span>
+      <span class="chip"><a href="https://github.com/jlcjak/neurband">jlcjak/neurband ↗</a></span>
+      <a class="chip" href="https://github.com/jlcjak/neurband/tree/323cb41daeaa09287bed4ad71032d4161647558f">Reviewed source: 323cb41</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">131</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">9</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Simulation is not a human benchmark</h3><p>The 98–100% single-muscle result comes from a forward model. Physical noise, radio throughput and cross-donning gesture accuracy remain unvalidated in the reviewed evidence.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Physiological data needs a trust boundary</h3><p>BLE control and subscriptions do not enforce authentication/encryption. The loopback UDP marker listener also accepts unauthenticated local labels.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Keep the evidence, not just the session in RAM</h3><p>Packet gaps and diagnostics are retained, but the whole recording is saved only at shutdown. Missing licensing and differing host/firmware RLD defaults are additional pilot blockers.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Acquisition hardware</td><td>Rev C custom board, ADS1298, nRF52832-QFAA, LSM6DSL</td></tr>
+<tr><td>Embedded runtime</td><td>Zephyr C application; nRF52 DK target with custom pin/regulator overlay</td></tr>
+<tr><td>Transport</td><td>Custom GATT service, notifications, ASCII control commands; single central</td></tr>
+<tr><td>Host</td><td>Python asyncio/Bleak, NumPy; Linux BlueZ PHY helper</td></tr>
+<tr><td>Analysis</td><td>NumPy features, shrinkage LDA/logistic regression, leave-one-session-out evaluation; optional HDF5/pandas readers</td></tr>
+<tr><td>Persistence</td><td>Host NPZ recordings and JSON labels; no database/cloud service</td></tr>
+<tr><td>Design/simulation</td><td>KiCad/Python, FreeCAD, ngspice, finite-volume forearm model; Blender rendering</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>A real acquisition pipeline, not just CAD</h4>
+<p>The firmware separates data-ready interrupt handling, SPI acquisition, a 64-frame ring, DSP/packetization, a 20-packet queue and BLE transmission. Sample indices and sequence counters expose losses rather than silently interpolating them. Diagnostics include raw DC, lead-off, clipping, battery, overruns and drops; the host corrects pod ordering and polarity. This is useful instrumentation for determining whether a model is learning muscle signals or recording faults. [S2][S3][S4]</p>
+<h4>Sensible baseline evaluation—with a narrow implemented scope</h4>
+<p>The analysis package implements filters, quality gates, time-domain features, LDA/logistic regression and majority-vote trial scoring. Its CLI requires at least two input sessions and evaluates leave-one-session-out. That is a better default than randomly splitting overlapping windows. But each input file is treated as a session: users must actually separate donnings and avoid duplicate or correlated recordings. The CLI prints evaluation results; it is not a deployed online gesture decoder or pretrained general-purpose model. Offline zero-phase filtering also cannot establish causal end-to-end latency. [S5][S6]</p>
+<h4>Transparent scientific assumptions, overstated if read as measurements</h4>
+<p>The science documents distinguish published facts, calculations and judgments, and describe bench gates. However, the README's approximately 1.2 µVrms noise and 90–98% posture / 75–90% micro-gesture expectations are design estimates or extrapolations—not measured accuracy on this band. Its 98–100% single-muscle separation is a forward-model result. The same model reports 70–74% for subtle co-activation with eight channels and substantial rotation sensitivity; it explicitly says it is not a measurement of a person or device. Analytic solver agreement validates numerical behavior under assumptions, not anatomy, dry-contact artifacts or real gesture decoding. [S1][S6][S7]</p>
+<p>The claim of “four independent reviews” is a project description, not independently established peer review. This review did not replicate simulations or verify every cited paper. Meta hardware/data results cannot be transferred to this eight-channel device without accounting for channel geometry, polarity, front-end filtering, contact pressure and user/session shift. The project itself warns that zero-shot use of 16-channel checkpoints will likely fail. [S6][S7]</p>
+
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p> <strong>Data flow:</strong> electrodes → ADS1298 SPI → Zephyr acquisition/DSP → GATT notifications → Bleak recorder → local NPZ → quality/feature/evaluation commands. IMU data enters the same packet queue. Control writes are copied into bounded 40-byte command buffers and dispatched through an application work queue. The host parser checks packet lengths, types and zero gain for raw/diagnostic packets. These are good defensive basics, not a security boundary against an untrusted central. [S2–S5]</p>
+<h4>Supported hardware versus verified operation</h4>
+<p>The current target is the custom Rev C nRF52832 board, not an arbitrary BLE wristband. Using the stock DK target is a build convenience: its overlay replaces pin mappings and disables the DK's DC/DC assumption because this board lacks the required inductor. The firmware documentation reports a successful Zephyr 4.4.2 / SDK 1.0.1 build with roughly 30% flash and 94% static RAM; it explicitly says the firmware has not been run on hardware and older Zephyr/NCS/SoftDevice variants are untested. Runtime stack margins remain unmeasured. [S2][S8]</p>
+<p>A BLE 5 adapter with adequate MTU/data-length/2M negotiation is needed for the intended throughput. The suggested nRF52840 USB dongle is a Linux HCI adapter option, not firmware for the wristband. A cross-platform USB serial bridge is explicitly unimplemented. Windows/macOS behavior is discussed, not demonstrated compatibility. Raw 4 kSPS 24-bit streaming has much tighter radio requirements than the default filtered mode. Legacy ESP32 firmware exists separately and must not be confused with current Rev C support. [S1][S2]</p>
+<h4>Security, permissions and privacy</h4>
+<ul><li><strong>BLE lacks an enforced authenticated/encrypted boundary.</strong> GATT control and CCC writes use ordinary read/write permissions; the inspected connection path does not request security, and the configuration does not enable a pairing/bonding workflow. A nearby central able to connect can subscribe to physiological data or send start/stop/configuration/off commands. One-connection capacity is not authentication. The documented throughput budget explicitly assumes an unencrypted link. [S2][S3]</li><li><strong>Device identity is weak.</strong> Default scanning accepts the name or service UUID. An explicit address narrows selection but is not cryptographic identity. Treat the radio neighborhood as a trust boundary, especially with human recordings. [S4]</li><li><strong>A local UDP marker listener is on by default.</strong> It binds to loopback port 5006 unless changed or disabled; any local process can inject labels. An operator-selected non-loopback bind would expose unauthenticated marker injection on that network. There is no web app, HTTP authentication layer or CORS surface in this core path. [S4]</li><li><strong>No cloud account/API key is required by the inspected recorder/analysis path.</strong> Data stays in local arrays/files in that path; there is no observed automatic upload. BLE access and filesystem permissions still matter. Linux startup tries a fixed-argument btmgmt command that may require elevated adapter-management privileges; failure is tolerated, not a reason to run the whole research stack as root. [S4]</li><li><strong>Local does not mean nonsensitive.</strong> NPZ files contain EMG, IMU, wall-clock timestamps and labels; collection can record prompted keystrokes in its typing GUI. No application encryption, retention policy or participant-access controls were found. Use consent, restricted storage and deliberate deletion/backups. The NPZ loader disables pickle, but does not impose comprehensive size/shape limits for hostile input files. [S4][S5][S6]</li></ul>
+<h4>Persistence and recovery</h4>
+<p>The host retains the complete recording in RAM and writes NPZ at shutdown. Its finally block handles normal duration expiry, cancellation and disconnect during the main capture loop; there is no periodic checkpoint, append journal or atomic NPZ replacement. A process kill, power loss, memory exhaustion or failed save can lose the session. Setup before the main try/finally is also not comprehensively covered. Disconnect ends the run rather than automatically reconnecting and stitching a new clock epoch. [S4]</p>
+<p>Firmware buffers absorb only short stalls; losses are visible but unrecoverable. No on-device recording/replay storage is implemented in this path. Label saves are stronger: JSON is written to a temporary file then replaced, and collection updates it incrementally. That does not make the paired signal recording durable. [S2][S4][S5]</p>
+<h4>Concrete consistency and input-handling gaps</h4>
+<p>The firmware initializes the RLD mask to <strong>0x0F</strong>, but the host CLI defaults to <strong>0x03</strong> and sends that setting during connection; therefore the documented firmware default is not the effective default recording configuration. This changes the bias feedback sense set and should be reconciled before interpreting noise/stability comparisons. [S3][S4]</p>
+<p>Numeric commands use permissive atoi/strtoul conversion, and a full command queue can discard writes while the GATT callback still returns the original length. Several reconfiguration operations ignore returned failures. A successful transport write therefore does not prove the intended setting took effect; retain and check status/readback rather than assuming acknowledgement equals application. These are static code findings, not demonstrated exploits or measured failures. [S3]</p>
+<h4>Dependencies, Licensing and Maturity</h4>
+<p>No LICENSE/COPYING/NOTICE or project-wide grant was found in the tracked tree; GitHub reports no license. “Open” in the README is insufficient to authorize code, PCB or CAD reuse. Obtain explicit terms before redistribution, extraction or commercial manufacture. This review contains analysis and links, not copied implementation or design assets. [S1][S11]</p>
+<p>The README credits Blender Studio Human Base Meshes as CC0 and KiCad stock libraries; that is not a full asset-rights audit. Vendor datasheets, libraries and toolchain components retain their own terms. NumPy/Bleak and optional analysis libraries, Zephyr/Nordic/CMSIS/SEGGER modules, CAD tools and simulation tools do not inherit a hypothetical project license. The flex generator has version pins and a Git-commit-pinned library dependency, but the host/analysis environment has no unified lockfile and firmware setup relies on an external SDK/workspace. No dependency vulnerability audit was performed. [S1][S2][S9]</p>
+<p>Referenced model/data licenses must be checked separately. Anonymous reads of upstream LICENSE files confirmed <strong>CC BY-NC 4.0</strong> for generic-neuromotor-interface and <strong>CC BY-NC-SA 4.0</strong> for emg2pose and emg2qwerty at retrieval. Noncommercial and, where applicable, ShareAlike requirements are material; do not assume commercially reusable pretrained weights or training data. No external datasets/checkpoints were downloaded or relicensed by this review. These links are mutable upstream terms, not frozen legal advice. [S10]</p>
+<p>Tests exist for malformed packet rejection, encoding/decoding, sequence wrap/gaps, recording/marker round-trips, filter behavior, synthetic quality faults, alignment, classifiers and HDF5 layouts. They are valuable software checks but do not validate an analog board or physiological generalization. No tracked GitHub Actions workflows were found, and no GitHub releases were published at retrieval. The reported successful firmware build/synthetic tests remain upstream claims: <strong>tests run for this review: none</strong>. [S2][S11][S12]</p>
+<h4>Verification and Evidence</h4><p>Reviewed 2026-11-27 UTC. Exact source revision: 323cb41daeaa09287bed4ad71032d4161647558f. Static review only; no tests or hardware validation performed.</p>
+<p>Canonical identity was normalized from the submitted .git URL to the public repository URL. Anonymous API/source access succeeded. Existing public reviews/index were searched without finding this source, so this is a new review, not a duplicate refresh. Source inspection was static and selective: no full PCB electrical/netlist/DRC audit, mechanical strength test, antenna measurement, battery-runtime validation, safety certification, simulation rerun or scientific replication. Binary CAD/media assets were not executed. The shallow checkout does not establish full historical maturity.</p>
+<p>All repository citations below are pinned to the reviewed commit; metadata and external licenses are retrieval-date observations.</p>
+<ul><li>[S1] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/README.md">README and status</a>.</li><li>[S2] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/docs/firmware_c.md">Rev C firmware, hardware, safety and throughput documentation</a>.</li><li>[S3] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/firmware_c/src/ble.c">BLE service</a>, <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/firmware_c/src/main.c">application commands</a>, <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/firmware_c/src/acq.c">acquisition</a>, <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/firmware_c/prj.conf">configuration</a>.</li><li>[S4] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/host/neurband_ble.py">BLE recorder/parser/save path</a>.</li><li>[S5] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/analysis/model.py">Model/evaluation</a>, <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/analysis/__main__.py">CLI</a>, <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/analysis/recording.py">recording and atomic label saves</a>.</li><li>[S6] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/docs/science/data_and_models.md">Data/model evidence, protocols and limitations</a>.</li><li>[S7] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/docs/science/emg_forward_model.md">Forward-model methods and caveats</a>.</li><li>[S8] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/firmware_c/CMakeLists.txt">Build configuration</a>, <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/firmware_c/boards/nrf52dk_nrf52832.overlay">board overlay</a>.</li><li>[S9] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/boards/neurband_c_flex/requirements.txt">Flex dependencies</a>.</li><li>[S10] Upstream license texts retrieved 2026-11-27: <a href="https://github.com/facebookresearch/generic-neuromotor-interface/blob/main/LICENSE">GNI</a>, <a href="https://github.com/facebookresearch/emg2pose/blob/main/LICENSE">emg2pose</a>, <a href="https://github.com/facebookresearch/emg2qwerty/blob/main/LICENSE">emg2qwerty</a>.</li><li>[S11] <a href="https://api.github.com/repos/jlcjak/neurband">Public repository metadata</a>, <a href="https://api.github.com/repos/jlcjak/neurband/releases">releases</a>, <a href="https://github.com/jlcjak/neurband/issues">issues</a>, <a href="https://github.com/jlcjak/neurband/tree/323cb41daeaa09287bed4ad71032d4161647558f">tracked tree</a>.</li><li>[S12] <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/host/test_ble_packet.py">BLE packet tests</a>, <a href="https://github.com/jlcjak/neurband/blob/323cb41daeaa09287bed4ad71032d4161647558f/analysis/tests/test_analysis.py">analysis tests</a>.</li></ul>
+<hr>
+<p><strong>Attribution:</strong> jlcjak/neurband; no project-wide license found. External research, tools and assets retain their respective attribution and terms. </p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><th>Option</th><th>Fit and tradeoff</th></tr><tr><td>neurband</td><td>Custom eight-channel wearable; assembly, validation and licensing work remain.</td></tr><tr><td>Meta research repositories</td><td>Data and models, not compatible turnkey hardware; domain shift and noncommercial terms apply.</td></tr><tr><td>Established EMG platforms</td><td>Evaluate OpenBCI or lab systems to reduce board bring-up; form factor, safety and rate requirements differ. None tested here.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p> This is local hardware/desktop software, not a server to deploy. A sensible future pilot would first resolve licensing; freeze toolchain and dependency versions; validate the Rev C board off-body; measure noise, charger behavior, radio throughput and runtime stack margins; then establish a consented data-collection protocol. The source estimates a first-build batch at roughly $290–350, not a verified delivered unit price. [S1][S2]</p>
+<p>Before real collection, add authenticated/encrypted BLE with explicit device identity, durable chunked recording and reconnect epochs; reconcile RLD defaults; keep markers loopback-only or disable them; and validate held-out donnings plus null-data false activations. Do not use firmware charge detection as a substitute for electrical isolation or qualified safety review. No installation or flashing was performed for this review.</p>
+
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the diagnostic pipeline and explicit scientific assumptions, not a deployment-ready wearable. Missing licensing, unauthenticated BLE and shutdown-only recording need work; simulated accuracy and a reported build are not measured device performance.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/jlcjak/neurband">jlcjak/neurband</a> · No project-wide license found</span>
+    <span><a href="neurband.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
