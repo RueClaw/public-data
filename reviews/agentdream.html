@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentDream — Review</title>
+<meta name="description" content="Reviewable offline memory consolidation, not model training or proven autonomous learning.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / agentdream</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">mvplab-ai/agentdream · reviewed 2026-11-27</div>
+    <h1>AgentDream</h1>
+    <p class="one-liner">Reviewable offline memory consolidation, not model training or proven autonomous learning.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Python · stdlib · Markdown / JSON / SQLite</span>
+      <span class="chip"><a href="https://github.com/mvplab-ai/agentdream">mvplab-ai/agentdream ↗</a></span>
+      <a class="chip" href="agentdream.md">Pinned evidence and full review</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">18</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Memory edits, not weight updates</h3><p>Heuristics or an LLM propose merges, corrections and insights. A staged store and dependency-aware acceptance make the changes inspectable; downstream agents still have to consume the notes.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Measured cleanup, not measured agent improvement</h3><p>Upstream code-scored synthetic results include controls, but rules were tuned against the workload. No held-out real-task agent gain was established, and confidence scores are not calibrated safety probabilities.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Keep the approval and privacy boundary</h3><p>MCP accept and hook auto-apply can write durable memory. Claude CLI is not sandboxed by this wrapper; snapshots and backups retain original content, and token limits do not impose dollar budgets.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Tech</td></tr>
+<tr><td>Runtime</td><td>Python ≥3.10, standard-library-only core; hatchling build backend</td></tr>
+<tr><td>Entry points</td><td>CLI, Python API, stdio MCP, scheduler, Claude Code hook</td></tr>
+<tr><td>Storage</td><td>Markdown, JSON/JSONL, SQLite; optional externally installed stancelog</td></tr>
+<tr><td>Analysis</td><td>Deterministic heuristics or chunked LLM proposals with deterministic reduction</td></tr>
+<tr><td>Providers</td><td>Anthropic and OpenAI-compatible HTTP APIs, local-server aliases, Claude CLI</td></tr>
+<tr><td>Tests/tooling</td><td>pytest, Hypothesis, coverage, Ruff, mypy; GitHub Actions</td></tr>
+<tr><td>Authority</td><td>Local process/filesystem permissions and host MCP-client approval policy</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Staging is the useful abstraction</h4>
+<p>The default pipeline loads, redacts, limits, consolidates, verifies, extracts insights and writes a separate output. Operations carry IDs, targets, reasons, before/after text, evidence and dependencies. Partial acceptance follows dependencies; input hashes reject changed stores unless forced. This is more auditable than silently replacing a memory summary. CLI apply flags, hook auto-apply and MCP <code>accept</code> deliberately cross that boundary; “dry run” still writes local job artifacts and can call a provider. [E2, E5, E6]</p>
+<h4>Two distinct engines, neither a truth oracle</h4>
+<p>The deterministic engine uses inverted indexes/blocking rather than naive all-pairs comparison, and includes checks against merging similarly worded notes about different entities. LLM phases plan bounded chunks, parse JSON-like responses, validate operation types/targets and reduce conflicting proposals. Failed or capped model work can fall back to heuristics, so inspect warnings rather than attributing every result to the selected model. [E3, E4]</p>
+<p>The prompt explicitly treats transcripts as ground truth. A transcript can itself contain speculation, tool errors, stale claims or adversarial text. Citation validation establishes traceability, not factual entailment: for a known citation with an invalid quote, <code>validate_evidence</code> warns but substitutes the full message as supporting evidence. Corrections are downgraded only when no evidence remains; a surviving citation is not proof of the new claim. Model confidence is self-reported and heuristics use assigned scores, not calibrated probabilities. The hook’s <code>--safe</code> policy (merge/replace, confidence ≥0.75) is an operation filter, not a semantic safety guarantee. [E4, E6]</p>
+<h4>A real, limited benchmark rather than just model self-grading</h4>
+<p>The benchmark generates labeled facts and transcripts, then uses code probes against known truth to score the before/after store. It includes unchanged controls and unrelated notes, a substantial improvement over judging only compression or asking the proposing model to grade itself. The documentation reports deterministic “answered” facts improving 50/80 → 80/80 with all changes, but only 60/80 under safe auto-apply; clean facts reach 70/80 and paraphrase cleanup remains 0/10. A single Claude CLI run reports 80/80 clean facts. These are <strong>upstream-reported</strong>, not reproduced here. [E7]</p>
+<p>There is no held-out real-task evaluation in the inspected benchmark. Seeds vary template instances, not an independently withheld task distribution; the authors explicitly say the deterministic engine was fixed against this workload. “Answered” means probe-recognized values agree with truth, not an agent successfully answered a question or completed work. Regex/presence probes can miss assertions outside recognized wording. The model run uses the local login’s default model without a precise immutable model revision, repeated-run uncertainty or dollar accounting. Do not convert these numbers into claims of general intelligence improvement, long-term retention or production precision. A credible next step is frozen held-out transcripts/tasks, before/after agent runs, blinded human fact checking, false-edit rates and measured cost. [E7]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p><code>entry point → DreamConfig → DreamJob → pipeline → adapter/engine → staged store + report → accept/restore</code></p>
+<p><code>DreamContext</code> maintains a redacted working view and original entries, tracks operations and updates the view between phases. Chunked LLM calls are reduced deterministically: duplicate proposals coalesce, overlapping merges combine, and conflicts are ranked using evidence count, confidence and operation type. These are consistency rules, not an independent semantic evaluator. Config resolution and backend entry-point loading are trusted local code/configuration surfaces. [E2–E5, E8]</p>
+<h4>Execution, approval and sandbox boundaries</h4>
+<ul><li>The core is a local library, not a sandbox or multi-tenant service. MCP is stdio; it supplies no separate user authentication, path allowlist or mandatory human-confirmation ceremony for <code>accept</code>. Clients must gate destructive tools themselves. [E6]</li><li>HTTP backends request text/JSON and do not expose an internal tool executor. However, the Claude CLI backend launches <code>claude -p --output-format json</code>, inherits the process environment/current directory and permits extra arguments. It does not explicitly disable tools, isolate the filesystem, restrict credentials or impose its own permission mode. Actual Claude behavior depends on installed CLI policy; do not equate headless invocation with containment. [E8]</li><li>Markdown loading checks outward symlinks and preserves them without reading their contents. JSON directory loading instead selects <code>is_file()</code> matches then reads bytes without the same containment check. Use trusted input directories; do not assume uniform adapter confinement. This is static code observation, not an exploitation test. [E9]</li><li>Untrusted transcript instructions can influence proposed durable memory. Human review, least-privilege paths and independent evidence are still necessary even when JSON structure validates. [E4]</li></ul>
+<h4>Secrets, privacy, egress and budgets</h4>
+<p>Redaction runs on analyzed content and final model prompts, with provider-key patterns, assignment rules, entropy detection, cards and configurable patterns; email redaction is off by default. This is a useful defense, not comprehensive anonymization: prose, names, paths and business facts may still leave the machine. Turning on a hosted backend sends selected memory/transcript content to its configured endpoint; custom base URLs and inherited provider environment variables are operator-trusted. The deterministic default requires no model network request; local OpenAI-compatible servers can avoid hosted inference when separately configured. No telemetry call was identified in the inspected core, but that is not a dependency or external-CLI privacy audit. [E2, E8, E10]</p>
+<p>Local artifacts also matter. <code>snapshot.json</code> deliberately stores original, unredacted entries; staged stores and backups preserve original sensitive content. Job configuration serializes <code>backend_options</code>, while <code>_shown_config</code> specifically scrubs instructions/session paths rather than all backend options: avoid passing literal API keys there. Redacted reports are not permission to publish entire job directories. Atomic JSON/text files use <code>mkstemp</code>, but not every directory, copied store, log or backup is covered by that file-creation path; use a private job directory, restrictive account permissions, encryption/retention policy and environment-based credentials. [E2, E5, E10]</p>
+<p>Defaults cap input estimates at 400,000 tokens, 100 sessions, 20,000 entries and 2 MB per transcript; LLM planning allows 64 chunks per phase at an estimated 60,000 tokens each, with two retries. These are approximate work limits, not a dollar budget or exact tokenizer accounting. Anthropic has an output-token setting; the OpenAI request shown has no explicit output-token limit. No global spend ledger, provider quota enforcement or total-job monetary ceiling was found. Apply independent provider budgets and conservative call limits before automation. [E8, E11]</p>
+<h4>Persistence and recovery</h4>
+<p>Jobs persist state, operations, original snapshots, input hashes and reports; dead worker detection marks interrupted jobs failed rather than presenting partial reports as complete. Acceptance backs up the target, writes a sibling replacement, and swaps paths with rollback on caught failures. Restore is available. This supports recoverability, but is not a transactional guarantee across all failure modes. [E5]</p>
+<p>The swap uses multiple renames; abrupt process death between them cannot execute Python exception rollback. The target can temporarily be absent, and sidecars complicate SQLite replacement. Accept locks live under the chosen jobs directory and key on an absolute path, so different job roots/path aliases do not necessarily coordinate the same target. <code>restore</code> does not use the same target-lock wrapper. Single-writer operation, retained backups and a tested recovery procedure are prudent; no automatic mid-phase resume or power-loss proof was established. Existing crash tests cover injected exceptions and killed workers, but were not run for this review. [E5, E12]</p><h4>Maturity, Dependencies and License</h4>
+<p><br>The manifest labels the project Alpha. At retrieval, public metadata reported 18 stars, 3 forks, 2 open issues (GitHub’s combined issue/PR count) and last push 2026-11-27T19:36:37Z. Popularity is not reliability evidence. One release, v0.1.1, was returned by the releases endpoint. [E1, E13]</p>
+<p>There are 41 <code>test*.py</code> files, including edge suites for permissions, traversal, malformed/model output, concurrency, limits and crash recovery. CI specifies Ubuntu Python 3.10–3.13, best-effort macOS jobs, Ruff, mypy, examples and smoke tests; coverage is non-branch with a 94% threshold, not proof of semantic safety. Anonymous GitHub observation showed CI and Dream example successful for the exact reviewed SHA. This confirms upstream run status, not every optional/live path: live tests are opt-in, and no local test or benchmark was run. [E1, E12, E14]</p>
+<p>The empty core dependency list reduces SDK footprint. Build/dev requirements use lower bounds, CI installs stancelog from an unpinned Git URL, and Actions use major-version tags rather than commit pins. No dependency lockfile was found. Optional adapters, installed backend entry points, external Claude CLI and model/server packages expand the trust and licensing boundary. MIT covers this repository’s code, not provider services, third-party code or model weights; the stancelog repository’s license was not independently audited here. No source extraction accompanies this review. [E1, E8, E14]</p><h4>Provenance</h4>
+<p><strong>Repo:</strong> https://github.com/mvplab-ai/agentdream<br><strong>License:</strong> MIT; copyright 2026 systemagents-ai. Preserve the notice when redistributing substantial code. Provider/model and optional adapter terms remain separate.<br><strong>Reviewed:</strong> 2026-11-27 (UTC)<br><strong>Revision:</strong> <code>b0e9aacde64da57b9025307d8bf2fd32448a28a5</code> (main); repository-wide static review, focused on pipeline, engines, backends, adapters, jobs/review, integrations, benchmark and CI.<br><strong>Release:</strong> Latest public release observed: v0.1.1, published 2026-11-27T19:08:14Z; tag resolves to <code>b03d2ffc8aecb291656c6de5c796026c5063d406</code>, not the reviewed main commit. Package version: 0.1.1.<br><strong>Verification:</strong> Anonymous public GitHub metadata and HTTPS clone verified. Static inspection only: no installation, source execution, tests, benchmark, training, inference, model downloads, private transcript access or paid calls. Upstream CI observations are not locally reproduced results.<br><strong>Stack:</strong> Python ≥3.10; standard-library core; Markdown/JSON/SQLite stores; optional stancelog; urllib model APIs; Claude Code subprocess; stdio MCP.<br><strong>What it is:</strong> A batch memory-maintenance library and CLI for agents: consolidate notes, compare them with session transcripts, propose corrections and insights, then review and optionally apply a staged store. It is not a model-training system.</p><h4>Evidence and Verification Ledger</h4>
+<p><br>All code links pin the reviewed SHA; mutable metadata and workflow observations were retrieved anonymously on 2026-11-27 UTC.</p>
+<ul><li><strong>E1:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/README.md">README</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/pyproject.toml">manifest</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/LICENSE">MIT license</a>.</li><li><strong>E2:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/pipeline.py">Pipeline</a>.</li><li><strong>E3:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/engine/deterministic.py">Deterministic engine</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/engine/__init__.py">engine dispatch/fallback</a>.</li><li><strong>E4:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/engine/llm.py">LLM prompts, evidence validation, planning and reduction</a>.</li><li><strong>E5:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/jobs.py">Jobs</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/review.py">accept/restore</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/util.py">atomic writes</a>.</li><li><strong>E6:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/mcp_server.py">MCP authority</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/cli.py">CLI policies</a>.</li><li><strong>E7:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/docs/BENCHMARK.md">Benchmark methodology/results</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/bench.py">generator/scorer</a>.</li><li><strong>E8:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/backends/builtin.py">Provider and subprocess implementations</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/backends/__init__.py">backend entry points/aliases</a>.</li><li><strong>E9:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/adapters/markdown.py">Markdown paths</a>, <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/adapters/jsonstore.py">JSON paths</a>.</li><li><strong>E10:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/redact.py">Redaction behavior/exemptions</a>.</li><li><strong>E11:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/src/agentdream/context.py">Configuration defaults</a>.</li><li><strong>E12:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/tests/edge/test_crash_recovery.py">Crash-recovery tests</a>, <a href="https://github.com/mvplab-ai/agentdream/tree/b0e9aacde64da57b9025307d8bf2fd32448a28a5/tests">test tree</a>.</li><li><strong>E13:</strong> <a href="https://api.github.com/repos/mvplab-ai/agentdream">Public repository metadata</a>, <a href="https://api.github.com/repos/mvplab-ai/agentdream/releases">releases</a>, <a href="https://github.com/mvplab-ai/agentdream/releases/tag/v0.1.1">v0.1.1</a>.</li><li><strong>E14:</strong> <a href="https://github.com/mvplab-ai/agentdream/blob/b0e9aacde64da57b9025307d8bf2fd32448a28a5/.github/workflows/ci.yml">CI definition</a>, <a href="https://github.com/mvplab-ai/agentdream/actions/runs/46057913856">observed CI run</a>, <a href="https://github.com/mvplab-ai/agentdream/actions/runs/46057913870">observed dry-run example</a>.</li></ul>
+<p><strong>Limitations:</strong> Static, bounded review; no exploit validation, complete dependency-license audit, provider-policy audit, runtime integration test or independently reproduced improvement. Public source instructions were treated as data. Findings identify deployment boundaries, not a certification of safety or an assertion of observed exploitation.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Aspect</td><td>AgentDream</td><td>Versioned Markdown + manual review</td><td>Letta / Mem0-style memory systems</td></tr>
+<tr><td>Primary fit</td><td>Offline consolidation of existing stores</td><td>Maximum edit control, minimal machinery</td><td>Broader agent-memory lifecycle or retrieval integration</td></tr>
+<tr><td>Memory mechanism</td><td>Heuristic/LLM edit proposals</td><td>Explicit human-authored diffs</td><td>Product-specific structured/retrieval-backed memory</td></tr>
+<tr><td>Operational cost</td><td>Offline default; optional inference</td><td>Human attention; no required inference</td><td>More integration/service/storage decisions</td></tr>
+<tr><td>Safety decision</td><td>Review every semantic edit; control auto-apply</td><td>Reviewer owns each change</td><td>Evaluate each product’s authorization and persistence separately</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>1. Pin a reviewed revision and use a dedicated unprivileged environment; do not attach real private transcripts merely to test installation. Start with synthetic copies and deterministic analysis.<br>2. Keep source stores, jobs, backups and credentials separate. Restrict input/output paths and keep one writer per store. Explicitly exclude job artifacts from publication or shared backup destinations.<br>3. Review diff, evidence, fallback warnings and proposed deletions before acceptance. Disable hook auto-apply initially; do not expose MCP <code>accept</code> to an agent without host-side approval.<br>4. For LLM use, approve the destination and data handling first, set independent budgets and minimize selected sessions. Prefer direct text APIs or separately constrained local inference over assuming a CLI is sandboxed.<br>5. Test backup/restore on disposable copies, including process interruption and concurrent edits. Measure held-out false merges and real task outcomes before enabling unattended consolidation.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Useful deterministic defaults, staged edits and synthetic controls. Pilot with manual acceptance: evidence traceability is not factual entailment, hosted inference is data egress, and CLI isolation and hard-crash recovery need operator controls. Static review only; benchmark gains were not independently reproduced.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/mvplab-ai/agentdream">mvplab-ai/agentdream</a> · MIT</span>
+    <span><a href="agentdream.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
