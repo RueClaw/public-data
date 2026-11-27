@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jcorp Nomad — Review</title>
+<meta name="description" content="ESP32-S3 pocket offline media and knowledge server: impressive breadth, trusted-network boundaries.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / jcorp-nomad</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Jstudner/jcorp-nomad · reviewed 2026-11-27</div>
+    <h1>Jcorp Nomad</h1>
+    <p class="one-liner">ESP32-S3 pocket offline media and knowledge server: impressive breadth, trusted-network boundaries.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">GPL-3.0-or-later; asset/component exceptions</span>
+      <span class="chip">ESP32-S3 · Arduino/C++ · microSD · browser JS</span>
+      <span class="chip"><a href="https://github.com/Jstudner/jcorp-nomad">Jstudner/jcorp-nomad ↗</a></span>
+      <span class="chip"><a href="https://github.com/Jstudner/jcorp-nomad/commit/9fad8cab4d96d36701c056b09fd448f494ee5773">Reviewed SHA ↗</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1,391</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">67</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>A library, not a workload scheduler</h3><p>Direct-play media, readers, maps, translation and games run across an ESP32-S3 server and browser clients. Prepared content and compatible Waveshare hardware are required.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Trusted peers only</h3><p>No admin password means everyone is treated as admin. Bearer tokens travel over HTTP, ordinary guest writes can include deletes, and removable-card credentials are not encrypted.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery is thoughtful, proof is limited</h3><p>Signed dual-slot firmware OTA, staged settings and guarded index publication are concrete mechanisms. Tests and benchmarks were not run; Mk5 main is newer than the backfilled Mk4 release.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Tech</td></tr><tr><td>Firmware</td><td>Arduino-ESP32 3.3.3; large Arduino sketch plus C++/header modules and FreeRTOS tasks</td></tr><tr><td>Networking</td><td>AsyncTCP 3.6.0; vendored, patched ESP Async WebServer 3.12.1; DNS/captive portal, DLNA</td></tr><tr><td>Storage</td><td>SdFat 2.3.0; microSD FAT/exFAT; JSON settings and generated indexes, no database server</td></tr><tr><td>Device screen</td><td>LVGL 8.3.10; generated UI and status assets</td></tr><tr><td>Browser</td><td>HTML/CSS/JavaScript; PDF.js, epub.js, Plyr, MapLibre/PMTiles, EmulatorJS and others</td></tr><tr><td>Authentication</td><td>Optional shared admin password, challenge-response login, bearer sessions; no per-viewer account model</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Nomad creates its own hotspot or joins an existing network, serving media directly to browsers and DLNA clients. Its primary target is inexpensive, portable sharing for travel, camping and small groups, not an always-on account-based home media service. It is built specifically for Waveshare's ESP32-S3 1.47-inch LCD USB-A/USB-C boards; the README recommends the separate Nomad Lite project for other ESP32 boards. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a></p>
+<p>The browser does much of the feature work: playback, readers, games, map rendering and translation. ZIM archives, map packs and translation packs need advance preparation using the separately maintained Nomad Tools. Supported filename extensions are not a guarantee of browser codec support; this firmware is not an on-device video transcoder. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/THIRD-PARTY-NOTICES.md">[9]</a></p><h4>Shared media and reading</h4><p>Movies/shows, music queues, books/comics, subtitles, gallery/files, OPDS and DLNA provide unusually broad direct-play coverage. Watch Together, local multiplayer and chat add shared activities rather than isolated playback. Browser compatibility and aggregate Wi-Fi bandwidth constrain the experience. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/THIRD-PARTY-NOTICES.md">[9]</a></p>
+<h4>Prepared offline knowledge</h4><p>ZIM browsing, vector maps with routing, installed translation pairs, recipes and 3D-model previews extend the device beyond a media stick. The preparation tools and acquired content are separate operational dependencies; this review did not inspect or run their distribution archives. Offline use requires loading the necessary data and browser assets beforehand. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/THIRD-PARTY-NOTICES.md">[9]</a></p>
+<h4>Administration and recovery</h4><p>The admin interface exposes page/upload controls, indexing, activity, storage health, themes, network configuration and updates. Firmware OTA verifies a signed image and uses an inactive slot with a boot-proving/rollback sequence; interface updates are a different, hash-checked file replacement mechanism. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadFirmware.h">[4]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadUpdate.h">[5]</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p>The 8,816-line <code>JcorpNomadProject.ino</code> owns startup, HTTP route registration, media streaming, settings, indexing and file operations. Smaller modules separate path policy, auth, OTA, SD access, health, DNS, DLNA and display concerns; <code>NomadMain.cpp</code> is the LCD main-screen module, not the application entry point. This is hardware-specific embedded software, not a containerized service. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a></p>
+<p>HTTP range responses read from microSD. An aligned internal DMA buffer feeds per-response PSRAM read-ahead caches, reducing small SD transactions on the network task. Mutexes, queues and worker tasks coordinate card writes and longer operations. These are useful constrained-memory patterns, but global state and a large central sketch raise maintenance and integration-test costs. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadReadAhead.h">[6]</a></p>
+<p>The card root is also the web root. Firmware middleware canonicalizes paths to account for FAT case/spacing aliases, URL decoding and protected locations; upload handlers apply checks before writing body chunks. Content, UI scripts, generated indexes and private settings thus share a physical medium but have distinct web-access policies. <a href="https://github.com/Jstudner/jcorp-nomad/tree/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject">[7]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadGuardWeb.h">[15]</a></p>
+<h4>Security, Permissions and Privacy</h4><ul><li><strong>Configure admin auth before sharing.</strong> The default admin password is empty, and <code>checkAdminAuth()</code> then returns true for everyone. The README also publishes a common factory hotspot credential. Change the hotspot credential and set a strong separate admin password before joining a shared LAN. This is a deliberate default, not evidence of an authentication bypass. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadAuth.h">[3]</a></li><li><strong>Authentication is not transport encryption.</strong> Login uses PBKDF2-HMAC-SHA256 (10,000 default iterations), single-use expiring nonces and HMAC proofs; sessions use random tokens and store their hashes on the card. Non-remembered sessions idle out after an hour; remembered sessions survive restarts until revoked/password change. The server listens on HTTP port 80, and browser-held tokens go in <code>X-Admin-Token</code>. Challenge-response does not prevent a network attacker from stealing bearer tokens or replacing HTTP-delivered JavaScript. The stored PBKDF2 key can itself generate valid challenge proofs if the card is stolen; it is a credential-equivalent, not merely a harmless password hash. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadAuth.h">[3]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/SD_Card_Template/nomad-utils.js">[10]</a></li><li><strong>Guest writes are broader than uploads.</strong> With guest writes enabled, ordinary content paths may be created, renamed, saved or deleted; protected UI/active-content/root paths require admin status, and config paths are forbidden through file routes. The upload switch also gates ordinary mutations, but community paths are exempt. This is not per-user ownership or role-based authorization. Disable guest writes for curated libraries and still keep backups. <a href="https://github.com/Jstudner/jcorp-nomad/tree/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject">[7]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadGuardWeb.h">[15]</a></li><li><strong>Real defensive work is present.</strong> Middleware rejects cross-site mutation requests based on Origin/Fetch Metadata, protects config reads, covers route suffix matching, and treats active content and FAT short-name aliases specially for writes. Login throttling is per address plus a global burst cap. These are inspected controls, not proof that every route/parser is vulnerability-free; clients without Origin are not automatically rejected. Permissive CORS appears on media/read responses and is not an authorization boundary. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a> <a href="https://github.com/Jstudner/jcorp-nomad/tree/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject">[7]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadGuardWeb.h">[15]</a></li><li><strong>Offline does not mean private from peers or the operator.</strong> Browsing is generally shared without viewer accounts. The admin can see device/file activity and stop streams; usage totals and popular-file counts persist locally. Browser localStorage retains resume/bookmark state and optionally an admin token. Settings serialize hotspot/LAN credentials onto the removable card; no at-rest encryption was established. Protect the card and backup copies. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadUsage.h">[8]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/SD_Card_Template/nomad-utils.js">[10]</a></li><li><strong>Network mode introduces egress.</strong> In Wi-Fi mode the admin browser checks/downloads UI updates from the flasher service; firmware can pull updates too. Firmware pull explicitly uses <code>setInsecure()</code>, so TLS certificate validation is disabled there, although image signature verification remains a separate defense against unauthorized firmware. UI updates validate size and SHA-256 supplied through the update flow, not the firmware's ECDSA signature scheme. Treat the update service/browser and card UI as trusted code sources; do not describe this as an air-gapped system in network mode. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadFirmware.h">[4]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadUpdate.h">[5]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/SD_Card_Template/admin.js">[16]</a></li></ul>
+<h4>Persistence, Backup and Recovery</h4><p>Settings, sessions, usage and shared state live on the SD card; firmware update status also uses ESP32 Preferences/NVS. The settings writer uses temporary/backup files and boot-time JSON recovery. Index construction stages data and checks read-back before publishing; failed scans can retain the previous index. A 32 MiB reserve protects configuration space from uploads. These are concrete mitigations, not guarantees against card wear, filesystem corruption or sudden power loss. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadAuth.h">[3]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadFirmware.h">[4]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadUpdate.h">[5]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadUsage.h">[8]</a></p>
+<p>OTA writes an inactive partition, checks SHA-256, signature, board and version, then requires startup health and 60 seconds of successful running with a 120-second deadline. It depends on a compatible partition/bootloader layout; code reports that devices without a spare slot need USB flashing first. USB recovery and owner-built firmware remain possible, whereas stock OTA trusts the shipped public key. None of these recovery paths was exercised. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadFirmware.h">[4]</a></p>
+<p>UI updates swap individual files with staging/old suffixes; that is not an atomic transaction across the entire interface. Keep a known-good matching firmware/card-interface pair and an offline full-card backup, including hidden files and config. Stop writes before copying, retain browser state separately if important, and test restore on a spare card before relying on the device. Backups containing settings are sensitive. Rebuilding indexes is not restoration of deleted media. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/JcorpNomadProject.ino">[2]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadUpdate.h">[5]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/SD_Card_Template/nomad-utils.js">[10]</a></p>
+<h4>Maturity, Tests and Performance Evidence</h4><p>Anonymous metadata on 2026-11-27 reported <strong>1,391 stars, 67 forks and 2 open issues</strong> (GitHub's open-issues count can include pull requests), with last push 2026-11-23. These indicate attention/activity, not safety or reliability. <a href="https://api.github.com/repos/Jstudner/jcorp-nomad">[14]</a></p>
+<p>Main presents <strong>Mk5 / firmware 5.0</strong>, but the newest published release returned by the releases API is <strong>mk4</strong>, published 2026-11-23, explicitly a backfilled pre-Mk5 release. Its annotated tag object is <code>b3b9d89f4761b27a018bd475a67a2e364e9bda33</code>, peeling to <code>4e2c5448fda6a1a0d888f05a07da5d4d59efa20c</code>. The release says firmware 4.6 and CC BY-NC-SA 4.0, with no uploaded release assets. Do not equate that release/license with reviewed main. The source update-channel default remains <code>experimental</code> unless overridden, despite the README's stable branding. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadUpdate.h">[5]</a> <a href="https://github.com/Jstudner/jcorp-nomad/releases/tag/mk4">[11]</a></p>
+<p>A host C++ path-policy suite exists at <code>tools/guardtest</code>; it compiles the real guard header against a String stand-in and exercises malformed/encoded paths and access rules. Conditional benchmark endpoints and failure-injection hooks also exist. No checked-in GitHub Actions workflows were found at the reviewed tree. No tests, builds, source scripts or benchmarks were executed for this review. A narrow unit harness is not end-to-end evidence for HTTP auth, media behavior or recovery. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadReadAhead.h">[6]</a> <a href="https://github.com/Jstudner/jcorp-nomad/tree/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject">[7]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadGuardWeb.h">[15]</a> <a href="https://github.com/Jstudner/jcorp-nomad/tree/9fad8cab4d96d36701c056b09fd448f494ee5773/tools/guardtest">[12]</a></p>
+<p>The author reports aggregate <strong>8–9 Mbit/s</strong> in a less congested environment, roughly four higher-quality films or eight at the stated 480p preset, and an OPDS improvement from about nine seconds to half a second. Read-ahead comments report network-task SD-read time dropping from 12.3 to 1.4 seconds per 30 seconds with eight downloads. These are useful, specific author measurements, but the inspected material did not supply an independently reproduced benchmark dataset or a complete controlled methodology. Radio contention, card behavior, encoded bitrate and client browser matter; do not plan capacity from the star count or a “stable” badge. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/firmware/JcorpNomadProject/NomadReadAhead.h">[6]</a></p>
+<h4>Dependencies and Licensing</h4><p>The licensing document grants GPL-3.0-or-later for project code/docs and an additional linking permission for Espressif SDK/binary-only components. Case STL models use CC BY-SA 4.0; names/logos and product photos are excluded from the general license. Preserve notices and satisfy corresponding-source obligations when distributing firmware or derivatives; follow branding restrictions for renamed/sold builds. Do not substitute the README's simplified licensing summary for the actual terms. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/LICENSING.md">[13]</a></p>
+<p>Third-party notices list LGPL libraries, MIT/BSD/Apache browser components, fonts and media with separate terms, plus UnRAR's extraction-only restriction. Emulator/game cores, ROMs, acquired maps, ZIMs and translation datasets require their own rights review; the project license does not grant rights to arbitrary content. No exhaustive transitive-license, CVE, binary-provenance or dependency-reproducibility audit was performed. No source/assets were extracted into this review. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/THIRD-PARTY-NOTICES.md">[9]</a> <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/LICENSING.md">[13]</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Aspect</td><td>Jcorp Nomad</td><td>Alternative</td></tr><tr><td>Small ESP32 portable media server</td><td>Broad UI, tightly coupled to supported LCD boards</td><td><a href="https://github.com/Jstudner/jcorp-nomad-lite">Nomad Lite</a>: suggested by the author for other ESP32 boards and simpler media use</td></tr><tr><td>Full home media service</td><td>Direct-play, shared viewers, small resource budget</td><td><a href="https://jellyfin.org">Jellyfin</a>: better fit for accounts, library management and capable-host transcoding; requires more hardware/operations</td></tr><tr><td>Offline reference appliance</td><td>Many entertainment and library features; ZIM preparation step</td><td><a href="https://kiwix.org/en/applications/">Kiwix Hotspot</a>: consider for a primarily offline educational/reference hotspot rather than a tiny general media gadget</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a hardware build/flash workflow, not Docker deployment. Use the specified board, adequate USB power, a reliable card and the pinned Arduino/library versions, or independently verify the prebuilt flasher's firmware provenance. Match USB-A versus USB-C display wiring and keep firmware/interface versions aligned. Populate and index the card before travel; test real client browsers and codecs, expected simultaneous streams, map/translation packs, power-loss recovery and backup restore. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a></p>
+<p>Keep the device off the public internet and on a trusted or isolated network; do not port-forward it. Set credentials, restrict guest mutations, avoid confidential content and untrusted executable card files, and use a separate low-privilege network credential in station mode. A controlled trial is reasonable; replacing a private account-based media server or relying on it as the only copy of a library is not.</p><h4>Provenance and limitations</h4><p><strong>Repo:</strong> https://github.com/Jstudner/jcorp-nomad</p>
+<p><strong>Author:</strong> Jackson Studner / Jcorp Tech</p>
+<p><strong>License:</strong> GPL-3.0-or-later code/docs, CC BY-SA 4.0 case models; trademarks, photos and third-party components have separate terms.</p>
+<p><strong>Reviewed:</strong> 2026-11-27 (UTC)</p>
+<p><strong>Revision:</strong> <code>9fad8cab4d96d36701c056b09fd448f494ee5773</code>, main; firmware, SD-card web interface, licensing, tooling and documentation. Source commit dated 2026-11-23.</p>
+<p><strong>Verification:</strong> Static review only. Anonymous GitHub API and HTTPS source retrieval succeeded. No builds, source execution, installs, device flashing, hardware access, accounts or live device probes; tests were not run.</p>
+<p><strong>Stack:</strong> ESP32-S3, Arduino/C++, FreeRTOS, SdFat, ESP Async WebServer, LVGL, browser JavaScript and bundled browser libraries.</p>
+<p><strong>What it is:</strong> A USB-powered, microSD-backed pocket offline media/library server and Wi-Fi hotspot. This is not HashiCorp Nomad, a workload scheduler, or another similarly named offline-computing product. <a href="https://github.com/Jstudner/jcorp-nomad/blob/9fad8cab4d96d36701c056b09fd448f494ee5773/README.md">[1]</a></p>
+<p></p><p>All code links below are pinned to the reviewed source commit. Metadata/release links are mutable snapshots retrieved on the review date. Inspection covered representative control/streaming paths, not every bundled minified dependency, archive, media file, alternate branch or external flasher/tool service.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Worth a controlled hobbyist trial, not a secure multi-user server. HTTP, optional admin authentication and shared writable content require trusted networks, restricted guest writes and independent backups. Static review only; hardware performance and recovery were not tested.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/Jstudner/jcorp-nomad">Jstudner/jcorp-nomad</a> · GPL-3.0-or-later; asset/component exceptions</span>
+    <span><a href="jcorp-nomad.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
