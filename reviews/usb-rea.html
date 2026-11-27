@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>usb-rea — Review</title>
+<meta name="description" content="Evidence-linked USB protocol inference and driver scaffolding — useful offline, not a hardware safety boundary.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / usb-rea</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">emirmrkaljevic/usb-rea · reviewed 2026-11-27</div>
+    <h1>usb-rea</h1>
+    <p class="one-liner">Evidence-linked USB protocol inference and driver scaffolding — useful offline, not a hardware safety boundary.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">Python 3.10+ · PyUSB · MCP stdio</span>
+      <span class="chip"><a href="https://github.com/emirmrkaljevic/usb-rea">emirmrkaljevic/usb-rea ↗</a></span>
+      <span class="chip"><a href="usb-rea.md">Evidence and full review</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">237</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">11</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Confidence is not safety</h3><p>Inference covers values, counters, checksums, replies, state and image streams. Confidence largely measures explained bytes, not a probability of safe hardware behavior; lookup tables cover only observed values.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Generated drivers cross the device boundary</h3><p>Replay requires a caller-supplied approval boolean, not an independent approval record. Generated Device initialization can detach kernel drivers and send handshakes without that gate; no general rollback or reattach lifecycle was found.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Useful tests, bounded proof</h3><p>28 test modules and successful upstream CI at the reviewed SHA support regression coverage. Synthetic known-protocol tests and a real ASUS capture do not establish hardware replay safety; public capture downloads can skip even on checksum mismatch.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Runtime</td><td>Python 3.10+, PyUSB &gt;=1.2, MCP &gt;=1.2,&lt;3; Hatchling</td></tr><tr><td>Capture</td><td>Linux usbmon + dumpcap/tshark; Windows USBPcap</td></tr><tr><td>Analysis</td><td>Pure-Python pcap/pcapng and deterministic protocol inference</td></tr><tr><td>Outputs</td><td>Markdown/JSON, Python driver, Lua dissector</td></tr><tr><td>Trust</td><td>OS permissions and local stdio; no multi-user application auth</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Evidence and discovery</h4><p>Frame-linked reports, leave-one-out linear fitting, lookup fallbacks and existing-driver lookup are the standout workflow. The 268-ID catalogue is discovery, not 268 validated devices. See <a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/infer.py">inference</a> and <a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/lookup.py">lookup</a>.</p><h4>Platform scope</h4><p>Offline Linux/Windows capture analysis needs no hardware. Live capture uses Linux usbmon or Windows USBPcap; no macOS live backend was found. Known-protocol tests cover Kraken X, Hydro Platinum and Rival 100; a trimmed real ASUS LC III capture adds parser/inference evidence, not device replay proof.</p><h4>Verification</h4><p>Reviewed SHA: <code>49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c</code>. Latest release v0.7.14 was published 2026-11-12; main is newer. Upstream <a href="https://github.com/emirmrkaljevic/usb-rea/actions/runs/45783368739">CI reported success</a>; this review did not run it. <a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/docs/VALIDATION.md">Validation scope</a> includes a root-only emulated gadget test outside hosted CI.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>CLI/MCP → transfers → action segmentation and inference → Protocol → report, scaffold or dissector. <a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/pipeline.py">The pipeline</a> selects by device address, defaulting to most outbound payloads: use explicit targets and avoid cross-bus address ambiguity.</p><h4>Device and recovery boundaries</h4><p><a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/scaffold.py">Generated drivers</a> may auto-switch state, wrap numeric fields, replay unknown polling bytes and choose a fallback handshake branch. State restoration is not general exception-safe rollback. No generated kernel-driver reattach lifecycle was found. <a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/replay.py">Replay</a> selects VID/PID without serial/port disambiguation.</p><h4>Capture lifecycle and input limits</h4><p><a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/capture.py">Capture helpers</a> use a bare PID file, discard stderr and do not verify process identity on stop. Defaults may capture unrelated devices. <a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/pcap.py">The parser</a> reads whole files and lacks comprehensive malformed-block validation; isolate and resource-limit untrusted inputs.</p><h4>Privacy and authorization</h4><p><a href="https://github.com/emirmrkaljevic/usb-rea/blob/49ad0ac4a73d4031229161bf4a3676d9fb3aeb2c/src/usb_rea/mcp_server.py">MCP</a> accepts local paths and inherits process privileges; user_confirmed is caller-controlled. Captures/reports can expose serials, input, images or session tokens. External MCP clients may forward results to model providers. Online lookup fetches a public index and matching records without uploading captures; record requests can disclose lookup interests.</p><h4>Dependencies and licensing</h4><p>MIT source requires notice preservation; fixture and dependency terms remain separate. Dependencies and CI action tags float. PyPI uses OIDC, but registry publishing downloads a latest publisher archive without explicit checksum verification. These are reproducibility risks, not evidence of compromise.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Workflow</td><td>usb-rea</td><td>Alternative</td></tr><tr><td>Traffic inspection</td><td>Labelled inference and scaffolding</td><td>Wireshark + USBPcap/usbmon: direct inspection</td></tr><tr><td>Supported cooling</td><td>Inferred driver draft</td><td>liquidctl: device-specific implementations</td></tr><tr><td>Supported mice / RGB</td><td>Infer missing behavior</td><td>rivalcfg / OpenRGB: prefer supported-device drivers</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>No hosted web app or database is needed. Use unprivileged offline analysis with read-only task captures and separate outputs. Pin dependencies and keep a working vendor driver and documented recovery procedure before any authorized device test.</p><p>The Dockerfile runs as non-root, but privileged USB passthrough is a major boundary expansion. Keep capture/replay unavailable for analysis-only MCP use. Neither a confidence score nor a checksum guarantees safe fan, storage or input-device behavior.</p><p>Full claim evidence, exact release tag, provenance and limitations are in <a href="usb-rea.md">the Markdown review</a>. Public metadata observed 2026-11-27; no source execution or hardware tests were performed.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong offline analysis with frame-linked evidence and explicit unknowns. Generated drivers are active engineering drafts: initialization can detach kernel drivers and replay handshakes. Prefer established device-specific drivers and independently authorize every hardware experiment. Static review only; no tests, installation or device access performed.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/emirmrkaljevic/usb-rea">emirmrkaljevic/usb-rea</a> · MIT</span>
+    <span><a href="usb-rea.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
