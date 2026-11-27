@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [mlightcad-cad-viewer.md](reviews/mlightcad-cad-viewer.md) [page](reviews/mlightcad-cad-viewer.html) | [mlightcad/cad-viewer](https://github.com/mlightcad/cad-viewer) | MIT core; optional GPL-3.0 DWG / proprietary terms | ⚠️ Interesting | Browser CAD and portable snapshots; parser licensing, remote assets, resource bounds and fidelity/recovery caveats. Static review. |
 | [blender-skills.md](reviews/blender-skills.md) [page](reviews/blender-skills.html) | [arjun988/blender-skills](https://github.com/arjun988/blender-skills) | MIT; separate asset/service terms | ⚠️ Interesting | 94 Blender agent skills; external Python execution, advisory QA and unverified render quality. Static review. |
 | [vphone-cli.md](reviews/vphone-cli.md) [page](reviews/vphone-cli.html) | [Lakr233/vphone-cli](https://github.com/Lakr233/vphone-cli) | MIT code; Apple/component terms | 📚 Study | Native Apple guest research stack; relaxed host security, guest-root automation and broad local artifact permissions. Static review. |
 | [recursive-self-improving-loopers.md](reviews/recursive-self-improving-loopers.md) [page](reviews/recursive-self-improving-loopers.html) | [eelbaz/Recursive-Self-Improving-Loopers](https://github.com/eelbaz/Recursive-Self-Improving-Loopers) | No license found | 📚 Study | Model-weight self-improvement; gate/log contradictions, missing runtime/data and incomplete recovery. Static review. |
