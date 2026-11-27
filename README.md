@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [vphone-cli.md](reviews/vphone-cli.md) [page](reviews/vphone-cli.html) | [Lakr233/vphone-cli](https://github.com/Lakr233/vphone-cli) | MIT code; Apple/component terms | 📚 Study | Native Apple guest research stack; relaxed host security, guest-root automation and broad local artifact permissions. Static review. |
 | [recursive-self-improving-loopers.md](reviews/recursive-self-improving-loopers.md) [page](reviews/recursive-self-improving-loopers.html) | [eelbaz/Recursive-Self-Improving-Loopers](https://github.com/eelbaz/Recursive-Self-Improving-Loopers) | No license found | 📚 Study | Model-weight self-improvement; gate/log contradictions, missing runtime/data and incomplete recovery. Static review. |
 | [homelab-diagram.md](reviews/homelab-diagram.md) [page](reviews/homelab-diagram.html) | [Goblinmine/homelab-diagram](https://github.com/Goblinmine/homelab-diagram) | MIT; separate asset rights | 📚 Study | Hand-placed YAML/Python homelab SVG/PNG; limited redaction, trusted-input rendering and non-atomic export. |
 | [outcome-engineering.md](reviews/outcome-engineering.md) [page](reviews/outcome-engineering.html) | [Principles of Outcome Engineering](https://www.outcomeengineering.systems/) | N/A | 📚 Good reference | Nader Dabit's one-page principles essay: outcomes as the durable, self-proving unit of work for perpetual agent systems; no evidence or method. Interactive visual guide. |
