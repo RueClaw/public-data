@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursive Self-Improving Loopers — Review</title>
+<meta name="description" content="Model-specific weight editing: useful ideas, unreconciled evidence and incomplete orchestration.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / recursive-self-improving-loopers</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">eelbaz/Recursive-Self-Improving-Loopers · reviewed 2026-11-27</div>
+    <h1>Recursive Self-Improving Loopers</h1>
+    <p class="one-liner">Model-specific weight editing: useful ideas, unreconciled evidence and incomplete orchestration.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">No license found</span>
+      <span class="chip">Python · PyTorch · CUDA · safetensors</span>
+      <span class="chip"><a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers">eelbaz/Recursive-Self-Improving-Loopers ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">17</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Weights, not a self-rewriting agent</h3><p>FP-Solve repairs later-pass activations; GSPO trains on self-generated answers with gold labels. Small edits are not a convergence or safety proof.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Gate and result trajectory disagree</h3><p>Selected generations violate the default gate; one accepted result falls from 118 to 114 correct. Reused validation is not an independent final holdout.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Operational boundaries remain yours</h3><p>Resume is unused and final merge unwired. Data and runtime prerequisites are missing; there is no sandbox or monetary guard.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Tech</td></tr><tr><td>Package / CLI</td><td>setuptools; rse-looper → pipeline.main</td></tr><tr><td>Numerical core</td><td>torch ≥2.4, numpy ≥1.26, safetensors ≥0.4</td></tr><tr><td>Model integration</td><td>Transformers Inkling2LoopForCausalLM and internal masking/cache APIs; not declared in dependencies</td></tr><tr><td>Parallel training</td><td>torch multiprocessing, NCCL gradient all-reduce, AdamW</td></tr><tr><td>Persistence</td><td>JSONL rollouts/gates, torch tensor deltas, copied safetensors checkpoints</td></tr><tr><td>Tests / automation</td><td>pytest ≥8; eight test files; no checked-in CI workflow or dependency lockfile found</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Eric E. / Tensorbend.ai Research describe repairing forced four-pass inference in Inkling-2-Mini, whose middle layers normally execute three times. Stage one aligns later-pass activations to earlier-pass targets without labels or backpropagation. Stage two samples model answers, grades against supplied gold answers, updates a subset of weights, and accepts candidates using a fixed validation set. This is weight-space adaptation, not recursive rewriting of the training program.</p>
+<p>The author reports default-three-pass gains on small public benchmark slices and explicitly acknowledges no independent reproduction. Anonymous GitHub metadata at retrieval showed a public repository, 17 stars, 2 forks, zero open issues, and no releases; the manifest says 1.0.0. These are a dated activity snapshot, not quality evidence. The canonical URL was checked against the public review index before creating this review.</p>
+<h4>1. Local activation repair is concrete, but not a convergence proof</h4>
+<p>The <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/rse_looper/fpsolve.py">FP-Solve module</a> collects pass-three outputs and earlier-pass preservation inputs, then edits 14 submodules across layers 6–17: 168 matrices. A ridge objective penalizes changes on preserved activations and caps each relative Frobenius-norm edit. The actual implementation uses <code>torch.linalg.solve</code>, despite prose calling it a Cholesky solve. The preservation term is a soft penalty, not an exact null-space projection. Pass-to-pass cosine similarity and finite calibration samples do not establish a global contraction bound or Banach fixed-point guarantee. Nor does mathematical “alignment” here imply behavioral safety alignment.</p>
+<h4>2. Self-generated answers still need external correctness labels</h4>
+<p><a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/rse_looper/gspo.py">GSPO</a> samples two solutions in each of R3, R4 and damped RK2 modes, retains mixed-success groups, and gives a 0.35 bonus for deeper-mode successes when R3 failed. Its sequence-average log-probability objective uses asymmetric clipping, manual distributed gradient averaging, gradient clipping and a 5% per-generation weight-delta cap. “No external teacher” is narrower than “no supervision”: both training and gate JSONL files must contain gold answers.</p>
+<h4>3. Export guards are valuable but scoped</h4>
+<p><a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/rse_looper/checkpoint.py">Checkpoint mapping</a> forbids expert, vision, embedding, output-head and scale names during export; verifies target shapes and floating dtypes; and writes an edit report. Synthetic round-trip tests cover unchanged expert and vision tensors. However, the general in-memory <code>apply_weight_deltas</code> helper does not enforce that allowlist, and the exporter copies ancillary files before checking edits. These controls restrict model edits, not operating-system permissions, semantic regressions or adversarial model behavior.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Provenance</h4>
+<p><strong>Repo:</strong> https://github.com/eelbaz/Recursive-Self-Improving-Loopers
+<strong>License:</strong> No license found in the reviewed tree or package metadata. Public visibility is not a general grant to reuse or redistribute code; model and dataset rights require separate review.
+<strong>Reviewed:</strong> 2026-11-27 (UTC)
+<strong>Revision:</strong> <code>765453d13878804c49876a656f39b57a4384dca4</code>, main; full eight-module package, eight test files, manifest, README, six result JSON files, web-report text and four-page paper.
+<strong>Source date:</strong> Paper dated 2026-11-26; commit timestamp 2026-11-27 00:17:54 UTC.
+<strong>Verification:</strong> Static review only. Independently parsed 16 Python files with Python AST and six JSON files; checked reported generation arithmetic against the written acceptance rule. No source imported, tests run, dependencies installed, model downloaded, GPU job launched or paid service called.
+<strong>Stack:</strong> Python ≥3.11, PyTorch, safetensors, NumPy; runtime Transformers integration and CUDA/NCCL.
+<strong>What it is:</strong> A model-specific weight-editing and reinforcement-learning experiment for extending a looped mixture-of-experts transformer's inference depth, not a general-purpose autonomous coding agent.</p>
+
+<p>
+<a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/rse_looper/pipeline.py">Pipeline</a> performs preflight then launches the FP-Solve and GSPO Python modules as fixed argument-list subprocesses. <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/rse_looper/looping.py">Looping</a> monkey-patches the model's forward method to change recurrence depth and uses cache snapshots/restores for damped substeps. It is tightly coupled to named Transformers internals and specific checkpoint layouts, rather than a generic transformer training backend.</p>
+<p>The GSPO driver loads training and gate rows, runs a baseline gate, generates search shards, trains a delta, evaluates scales 1.0 and 0.6, exports an accepted generation and repeats. Generation and step limits plus rejection patience bound iterations. The final return points at the last accepted checkpoint. A separately tested <code>merge_generation_deltas</code> helper exists in pipeline.py, but neither driver calls it: the advertised automatic top-generation merge is not wired into this path.</p>
+<h4>Correctness gates, holdouts and reward hacking</h4>
+<ul><li>The gate uses the first 64 rows of a supplied file repeatedly for candidate selection. It is validation feedback, not an independent final holdout. No train/gate disjointness check, immutable split manifest, benchmark item-ID list or contamination audit was found. The claimed separate “locked” test results are not reconstructible from aggregate JSON alone.</li><li>Acceptance allows up to two lost correct answers per regime and bounded repetition. It accepts either higher total correctness <strong>or unchanged correctness with at least four more completed outputs</strong>. Thus “only strict gains” does not mean strictly improved accuracy in every regime.</li><li>The same <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/rse_looper/grader.py">math grader</a> supplies rewards and gate scores. It extracts the last boxed answer or falls back to the last number; it checks simple string/numeric equivalence, not the validity of the reasoning. Completion requires a nonempty final segment but not EOS. These choices can reward answer/format exploitation and do not constitute independent verification. No adaptive exploit is demonstrated here.</li><li>Gate aggregation counts <code>correct</code> separately from repetition, unlike training's win predicate. An answer with detected repetition can still add correctness while repetition is checked only through a separate aggregate threshold.</li><li>The <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/results/gspo_results.json">reported GSPO sequence</a> cannot be the straightforward accepted trajectory of the default shipped rule. Generation 0's selected candidate has RK2 38/64; generation 1's selected candidate has 34/64, exceeding the permitted two-answer drop. Generation 3 is marked accepted although total correctness falls from generation 2's 118/192 to 114/192. The file contains five accepted entries numbered 0–4, while README/paper describe four generations. A different historical procedure could explain this, but no reconciled provenance is supplied.</li></ul>
+<h4>Evidence versus claims</h4>
+<table><tbody><tr><td>Source-reported observation</td><td>What it supports / does not support</td></tr><tr><td>DeepScaleR R3 32/64 → 44/64; edited R4 45/64</td><td>Promising aggregate result against the normal baseline; not independently reproduced</td></tr><tr><td>LiveCodeBench R3 11/32 → 13/32</td><td>Two additional solved tasks; too small a slice for broad capability claims without paired records and uncertainty</td></tr><tr><td>MMLU 235/285 → 238/285</td><td>Three additional answers; neither significant improvement nor generalization is established by totals alone</td></tr><tr><td>WinoGrande R3 206/300 → 201/300 for GSPO</td><td>Some skills regress; selective highlights must not imply universal gains</td></tr><tr><td>Terminal-Bench Core 0/10 → 6/10; newer suite 0/10 → 0/10</td><td>Distinct reported suites; more shell commands / fewer JSON errors are not successful task completion</td></tr><tr><td>Integrity JSON says zero expert/vision changes</td><td>Author-supplied assertion; the integrity test reads that JSON rather than comparing downloaded real checkpoints</td></tr></tbody></table>
+<p>The README correctly distinguishes default-three-pass Base from deliberately forced four-pass collapse. Terminal-Bench comparisons, however, use the forced four-pass baseline and must not be advertised as gains over normal default deployment. The checked-in results are summaries, not per-item outputs, container transcripts, exact slice manifests or a full benchmark runner. Bootstrap/permutation helpers exist, but supplied aggregate files cannot reconstruct paired outcomes or validate those significance calculations. See <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/results/general_skills.json">general results</a>, <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/results/terminal_bench.json">terminal results</a> and <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers/blob/765453d13878804c49876a656f39b57a4384dca4/tests/test_integrity.py">integrity tests</a>.</p>
+<h4>Maturity and verification</h4>
+<p>
+The eight test files cover numerical helpers, parsing, gates, synthetic checkpoint mapping, caches, preflight and CLI dry runs. This is useful unit-test structure; it is not evidence of a successful complete run. No checked-in CI, locked environment, packaged training/gate data, real-checkpoint integration test or independent reproduction was found in the pinned tree. A shallow checkout establishes the reviewed snapshot, not a comprehensive development-history audit.</p>
+<p>Checks actually performed: anonymous GitHub metadata/releases retrieval; source and destination canonical identity checks; static module/test inspection; AST parsing of all 16 Python files; JSON parsing of all six result files; arithmetic comparison of declared accepted generations to the source gate. All syntax/JSON parsing passed. The arithmetic check exposed the trajectory mismatch above. Tests, numerical execution, downloads, hardware performance and checkpoint integrity were <strong>not</strong> run or independently verified. The external model and paper reference bibliography were not independently validated; no compatibility, availability or licensing claim about those external assets is made.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Aspect</td><td>This project</td><td>Alternative approach</td></tr><tr><td>Need working inference</td><td>Experimental recurrence edits with orchestration gaps</td><td>Start with the model's supported default-depth inference; establish a reproducible baseline first</td></tr><tr><td>RL training infrastructure</td><td>Small model-specific GSPO driver</td><td><a href="https://github.com/huggingface/trl">Hugging Face TRL</a> offers a broader trainer ecosystem; custom recurrence still needs integration</td></tr><tr><td>Independent evaluation</td><td>Reused gate and aggregate result files</td><td><a href="https://github.com/EleutherAI/lm-evaluation-harness">lm-evaluation-harness</a> provides a separate evaluation framework; freeze datasets and keep final tests outside selection</td></tr><tr><td>Want an autonomous coding loop</td><td>Not this project's implemented purpose</td><td>Use a task agent with explicit tool permissions and isolated execution; model-weight adaptation is a different problem</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <h4>Execution, privacy and costs</h4>
+<p>
+This is a local Python/GPU process with the invoking user's filesystem, environment and network privileges. There is no application sandbox, human approval step or enforced network-denial policy. The inspected training path does not execute model-generated shell commands; Terminal-Bench's claimed Docker execution is separate reported evidence, not a bundled isolation boundary for this package. Fixed subprocess argument lists avoid shell interpolation in the pipeline, but do not restrict what dependencies can do.</p>
+<p>Model/tokenizer loading uses Hugging Face-style identifiers without pinned revisions. It can contact a model host and use the runtime's configured cache/authentication. No hosted inference-provider integration or per-call API billing was found in the inspected modules; that does not make GPU compute, storage, downloads or cloud rental free. Search creates six completions per problem, gate evaluations are repeated across modes and scales, and training scores truncated sequences; the cited approximately 140-second update time is not the entire generation's cost. There is no dollar ceiling, wall-clock timeout, disk quota or provider spend guard. Preflight checks CUDA/kernel availability, not affordable memory capacity or model compatibility.</p>
+<p>Search JSONL stores full problems, gold answers and raw generated text; checkpoint export copies ancillary contents from the base directory. No application-level encryption, redaction, retention or secure deletion policy is present. Use only approved non-sensitive datasets and isolated model directories. A few token-prefix checks in tests are not a comprehensive secret/privacy audit.</p>
+<h4>Recovery</h4>
+<ul><li><code>--resume</code> is parsed and forwarded but never read by the GSPO runner. Restart reinitializes from the requested model and generation zero; it does not restore accepted-generation counters, optimizer state or a transactional journal.</li><li>JSONL/delta/checkpoint outputs provide useful intermediate evidence, but writes are not atomic transactions and existing output directories are reused. Interrupted exports or reruns can leave partial/overwritten artifacts; backups and unique output paths remain operator responsibilities.</li><li>The exporter expects a local directory with a specific single safetensors filename. The documented default is a hub model ID, and this code does not resolve that ID to a local export source directory. Sharded or differently named layouts are not handled generically.</li><li>GSPO expects train_math.jsonl and gate_math.jsonl under data/, which is absent. The top-level CLI exposes neither dataset path. Transformers is missing from the manifest despite mandatory runtime imports, and no exact compatible build is pinned.</li><li>One or two GPU IDs pass configuration validation, but gate aggregation always reads R3, R4 and RK2 shard files: fewer than three workers cannot produce all of them. Dry-run tests for two GPUs do not exercise this failure path.</li><li>An empty frontier produces no training examples, yet update sampling falls back to index zero rather than skipping gracefully. No end-to-end test demonstrates these orchestration edges.</li></ul>
+<h4>Before experiments</h4>
+<p>
+Not recommended as a copy-and-run deployment. Before any separately authorized experiment: resolve code/model/data rights; pin a compatible Transformers/model revision; supply documented disjoint datasets; repair local-checkpoint export and resume/merge behavior; test one complete generation in a disposable, credential-free environment; enforce external GPU/time/disk budgets and re-evaluate the exported final artifact independently. Do not infer safety from a dry-run preflight or unchanged expert tensors.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the local-editing idea, not a reproduced deployment recipe. Gate/log contradictions, missing data/runtime prerequisites and incomplete resume/merge wiring block confidence. Static review only; no tests, downloads or GPU runs.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/eelbaz/Recursive-Self-Improving-Loopers">eelbaz/Recursive-Self-Improving-Loopers</a> · No license found</span>
+    <span><a href="recursive-self-improving-loopers.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

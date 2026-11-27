@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [recursive-self-improving-loopers.md](reviews/recursive-self-improving-loopers.md) [page](reviews/recursive-self-improving-loopers.html) | [eelbaz/Recursive-Self-Improving-Loopers](https://github.com/eelbaz/Recursive-Self-Improving-Loopers) | No license found | 📚 Study | Model-weight self-improvement; gate/log contradictions, missing runtime/data and incomplete recovery. Static review. |
 | [outcome-engineering.md](reviews/outcome-engineering.md) [page](reviews/outcome-engineering.html) | [Principles of Outcome Engineering](https://www.outcomeengineering.systems/) | N/A | 📚 Good reference | Nader Dabit's one-page principles essay: outcomes as the durable, self-proving unit of work for perpetual agent systems; no evidence or method. Interactive visual guide. |
 | [h3-creator-studio.md](reviews/h3-creator-studio.md) [page](reviews/h3-creator-studio.html) | [animede/h3-creator-studio](https://github.com/animede/h3-creator-studio) | Apache-2.0 code; model terms separate | ⚠️ Interesting | YUZU local multimedia supervisor: resource-aware engines and resumable productions, but workstation-only trust boundary. |
 | [mood-recognition.md](reviews/mood-recognition.md) [page](reviews/mood-recognition.html) | [Mood recognition](https://libraries.dev/mood-recognition) | Model License v1.6 | ⚠️ Interesting | Local interaction-friction beta, not validated internal-mood inference; gated kit and retained baseline |
