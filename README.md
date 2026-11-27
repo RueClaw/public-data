@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [freestyle-studio.md](reviews/freestyle-studio.md) [page](reviews/freestyle-studio.html) | [mushjacob/freestyle-studio](https://github.com/mushjacob/freestyle-studio) | MIT; font exceptions | ⚠️ Interesting | Seven cloud-DAW views; broad OAuth, receipt-aware recovery and provider custody/cost limits. Static review. |
 | [usb-rea.md](reviews/usb-rea.md) [page](reviews/usb-rea.html) | [emirmrkaljevic/usb-rea](https://github.com/emirmrkaljevic/usb-rea) | MIT | ⚠️ Interesting | Evidence-linked USB protocol inference; generated-driver, capture privacy and recovery limits. Static review. |
 | [context-ontology-accelerator.md](reviews/context-ontology-accelerator.md) [page](reviews/context-ontology-accelerator.html) | [aws/context-ontology-accelerator](https://github.com/aws/context-ontology-accelerator) | Apache-2.0 | ⚠️ Interesting | AWS ontology and GraphRAG platform; optional validation gates and substantial operational footprint. |
 | [saeedvaziry-factory-spec.md](reviews/saeedvaziry-factory-spec.md) [page](reviews/saeedvaziry-factory-spec.html) | [Factory SPEC](https://gist.github.com/saeedvaziry/71180cae1084ebeb9d2fb5081a481946) | No license specified | 📚 Study | Single-user agent desktop proposal; commit approvals, narrow isolation and unresolved recovery. Static specification review. |
