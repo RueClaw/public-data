@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factory SPEC — Review</title>
+<meta name="description" content="A proposed single-user macOS control plane for coding agents, with explicit but limited trust boundaries.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / saeedvaziry-factory-spec</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">Saeed Vaziry · GitHub Gist · reviewed 2026-11-27</div>
+    <h1>Factory SPEC</h1>
+    <p class="one-liner">A proposed single-user macOS control plane for coding agents, with explicit but limited trust boundaries.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">No license specified</span>
+      <span class="chip">Specification · macOS · agent orchestration</span>
+      <span class="chip"><a href="https://gist.github.com/saeedvaziry/71180cae1084ebeb9d2fb5081a481946">Saeed Vaziry · GitHub Gist ↗</a></span>
+
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">1</div><div class="lbl">Source files</div></div>
+      <div class="stat"><div class="num">20,774</div><div class="lbl">Source bytes</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Approve immutable work</h3><p>The host computes policy facts and approval follows a commit, not a moving branch. Destination binding and final revalidation remain implementation requirements.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Isolation is deliberately narrow</h3><p>Root, readable secrets and open networking remain inside guests. SSH tasks share a host; host tasks bypass policy, and reviewers share the worker’s machine.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Recovery needs side-effect receipts</h3><p>Saved flows and replayed logs are useful, but do not prove exactly-once publication. Image retention, folder delivery and crash reconciliation need clearer contracts.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Evidence, design tradeoffs and verification limits.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Provenance</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Claims</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Risks &amp; references</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Author</td><td>Saeed Vaziry (saeedvaziry)</td></tr><tr><td>Created / retrieved</td><td>2026-11-27 / 2026-11-27 UTC</td></tr><tr><td>Updated metadata</td><td>2026-11-27T21:37:12Z; not a new content revision</td></tr><tr><td>Revision</td><td>81a124db01abb569758a7d7470ef9a03e97ed570</td></tr><tr><td>File</td><td>gistfile1.txt; complete; 20,774 bytes</td></tr><tr><td>SHA-256</td><td>336b3ba11dd18a4548e321b33887cad19cc4afe37ba6fca41fdbd97d778b8590</td></tr><tr><td>Verification</td><td>Anonymous public API, revision and raw bytes matched; no source execution</td></tr><tr><td>Proposed stack</td><td>Tauri/Rust, QuickJS, SQLite, Linux guest supervisor</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Factory is a working name for a proposed desktop interface around existing coding harnesses, not a new model or agent engine. Its intended audience is one macOS user managing multiple projects. The document proposes a Tauri/Rust shell, QuickJS plugin logic, SQLite state and a guest supervisor, with Codex first and Claude Code later. No implementation, executable, tests, dependency manifest or benchmark accompanies this gist. [1]</p>
+<p>A workspace groups projects, secrets, policy, images and task flows. The default local provider gives each task a Linux VM; remote SSH tasks instead share a long-lived host, while the explicit host provider gives agents the user’s Mac privileges and does not enforce policy. Repository subpaths only select the starting directory: the full repository remains present. These are materially different trust boundaries, not interchangeable sandbox backends. [1, “Model”, “Machines”]</p>
+<p>The strongest idea is to keep remote Git credentials outside the guest by default and mediate delivery through host actions. Approvals bind to individual commits, policy facts are computed by the host, agent-started flows retain agent identity, and policy changes and plugin installation always require user approval. A central inbox handles pending decisions; action IDs and recorded flow state make asynchronous work explicit. [1, “Code in and out”, “Actions, policy, inbox and activity”]</p>
+<p>The proposal also states its limits unusually plainly: guests have root, open outbound networking, readable workspace secrets and harness credentials; co-located reviewer and worker sessions are not isolated. Plugin logic is unsandboxed on the host. Thus the gates regulate supported app operations and accidental delivery, not every possible external side effect or data disclosure. [1, “Trust model”, “Plugins”]</p><h4>Key claims</h4><ul><li><strong>One action layer can unify UI, CLI, agents and flows.</strong> A coherent design that reduces duplicated policy logic, but no dispatcher or authorization code is available to verify complete mediation. The host CLI counts as <code>user</code> and always runs; socket permissions, caller authentication, token expiry/revocation and replay protection need an explicit contract. [1]</li><li><strong>Commit-specific review can protect remote delivery.</strong> Stronger than approving a moving branch. A robust implementation must also bind approval to repository, destination/ref, base and operation, then revalidate before the side effect. Adding a remote credential to guest secrets defeats the intended credential separation. [1]</li><li><strong>The machine is the sandbox.</strong> Only partly: host filesystem isolation does not stop network exfiltration of data already in a guest. A shared SSH directory is not a per-task VM boundary, and the host provider explicitly abandons enforcement. Network reachability back to the Mac, LAN and cloud metadata would need separate restrictions if those become requirements. These are design risks, not tested vulnerabilities. [1]</li><li><strong>Saved flows and event logs support recovery.</strong> They describe recovery intent, not exactly-once effects. A crash after a remote PR/push succeeds but before SQLite records it requires reconciliation and idempotency keys, not blind retry. Event deduplication IDs alone do not prove atomic dispatch. [1, “Guest agent”, “Flows”]</li><li><strong>The chosen harness interfaces are plausible.</strong> OpenAI documents app-server for rich clients, authentication, approvals and streamed events; Anthropic documents <code>claude -p</code> and structured output. This corroborates interface availability, not Factory’s adapters, credential portability, version compatibility or mode-switch fidelity. [2][3]</li><li><strong>Framed plugin UI can avoid core access.</strong> This needs deliberate capability and bridge configuration, not merely choosing Tauri. Tauri’s documentation says registered application commands are available to all windows/webviews by default unless constrained. No capability manifest, frame-origin policy or navigation rules are supplied here. [4]</li></ul><h4>Strengths</h4><p>The specification distinguishes <code>notify</code> from approval, uses an ask-by-default fallback, gives deny precedence across policy layers and refuses to widen rights on malformed policy files. It separates the reviewer’s recommendation from the actual approval gate, with a supervised default. These are useful design patterns even without copying the text. [1]</p>
+<p>Its staged build plan is sensible: demonstrate one end-to-end Codex/VM/review/push slice, then extract mechanisms and a plugin API rather than designing all adapters up front. It also acknowledges that credential transfer is unresolved and excludes teams, a headless daemon and plugin sandboxing from version one. Those admissions help prevent mistaking a feature list for implementation maturity. [1]</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Security, privacy and permissions</h4>
+<p>A reviewer in the worker’s root-accessible machine is a second opinion, not an independent security principal. Session tokens identifying distinct roles do not establish isolation when processes, files and credentials can be reached by another session. Automated approval based on that reviewer’s verdict should not be marketed as adversarial verification. The operator also spans workspaces; the chat’s current workspace is explicitly context, not an authorization boundary. [1]</p>
+<p>Masking parameters marked secret is narrower than preventing secrets in tool output, prompts, diffs, event results, harness configuration and retained transcripts. The document does not specify encryption at rest, retention/deletion rules, credential revocation, model-provider data handling or secret scanning before its automatic pre-review commit. Root and open networking make least-privilege, short-lived guest credentials and data minimization especially important. No actual secret values were found or reproduced in this review. [1]</p>
+<p>Host plugin installation is a code-execution trust decision. Pinning a source commit is useful for review, but does not make its transitive dependencies trustworthy or its host APIs sandboxed. Needed details include integrity verification, dependency pinning, update rollback and the security boundary of the plugin-specific UI bridge. Protected install actions help only if direct file writes and the host provider cannot bypass the intended boundary; the latter is explicitly trusted. [1][4]</p>
+<h4>Recovery and reproducibility</h4>
+<p>The proposed recovery preserves Git branches, harness state and non-code outputs, but does not define export completeness, atomic folder delivery, deletion handling, symlink/path safety or collision behavior when several workspaces target the same source. An approved commit alone cannot prevent overwriting subsequent user edits in a plain folder. Multi-project deliveries need per-project receipts and an explicit partial-success policy. [1]</p>
+<p>There is also a lifecycle gap: tasks can reopen from their original image, yet images that no task uses are garbage-collected. The specification should define whether closed tasks pin images and what happens after image deletion. Hashing only the setup script does not pin mutable downloads, package repositories, base images or harness versions, so identical script hashes do not guarantee reproducible guests. [1]</p>
+<p>Sessions may survive app exit, but schedules and external polling only operate while the app runs. Catch-up, missed schedules, cancellation while awaiting approval and duplicate event delivery are unspecified. “Retry, skip, discard” requires operation-aware safeguards: skipping export or retrying an uncertain publish is not equivalent to rerunning a pure computation. [1]</p>
+<h4>Applicability and next evidence</h4>
+<p>Best fit: architecture study for a trusted single-user desktop, with expendable task environments and deliberate human review. Poor fit without substantial additions: tenant isolation, hostile-source processing with valuable secrets, independent security review, always-on scheduling, or automated macOS work under the same guarantees as Linux VMs. The guest is described as one Linux binary, while a remote Mac is suggested for Xcode work; the guest’s macOS build/support story remains unspecified. The <code>svm</code> dependency is named but not linked or version-pinned, so its identity and isolation guarantees were not independently established. [1]</p>
+<p>Before adopting an eventual implementation, ask for: an end-to-end slice with pinned dependencies; authorization-negative tests for socket/UI/plugin bridges; immutable destination-bound approvals; crash injection around publish and export; verified restoration after VM/image deletion; and credential/redaction tests using synthetic fixtures. None of those tests were possible from this document. A simpler direct harness integration using the documented APIs is an alternative when a desktop-wide plugin and policy framework is unnecessary. [2][3]</p>
+<p>No productivity, performance or security measurement is presented. This review assesses internal coherence and documented platform interfaces, not operational effectiveness. No source instructions were adopted, and no licensed excerpts or runnable templates were extracted.</p><h4>Provenance and primary references</h4><p>1. Saeed Vaziry, <a href="https://gist.github.com/saeedvaziry/71180cae1084ebeb9d2fb5081a481946/81a124db01abb569758a7d7470ef9a03e97ed570">Factory SPEC, pinned gist revision</a>. Entire <code>gistfile1.txt</code>; section names above identify evidence. <a href="https://api.github.com/gists/71180cae1084ebeb9d2fb5081a481946">Anonymous metadata</a> and <a href="https://api.github.com/gists/71180cae1084ebeb9d2fb5081a481946/81a124db01abb569758a7d7470ef9a03e97ed570">revision API</a>. The API raw URL uses a separate identifier, <code>5286d063cbdf7bcd2c91dc019eb7b14e6312a2de</code>; <a href="https://gist.githubusercontent.com/saeedvaziry/71180cae1084ebeb9d2fb5081a481946/raw/5286d063cbdf7bcd2c91dc019eb7b14e6312a2de/gistfile1.txt">raw bytes</a> matched the revision and the hash above. It is not substituted for the history revision.
+2. OpenAI, <a href="https://developers.openai.com/codex/app-server/">Codex app-server</a>, public documentation retrieved 2026-11-27; introductory interface and transport sections checked.
+3. Anthropic, <a href="https://code.claude.com/docs/en/headless">Run Claude Code programmatically</a>, public documentation retrieved 2026-11-27; programmatic CLI and structured-output guidance checked.
+4. Tauri, <a href="https://v2.tauri.app/security/capabilities/">Capabilities</a>, public documentation retrieved 2026-11-27; capability configuration and application-command exposure checked.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Useful architecture study, not a released or security-verified application. Commit-bound approval and unified actions are strong ideas; open guest networking, shared reviewers and unsandboxed plugins limit the protection. Static review only; no implementation or operational tests accompanied the gist.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://gist.github.com/saeedvaziry/71180cae1084ebeb9d2fb5081a481946">Saeed Vaziry · GitHub Gist</a> · No license specified</span>
+    <span><a href="saeedvaziry-factory-spec.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

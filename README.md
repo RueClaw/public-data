@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [saeedvaziry-factory-spec.md](reviews/saeedvaziry-factory-spec.md) [page](reviews/saeedvaziry-factory-spec.html) | [Factory SPEC](https://gist.github.com/saeedvaziry/71180cae1084ebeb9d2fb5081a481946) | No license specified | 📚 Study | Single-user agent desktop proposal; commit approvals, narrow isolation and unresolved recovery. Static specification review. |
 | [avatarforcing-mlx.md](reviews/avatarforcing-mlx.md) [page](reviews/avatarforcing-mlx.html) | [johnrobinsn/avatarforcing-mlx](https://github.com/johnrobinsn/avatarforcing-mlx) | CC BY-NC 4.0; model rights separate | ⚠️ Interesting | Hybrid MLX/MPS interactive avatars; warm-throughput claims, parity limits, model integrity and consent/recovery gates. Static review. |
 | [hex.md](reviews/hex.md) [page](reviews/hex.html) | [anomalyco/hex](https://github.com/anomalyco/hex) | MIT; models separate | ⚠️ Interesting | Local voice dictation with authenticated API and careful persistence; optional scripts/rewrites widen privacy boundaries. Static review. |
 | [kumo-engine.md](reviews/kumo-engine.md) [page](reviews/kumo-engine.html) | [NVIDIA/kumo-engine](https://github.com/NVIDIA/kumo-engine) | Apache-2.0 + third-party | ⚠️ Interesting | Disk-backed relational graph ML; qualified benchmarks and prerelease Studio boundaries |
