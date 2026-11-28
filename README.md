@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [skyhook-radar.md](reviews/skyhook-radar.md) [page](reviews/skyhook-radar.html) | [skyhook-io/radar](https://github.com/skyhook-io/radar) | Apache-2.0 | ⚠️ Interesting | Kubernetes UI and MCP context; shared-cache RBAC, agent/cloud authority and persistence tradeoffs. Static review. |
 | [neurband.md](reviews/neurband.md) [page](reviews/neurband.html) | [jlcjak/neurband](https://github.com/jlcjak/neurband) | No project-wide license | 📚 Study | DIY eight-channel sEMG wristband; simulated evidence, unauthenticated BLE, recording durability and hardware-validation caveats. Static review. |
 | [freestyle-studio.md](reviews/freestyle-studio.md) [page](reviews/freestyle-studio.html) | [mushjacob/freestyle-studio](https://github.com/mushjacob/freestyle-studio) | MIT; font exceptions | ⚠️ Interesting | Seven cloud-DAW views; broad OAuth, receipt-aware recovery and provider custody/cost limits. Static review. |
 | [usb-rea.md](reviews/usb-rea.md) [page](reviews/usb-rea.html) | [emirmrkaljevic/usb-rea](https://github.com/emirmrkaljevic/usb-rea) | MIT | ⚠️ Interesting | Evidence-linked USB protocol inference; generated-driver, capture privacy and recovery limits. Static review. |

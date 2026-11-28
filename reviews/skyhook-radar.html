@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar — Review</title>
+<meta name="description" content="Kubernetes operations UI and MCP context server with explicit authority tradeoffs.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / skyhook-radar</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">skyhook-io/radar · reviewed 2026-11-28</div>
+    <h1>Radar</h1>
+    <p class="one-liner">Kubernetes operations UI and MCP context server with explicit authority tradeoffs.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">Apache-2.0</span>
+      <span class="chip">Go · React · Kubernetes · MCP</span>
+      <span class="chip"><a href="https://github.com/skyhook-io/radar">skyhook-io/radar ↗</a></span>
+      <a class="chip" href="https://github.com/skyhook-io/radar/releases/tag/v1.22.0">v1.22.0</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4,251</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">284</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Context for humans and agents</h3><p>Topology, issues and changes feed UI and MCP. Separate read-only catalogs are meaningful; the full endpoint still exposes mutations.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Read RBAC has a namespace tradeoff</h3><p>Ordinary namespaced cache reads are broader than exact per-kind Kubernetes permissions. Shared deployment requires trust-boundary scoping and careful impersonation/Secret grants.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>AI and Cloud expand the boundary</h3><p>Agent context can reach model providers; full-local adapters auto-approve tools. Optional Cloud tunnels the router, while history and transcripts create sensitive stores.</p></div></div>
+      <!-- Add or remove .step blocks to fit the review (3–5). Renumber .n. -->
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Revision</td><td>711f4b425a64a6871f8cf604d895a4cb590f83cb / v1.22.0</td></tr><tr><td>Stack</td><td>Go / React / client-go / Helm / MCP</td></tr><tr><td>Storage</td><td>Memory / SQLite / PostgreSQL</td></tr><tr><td>Verification</td><td>Static; upstream CI/CodeQL reported success</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Skyhook’s Radar runs against local kubeconfig, as a desktop app, or in Kubernetes through Helm. Go watchers populate a shared model served through a React UI, SSE and MCP. Features cover resources, topology, issues, logs, Helm/GitOps, traffic, metrics and change history. Richer views need existing integrations: “no agents” describes the basic client, not all possible data sources. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/README.md">readme</a></p>
+<p>Radar also drives installed AI CLIs and optionally connects to Radar Cloud via an outbound tunnel. Neither is required for local browsing. The client is reviewed here, not the remote Cloud service’s tenancy, retention or security. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/cloud/client.go">cloud</a></p>
+<h4>Shared contextual model</h4>
+<p>Relationships, issues and recent changes reduce repeated raw-object exploration. MCP builds distinct read-only and full catalogs rather than relying on a prompt not to mutate. Investigation/apply transports are separate; the apply catalog removes deletion and Helm-management tools. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/mcp/server.go">mcp</a></p>
+<h4>History with explicit gaps</h4>
+<p>SQLite uses WAL/cleanup and distinguishes corruption from locking/permission failures; corruption is quarantined and unavailable SQLite can degrade to explicitly marked memory. PostgreSQL startup outages leave history unavailable and reconnect rather than silently pretending memory is durable. Observation-start timestamps bound claims about periods actually watched. These are good patterns, not tested disaster-recovery guarantees. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/manager.go">manager</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/sqlite_store.go">sqlite</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/postgres_store.go">postgres</a></p>
+<h4>Not a read-only dashboard</h4>
+<p>Full MCP and UI expose mutation workflows under the effective Kubernetes identity. The read-only endpoint excludes writes; the MCP read-only flag does not disable UI writes. Opt-in MCP exec can change containers/external systems and returns unredacted output. Destructive-tool annotations are not a universal server-enforced human approval boundary for arbitrary clients. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/README.md">readme</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/mcp/server.go">mcp</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/mcp/tools_exec.go">exec</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Architecture</h4><p>Kubeconfig/ServiceAccount → watchers and shared cache → contextual permission/read layer → REST/SSE/MCP → React or agent.</p>
+<p>Optional Cloud hub → authenticated outbound WebSocket/yamux transport → the same HTTP router.</p>
+<p>Startup composes services in internal/app; internal/server integrates HTTP, internal/k8s collects state, pkg/auth discovers permissions, and internal/mcp exposes tools. Domain modules handle integrations/storage. Shared Go/UI packages offer reuse seams, but the large routing module and many authorization-sensitive integrations increase maintenance complexity. The efficient shared cache is also a privileged aggregation boundary. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/server/server.go">server</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/pkg/auth/permissions.go">permissions</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/cloud/serve.go">tunnel</a></p>
+<h4>Security, Privileges and Privacy</h4><h4>Local default versus shared exposure</h4>
+<p>CLI defaults to loopback. Docker/Helm shared listeners need an explicit network/auth decision: authentication defaults to none, so reachable clients act with Radar’s Kubernetes identity. Host validation, CORS and origin/fetch-metadata checks address browser threats; headerless non-browser requests are intentionally supported. CORS is not authentication. Do not expose an unauthenticated ingress based on a read-only assumption. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/server/listen_address.go">listener</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/server/cross_site.go">origin</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/docs/authentication.md">authdoc</a></p>
+<p>Proxy mode accepts forwarded identity headers; the proxy must strip supplied identities and be the only backend path. Normal auth deployment grants users/groups impersonation and SubjectAccessReview creation. Reserved-identity filtering is useful, but a compromised Radar process remains a high-value cluster principal. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/auth/middleware.go">middleware</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/deploy/helm/radar/templates/clusterrole.yaml">rbac</a></p>
+<h4>Per-user RBAC is not exact read parity</h4>
+<p>Namespace discovery checks cluster-wide pod listing, then pod/deployment listing per namespace. Ordinary namespaced cached reads use that visibility: a pod reader can see ConfigMaps even where direct Kubernetes authorization would deny them. Secrets, selected sensitive kinds and cluster-scoped resources have tighter gates; writes use caller identity. This is documented behavior, not a newly demonstrated bypass. Separate namespace-scoped instances are a better fit for strict tenant boundaries. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/pkg/auth/permissions.go">permissions</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/docs/authentication.md">authdoc</a></p>
+<p>Raw PromQL/aggregate metrics use broad pod visibility for authorization but Radar’s credentials to query Prometheus; that backend still needs tenant isolation. Documentation also acknowledges limited matching-information disclosure through narrowed relationship results involving hidden cached objects. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/docs/authentication.md">authdoc</a></p>
+<h4>Render privileges rather than trusting one checkbox</h4>
+<p>Default Helm values disable general Secret reads, Helm writes, pod exec, port forwarding and self-upgrade; pod logs and broad inventory remain. Traffic integration has its own certificate-secret grant. Auth or Cloud automatically enables cache Secret reads even when rbac.secrets is false. Enabling Helm writes without auth adds create/update/patch/delete across all API groups/resources. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/deploy/helm/radar/values.yaml">values</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/deploy/helm/radar/templates/clusterrole.yaml">rbac</a></p>
+<p>Cloud is off by default. When enabled it tunnels the router, including SSE, exec and MCP, and advertises cluster/installation metadata. Tunnel requests carry a private in-process marker; Cloud auth refuses spoofed forwarded identities on the ordinary TCP listener. That is concrete hardening, but Cloud is still a remote authority/data recipient. Avoid insecure TLS bypass. User-token mode has separate chart checks requiring verified transport and different RBAC assumptions. Reconnection uses bounded exponential backoff. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/cloud/client.go">cloud</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/cloud/serve.go">tunnel</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/auth/middleware.go">middleware</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/deploy/helm/radar/templates/clusterrole.yaml">rbac</a></p>
+<h4>Agent context is sensitive</h4>
+<p>MCP withholds Secret value fields and AI context uses key/shape heuristics. Regex cannot guarantee removal of arbitrary credentials, business data or unusual encodings. Read-only tools prevent mutation through that catalog, not disclosure to the model provider or prompt injection from logs/resources. Opt-in exec returns raw output. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/README.md">readme</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/pkg/ai/context/redact.go">redact</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/mcp/tools_exec.go">exec</a></p>
+<p>Claude’s safeguarded adapter disables built-in tools and constrains MCP. Codex requests read-only sandboxing and constrained configuration. Cursor/OpenCode full-local paths retain other configured tools and auto-approve requests: Radar’s read-only catalog does not bound their authority. Approve the particular adapter, provider and tool setup, not merely the Investigate button. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_claude.go">claude</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_codex.go">codex</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_cursor.go">cursor</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_opencode.go">opencode</a></p>
+<h4>Local-first does not mean unconditional no-egress</h4>
+<p>Usage reporting is consent-controlled and off unless opted in; payloads contain counts/coarse cluster facts. Release checking has vendor/GitHub endpoints. Registries, metrics, OIDC, Cloud and agents introduce further destinations. No egress capture or airgap test was performed. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/usagedata/usagedata.go">usage</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/usagedata/report.go">payload</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/version/version.go">version</a></p>
+<p>Authenticated image inspection is documented to gate images by readable Pods, constrain credential use/connections and reject metadata/link-local destinations. Private addresses remain allowed for enterprise registries; local unauthenticated credential discovery is broader. Redirect/credential-provider behavior was not exhaustively traced; SSRF resistance was not proven. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/docs/authentication.md">authdoc</a></p>
+<h4>Persistence and Recovery</h4><p>Memory timeline is bounded and restart-volatile. The chart defaults persistent-backend retention to 168 hours; SQLite needs writable persistent storage with the hardened container filesystem. Configure retention/capacity/backups together. This is observed history, not a cluster backup or complete audit system; downtime and database failures leave evidence gaps. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/deploy/helm/radar/values.yaml">values</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/manager.go">manager</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/sqlite_store.go">sqlite</a></p>
+<p>Investigation transcripts have separate SQLite persistence with private file creation, transactional event/summary boundaries and degraded-state reporting for disk/queue failures. These are sensitive records requiring access controls and deletion policy. No restore, crash injection, migration or multi-replica consistency test was run. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/store.go">aistore</a></p>
+<h4>Maturity, Dependencies and Claim Evidence</h4><p>Anonymous GitHub metadata retrieved 2026-11-28 reported 4,251 stars, 284 forks and 122 open issues/PRs combined; push time was 2026-11-28T01:58:57Z. Latest release v1.22.0 was published 2026-11-27T23:44:06Z; its public tag resolves exactly to the reviewed SHA. Previous releases observed: v1.21.5 and v1.21.4. Popularity/activity do not prove safety. <a href="https://api.github.com/repos/skyhook-io/radar">Public metadata</a> · <a href="https://github.com/skyhook-io/radar/releases/tag/v1.22.0">Release</a></p>
+<p>There are 1,048 internal Go test files, including auth/MCP/Cloud/storage regressions. CI defines Go tests/vet/build, PostgreSQL tests, frontend tests/typecheck/lint/build, browser settings journeys and Helm render/negative/unit tests. Anonymous Actions metadata reported successful <a href="https://github.com/skyhook-io/radar/actions/runs/46082464479">CI</a> and <a href="https://github.com/skyhook-io/radar/actions/runs/46082464482">CodeQL</a> for this SHA. These are upstream-reported results, not local execution or review of every log. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/.github/workflows/ci.yml">ci</a></p>
+<p>Go sums and npm lockfile are present. Kubernetes, Helm, registry/cloud SDKs, OIDC, MCP, database and desktop/UI libraries form a large dependency surface. CI uses mutable major-version actions alongside some SHA pins. No dependency install, SBOM/CVE/transitive-license audit, release reproducibility or binary-signature verification was performed. Apache-2.0 permits reuse under its terms; dependencies still need separate license accounting. <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/go.mod">gomod</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/web/package.json">web</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/.github/workflows/ci.yml">ci</a> <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/LICENSE">license</a></p>
+<table><tbody><tr><td>Claim</td><td>Evidence assessment</td></tr></tbody></table>
+<table><tbody></tbody></table>
+<table><tbody><tr><td>Single binary, no account</td><td>Consistent with local core; integrations and agent CLIs remain dependencies.</td></tr></tbody></table>
+<table><tbody><tr><td>Read-only agent access</td><td>Separate catalog exists; full MCP and other agent tools are outside that guarantee.</td></tr></tbody></table>
+<table><tbody><tr><td>Per-user RBAC</td><td>Qualified by namespace-level ordinary reads and sensitive-kind exceptions.</td></tr></tbody></table>
+<table><tbody><tr><td>Private by design</td><td>Local/opt-in baseline, qualified by integrations, agents, Cloud and update traffic.</td></tr></tbody></table>
+<table><tbody><tr><td>About 3× faster diagnosis</td><td>README vendor SREGym study reports 64s versus 191s; not independently reproduced.</td></tr></tbody></table>
+<table><tbody><tr><td>Large-cluster speed</td><td>Cache/informer rationale is plausible; no load test performed.</td></tr></tbody></table>
+<h4>Verification and Limitations</h4><p>Verified anonymous accessibility, canonical deduplication against public reviews/index, exact SHA/tag, release metadata, selected source paths, chart defaults and upstream CI status. Targeted static analysis, not exhaustive certification. No exploit was attempted or confirmed. Runtime integration-wide authorization, performance, provider costs, Cloud security and recovery guarantees remain unverified.</p>
+<h4>Sources</h4><p>Code references are pinned to the reviewed commit. Public owner: Skyhook / skyhook-io/radar contributors.</p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/LICENSE">license</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/README.md">readme</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/cloud/client.go">cloud</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/go.mod">gomod</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/web/package.json">web</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/mcp/server.go">mcp</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/manager.go">manager</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/sqlite_store.go">sqlite</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/timeline/postgres_store.go">postgres</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/mcp/tools_exec.go">exec</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/server/server.go">server</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/pkg/auth/permissions.go">permissions</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/cloud/serve.go">tunnel</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/server/listen_address.go">listener</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/server/cross_site.go">origin</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/docs/authentication.md">authdoc</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/auth/middleware.go">middleware</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/deploy/helm/radar/templates/clusterrole.yaml">rbac</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/deploy/helm/radar/values.yaml">values</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/pkg/ai/context/redact.go">redact</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_claude.go">claude</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_codex.go">codex</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_cursor.go">cursor</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/agent_opencode.go">opencode</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/usagedata/usagedata.go">usage</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/usagedata/report.go">payload</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/version/version.go">version</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/internal/ai/store.go">aistore</a></p>
+<p>- <a href="https://github.com/skyhook-io/radar/blob/711f4b425a64a6871f8cf604d895a4cb590f83cb/.github/workflows/ci.yml">ci</a></p>
+<p><strong>Attribution:</strong> skyhook-io/radar contributors, Apache-2.0. Independent analysis; no source code extracted.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Radar</td><td>Contextual UI plus MCP/investigations</td></tr><tr><td>K9s</td><td>Terminal operations</td></tr><tr><td>Headlamp</td><td>Web UI and plugins</td></tr><tr><td>HolmesGPT</td><td>Investigation-oriented alternative; not audited here</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>1. Pilot locally with restricted kubeconfig; effective authority includes credential-plugin behavior.</p>
+<p>2. Start agents on the read-only MCP endpoint; separately restrict UI/Kubernetes writes and exec. Prefer safeguarded adapters over full-local auto-approval.</p>
+<p>3. For shared use, configure TLS/OIDC or an isolated trusted proxy. Scope cache/service-account namespaces and inspect rendered Secret, impersonation and Helm grants.</p>
+<p>4. Keep Cloud/telemetry off unless approved; review registry/metrics/provider egress separately and never bypass TLS verification in production.</p>
+<p>5. Choose durable history deliberately, protect transcripts, test restore and validate with representative user identities before rollout.</p>
+<p>6. Pin releases and independently verify distribution integrity. No installer/deployment was executed here.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>Strong local workbench; pilot with least privilege. Shared-cache read granularity, full MCP writes and optional agent/cloud authority require deliberate trust boundaries. Static review, not security certification.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/skyhook-io/radar">skyhook-io/radar</a> · Apache-2.0</span>
+    <span><a href="skyhook-radar.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
