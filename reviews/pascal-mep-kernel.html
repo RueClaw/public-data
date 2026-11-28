@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pascal MEP Kernel — Review</title>
+<meta name="description" content="A pure TypeScript coordination kernel for Pascal building-services plugins—not a certified engineering solver.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--study);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / pascal-mep-kernel</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">kruschdev/pascal-mep-kernel · reviewed 2026-11-28</div>
+    <h1>Pascal MEP Kernel</h1>
+    <p class="one-liner">A pure TypeScript coordination kernel for Pascal building-services plugins—not a certified engineering solver.</p>
+    <div class="verdict-pill">📚 Study</div>
+    <div class="chips">
+      <span class="chip">MIT</span>
+      <span class="chip">TypeScript · ESM · zero runtime dependencies</span>
+      <span class="chip"><a href="https://github.com/kruschdev/pascal-mep-kernel">kruschdev/pascal-mep-kernel ↗</a></span>
+      <span class="chip"><a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/LICENSE">MIT license</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Useful architecture, narrower product</h3><p>Shared anatomy, discrete cavity routing and caller-supplied constraints reduce cross-trade drift. The separate editor and four trade plugins—not this package alone—produce the showcased house.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>A clean audit can hide missing data</h3><p>Working-space checks skip missing or nonfinite measurements; fixture checks can skip absent nearby-fixture data. Validate completeness and rule applicability before treating zero violations as evidence.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Own acceptance and rollback</h3><p>Automatic reservation is not gated by the final ok result. Keep rejected diagnostic paths out of shared occupancy, assert target endpoints, and rebuild state from immutable saved scenes.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Library</td><td>TypeScript, ESM; five public entry points</td></tr><tr><td>Geometry</td><td>Prisms, AABBs, footprints and roof interpretation</td></tr><tr><td>Routing</td><td>Bounded constrained A*, four route modes</td></tr><tr><td>State</td><td>In-memory caches and mutable occupancy; no database</td></tr><tr><td>Tooling</td><td>Bun tests/build, TypeScript compiler, purity gate</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <h4>Shared anatomy and rules</h4><p><a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/src/anatomy/index.ts">Anatomy</a> resolves common geometry; <a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/src/rules/evaluator.ts">placement thresholds</a> tighten the same table used for auditing. Rule references and measurements remain caller-supplied, not independently verified code authority.</p><h4>Routing with explicit diagnostics</h4><p><a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/src/router/shortest-path.ts">The solver</a> tries a hard-free route, a degraded diagnostic search, then a fallback. A returned path is not itself acceptance.</p><h4>Evidence boundary</h4><p>Ten test files are present. README claims 169 kernel tests, 582 ecosystem tests and a 246-building corpus; these were not run or independently reproduced. No GitHub Actions workflow was present. No installation, source execution or live engineering validation was performed.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <h4>Exact reviewed source</h4><p>Commit eb1fc09037e49153d49ddb95b5f004b1925766d9, reviewed 2026-11-28 UTC. Source, tests and tooling inspected; sibling plugins excluded. Anonymous access confirmed. No GitHub releases or tags observed; npm latest 0.1.0 exists, but tarball/source equivalence was not checked.</p><h4>Numerical limitations</h4><p><a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/src/router/cavity-graph.ts">Graph compilation</a> targets 580 vertices and 24 stations per wall. Search retains 16 Pareto labels per state; sampled footprint checks cap general segment sampling at 64 steps. Neither completeness nor global shortest-path optimality follows.</p><p>Nonfinite endpoints become zero components, and nonfinite extents become zero. Static gravity-shaping inspection also identifies a possible endpoint mismatch when available head is insufficient; this was not reproduced. Validate physical inputs and independently check endpoints and segment slopes.</p><h4>Audit and recovery traps</h4><p><a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/src/rules/evaluator.ts">Working-space measurements</a> can be absent without violations; rule validation is separate. Final routing <a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/src/router/shortest-path.ts#L2130-L2150">reservation</a> is not conditioned on ok. Explicit acceptance and rollback are required.</p><h4>State and privacy</h4><p>WeakMap caches depend on scene identity. <a href="https://github.com/kruschdev/pascal-mep-kernel/blob/eb1fc09037e49153d49ddb95b5f004b1925766d9/src/anatomy/occupancy.ts">Reservations</a> are memory-only, with explicit unreserve; the host owns durable saves, multi-route transactions and restart reconstruction. No runtime network or telemetry integration was observed. Validate untrusted models and impose resource limits; host privacy/security are separate.</p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>IFC geometry/interoperability</td><td><a href="https://github.com/IfcOpenShell/IfcOpenShell">IfcOpenShell</a></td><td>Broader IFC focus; not a Pascal router</td></tr><tr><td>CAD authoring</td><td><a href="https://github.com/FreeCAD/FreeCAD">FreeCAD</a></td><td>Modeling application, not pure TS kernel</td></tr><tr><td>Energy simulation</td><td><a href="https://github.com/NatLabRockies/EnergyPlus">EnergyPlus</a></td><td>Physical energy modeling, not coordinated routing</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>No server to deploy. Pin and verify the package artifact, isolate build tooling, validate scene inputs and measurement completeness, persist accepted state in the host and obtain independent engineering review. MIT requires notice preservation and supplies no engineering warranty.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">📚 Study</div>
+      <p>Study the shared geometry and placement/audit rule design. Missing measurements can pass audits, failed routes can reserve space, and bounded search does not establish constructability. Require independent geometry, endpoint and engineering validation before real design use.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/kruschdev/pascal-mep-kernel">kruschdev/pascal-mep-kernel</a> · MIT</span>
+    <span><a href="pascal-mep-kernel.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>
