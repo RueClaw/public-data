@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cheyenne — Review</title>
+<meta name="description" content="A local earth-observation investigation board: imagery, satellites, AIS, fire detections and public reports.">
+<style>
+  :root {
+    --bg: #0b0e14; --bg-raised: #11151f; --bg-card: #151a26; --line: #232a3a;
+    --text: #e6e9f0; --text-dim: #9aa3b5; --text-faint: #626c80;
+    --accent: #7aa2ff; --accent-soft: rgba(122,162,255,.12);
+    --deploy: #3fb96f; --interesting: #d9a13b; --study: #4f8fdd; --harvest: #9a6fd8; --pass: #d15454;
+    --verdict: var(--interesting);
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 50; display: flex; gap: 4px; align-items: center;
+    padding: 10px 20px; background: rgba(11,14,20,.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line); overflow-x: auto;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; color: var(--text-faint); margin-right: auto; white-space: nowrap; }
+  nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 6px 12px;
+    border-radius: 8px; white-space: nowrap; transition: color .15s, background .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--bg-card); }
+  nav a.active { color: var(--accent); background: var(--accent-soft); }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 20px 120px; }
+  section { padding-top: 72px; margin-top: -40px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 48px; border-bottom: 1px solid var(--line); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(34px, 6vw, 52px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+  .hero .one-liner { font-size: 18px; color: var(--text-dim); max-width: 640px; margin-top: 16px; }
+  .verdict-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+    padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    color: var(--verdict); background: color-mix(in srgb, var(--verdict) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--verdict) 40%, transparent);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg-raised);
+  }
+  .chip a { color: var(--accent); text-decoration: none; }
+  .stats { display: flex; gap: 40px; margin-top: 32px; }
+  .stat .num { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section headers ─────────────────────────────── */
+  h2 { font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); margin-bottom: 32px; }
+
+  /* ── Key points walkthrough ──────────────────────── */
+  .steps { display: flex; flex-direction: column; gap: 16px; counter-reset: step; }
+  .step {
+    display: grid; grid-template-columns: 48px 1fr; gap: 20px; padding: 24px;
+    background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+    opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease;
+  }
+  .step.revealed { opacity: 1; transform: none; }
+  .step .n {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid rgba(122,162,255,.25);
+  }
+  .step h3 { font-size: 17px; margin-bottom: 6px; }
+  .step p { color: var(--text-dim); font-size: 15px; }
+  .step code, dd code, p code, li code {
+    font-family: var(--mono); font-size: .88em; background: var(--bg);
+    padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line);
+  }
+
+  /* ── Deep dive tabs ──────────────────────────────── */
+  .tabbar { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 28px; overflow-x: auto; }
+  .tabbar button {
+    appearance: none; background: none; border: none; cursor: pointer; padding: 10px 16px;
+    color: var(--text-dim); font: inherit; font-size: 14px; font-weight: 600;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+  }
+  .tabbar button:hover { color: var(--text); }
+  .tabbar button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel[hidden] { display: none; }
+  .panel h4 { font-size: 16px; margin: 24px 0 8px; }
+  .panel p, .panel li { color: var(--text-dim); font-size: 15px; }
+  .panel ul { padding-left: 22px; }
+  .panel li { margin-bottom: 6px; }
+  .panel pre {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; margin: 12px 0;
+  }
+  .panel pre code { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-faint); }
+  td:first-child { color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+
+  /* ── Verdict ─────────────────────────────────────── */
+  .verdict-block {
+    border: 1px solid color-mix(in srgb, var(--verdict) 35%, transparent);
+    background: color-mix(in srgb, var(--verdict) 7%, var(--bg-card));
+    border-radius: 16px; padding: 32px;
+  }
+  .verdict-block .big { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: var(--verdict); }
+  .verdict-block p { color: var(--text-dim); }
+
+  footer {
+    margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--text-faint);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .step { grid-template-columns: 1fr; }
+    .stats { gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .step { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">review / cheyenne</span>
+  <a href="#overview">Overview</a>
+  <a href="#key-points">Key points</a>
+  <a href="#deep-dive">Deep dive</a>
+  <a href="#verdict">Verdict</a>
+</nav>
+
+<main>
+
+  <section class="hero" id="overview">
+    <div class="kicker">MJCruickshank/cheyenne · reviewed 2026-11-28</div>
+    <h1>Cheyenne</h1>
+    <p class="one-liner">A local earth-observation investigation board: imagery, satellites, AIS, fire detections and public reports.</p>
+    <div class="verdict-pill">⚠️ Interesting</div>
+    <div class="chips">
+      <span class="chip">No project license specified</span>
+      <span class="chip">Python · JavaScript · SQLite · MapLibre</span>
+      <span class="chip"><a href="https://github.com/MJCruickshank/cheyenne">MJCruickshank/cheyenne ↗</a></span>
+      <span class="chip"><a href="https://github.com/MJCruickshank/cheyenne/commit/b6074a52ddc38551086e06e332f24fb69c133dba">Reviewed b6074a52ddc3</a></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">62</div><div class="lbl">Stars</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">Forks</div></div>
+    </div>
+  </section>
+
+  <section id="key-points">
+    <h2>Key points</h2>
+    <p class="section-sub">What matters most, in order.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>Integrated context, not certified findings</h3><p>Actual imagery adapters and browser ship, burn and coherence algorithms are present. Detection accuracy and runtime performance were not independently validated.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>Local-only, with optional outbound analysis</h3><p>No board authentication; retain the loopback bind. Intel can transmit public post text to Anthropic, and its estimated daily budget is not a hard billing cap.</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>Useful recovery; substantial adoption gaps</h3><p>Caches, reconnect backoff and SQLite aid recovery, but browser jobs do not resume. No project license, shipped tests or CI were found.</p></div></div>
+
+    </div>
+  </section>
+
+  <section id="deep-dive">
+    <h2>Deep dive</h2>
+    <p class="section-sub">Into the repo itself.</p>
+    <div class="tabbar" role="tablist" aria-label="Deep dive sections">
+      <button role="tab" aria-selected="true" aria-controls="tab-stack" id="btn-stack">Stack</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-features" id="btn-features">Features</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-arch" id="btn-arch">Architecture</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-compare" id="btn-compare">Comparison</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-selfhost" id="btn-selfhost">Self-hosting</button>
+    </div>
+
+    <div class="panel" role="tabpanel" id="tab-stack" aria-labelledby="btn-stack">
+      <table><tbody>
+        <tr><td>Layer</td><td>Tech</td></tr><tr><td>Service</td><td>Python ThreadingHTTPServer / SimpleHTTPRequestHandler; loopback by default</td></tr><tr><td>UI</td><td>Plain ES modules, MapLibre GL JS 5.24.1; no bundler</td></tr><tr><td>Orbits / exports</td><td>satellite.js 5.0.0; gifenc 1.0.3; browser canvases</td></tr><tr><td>Persistence</td><td>SQLite WAL for Intel and AIS archives; JSON/file caches; browser localStorage for annotations</td></tr><tr><td>Imagery</td><td>Planetary Computer, ASF/NISAR, Vantor/Maxar/Planet catalogues; browser COG reader</td></tr><tr><td>Optional packages</td><td>anthropic&gt;=2.8 and websockets&gt;=14, without a lockfile</td></tr><tr><td>Authentication</td><td>No board accounts/access control; optional upstream keys/tokens in environment</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-features" aria-labelledby="btn-features" hidden>
+      <p>Cheyenne is aimed at open-source investigators following disasters, humanitarian crises and conflict. A browser globe combines orbital predictions with actual archive footprints, operator acquisition plans and optional live overlays. It distinguishes predicted imaging opportunities from confirmed tasking; commercial satellite visibility does not establish that an image will be taken. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/README.md">README</a></p>
+<p>Its distinctive feature is composition: inspect the same place through optical/radar imagery, time-lapses, fire detections, recorded AIS and source-linked reports, then export imagery, annotations or a presentation card. The board does not independently corroborate Telegram reports or infer the cause of radar change. These are analytic aids, not evidence certification.</p>
+
+<h4></h4>
+<p>CelesTrak elements, ESA plans, scene catalogues and map layers are distinct inputs. Browser modules handle propagation, scene browsing and visualization; Python handles caching, selected proxy downloads and catalogue indexing. A three-hour TLE cache returns stale elements with an explicit stale flag when refresh fails instead of silently inventing fresh data. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/tracker.js">tracker</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/archive.js">archive</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/server.py#L137-L180">TLE recovery</a></p>
+<h4>Ship detection with explicit uncertainty classes</h4>
+<p>The browser performs adaptive bright-target detection on Sentinel-1 radar over a land-masked area, then matches AIS and checks earlier passes for persistent objects. Classification distinguishes matched, dark candidate, near-shore, persistent and not-compared results. Crucially, the AIS archive tests recording sessions and at least two ships in a recording area within ±30 minutes; this avoids equating every empty feed with a dark vessel. However, the coverage test is area-level and checks the query centre, not reception at each detection. Sparse reception can still yield misleading confidence. Neither the README nor checked files supply a labelled validation benchmark. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/ships.js#L453-L505">detector and classification</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/aisarchive.py#L178-L200">coverage heuristic</a></p>
+<h4>Burn scars and coherent change are implemented, but not validated here</h4>
+<p>Burn mapping applies fixed dNBR thresholds with reflectance and scene-classification filters; it is not a trained classifier. NISAR uses a custom HDF5 range reader and browser windowed complex coherence, optionally comparing an earlier reference pair. The code contains the stated stable-coherence (0.5) and loss (0.3) thresholds. These are meaningful algorithms, not proof of accuracy: crop cycles, weather, water, alignment and scene selection matter, and coherence loss cannot identify a strike or its actor. The README explicitly acknowledges unvalidated ship/burn detections and limited NISAR product coverage. Reported timings and the Kyiv example remain author claims, not reproduced results. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/burns.js#L1-L45">burn rules</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/ccd.js#L178-L195">coherence implementation</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/h5lite.py#L1-L15">HDF5 scope</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/README.md#limitations">limitations</a></p>
+<h4>Geolocated reports with a real privacy and spending boundary</h4>
+<p>Intel scrapes public Telegram previews, extracts written coordinates or sends post text and channel titles to Anthropic, and resolves place names through GeoNames with model-coordinate fallback. Approximate placement is not independent corroboration. Untrusted post text is placed directly in model input; structured output limits shape, not factual manipulation or prompt injection. The reviewed call is extraction-only, with no model tools or shell capability. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/intel.py#L485-L515">resolution</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/intel.py#L780-L855">model request</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-arch" aria-labelledby="btn-arch" hidden>
+      <p>The repository has seven Python modules and a substantial browser module set rather than a framework-backed application. server.py routes local APIs, serves only the web directory, and coordinates Intel, AIS, NISAR and open-data managers. intel.py and ais.py own polling/feed threads and state; aisarchive.py stores positions; nisar.py uses h5lite.py to fetch only needed product chunks. The browser performs the heavy scientific and rendering work. Shared state/events and a small DOM helper connect modules. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/server.py#L571-L788">service routes</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/state.js">state</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/cog.js">COG reader</a></p>
+<p>The dependency-light design is attractive for inspection and setup. Its tradeoff is ownership of custom TIFF/HDF5 handling, projections, remote API compatibility and image-processing correctness. HDF5 support is intentionally partial and NISAR only supports UTM grids. Large typed-array analyses and concurrent downloads can consume substantial RAM and bandwidth. In particular, NISAR allows 36 million pixels; if an upstream ignores Range, Remote._get reads the entire response before slicing it. A nominally small window is therefore not a strict network or memory bound. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/nisar.py#L30-L140">NISAR transport</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/nisar.py#L288-L342">window cap</a></p><h4>Security, permissions and privacy</h4><ul><li><strong>Local-only is an actual boundary.</strong> The default bind is 127.0.0.1 and there are no user accounts. Do not expose --host 0.0.0.0 to untrusted users. same_site checks Fetch Metadata and Origin for Intel/AIS/NISAR APIs; POST requires JSON and a body below 16 KiB. These are useful browser protections, not authentication: non-browser clients can omit those headers. No explicit allowed-Host list is present, so this is not a complete DNS-rebinding defense. No exploit was attempted. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/server.py#L630-L734">handler</a></li><li><strong>Not an unrestricted URL proxy.</strong> Planetary Computer downloads constrain collection and identifier formats and check blob host suffixes; NISAR requires HTTPS, its specific ASF hostname and an .h5 path. Initial destination restrictions are good, but redirects remain trusted upstream behavior rather than a comprehensive redirect/destination policy. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/server.py#L556-L568">asset signing</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/nisar.py#L266-L286">NISAR product gate</a></li><li><strong>Keys remain server-side in the reviewed flows.</strong> Optional feed keys and the Earthdata token are environment inputs; NISAR status exposes a boolean. First-hop bearer authorization is separated from signed redirect requests. This does not establish absence of leaks across all dependencies or logs. Avoid copying the README&#x27;s shell-profile key-storage example into shared environments.</li><li><strong>Local UI does not mean offline or private.</strong> Upstream imagery, basemap, search and feed providers can observe requests, IP addresses and areas of interest. Telegram sees channel-page requests; Anthropic receives text/channel context when enabled. Browser annotations and local databases can themselves reveal an investigation; protect exports and backups. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/README.md#data-sources">data sources and privacy</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/annotations.js#L1-L29">annotations</a></li><li><strong>The daily Intel budget is a soft estimate, not a hard provider cap.</strong> The code uses hard-coded prices and checks recorded spend before a batch. Costs are accounted after responses; recursive splits can make more calls without rechecking budget. Failed/retried requests may further diverge from local accounting. The configured model string claude-haiku-5-5, SDK requirements, prices and claimed per-post cost were not independently verified against the provider. Use a provider-side limit and keep Intel disabled until explicitly approved. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/intel.py#L37-L43">pricing constants</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/intel.py#L780-L895">accounting and extraction</a></li></ul><h4>Recovery and operations</h4><p>There are useful small-scale recovery patterns: atomic replacement of TLE and catalogue caches, AIS reconnect backoff, NISAR transient retries and signed-URL renewal, and resetting interrupted Intel busy rows to new at startup. SQLite uses WAL. These mechanisms improve resilience but are not a documented transactional job system or tested disaster-recovery plan. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/ais.py#L140-L170">AIS reconnect</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/opendata.py">catalogue cache</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/intel.py#L542-L570">Intel startup</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/nisar.py#L84-L109">NISAR retry</a></p>
+<p>The Active Processes bar is browser in-memory state with cancel callbacks, not a durable server queue. Reloading does not resume an analysis. Aborting a fetch does not guarantee the server stops an already-running NISAR computation. Annotations require explicit GeoJSON export to survive browser-storage loss. Preserve data with a consistent SQLite backup or a stopped-server backup; regenerable .cache files are different from investigation records. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/jobs.js">jobs</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/web/js/annotations.js#L198-L235">annotation export</a></p>
+<p>AIS recording areas deliberately keep feeds running without an open browser; Intel normally stops polling after three minutes without a watching client. Seven-day retention is not comprehensive erasure: AIS pruning deletes old positions and sessions but not the ships identity table or area definitions, and SQLite deletion does not itself guarantee physical byte removal. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/aisarchive.py#L32-L65">archive storage/pruning</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/aisarchive.py#L132-L156">pruning</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/intel.py#L589-L620">Intel activity</a></p><h4>Maturity, license and evidence</h4><p>Anonymous GitHub metadata on 2026-11-28 reported 62 stars, 2 forks and 0 open issues, with last push 2026-11-28T16:15:19Z. Releases and tags endpoints both returned empty arrays. The five commits returned by the recent-commits API show a sequence from initial board to AIS, Intel/time-lapse, share cards and the reviewed detection additions; this is activity evidence, not stability evidence. <a href="https://api.github.com/repos/MJCruickshank/cheyenne">repository metadata</a>, <a href="https://api.github.com/repos/MJCruickshank/cheyenne/releases">releases</a>, <a href="https://api.github.com/repos/MJCruickshank/cheyenne/tags">tags</a></p>
+<p>The 73-file tracked inventory contains no shipped test suite or GitHub Actions workflow. No lockfile or project-level license was found. The README mentions NISAR checks on real and synthetic files, but those fixtures/results are not shipped as a reproducible suite. No CI result, scientific accuracy, model availability, live provider access, browser rendering, installation or performance is established by this review. Screenshots demonstrate the author&#x27;s intended UI, not independently verified runtime behavior.</p>
+<p>Third-party notices are present for MapLibre (BSD-3-Clause), satellite.js and gifenc (MIT), and two fonts (OFL-1.1). Those notices do not license Cheyenne&#x27;s original code. Imagery and feed terms are separate: the README identifies non-commercial restrictions for Vantor/Planet releases and some AIS feeds, and warns that Pelyr disallows third-party proxying. Verify the actual dataset/service terms for each intended export; a card credit is not blanket reuse permission. No source components were extracted or redistributed in this review. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/README.md#credits-and-licences">credits</a>, <a href="https://github.com/MJCruickshank/cheyenne/tree/b6074a52ddc38551086e06e332f24fb69c133dba/web/vendor/licenses">notices</a></p>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-compare" aria-labelledby="btn-compare" hidden>
+      <table><tbody>
+        <tr><td>Aspect</td><td>Cheyenne</td><td>Alternative</td></tr><tr><td>Integrated investigative context</td><td>One local board with AIS, reports and imagery</td><td><a href="https://qgis.org/">QGIS</a> offers a broader established GIS workflow, but assembling these live feeds takes work</td></tr><tr><td>Radar analysis</td><td>Lightweight browser heuristics and partial custom HDF5 reader</td><td><a href="https://step.esa.int/main/toolboxes/snap/">ESA SNAP</a> is the stronger starting point for dedicated SAR processing; heavier setup and less social/live-feed integration</td></tr><tr><td>Authoritative scene discovery</td><td>Convenient combined UI with bespoke adapters</td><td><a href="https://browser.dataspace.copernicus.eu/">Copernicus Browser</a> and <a href="https://search.asf.alaska.edu/">ASF Vertex</a> keep discovery closer to the providers, without this combined investigation board</td></tr><tr><td colspan="3">Workflow comparisons only; no head-to-head benchmarks.</td></tr>
+      </tbody></table>
+    </div>
+    <div class="panel" role="tabpanel" id="tab-selfhost" aria-labelledby="btn-selfhost" hidden>
+      <p>This is a desktop-local service, not a multi-tenant hosted platform. The documented core needs Python 3.9+ and a WebGL browser; optional extras require Python 3.10+. run.sh only selects an existing virtual environment or system Python. Keep the default loopback bind, use a dedicated environment, review upstream terms, and leave paid analysis off until approved. Budget disk, memory and bandwidth for large scenes, and export annotation/data records before upgrades. Validate known scenes, empty/sparse AIS coverage, imagery range failures and interrupted jobs before trusting operational outputs. <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/run.sh">launcher</a>, <a href="https://github.com/MJCruickshank/cheyenne/blob/b6074a52ddc38551086e06e332f24fb69c133dba/README.md#installation">installation</a></p>
+<p><strong>Priority improvements:</strong> clarify original-code licensing; ship deterministic detector/coherence/parser fixtures and CI; pin dependencies; add hard request/billing limits and stronger host checks; document consistent backup, cancellation and retention semantics.</p>
+<p><strong>Attribution:</strong> MJCruickshank/cheyenne and its public contributors. No project license specified; dependency and data licenses remain separate. This review is independent analysis of public source, not an endorsement or scientific validation.</p><h4>Verification and provenance</h4><p><strong>Repo:</strong> https://github.com/MJCruickshank/cheyenne
+<strong>License:</strong> No project license specified. Public visibility is not a general grant to reuse or redistribute the original code; obtain permission. Bundled dependencies have separate licenses.
+<strong>Reviewed:</strong> 2026-11-28 (UTC)
+<strong>Revision:</strong> b6074a52ddc38551086e06e332f24fb69c133dba (main); root README, all file inventory, Python service boundaries and persistence, browser analysis modules and vendored license notices. Targeted static inspection, not an exhaustive audit.
+<strong>Verification:</strong> Anonymous GitHub metadata and HTTPS clone succeeded. Static source review only; no application, tests, installation, accounts, paid API calls, imagery downloads or live scientific probes were run.
+<strong>Stack:</strong> Python standard-library HTTP service, SQLite, plain JavaScript ES modules, MapLibre GL JS, satellite.js; optional anthropic and websockets.
+<strong>What it is:</strong> A local earth-observation investigation board combining satellite passes, imagery, maritime positions, fire detections and public Telegram reports, with exploratory image analyses and exportable cards.</p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <h2>Verdict</h2>
+    <p class="section-sub">The call, and why.</p>
+    <div class="verdict-block">
+      <div class="big">⚠️ Interesting</div>
+      <p>⚠️ <strong>Interesting — an unusually integrated investigation workbench, not a validated detection system.</strong> The implementation goes well beyond a map demo: real data adapters, range readers, analysis code and retention logic are present. Keep it local and treat detections as leads; missing project licensing, absent shipped tests/CI, heuristic outputs and optional provider billing prevent a general deployment or reuse recommendation.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Attribution: <a href="https://github.com/MJCruickshank/cheyenne">MJCruickshank/cheyenne</a> · No project license specified</span>
+    <span><a href="cheyenne.md">full markdown review</a> · generated from the review skill</span>
+  </footer>
+
+</main>
+
+<script>
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(btn) {
+    tabs.forEach(b => {
+      const on = b === btn;
+      b.setAttribute('aria-selected', on);
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const d = e.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      next.focus(); selectTab(next);
+    });
+  });
+  // Hide tabs whose panel ended up empty (optional sections)
+  tabs.forEach(b => {
+    const p = document.getElementById(b.getAttribute('aria-controls'));
+    if (!p.textContent.replace(/\s|<[^>]*>/g, '')) { b.style.display = 'none'; p.remove(); }
+  });
+
+  // Scroll-reveal for steps
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+
+  // Scrollspy nav
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const spy = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('main section[id]').forEach(s => spy.observe(s));
+</script>
+</body>
+</html>

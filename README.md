@@ -52,6 +52,7 @@ Repository tracking:
 
 | File | Source | License | Rating | Description |
 |------|--------|---------|--------|-------------|
+| [cheyenne.md](reviews/cheyenne.md) [page](reviews/cheyenne.html) | [MJCruickshank/cheyenne](https://github.com/MJCruickshank/cheyenne) | No project license | ⚠️ Interesting | Local earth-observation board; exploratory detections, soft Intel budget and no shipped tests. Static review. |
 | [pascal-mep-kernel.md](reviews/pascal-mep-kernel.md) [page](reviews/pascal-mep-kernel.html) | [kruschdev/pascal-mep-kernel](https://github.com/kruschdev/pascal-mep-kernel) | MIT | 📚 Study | TypeScript MEP coordination kernel; missing-data audits, bounded routing and reservation/recovery caveats. Static review. |
 | [lencx-skills.md](reviews/lencx-skills.md) [page](reviews/lencx-skills.html) | [lencx/skills](https://github.com/lencx/skills) | MIT | ⚠️ Interesting | Two execution/architecture skills; careful authority and recovery prose, host-enforced permissions and no shipped evaluations. Static review. |
 | [skyhook-radar.md](reviews/skyhook-radar.md) [page](reviews/skyhook-radar.html) | [skyhook-io/radar](https://github.com/skyhook-io/radar) | Apache-2.0 | ⚠️ Interesting | Kubernetes UI and MCP context; shared-cache RBAC, agent/cloud authority and persistence tradeoffs. Static review. |
